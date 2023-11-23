@@ -1,0 +1,153 @@
+{
+    "language": "English",
+    "@language": {
+        "description": "English"
+    },
+    "multi_language": "Multi Language",
+    "@multi_language": {
+        "description": "App title"
+    },
+    "login": "Log In",
+    "@login": {
+        "description": "Log In"
+    },
+    "email": "Email",
+    "@email": {
+        "description": "Email"
+    },
+    "password": "Password",
+    "@password": {
+        "description": "Password"
+    },
+    "validPassword": "ValidPassword",
+    "@validPassword": {
+        "description": "Enter a valid password"
+    },
+    "processingData": "ProcessingData",
+    "@processingData": {
+        "description": "ProcessingData"
+    },
+    "invalidEmail": "InvalidEmail",
+    "@invalidEmail": {
+        "description": "Invalid email or password"
+    },
+    "adminPage": "AdminPage",
+    "@adminPage": {
+        "description": "Admin Page"
+    },
+    "serchName": "SerchName",
+    "@serchName": {
+        "description": "Search by name or email"
+    },
+    "username": "Username",
+    "@username": {
+        "description": "Username"
+    },
+    "phoneNumber": "PhoneNumber",
+    "@phoneNumber": {
+        "description": "Phone Number"
+    },
+    "imeiNumber": "ImeiNumber",
+    "@imeiNumber": {
+        "description": "Imei Number"
+    },
+    "warehouse": "Warehouse",
+    "@warehouse": {
+        "description": "Warehouse"
+    },
+    "usergroup": "Usergroup",
+    "@usergroup": {
+        "description": "User group"
+    },
+    "font": "Font",
+    "@font": {
+        "description": "Font"
+    },
+    "languages": "Languages",
+    "@languages": {
+        "description": "Languages"
+    },
+    "active": "Active",
+    "@active": {
+        "description": "Active"
+    },
+    "userform": "UserForm",
+    "@userform": {
+        "description": "User From"
+    },
+    "submit": "Submit",
+    "@submit": {
+        "description": "Submit"
+    },
+    "add": "Add",
+    "@add": {
+        "description": "Add"
+    },
+    "addUser": "AddUser",
+    "@addUser": {
+        "description": "Add New User Group"
+    },
+    "userCreated": "UserCreated",
+    "@userCreated": {
+        "description": "User is created!"
+    },
+    "invalidNumber": "InvalidNumber",
+    "@invalidNumber": {
+        "description": "Invalid Phone Number"
+    },
+    "cancel": "Cancel",
+    "@cancel": {
+        "description": "Cancel"
+    },
+    "confirmDeletion": "ConfirmDeletion",
+    "@confirmDeletion": {
+        "description": "Confirm Deletion"
+    },
+    "textDeletion": "Are you sure you want to delete ? {dusername}",
+    "@textDeletion": {
+        "description": "Are you sure you want to delete  ?",
+        "placeholders": {
+            "dusername": {
+               "type": "String"
+            }
+        }
+    },
+    "delete": "Delete",
+    "@delete": {
+        "description": "Delete"
+    },
+    "editUserForm": "editUserForm",
+    "@editUserForm": {
+        "description": "Edit User"
+    },
+    "update": "update",
+    "@update": {
+        "description": "Update"
+    },
+    "userUpdated": "userUpdated",
+    "@userUpdated": {
+        "description": "User is Updated!"
+    },
+    "admin": "admin",
+    "@admin": {
+        "description": "Admin"
+    },
+    "user": "User",
+    "@user": {
+        "description": "User"
+    },
+    "account": "Account",
+    "@account": {
+        "description": "Account"
+    },
+    "selectFont": "select Font",
+    "@selectFont": {
+        "description": "Select Font Size"
+    }
+    
+    
+
+
+
+
+}

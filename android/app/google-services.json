@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "414977193950",
+    "project_id": "sales-bab47",
+    "storage_bucket": "sales-bab47.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:414977193950:android:7d50180dbadede6974cf4f",
+        "android_client_info": {
+          "package_name": "com.example.project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFCuPn0NYHhaDFeXvoMcEbU4nveukmQ-0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
