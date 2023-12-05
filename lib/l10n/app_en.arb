@@ -19,23 +19,23 @@
     "@password": {
         "description": "Password"
     },
-    "validPassword": "ValidPassword",
+    "validPassword": "Enter a valid password",
     "@validPassword": {
         "description": "Enter a valid password"
     },
-    "processingData": "ProcessingData",
+    "processingData": "Processing Data ...",
     "@processingData": {
         "description": "ProcessingData"
     },
-    "invalidEmail": "InvalidEmail",
+    "invalidEmail": "Invalid email or password",
     "@invalidEmail": {
         "description": "Invalid email or password"
     },
-    "adminPage": "AdminPage",
+    "adminPage": "Admin Page",
     "@adminPage": {
         "description": "Admin Page"
     },
-    "serchName": "SerchName",
+    "serchName": "Search by name or email",
     "@serchName": {
         "description": "Search by name or email"
     },
@@ -43,11 +43,11 @@
     "@username": {
         "description": "Username"
     },
-    "phoneNumber": "PhoneNumber",
+    "phoneNumber": "Phone Number",
     "@phoneNumber": {
         "description": "Phone Number"
     },
-    "imeiNumber": "ImeiNumber",
+    "imeiNumber": "Imei Number",
     "@imeiNumber": {
         "description": "Imei Number"
     },
@@ -55,9 +55,9 @@
     "@warehouse": {
         "description": "Warehouse"
     },
-    "usergroup": "Usergroup",
-    "@usergroup": {
-        "description": "User group"
+    "usergroupen": "In English",
+    "@usergroupen": {
+        "description": "In English"
     },
     "font": "Font",
     "@font": {
@@ -71,7 +71,7 @@
     "@active": {
         "description": "Active"
     },
-    "userform": "UserForm",
+    "userform": "User Form",
     "@userform": {
         "description": "User From"
     },
@@ -83,15 +83,15 @@
     "@add": {
         "description": "Add"
     },
-    "addUser": "AddUser",
+    "addUser": "Add New User Group",
     "@addUser": {
         "description": "Add New User Group"
     },
-    "userCreated": "UserCreated",
+    "userCreated": "User is Created!",
     "@userCreated": {
         "description": "User is created!"
     },
-    "invalidNumber": "InvalidNumber",
+    "invalidNumber": "Invalid Number",
     "@invalidNumber": {
         "description": "Invalid Phone Number"
     },
@@ -99,11 +99,11 @@
     "@cancel": {
         "description": "Cancel"
     },
-    "confirmDeletion": "ConfirmDeletion",
+    "confirmDeletion": "Confirm Deletion",
     "@confirmDeletion": {
         "description": "Confirm Deletion"
     },
-    "textDeletion": "Are you sure you want to delete ? {dusername}",
+    "textDeletion": "Are you sure you want to delete {dusername} ?",
     "@textDeletion": {
         "description": "Are you sure you want to delete  ?",
         "placeholders": {
@@ -116,7 +116,7 @@
     "@delete": {
         "description": "Delete"
     },
-    "editUserForm": "editUserForm",
+    "editUserForm": "Edit User",
     "@editUserForm": {
         "description": "Edit User"
     },
@@ -124,9 +124,9 @@
     "@update": {
         "description": "Update"
     },
-    "userUpdated": "userUpdated",
+    "userUpdated": "User is Updated",
     "@userUpdated": {
-        "description": "User is Updated!"
+        "description": "User is Updated"
     },
     "admin": "admin",
     "@admin": {
@@ -140,10 +140,48 @@
     "@account": {
         "description": "Account"
     },
-    "selectFont": "select Font",
+    "selectFont": "select Font Size",
     "@selectFont": {
         "description": "Select Font Size"
+    },
+    "permissionAccess": "You do not have permission to access the Admin Page.",
+    "@permissionAccess": {
+        "description": "You do not have permission to access the Admin Page"
+    },
+    "logout": "Log-Out",
+    "@logout": {
+        "description": "Log-out"
+    },
+    "settings": "Settings",
+    "@settings": {
+        "description": "settings"
+    },
+    "welcome": "Welcome Page",
+    "@welcome": {
+        "description": "Welcome Page"
+    },
+    "usergroupar": "In Arabic",
+    "@usergroupar": {
+        "description": "In Arabic"
+    },
+    "usergroup": "User Group",
+    "@usergroup": {
+        "description": "User Group"
+    },
+    "common": "Common",
+    "@common": {
+        "description": "Common"
+    },
+    "alreadyExists": "This user group already exists!",
+    "@alreadyExists": {
+        "description": "This user group already exists!"
+    },
+    "bothNames": "Please enter both English and Arabic user group names!",
+    "@bothNames": {
+        "bothNames": "Please enter both English and Arabic user group names!"
     }
+    
+
     
     
 
