@@ -45,20 +45,6 @@ Future<void> updateFontSize(int newSize) async {
       await userBox.put(_userEmail, userDataDynamic);
        }
       // Query for the document with the provided email
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Users')
-          .where('email', isEqualTo: _userEmail)
-          .get();
-
-      // Check if the document exists
-      if (querySnapshot.docs.isNotEmpty) {
-        // Update the document with the new values
-        await querySnapshot.docs.first.reference.update({
-          'languages': newLanguage,
-        });
-      } else {
-        print('Document with email $_userEmail not found.');
-      }
     } catch (e) {
       print('Error updating user: $e');
     }
@@ -75,18 +61,6 @@ Future<void> updateFontSize(int newSize) async {
       await userBox.put(_userEmail, userDataDynamic);
        }
 
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Users')
-          .where('email', isEqualTo: _userEmail)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        await querySnapshot.docs.first.reference.update({
-          'font': newSize,
-        });
-      } else {
-        print('Document with email $_userEmail not found.');
-      }
     } catch (e) {
       print('Error updating font size in the database: $e');
     }

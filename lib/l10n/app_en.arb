@@ -179,6 +179,10 @@
     "bothNames": "Please enter both English and Arabic user group names!",
     "@bothNames": {
         "bothNames": "Please enter both English and Arabic user group names!"
+    },
+    "useroremailExists": "User with this email or username already exists",
+    "@useroremailExists": {
+        "useroremailExists": "User with this email or username already exists"
     }
     
 

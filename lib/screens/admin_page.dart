@@ -29,13 +29,6 @@ class _AdminPageState extends State<AdminPage> {
   Stream<List<UserClass>> get _usersStream => _userStreamController.stream;
   late List<UserClass> offlineUsers = []; // Add this line
 
-void _initializeConnectivity() {
-  Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-    if (result != ConnectivityResult.none) {
-      _syncDeletedUsersWithFirestore();
-    }
-  });
-}
 
   void initState() {
     super.initState();
@@ -43,80 +36,47 @@ void _initializeConnectivity() {
     _initUserStream();
 
   }
+ @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateOfflineUsers();
+  }
+
+ Future<void> _updateOfflineUsers() async {
+  Stream<List<UserClass>>? userStream = await _getUserStream();
+  List<UserClass> updatedUsers = await userStream?.first ?? [];
+  
+  setState(() {
+    offlineUsers = updatedUsers;
+    // Ensure that filteredUsers is initialized with offlineUsers
+    filteredUsers = updatedUsers;
+  });
+}
 
    Future<void> _initUserStream() async {
     Stream<List<UserClass>>? userStream = await _getUserStream();
     _userStreamController.addStream(userStream!);
   }
-
 void _searchUsers(String query) {
   setState(() {
     if (query.isEmpty) {
       // If the query is empty, show all users
-      filteredUsers = users; // for online mode
+      filteredUsers = offlineUsers; // for offline mode
     } else {
-      // If there is a query, filter filteredUsers based on the search query
-      if (users.isNotEmpty) {
-        // Online mode
-        filteredUsers = users.where((user) {
-          final userName = user.username.toLowerCase();
-          final input = query.toLowerCase();
-          return userName.contains(input) ||
-              user.email.toLowerCase().contains(input);
-        }).toList();
-      } else {
-        // Offline mode
-        filteredUsers = offlineUsers.where((user) {
-          final userName = user.username.toLowerCase();
-          final input = query.toLowerCase();
-          return userName.contains(input) ||
-              user.email.toLowerCase().contains(input);
-        }).toList();
-      }
+      // If there is a query, filter offlineUsers based on the search query
+      filteredUsers = offlineUsers.where((user) {
+        final userName = user.username.toLowerCase();
+        final input = query.toLowerCase();
+        return userName.contains(input);
+      }).toList();
     }
   });
 }
 
 
+
 Future<Stream<List<UserClass>>> _getUserStream() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-
-  if (connectivityResult != ConnectivityResult.none) {
-      // Online: Listen for real-time updates from Firestore
-      var snapshot = await FirebaseFirestore.instance.collection('Users').get();
-
-      users = snapshot.docs.map((DocumentSnapshot document) {
-        Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
   
-          String username = data['username'] as String? ?? 'DefaultUsername';
-          String email = data['email'] as String? ?? 'DefaultEmail';
-          String password = data['password'] as String? ?? 'DefaultPass';
-          String phonenumber = data['phonenumber'] as String? ?? 'DefaultPhone';
-          String warehouse = data['warehouse'] as String? ?? 'DefaultWarehouse';
-          int usergroup = data['usergroup'] as int? ?? 0;
-          int font = data['font'] as int? ?? 0;
-          String imeicode = data['imeicode'] as String? ?? 'DefaultIMEsI';
-          String languages = data['languages'] as String? ?? 'DefaultLanguages';
-          bool active = data['active'] as bool? ?? false;
-
-            return UserClass(
-              username: username,
-              email: email,
-              password: password,
-              phonenumber: phonenumber,
-              imeicode: imeicode,
-              warehouse: warehouse,
-              usergroup: usergroup,
-              font: font,
-              languages: languages,
-              active: active,
-            );
-          }).toList();
-           _userStreamController.add(users);
-      
-      
-    }   else {
   // Offline: Retrieve data from Hive
   var userBox = await Hive.openBox('userBox');
   offlineUsers = [];
@@ -154,63 +114,11 @@ Future<Stream<List<UserClass>>> _getUserStream() async {
 
   // Return the list of users as a stream
    return Stream.value(offlineUsers);
-}
-  // Default return statement in case neither online nor offline conditions are met
-  return Stream.empty();
+
   }
 
 
-Future<void> _deleteUserOffline(String email) async {
-  var userBox = await Hive.openBox('userBox');
-  
-  // Mark the user as deleted (you can use a specific field like 'isDeleted')
-  userBox.put(email, {'isDeleted': true});
-}
 
-Future<void> _syncDeletedUsersWithFirestore() async {
-  var userBox = await Hive.openBox('userBox');
-  var connectivityResult = await Connectivity().checkConnectivity();
-
-  if (connectivityResult != ConnectivityResult.none) {
-    try {
-      // Get all keys in the local database
-      List<String> allKeys = userBox.keys.cast<String>().toList();
-
-      // Loop through each key and retrieve user data
-      for (String key in allKeys) {
-        dynamic userDataDynamic = userBox.get(key);
-
-        // Ensure that userDataDynamic is not null and is a Map
-        if (userDataDynamic is Map<String, dynamic>) {
-          Map<String, dynamic> userData = userDataDynamic;
-
-          // Check if the user is marked as deleted
-          if (userData['isDeleted'] == true) {
-            // Query for the document with the given email
-            QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-                .collection('Users')
-                .where('email', isEqualTo: userData['email'])
-                .get();
-
-            // Check if the document exists
-            if (querySnapshot.docs.isNotEmpty) {
-              // Delete the document
-              await querySnapshot.docs.first.reference.delete();
-              print('Deleted user from Firestore for email ${userData['email']}');
-            } else {
-              print('Document with email ${userData['email']} not found in Firestore.');
-            }
-
-            // Remove the synced user data from the local database
-            await userBox.delete(key);
-          }
-        }
-      }
-    } catch (e) {
-      print('Error syncing deleted users with Firestore: $e');
-    }
-  }
-}
 
 
 
@@ -242,30 +150,14 @@ void _deleteUser(String username,String email) async {
   if (confirmDelete == true) {
     try {
       
-       await _deleteUserOffline(email);
-      var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Changes will be applied when online.")),
-    );
-         
-    return;
-  }
-      // Query for the document with the given username
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Users')
-          .where('username', isEqualTo: username)
-          .get();
-
-      // Check if the document exists
-      if (querySnapshot.docs.isNotEmpty) {
-        // Delete the document
-        await querySnapshot.docs.first.reference.delete();
-      } else {
-        print('Document with username $username not found.');
-      }
-
-      // No need to update the stream here; it will be updated in _getUserStream
+        var userBox = await Hive.openBox('userBox');
+  
+  // Mark the user as deleted (you can use a specific field like 'isDeleted')
+  userBox.delete(email);
+  // Update offlineUsers list after deletion
+                setState(() {
+                  offlineUsers.removeWhere((user) => user.email == email);
+                });
     } catch (e) {
       print('Error deleting user: $e');
     }
@@ -297,67 +189,67 @@ void _deleteUser(String username,String email) async {
             ),
           ),
           Expanded(
-            child: StreamBuilder<List<UserClass>>(
-              stream: _usersStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                }
+            child:StreamBuilder<List<UserClass>>(
+  stream: _usersStream,
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return CircularProgressIndicator();
+    }
 
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
+    if (snapshot.hasError) {
+      return Text('Error: ${snapshot.error}');
+    }
 
-                List<UserClass> userList = snapshot.data ?? [];
+    List<UserClass> userList = snapshot.data ?? [];
 
-                return ListView.builder(
-  itemCount: filteredUsers.isEmpty ? userList.length : filteredUsers.length,
-  itemBuilder: (context, index) {
-    filteredUsers=offlineUsers;
-    final user = filteredUsers.isEmpty ? userList[index] : offlineUsers[index];
-                    return ListTile(
-                      title: Text(user.username, style: _appTextStyle),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children:[
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            color: Colors.blue,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditUserForm(
-                                    username: user.username,
-                                    email: user.email,
-                                    password: user.password,
-                                    phonenumber: user.phonenumber,
-                                    imeicode:user.imeicode,
-                                    warehouse: user.warehouse,
-                                    usergroup: user.usergroup,
-                                    font: user.font,
-                                    languages: user.languages,
-                                    active: user.active,
-                                    appNotifier: widget.appNotifier,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            color: Colors.red,
-                            onPressed: () {
-                              _deleteUser(user.username,user.email);
-                            },
-                          ),
-                        ],
+    return ListView.builder(
+      itemCount: filteredUsers.length,
+      itemBuilder: (context, index) {
+        final user = filteredUsers[index];
+        return ListTile(
+          title: Text(user.username, style: _appTextStyle),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children:[
+              IconButton(
+                icon: Icon(Icons.edit),
+                color: Colors.blue,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditUserForm(
+                        username: user.username,
+                        email: user.email,
+                        password: user.password,
+                        phonenumber: user.phonenumber,
+                        imeicode: user.imeicode,
+                        warehouse: user.warehouse,
+                        usergroup: user.usergroup,
+                        font: user.font,
+                        languages: user.languages,
+                        active: user.active,
+                        appNotifier: widget.appNotifier,
                       ),
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.delete),
+                color: Colors.red,
+                onPressed: () {
+                  _deleteUser(user.username, user.email);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  },
+),
+
           ),
           TextButton(
             onPressed: () {

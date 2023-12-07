@@ -20,9 +20,11 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Hive.initFlutter();
 
-
   Hive.registerAdapter(UserGroupAdapter());
   Hive.registerAdapter(TranslationsAdapter());
+
+  //await Hive.openBox('userBox');
+  //await Hive.openBox('userGroupBox');
 
 
   runApp(
@@ -49,29 +51,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: Consumer<AppNotifier>(
-        builder: (context, appNotifier, child) {
-          return FutureBuilder(
-            // Use FutureBuilder to wait for both 'userBox' and 'userGroupBox' to be opened
-            future: Future.wait([
-              Hive.openBox('userBox'),
-              Hive.openBox('userGroupBox'),
-              Hive.openBox('translationsBox'),
-            ]),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return LoginPage(appNotifier: appNotifier);
-              } else {
-                return Scaffold(
-                  body: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-            },
-          );
-        },
-      ),
+      home: LoginPage(appNotifier: Provider.of<AppNotifier>(context)),
     );
   }
 }

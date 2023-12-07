@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/numeriqrangeformatters.dart';
+import 'package:project/hive/translations_hive.dart';
+import 'package:project/screens/admin_page.dart';
 import 'package:validators/validators.dart';
 import 'package:project/classes/validations.dart';
 import 'package:flutter/services.dart';
@@ -101,19 +103,20 @@ void initState() {
 
   }
 
- Future<void> fetchUserGroups() async {
+  
+
+Future<void> fetchUserGroups() async {
   try {
     // Determine the language based on the selected language in the app
     String language = AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
 
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('Translations').get();
+    var translationsBox = await Hive.openBox<Translations>('translationsBox');
 
-    List<String> fetchedUserGroups = querySnapshot.docs
-        .map((doc) {
-          Map<String, dynamic> translations = doc['translations'];
-          return translations[language] as String;
+    List<String> fetchedUserGroups = translationsBox.values
+        .map((translations) {
+          return translations.translations[language] ?? '';
         })
-        .where((translatedGroup) => translatedGroup != null)
+        .where((translatedGroup) => translatedGroup.isNotEmpty)
         .toList();
 
     // Update the setState block as follows
@@ -125,28 +128,20 @@ void initState() {
     print('Error fetching user groups: $e');
   }
 }
-  Future<String?> getUsernameByCode(int usercode) async {
-    String language=AppLocalizations.of(context)!.language=='English'?'en':'ar';
-  try {
-    // Query the "usergroup" collection for the provided usercode
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Translations')
-        .where('usercode', isEqualTo: usercode)
-        .get();
+Future<String?> getUsernameByCode(int usercode) async {
+  String language = AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
 
-    if (querySnapshot.docs.isNotEmpty) {
-      // Retrieve the username from the first document in the result
-       Map<String, dynamic> translations = querySnapshot.docs.first['translations'];
-      
-      // Use the specified language to get the translation, or use the original identifier
-      return username=translations[language] ?? usercode;
- 
-      
-    } else {
-      // Handle the case where no document with the provided usercode is found
-      print('No user found with usercode: $usercode');
-      return null; // or throw an exception if appropriate
-    }
+  try {
+    var translationsBox = await Hive.openBox<Translations>('translationsBox');
+
+    // Look for a translation with the specified usercode
+    var translation = translationsBox.values.firstWhere(
+      (t) => t.usercode == usercode,
+      orElse: () => Translations(usercode: 0, translations: {}), // Default translation when not found
+    );
+
+    // Retrieve the username from the translation
+    return username=translation.translations[language] ?? usercode.toString();
   } catch (e) {
     print('Error retrieving username: $e');
     return null; // or throw an exception if appropriate
@@ -341,45 +336,7 @@ void initState() {
     );
   }
 
-  Future<void> _updateLocalDatabase(
-  String newUsername,
-  String newEmail,
-  String newPassword,
-  String newPhoneNumber,
-  String newImeiCode,
-  String newWarehouse,
-  int newUserGroup,
-  int newFont,
-  String newLanguages,
-  bool newisActive,
-) async {
-  try {
-    var userBox = await Hive.openBox('userBox');
-
-    // Retrieve user data from Hive box based on email
-    String userEmail = widget.email;
-    var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
-
-    // If the user is found, update the fields
-    if (user != null) {
-      user['username'] = newUsername;
-      user['email'] = newEmail;
-      user['password'] = newPassword;
-      user['phonenumber'] = newPhoneNumber;
-      user['imeicode'] = newImeiCode;
-      user['warehouse'] = newWarehouse;
-      user['usergroup'] = newUserGroup;
-      user['font'] = newFont;
-      user['languages'] = newLanguages;
-      user['active'] = newisActive;
-
-      // Put the updated user data back into the Hive box
-      await userBox.put(userEmail, user);
-    }
-  } catch (e) {
-    print('Error updating local database: $e');
-  }
-}
+  
 
 
 
@@ -419,78 +376,61 @@ void initState() {
         userSelectGroup = 2;
       } else {
  String language = AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
+ 
+var translationsBox = await Hive.openBox<Translations>('translationsBox');
 
+// Perform a Hive query to find the translation by username
+var translation = translationsBox.values.firstWhere(
+  (t) => t.translations[language] == username,
+  orElse: () => Translations(usercode: 1, translations: {}), // Provide a default value
+);
 
-QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-    .collection('Translations')
-    .where('translations.$language', isEqualTo: username)
-    .get();
+// Now, you can safely use the translation
+userSelectGroup = translation.usercode;
 
-if (querySnapshot.docs.isNotEmpty) {
-  // Retrieve the username from the first document in the result
-  userSelectGroup = querySnapshot.docs.first['usercode'];
-}
-
+print(userSelectGroup);
       }
 
-
-   await _updateLocalDatabase(
-    newUsername,
-    newEmail,
-    newPassword,
-    newPhoneNumber,
-    newImeiCode,
-    newWarehouse,
-  newUserGroup,
-    newFont,
-   newLanguages,
-    newisActive,
-  );
-
-    // Check network connectivity
-  var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Changes will be applied when online.")),
-    );
-      Navigator.pop(context);
-    return;
-  }
-      
       if(newLanguages=='إنجليزي') newLanguages='English'; else newLanguages='Arabic';
 
     try {
-      // Query for the document with the old username
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Users')
-          .where('username', isEqualTo: oldUsername)
-          .get();
+    var userBox = await Hive.openBox('userBox');
 
-      // Check if the document exists
-      if (querySnapshot.docs.isNotEmpty) {
-        // Update the document with the new values
-        await querySnapshot.docs.first.reference.update({
-          'username': newUsername,
-          'email': newEmail,
-          'password': newPassword,
-          'phonenumber':newPhoneNumber,
-           'imeicode':newImeiCode,
-          'warehouse': newWarehouse,
-          'usergroup': userSelectGroup,
-          'font': newFont,
-          'languages': newLanguages,
-          'active': newisActive,
-        });
-      } else {
-        print('Document with username $oldUsername not found.');
-      }
+    // Retrieve user data from Hive box based on email
+    String userEmail = widget.email;
+    var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
+
+    // If the user is found, update the fields
+    if (user != null) {
+      user['username'] = newUsername;
+      user['email'] = newEmail;
+      user['password'] = newPassword;
+      user['phonenumber'] = newPhoneNumber;
+      user['imeicode'] = newImeiCode;
+      user['warehouse'] = newWarehouse;
+      user['usergroup'] = userSelectGroup;
+      user['font'] = newFont;
+      user['languages'] = newLanguages;
+      user['active'] = newisActive;
+
+      // Put the updated user data back into the Hive box
+      await userBox.put(userEmail, user);
+      
+    }
+  } catch (e) {
+    print('Error updating local database: $e');
+  }
  ScaffoldMessenger.of(context).showSnackBar(
            SnackBar(content: Text(AppLocalizations.of(context)!.userUpdated,style: _appTextStyle)),
              );
       // Navigate back to the admin page after updating
-      Navigator.pop(context);
-    } catch (e) {
-      print('Error updating user: $e');
-    }
+    Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(
+    builder: (context) => AdminPage(appNotifier: widget.appNotifier),
+  ),
+);
+
+    
   }
 }

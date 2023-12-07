@@ -242,57 +242,15 @@ Provider.of<AppNotifier>(context, listen: false)
                         String password = _passwordController.text.trim();
 
 
-  var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
+ 
+
    await _loginLocalDatabase(
     email,
     password
   );
     return;
-  }
-  else{
-                           
-                        try {
-                          QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-                              .collection('Users')
-                              .where('email', isEqualTo: email)
-                              .where('password', isEqualTo: password)
-                              .get();
-
-                          if (querySnapshot.docs.isNotEmpty) {
-                            DocumentSnapshot userDoc =
-                                await FirebaseFirestore.instance.collection('Users').doc(querySnapshot.docs.first.id).get();
-
-                            String userLanguage = userDoc.get('languages');
-                            int userFont=userDoc.get('font');
-                            if (userLanguage == 'English') {
-                              Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('en'));
-                            } else {
-                              Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('ar'));
-                            }
-Provider.of<AppNotifier>(context, listen: false)
-                    .updateFontSize(userFont);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>welcomePage(
-                                  email: email,
-                                  password: password,
-                                  appNotifier: widget.appNotifier,
-                                ),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(AppLocalizations.of(context)!.invalidEmail, style: _appTextStyle),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          print("Error: $e");
-                        }
-                      }},
+ 
+},
                       child: Text(
                         AppLocalizations.of(context)!.login,
                         style: _appTextStyle,

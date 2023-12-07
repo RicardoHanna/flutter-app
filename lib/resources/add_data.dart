@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hive/hive.dart';
+import 'package:project/hive/hiveuser.dart';
 
 final FirebaseStorage _storage=FirebaseStorage.instance;
 final FirebaseFirestore _firestore=FirebaseFirestore.instance;
@@ -22,29 +24,31 @@ Future<String> uploadImageToStorage(String childName,Uint8List file) async{
 
 }
 
-Future<String> saveData({required String email, required Uint8List file}) async {
+  Future<String> saveData({required String email, required Uint8List file, required String localPath}) async {
   String resp = "Some Error Occurred";
   try {
-    if(email.isNotEmpty){
-    String imageUrl = await uploadImageToStorage('profileImage', file);
-    QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-        .collection('Users')
-        .where('email', isEqualTo: email)
-        .get();
+    print('hi');
+    if (email.isNotEmpty) {
+    //  String imageUrl = await uploadImageToStorage('profileImage', file);
+      print('mno');
+      // Open the 'userBox' Hive box
+      var userBox = await Hive.box('userBox');
 
-    if (querySnapshot.docs.isNotEmpty) {
-      // Assuming there is only one document with the given email
-      String documentId = querySnapshot.docs[0].id;
+      var existingUser = userBox.get(email) as Map<dynamic, dynamic>?;
 
-      await _firestore.collection('Users').doc(documentId).update({
-        'imageLink': imageUrl,
-      });
+      if (existingUser != null) {
+        // Update both the online and local paths in the user object
+       
+        existingUser['imageLink'] = localPath;
 
-      resp = 'success';
-    } else {
-      resp = 'User not found'; // Handle the case where the user with the given email is not found.
+        // Put the updated user back into the Hive box
+        userBox.put(email, existingUser);
+        print('hello');
+        resp = 'success';
+      } else {
+        resp = 'User not found';
+      }
     }
-  }
   } catch (err) {
     resp = err.toString();
   }
@@ -53,3 +57,5 @@ Future<String> saveData({required String email, required Uint8List file}) async 
 
 
 }
+
+

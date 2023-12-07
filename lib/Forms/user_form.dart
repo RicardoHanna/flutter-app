@@ -11,6 +11,9 @@ import 'package:project/classes/Languages.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:project/hive/translations_hive.dart';
+import 'package:project/hive/usergroup_hive.dart';
+import 'package:project/screens/admin_page.dart';
 class UserForm extends StatefulWidget {
 
   final AppNotifier appNotifier;
@@ -268,7 +271,7 @@ void _initializeConnectivity() {
   @override
   void initState() {
     super.initState();
-_initializeConnectivity();
+//_initializeConnectivity();
     
    
   }
@@ -288,19 +291,19 @@ _initializeConnectivity();
   }
 
 
+
 Future<void> fetchUserGroups() async {
   try {
     // Determine the language based on the selected language in the app
     String language = AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
 
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('Translations').get();
+    var translationsBox = await Hive.openBox<Translations>('translationsBox');
 
-    List<String> fetchedUserGroups = querySnapshot.docs
-        .map((doc) {
-          Map<String, dynamic> translations = doc['translations'];
-          return translations[language] as String;
+    List<String> fetchedUserGroups = translationsBox.values
+        .map((translations) {
+          return translations.translations[language] ?? '';
         })
-        .where((translatedGroup) => translatedGroup != null)
+        .where((translatedGroup) => translatedGroup.isNotEmpty)
         .toList();
 
     // Update the setState block as follows
@@ -386,25 +389,23 @@ Future<void> _addNewUserGroup(BuildContext context) async {
   }
 }
 
+Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
+  if (newGroupAr == '') newGroupAr = newGroupEn;
 
- Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
-
-
- if(newGroupAr=='') newGroupAr=newGroupEn;
-   
   int newUserCode = 0;
 
   // Define the language variable based on your logic
-  String language = AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
+  String language =
+      AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
 
-  QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('Translations').get();
+  // Open the Hive box for translations
+  var translationsBox = await Hive.openBox<Translations>('translationsBox');
 
-  List<String> updatedUserGroups = querySnapshot.docs
-      .map((doc) {
-        Map<String, dynamic> translations = doc['translations'];
-        return translations[language] as String;
+  List<String> updatedUserGroups = translationsBox.values
+      .map((translations) {
+        return translations.translations[language] ?? '';
       })
-      .where((translatedGroup) => translatedGroup != null)
+      .where((translatedGroup) => translatedGroup.isNotEmpty)
       .toList();
 
   // Update the setState block as follows
@@ -419,60 +420,36 @@ Future<void> _addNewUserGroup(BuildContext context) async {
   );
 
   if (groupExists) {
-
-
-    if(language=='en'){
     // Group exists, fetch user code from translations
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Translations')
-        .where('translations.en', isEqualTo:newGroupEn)
-        .get();
-          if (querySnapshot.docs.isNotEmpty) {
-  // Retrieve the username from the first document in the result
-  newUserCode = querySnapshot.docs.first['usercode'];
+    var translation = translationsBox.values.firstWhere(
+      (t) =>
+          t.translations[language]?.toLowerCase() == newGroupEn.toLowerCase() ||
+          t.translations[language]?.toLowerCase() == newGroupAr.toLowerCase(),
+      orElse: () => Translations(usercode: 0, translations: {}),
+    );
 
-}
-    }
-    else if (language=='ar'){
-         QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Translations')
-        .where('translations.ar', isEqualTo:newGroupAr)
-        .get();
-        if (querySnapshot.docs.isNotEmpty) {
-  // Retrieve the username from the first document in the result
-  newUserCode = querySnapshot.docs.first['usercode'];
-
-}
-    }
-
-
-
-
+    newUserCode = translation.usercode;
   } else {
-
     // Group doesn't exist, fetch user code from user groups collection
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('usergroup').get();
+    var userGroupBox = await Hive.openBox<UserGroup>('userGroupBox');
     int latestUserCode = 0;
 
-    if (querySnapshot.docs.isNotEmpty) {
-      latestUserCode = querySnapshot.docs
-          .map<int>((doc) => doc['usercode'] as int)
+    if (userGroupBox.isNotEmpty) {
+      latestUserCode = userGroupBox.values
+          .map<int>((userGroup) => userGroup.usercode)
           .reduce((value, element) => value > element ? value : element);
     }
 
     newUserCode = latestUserCode + 1;
-    await FirebaseFirestore.instance.collection('usergroup').add({
-      'usercode': newUserCode,
-      'username': newGroupEn,
-    });
 
-    await FirebaseFirestore.instance.collection('Translations').add({
-      'usercode': newUserCode,
-      'translations': {
-        'en': newGroupEn,
-        'ar': newGroupAr,
-      },
-    });
+    // Add the new user group to the user groups box
+    await userGroupBox.add(UserGroup(usercode: newUserCode, username: newGroupEn));
+
+    // Add the new translation to the translations box
+    await translationsBox.add(Translations(
+      usercode: newUserCode,
+      translations: {'en': newGroupEn, 'ar': newGroupAr},
+    ));
   }
 
   return newUserCode;
@@ -480,91 +457,51 @@ Future<void> _addNewUserGroup(BuildContext context) async {
 
 
   Future<void> _submitForm(BuildContext context) async {
-    // Retrieve values from controllers
-    final String email = emailController.text;
-    final String password = passwordController.text;
-    final String username = usernameController.text;
-    final String warehouse = warehouseController.text;
-    final int font = int.parse(fontController.text);
-    final String phonenumber = phoneNumberController.text;
-    final String imeicode = imeiCodeController.text;
-  
+  // Retrieve values from controllers
+  final String email = emailController.text;
+  final String password = passwordController.text;
+  final String username = usernameController.text;
+  final String warehouse = warehouseController.text;
+  final int font = int.parse(fontController.text);
+  final String phonenumber = phoneNumberController.text;
+  final String imeicode = imeiCodeController.text;
 
-    if (!isValidEmail(email) || !isValidPassword(password)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(content: Text(AppLocalizations.of(context)!.invalidEmail)),
-      );
-      return;
-    }
-
-    if (!isValidPhoneNumber(phonenumber)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(content: Text(AppLocalizations.of(context)!.invalidNumber)),
-      );
-      return;
-    }
-
-    try {
-    
-      int userSelectGroup = 0;
-      if (selectedUserGroup == 'Admin') {
-        userSelectGroup = 1;
-      } else if (selectedUserGroup == 'User') {
-        userSelectGroup = 2;
-      } else {
-        int newUserGroupCode = await addUserGroup(selectedUserGroup,selectedUserGroupArabic);
-        userSelectGroup = newUserGroupCode;
-      }
-
-      if(selectedLanguage=='إنجليزي') selectedLanguage='English'; else selectedLanguage='Arabic';
-
-        await saveUserLocally(username, email, password, phonenumber, imeicode, userSelectGroup, warehouse, font,selectedLanguage,isActive);
-
-
-      var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
+  if (!isValidEmail(email) || !isValidPassword(password)) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Changes will be applied when online.")),
+      SnackBar(content: Text(AppLocalizations.of(context)!.invalidEmail)),
     );
-           Navigator.of(context).pop();
     return;
   }
-  UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
 
-      String userId = userCredential.user!.uid;
-      await FirebaseFirestore.instance.collection('Users').doc(userId).set({
-        'username': username,
-        'email': email,
-        'password': password,
-        'phonenumber': phonenumber,
-        'imeicode': imeicode,
-        'usergroup': userSelectGroup,
-        'warehouse': warehouse,
-        'font': font,
-        'languages': selectedLanguage,
-        'active': isActive,
-      });
-
-
-      ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(content: Text(AppLocalizations.of(context)!.userCreated,style: _appTextStyle)),
-      );
-      Navigator.of(context).pop();
-    } catch (e) {
-      print('Error creating user: $e');
-    }
+  if (!isValidPhoneNumber(phonenumber)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.invalidNumber)),
+    );
+    return;
   }
 
-Future<void> saveUserLocally(String username, String email, String password, String phonenumber, String imeicode,
-    int userSelectGroup, String warehouse, int font, String selectedLanguage, bool isActive) async {
   try {
+    int userSelectGroup = 0;
+    if (selectedUserGroup == 'Admin') {
+      userSelectGroup = 1;
+    } else if (selectedUserGroup == 'User') {
+      userSelectGroup = 2;
+    } else {
+      int newUserGroupCode = await addUserGroup(
+          selectedUserGroup, selectedUserGroupArabic);
+      userSelectGroup = newUserGroupCode;
+    }
+
+    // Check if the email or username already exists
+    if (userExists(email, username)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.useroremailExists)),
+      );
+      return;
+    }
+
     // Open the Hive box
     final userBox = await Hive.openBox('userBox');
-    print('Save Locally Add: $username, $email, $password, $phonenumber, $imeicode, $userSelectGroup, $warehouse, $font, $selectedLanguage, $isActive');
-    print('Ricardo');
 
     // Use the user's email as a unique identifier for the key
     final userKey = email.toLowerCase(); // Use lowercase to ensure consistency
@@ -581,9 +518,29 @@ Future<void> saveUserLocally(String username, String email, String password, Str
       'languages': selectedLanguage,
       'font': font,
     });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.userCreated, style: _appTextStyle)),
+    );
+
+    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AdminPage(appNotifier: widget.appNotifier),
+      ),
+    );
+
   } catch (e) {
-    print('Error saving user locally: $e');
+    print('Error creating user: $e');
   }
+}
+
+bool userExists(String email, String username) {
+  final userBox = Hive.box('userBox');
+  final lowerEmail = email.toLowerCase();
+  return userBox.values.any((user) =>
+      user['email'] == lowerEmail || user['username'] == username);
 }
 
 

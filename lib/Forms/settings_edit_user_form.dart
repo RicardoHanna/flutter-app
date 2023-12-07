@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_launcher_icons/utils.dart';
 import 'package:project/app_notifier.dart';
+import 'package:project/hive/translations_hive.dart';
 import 'package:validators/validators.dart';
 import 'package:project/classes/validations.dart';
 import 'package:flutter/services.dart';
@@ -41,23 +42,30 @@ class _SettingsEditUserFormState extends State<SettingsEditUserForm> {
 @override
 void initState() {
   super.initState();
-_initializeConnectivity();
+//_initializeConnectivity();
 
 }
 
   
 
- @override
+@override
 void didChangeDependencies() async {
   super.didChangeDependencies();
-  // Access inherited widgets or perform initialization based on inherited widgets here
-Future.delayed(Duration.zero, () async {
-    await _loadUserPreferences();
-    fetchUserGroups();
-    await getUsernameByCode(int.parse(_selectedUserGroup));
-    print(username);
-  });
 
+  await Future.delayed(Duration.zero, () async {
+    await _loadUserPreferences();
+    await fetchUserGroups();
+
+    // Wait for the result of getUsernameByCode
+    final result = await getUsernameByCode(int.parse(_selectedUserGroup));
+    if (result != null) {
+      setState(() {
+        username = result;
+        _selectedUserGroup = result; // Assuming you want to set it here
+        print(username);
+      });
+    }
+  });
 }
 
 void _initializeConnectivity() {
@@ -103,56 +111,9 @@ var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
           _isActive = active ?? false;
         });
       }
-    } else if (mounted) {
-      // If user data is not found in Hive, fetch from Firestore
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Users')
-          .where('email', isEqualTo: widget.email)
-          .where('password', isEqualTo: widget.password)
-          .limit(1)
-          .get();
+    } 
+      
 
-          print(widget.email);
-          print(widget.password);
-
-      if (querySnapshot.docs.isNotEmpty) {
-        var userDocument = querySnapshot.docs.first.data() as Map<String, dynamic>;
-
-        String userName = userDocument['username'] ?? '';
-        String userEmail = userDocument['email'] ?? '';
-        String password = userDocument['password'] ?? '';
-        String phoneNumber = userDocument['phonenumber'] ?? '';
-        String imeiCode = userDocument['imeicode'] ?? '';
-        String warehouse = userDocument['warehouse'] ?? '';
-        int userGroup = userDocument['usergroup'] ?? 0;
-        bool active = userDocument['active'] ?? false;
-
-        // Store user data in Hive box
-      /*  await userBox.put('username', userName);
-        await userBox.put('email', userEmail);
-        await userBox.put('password', password);
-        await userBox.put('phonenumber', phoneNumber);
-        await userBox.put('imeicode', imeiCode);
-        await userBox.put('warehouse', warehouse);
-        await userBox.put('usergroup', userGroup);
-        await userBox.put('active', active);*/
-
-        // Wait for the result of getUsernameByCode
-        String? retrievedUsername = await getUsernameByCode(userGroup);
-        if (retrievedUsername != null && mounted) {
-          setState(() {
-            _usernameController.text = userName;
-            _emailController.text = userEmail;
-            _passwordController.text = password;
-            _phonenumberController.text = phoneNumber;
-            _imeicodeController.text = imeiCode;
-            _warehouseController.text = warehouse;
-            _selectedUserGroup = userGroup.toString();
-            _isActive = active;
-          });
-        }
-      }
-    }
   } catch (e) {
     if (mounted) {
       print('Error loading user preferences: $e');
@@ -161,20 +122,18 @@ var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
 }
 
 
-
- Future<void> fetchUserGroups() async {
+Future<void> fetchUserGroups() async {
   try {
     // Determine the language based on the selected language in the app
     String language = AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
 
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('Translations').get();
+    var translationsBox = await Hive.openBox<Translations>('translationsBox');
 
-    List<String> fetchedUserGroups = querySnapshot.docs
-        .map((doc) {
-          Map<String, dynamic> translations = doc['translations'];
-          return translations[language] as String;
+    List<String> fetchedUserGroups = translationsBox.values
+        .map((translations) {
+          return translations.translations[language] ?? '';
         })
-        .where((translatedGroup) => translatedGroup != null)
+        .where((translatedGroup) => translatedGroup.isNotEmpty)
         .toList();
 
     // Update the setState block as follows
@@ -186,29 +145,20 @@ var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
     print('Error fetching user groups: $e');
   }
 }
- Future<String?> getUsernameByCode(int usercode) async {
-    String language=AppLocalizations.of(context)!.language=='English'?'en':'ar';
-  try {
-    // Query the "usergroup" collection for the provided usercode
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Translations')
-        .where('usercode', isEqualTo: usercode)
-        .get();
+Future<String?> getUsernameByCode(int usercode) async {
+  String language = AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
 
-    if (querySnapshot.docs.isNotEmpty) {
-      // Retrieve the username from the first document in the result
-       Map<String, dynamic> translations = querySnapshot.docs.first['translations'];
-      
-      // Use the specified language to get the translation, or use the original identifier
-      return username=translations[language] ?? usercode;
- 
-   
-    } else {
-      // Handle the case where no document with the provided usercode is found
-      print('No user found with usercode: $usercode');
-      return null; // or throw an exception if appropriate
-    }
-   
+  try {
+    var translationsBox = await Hive.openBox<Translations>('translationsBox');
+
+    // Look for a translation with the specified usercode
+    var translation = translationsBox.values.firstWhere(
+      (t) => t.usercode == usercode,
+      orElse: () => Translations(usercode: 0, translations: {}), // Default translation when not found
+    );
+
+    // Retrieve the username from the translation
+    return translation.translations[language] ?? usercode.toString();
   } catch (e) {
     print('Error retrieving username: $e');
     return null; // or throw an exception if appropriate
@@ -413,60 +363,40 @@ Future<void> _updateLocalDatabase(
     );
     return;
   }
+try {
+    var userBox = await Hive.openBox('userBox');
 
-  // Update the local database with the new values
-  await _updateLocalDatabase(
-    newUsername,
-    newEmail,
-    newPassword,
-    newPhoneNumber,
-    newImeiCode,
-    newWarehouse,
-    newIsActive,
-  );
+    // Retrieve user data from Hive box based on email
+    String userEmail = widget.email;
+    var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
 
-  // Check network connectivity
-  var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Changes will be applied when online.")),
-    );
-      Navigator.pop(context);
-    return;
+    // If the user is found, update the fields
+    if (user != null) {
+      user['username'] = newUsername;
+      user['email'] = newEmail;
+      user['password'] = newPassword;
+      user['phonenumber'] = newPhoneNumber;
+      user['imeicode'] = newImeiCode;
+      user['warehouse'] = newWarehouse;
+      user['active'] = newIsActive;
+
+      // Put the updated user data back into the Hive box
+      await userBox.put(userEmail, user);
+    }
+  } catch (e) {
+    print('Error updating local database: $e');
   }
 
-  try {
-    // Query for the document with the old email
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Users')
-        .where('email', isEqualTo: oldEmail)
-        .get();
-
-    // Check if the document exists
-    if (querySnapshot.docs.isNotEmpty) {
-      // Update the document with the new values
-      await querySnapshot.docs.first.reference.update({
-        'username': newUsername,
-        'email': newEmail,
-        'password': newPassword,
-        'phonenumber': newPhoneNumber,
-        'imeicode': newImeiCode,
-        'warehouse': newWarehouse,
-        'active': newIsActive,
-      });
+  
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.userUpdated)),
       );
       // Navigate back to the admin page after updating
       Navigator.pop(context);
-    } else {
-      print('Document with email $oldEmail not found.');
-    }
-  } catch (e) {
-    print('Error updating user: $e');
-  }
-}
+   
+  } 
+
 
 Future<void> _syncChangesWithFirestore() async {
   var connectivityResult = await Connectivity().checkConnectivity();

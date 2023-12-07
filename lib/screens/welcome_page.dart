@@ -9,6 +9,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:project/app_notifier.dart';
+import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/utils.dart';
@@ -19,7 +20,7 @@ import 'package:project/resources/add_data.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:project/hive/usergroup_hive.dart';
-
+import 'package:project/classes/DataSynchronizer.dart';
 
 
 class welcomePage extends StatefulWidget {
@@ -41,7 +42,13 @@ String ?_image1;
    @override
   void initState() {
     super.initState();
+    _loadUserGroup();
     loadUserGroupHive();
+    _synchronizeData();
+  }
+   Future<void> _synchronizeData() async {
+    DataSynchronizer dataSynchronizer = DataSynchronizer();
+    await dataSynchronizer.synchronizeData();
   }
 
   Future<void> loadUserGroupHive() async {
@@ -72,6 +79,15 @@ String ?_image1;
  
 
 Future<void> printUserDataTranslations() async {
+  // Open 'userBox' for Users
+    var usersBox = await Hive.openBox('userBox');
+
+    print('Printing Users:');
+    for (var user in usersBox.values) {
+      print('Username: ${user.username}');
+      print('Email: ${user.email}');
+      print('-------------------------');
+    }
   // Open 'translationsBox' for Translations
   var userTranslationBox = await Hive.openBox('translationsBox');
 
@@ -87,68 +103,100 @@ Future<void> printUserDataTranslations() async {
 
 
 
- Future<void> _loadUserGroup() async {
+Future<void> _loadUserGroup() async {
   try {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('Users')
-        .where('email', isEqualTo: widget.email)
-        .where('password', isEqualTo: widget.password)
-        .get()
-        .then((QuerySnapshot querySnapshot) => querySnapshot.docs.first);
-
-   setState(() {
-          _userGroup = userDoc.get('usergroup');
-          _username = userDoc.get('username');
-        });
-   
-  } catch (e) {
-    print('Error loading profile picture path: $e');
-    return null;
-  }
-}
+    var userBox = await Hive.openBox('userBox');
+    
+    // Retrieve user data from Hive box
+    var user = userBox.get(widget.email) as Map<dynamic, dynamic>?;
 
 
-
- Future<Uint8List?> _loadProfilePicturePath() async {
-  try {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('Users')
-        .where('email', isEqualTo: widget.email)
-        .where('password', isEqualTo: widget.password)
-        .get()
-        .then((QuerySnapshot querySnapshot) => querySnapshot.docs.first);
-
-    String imageLink = userDoc.get('imageLink');
-  
-    if (imageLink.isNotEmpty) {
-      Uint8List imageBytes = await _getImageBytes(imageLink);
-      return imageBytes;
+    if (user != null && mounted) {
+      setState(() {
+        _userGroup = user['usergroup'];
+        _username = user['username'];
+      });
     } else {
-      return null;
+      print('User not found in Hive.');
+      // Handle the case when the user is not found in Hive.
     }
   } catch (e) {
-    print('Error loading profile picture path: $e');
+    print('Error loading user group and username: $e');
+  }
+}
+
+Future<Uint8List?> _loadProfilePicturePath() async {
+  try {
+    // Open the 'userBox' Hive box
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(widget.email) as Map<dynamic, dynamic>?;
+
+    if (user != null) {
+      // If there is no internet, load the image from the locally stored path
+      // You might need to handle the case where the locally stored path is empty
+      if (user['imageLink'].isNotEmpty) {
+        if (await hasInternetConnection()) {
+          // If there is internet, load the image from the online source
+         String localPath = user['imageLink'];
+          Uint8List localImageBytes = await _getLocalImageBytes(localPath);
+          return localImageBytes;
+        } else {
+          // If there is no internet, load the image from the locally stored path
+          String localPath = user['imageLink'];
+          Uint8List localImageBytes = await _getLocalImageBytes(localPath);
+          return localImageBytes;
+        }
+      }
+    }
+
+    return null;
+  } catch (e) {
+    print('Error loading profile picture path from Hive: $e');
     return null;
   }
 }
+Future<bool> hasInternetConnection() async {
+  try {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  } catch (e) {
+    print('Error checking internet connection: $e');
+    return false;
+  }
+}
+
+Future<Uint8List> _getLocalImageBytes(String localPath) async {
+  // Use the file package to read image bytes from the local file path
+  // Example: https://pub.dev/packages/file
+  File file = File(localPath);
+  return await file.readAsBytes();
+}
+
 
 Future<Uint8List> _getImageBytes(String imageUrl) async {
   http.Response response = await http.get(Uri.parse(imageUrl));
   return response.bodyBytes;
 }
 
-  Future<void> _selectProfilePicture() async {
-    Uint8List img = await pickImage(ImageSource.gallery);
-    setState(() {
-      _image=img;
-    });
-    saveProfile();
-  }
 
-void saveProfile() async{
-  String _email=widget.email;
- String resp=await StoreData().saveData(email:_email , file: _image!);
+Future<void> _selectProfilePicture() async {
+  XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
+  
+  if (image != null) {
+    Uint8List img = await image.readAsBytes();
+    setState(() {
+      _image = img;
+    });
+
+    String localPath = image.path;
+    saveProfile(localPath);
+  }
 }
+void saveProfile(String localPath) async {
+  String email = widget.email;
+  String resp = await StoreData().saveData(email: email, file: _image!, localPath: localPath);
+}
+
 
 
   
@@ -174,7 +222,7 @@ void saveProfile() async{
               future: _loadProfilePicturePath(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
+                  return CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white),);
                 } else if (snapshot.hasError) {
                   return CircleAvatar(
                      radius: 80,

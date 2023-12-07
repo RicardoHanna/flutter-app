@@ -10,8 +10,10 @@ class UserGroup extends HiveObject {
   @HiveField(1)
   late String username;
 
-  UserGroup(
-    this.usercode,
-    this.username,
+  UserGroup({
+required this.usercode,
+    required this.username,
+  }
+    
   );
 }

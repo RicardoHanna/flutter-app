@@ -17,8 +17,8 @@ class UserGroupAdapter extends TypeAdapter<UserGroup> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return UserGroup(
-      fields[0] as int,
-      fields[1] as String,
+      usercode: fields[0] as int,
+      username: fields[1] as String,
     );
   }
 

@@ -38,8 +38,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void _loadUserPreferences() async {
 String userLanguage='';
  int userFont=0 ;
-    var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
+
 var userBox = await Hive.openBox('userBox');
        dynamic userDataDynamic = userBox.get(widget.email);
        if (userDataDynamic != null) {
@@ -49,26 +48,9 @@ var userBox = await Hive.openBox('userBox');
 
        }
 
-  }
+
     try {
-       if (connectivityResult != ConnectivityResult.none) {
-      // Query the 'Users' collection using the provided email and password
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Users')
-          .where('email', isEqualTo: widget.email)
-          .where('password', isEqualTo: widget.password)
-          .limit(1)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        // Retrieve the user's document
-        var userDocument = querySnapshot.docs.first.data() as Map<String, dynamic>;
-
-        // Extract font and language values
-         userFont = userDocument['font'] ?? _selectedFont;
-         userLanguage = userDocument['languages'] ?? _selectedLanguage;
-      }
-       }
+    
 if(userLanguage=='Arabic') userLanguage='عربي';
 
         // Update the state with the user's preferences
