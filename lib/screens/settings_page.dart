@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:project/app_notifier.dart';
+import 'package:project/Synchronize/DataSynchronizerFromFirebaseToHive.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:project/Forms/settings_edit_user_form.dart';
@@ -60,7 +61,7 @@ if(userLanguage=='Arabic') userLanguage='عربي';
           _appTextStyle = TextStyle(fontSize: _selectedFont.toDouble());
         });
         print(_selectedLanguage);
-      
+   
     } catch (e) {
       print('Error loading user preferences: $e');
     }
@@ -100,6 +101,7 @@ if(userLanguage=='Arabic') userLanguage='عربي';
                 leading: Icon(Icons.account_box),
                 onPressed: (context) => _showAccountSettings(context),
               ),
+              
             ],
           ),
         ],
@@ -194,6 +196,9 @@ if(newValue=='عربي') newValue='Arabic';
       },
     );
   }
+
+   
+
 
   void _showAccountSettings(BuildContext context) {
     Navigator.push(

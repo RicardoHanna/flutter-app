@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_launcher_icons/utils.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/hive/translations_hive.dart';
+import 'package:provider/provider.dart';
 import 'package:validators/validators.dart';
 import 'package:project/classes/validations.dart';
 import 'package:flutter/services.dart';
@@ -28,7 +29,9 @@ class SettingsEditUserForm extends StatefulWidget {
 }
 
 class _SettingsEditUserFormState extends State<SettingsEditUserForm> {
+    TextEditingController _usercodeController = TextEditingController();
   TextEditingController _usernameController = TextEditingController();
+   TextEditingController _userFnameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _warehouseController = TextEditingController();
@@ -38,11 +41,13 @@ class _SettingsEditUserFormState extends State<SettingsEditUserForm> {
   List<String> userGroups = [];
  String username = ''; // Set it to a default value that exists in userGroups
   String _selectedUserGroup = '0'; // Initialize to a default value
-
+ String _selectedLanguage = 'English';
+  int _selectedFont = 16;
+    late TextStyle _appTextStyle;
 @override
 void initState() {
   super.initState();
-//_initializeConnectivity();
+      _appTextStyle = TextStyle(fontSize: _selectedFont.toDouble());
 
 }
 
@@ -51,11 +56,12 @@ void initState() {
 @override
 void didChangeDependencies() async {
   super.didChangeDependencies();
-
+ if(_selectedLanguage=='Arabic') _selectedLanguage='عربي';
   await Future.delayed(Duration.zero, () async {
     await _loadUserPreferences();
     await fetchUserGroups();
-
+       _appTextStyle = TextStyle(fontSize: _selectedFont.toDouble());
+await _loadUserLangFontPreferences();
     // Wait for the result of getUsernameByCode
     final result = await getUsernameByCode(int.parse(_selectedUserGroup));
     if (result != null) {
@@ -87,7 +93,8 @@ String? userEmail = widget.email;
 var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
 
 // Use the retrieved user data as needed
-
+  int? usercode = user?['usercode'];
+  String? userFname = user?['userFname'];
   String? userName = user?['username'];
   String? password = user?['password'];
  String? phoneNumber = user?['phonenumber'];
@@ -101,6 +108,8 @@ var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
     
       if (mounted) {
         setState(() {
+          _usercodeController.text=usercode.toString() ;
+          _userFnameController.text = userFname??'';
           _usernameController.text = userName;
           _emailController.text = userEmail ?? '';
           _passwordController.text = password ?? '';
@@ -122,6 +131,37 @@ var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
 }
 
 
+  Future <void> _loadUserLangFontPreferences() async {
+String userLanguage='';
+ int userFont=0 ;
+
+var userBox = await Hive.openBox('userBox');
+       dynamic userDataDynamic = userBox.get(widget.email);
+       if (userDataDynamic != null) {
+      // Update the font size locally
+   userLanguage  =  userDataDynamic['languages'] ?? _selectedLanguage;
+  userFont=  userDataDynamic['font']?? _selectedFont;
+
+       }
+
+
+    try {
+    
+if(userLanguage=='Arabic') userLanguage='عربي';
+
+        // Update the state with the user's preferences
+        setState(() {
+          _selectedFont = userFont;
+          _selectedLanguage = userLanguage;
+         
+        });
+        print(_selectedLanguage);
+   
+    } catch (e) {
+      print('Error loading user preferences: $e');
+    }
+  }
+
 Future<void> fetchUserGroups() async {
   try {
     // Determine the language based on the selected language in the app
@@ -141,6 +181,7 @@ Future<void> fetchUserGroups() async {
       userGroups = [...fetchedUserGroups];
       print(userGroups);
     });
+
   } catch (e) {
     print('Error fetching user groups: $e');
   }
@@ -157,6 +198,9 @@ Future<String?> getUsernameByCode(int usercode) async {
       orElse: () => Translations(usercode: 0, translations: {}), // Default translation when not found
     );
 
+    // Close the Hive box
+ 
+
     // Retrieve the username from the translation
     return translation.translations[language] ?? usercode.toString();
   } catch (e) {
@@ -164,6 +208,7 @@ Future<String?> getUsernameByCode(int usercode) async {
     return null; // or throw an exception if appropriate
   }
 }
+
 
 
   @override
@@ -181,8 +226,22 @@ Future<String?> getUsernameByCode(int usercode) async {
       children: [
         TextField(
           style: _appTextStyle,
+          keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+          controller: _usercodeController,
+          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
+        ),
+        TextField(
+          style: _appTextStyle,
           controller: _usernameController,
           decoration: InputDecoration(labelText: AppLocalizations.of(context)!.username),
+        ),
+         TextField(
+          style: _appTextStyle,
+          controller: _userFnameController,
+          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.userFname),
         ),
         SizedBox(height: 12),
         TextField(
@@ -233,6 +292,7 @@ Future<String?> getUsernameByCode(int usercode) async {
       ),
     ),
   ),
+  
   child: AbsorbPointer(
     absorbing: true,
     child: DropdownButtonFormField<String>(
@@ -264,6 +324,10 @@ Future<String?> getUsernameByCode(int usercode) async {
     ),
   ),
 ),
+   SizedBox(height: 12.0),
+      _buildLanguageDropdown(context),
+              SizedBox(height: 12.0),
+                 _buildFontTextField(context),
       Padding(
     padding: const EdgeInsets.symmetric(vertical: 8.0),
     child: Row(
@@ -286,33 +350,121 @@ Future<String?> getUsernameByCode(int usercode) async {
           onPressed: () {
             _updateUser(
              widget.email,
+             int.parse(_usercodeController.text),
               _usernameController.text,
+              _userFnameController.text,
               _emailController.text,
               _passwordController.text,
               _phonenumberController.text,
               _imeicodeController.text,
               _warehouseController.text,
               _isActive,
+              _selectedFont,
 
             );
           },
           child: Text(AppLocalizations.of(context)!.update,style: _appTextStyle),
         ),
+
       ],
     ),
   ),
 ),
 
     );
+
   }
+
+Widget _buildLanguageDropdown(BuildContext context) {
+  TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  return Theme(
+    data: Theme.of(context).copyWith(
+      textTheme: TextTheme(
+        subtitle1: TextStyle(
+          fontSize: widget.appNotifier.fontSize.toDouble(),
+          color: Colors.black,
+        ),
+      ),
+    ),
+    child: DropdownButtonFormField<String>(
+      value: _selectedLanguage,
+      onChanged: (String? newValue) async {
+        if (_selectedLanguage != newValue) {
+          setState(() {
+            _selectedLanguage = newValue!;
+          });
+
+      
+         
+
+       
+        }
+      },
+      items: ['English', 'عربي'].map((String userLang) {
+        return DropdownMenuItem<String>(
+          value: userLang,
+          child: Text(userLang, style: _appTextStyle),
+        );
+      }).toList(),
+      decoration: InputDecoration(
+        labelText: AppLocalizations.of(context)!.languages,
+      ),
+      hint: Text(
+        AppLocalizations.of(context)!.languages,
+        style: _appTextStyle,
+      ),
+      isExpanded: true,
+    ),
+  );
+}
+
+Widget _buildFontTextField(BuildContext context) {
+  TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    SizedBox(height: 8.0);
+  return Column(
+    mainAxisSize: MainAxisSize.max,
+    crossAxisAlignment: CrossAxisAlignment.start, 
+    children: [
+      Text(
+        AppLocalizations.of(context)!.font,
+         style: _appTextStyle,
+      ),
+      SizedBox(height: 8.0),
+      Slider(
+        value: _selectedFont.toDouble(),
+        min: 12.0, // Minimum font size
+        max: 30.0, // Maximum font size
+        divisions: 29, // Number of divisions between min and max (adjust as needed)
+        onChanged: (double value) {
+          setState(() {
+            _selectedFont = value.toInt();
+          });
+        },
+      ),
+     
+      Center(
+        child: Text(
+          '$_selectedFont', // Display the selected font size
+          style: _appTextStyle,
+        ),
+      ),
+    ],
+  );
+}
+
+
+
 Future<void> _updateLocalDatabase(
+  int newUserCode,
   String newUsername,
+  String newUserFname,
   String newEmail,
   String newPassword,
   String newPhoneNumber,
   String newImeiCode,
   String newWarehouse,
   bool newIsActive,
+  int newSelectedFont
 ) async {
   try {
     var userBox = await Hive.openBox('userBox');
@@ -323,16 +475,20 @@ Future<void> _updateLocalDatabase(
 
     // If the user is found, update the fields
     if (user != null) {
+      user['usercode']=newUserCode;
       user['username'] = newUsername;
+      user['userFname'] = newUserFname;
       user['email'] = newEmail;
       user['password'] = newPassword;
       user['phonenumber'] = newPhoneNumber;
       user['imeicode'] = newImeiCode;
       user['warehouse'] = newWarehouse;
       user['active'] = newIsActive;
+      user['font']=newSelectedFont;
 
       // Put the updated user data back into the Hive box
       await userBox.put(userEmail, user);
+ 
     }
   } catch (e) {
     print('Error updating local database: $e');
@@ -343,13 +499,16 @@ Future<void> _updateLocalDatabase(
 
   void _updateUser(
   String oldEmail,
+  int newUserCode,
   String newUsername,
+  String newUserFname,
   String newEmail,
   String newPassword,
   String newPhoneNumber,
   String newImeiCode,
   String newWarehouse,
   bool newIsActive,
+  int newSelectedFont
 ) async {
   if (!isValidEmail(newEmail) || !isValidPassword(newPassword)) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -372,16 +531,20 @@ try {
 
     // If the user is found, update the fields
     if (user != null) {
+      user['usercode'] = newUserCode;
       user['username'] = newUsername;
+      user['userFname']=newUserFname;
       user['email'] = newEmail;
       user['password'] = newPassword;
       user['phonenumber'] = newPhoneNumber;
       user['imeicode'] = newImeiCode;
       user['warehouse'] = newWarehouse;
       user['active'] = newIsActive;
+      user['font']=newSelectedFont;
 
       // Put the updated user data back into the Hive box
       await userBox.put(userEmail, user);
+
     }
   } catch (e) {
     print('Error updating local database: $e');
@@ -392,6 +555,19 @@ try {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.userUpdated)),
       );
+       Provider.of<AppNotifier>(context, listen: false).setUserEmail(widget.email);
+ await Provider.of<AppNotifier>(context, listen: false).updateLang(Locale(_selectedLanguage!));
+                await Provider.of<AppNotifier>(context, listen: false)
+                    .updateFontSize(_selectedFont);
+
+
+          // Set the user locale after updating the language
+          if (_selectedLanguage == 'English') {
+            Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('en'));
+          } else {
+            Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('ar'));
+          }
+        
       // Navigate back to the admin page after updating
       Navigator.pop(context);
    
@@ -458,6 +634,7 @@ Future<void> _syncChangesWithFirestore() async {
     }
   }
 }
+ 
 
 
 }

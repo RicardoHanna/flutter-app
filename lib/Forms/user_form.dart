@@ -13,7 +13,7 @@ import 'package:project/hive/hiveuser.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
-import 'package:project/screens/admin_page.dart';
+import 'package:project/screens/admin_users_page.dart';
 class UserForm extends StatefulWidget {
 
   final AppNotifier appNotifier;
@@ -23,6 +23,8 @@ class UserForm extends StatefulWidget {
 }
 
 class _UserFormState extends State<UserForm> {
+  final TextEditingController usercodeController = TextEditingController();
+  final TextEditingController userFnameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
@@ -51,15 +53,18 @@ String selectedUserGroupArabic = '';
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
+            _buildDigits(AppLocalizations.of(context)!.usercode, Icons.code, usercodeController),
             _buildTextField(AppLocalizations.of(context)!.username, Icons.person, usernameController),
+             _buildTextField(AppLocalizations.of(context)!.userFname, Icons.person_2, userFnameController),
             _buildTextField(AppLocalizations.of(context)!.email, Icons.email, emailController),
             _buildTextField(AppLocalizations.of(context)!.password, Icons.lock, passwordController, obscureText: true),
             _buildDigits(AppLocalizations.of(context)!.phoneNumber, Icons.phone, phoneNumberController),
             _buildDigits(AppLocalizations.of(context)!.imeiNumber, Icons.code, imeiCodeController),
             _buildTextField(AppLocalizations.of(context)!.warehouse, Icons.business, warehouseController),
             _buildUserGroupDropdown(),
-            _buildDigitsFont(AppLocalizations.of(context)!.font, Icons.font_download, fontController),
             _buildUserGroupDropdownLanguages(),
+            SizedBox(height: 8.0),
+              _buildDigitsFont(AppLocalizations.of(context)!.font, Icons.font_download, fontController),
             _buildUserGroupActive(),
             SizedBox(height: 20),
             ElevatedButton(
@@ -114,27 +119,38 @@ String selectedUserGroupArabic = '';
   }
 
 Widget _buildDigitsFont(String label, IconData icon, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextField(
-        style: _appTextStyle,
-        controller: controller,
-        keyboardType: TextInputType.number,
-        inputFormatters: <TextInputFormatter>[
-            
-             LimitRange(1, 30),
-          FilteringTextInputFormatter.digitsOnly
-        ],
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
+    children: [
+      Text(
+        label,
+ style: _appTextStyle,
+      ),
+      SizedBox(height: 8.0),
+      Slider(
+        value: double.tryParse(controller.text) ?? 12.0,
+        min: 12.0, // Minimum font size
+        max: 30.0, // Maximum font size
+        divisions: 29, // Number of divisions between min and max (adjust as needed)
+        onChanged: (double value) {
+          controller.text = value.toInt().toString();
+          setState(() {}); // Trigger a rebuild to reflect the updated value
+        },
+      ),
+
+      Center(
+        child: Text(
+          ' ${controller.text}', // Display the selected font size
+          style: _appTextStyle,
         ),
       ),
-    );
-  }
+    ],
+  );
+}
+
+
+
   Widget _buildUserGroupDropdown() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -311,6 +327,7 @@ Future<void> fetchUserGroups() async {
       userGroups = [...fetchedUserGroups];
       print(userGroups);
     });
+  
   } catch (e) {
     print('Error fetching user groups: $e');
   }
@@ -429,6 +446,7 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
     );
 
     newUserCode = translation.usercode;
+  
   } else {
     // Group doesn't exist, fetch user code from user groups collection
     var userGroupBox = await Hive.openBox<UserGroup>('userGroupBox');
@@ -450,6 +468,7 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
       usercode: newUserCode,
       translations: {'en': newGroupEn, 'ar': newGroupAr},
     ));
+    
   }
 
   return newUserCode;
@@ -458,7 +477,9 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
 
   Future<void> _submitForm(BuildContext context) async {
   // Retrieve values from controllers
+  final int usercode=int.parse(usercodeController.text);
   final String email = emailController.text;
+  final String userFname = userFnameController.text;
   final String password = passwordController.text;
   final String username = usernameController.text;
   final String warehouse = warehouseController.text;
@@ -500,6 +521,15 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
       return;
     }
 
+ // Check if the email or username already exists
+    if (userCodeExists(usercode)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.usercodeExists)),
+      );
+      return;
+    }
+
+
     // Open the Hive box
     final userBox = await Hive.openBox('userBox');
 
@@ -507,7 +537,9 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
     final userKey = email.toLowerCase(); // Use lowercase to ensure consistency
     // Add user data to the box using the unique key
     await userBox.put(userKey, {
+      'usercode': usercode,
       'username': username,
+      'userFname': userFname,
       'email': email,
       'password': password,
       'phonenumber': phonenumber,
@@ -527,7 +559,7 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => AdminPage(appNotifier: widget.appNotifier),
+        builder: (context) => AdminUsersPage(appNotifier: widget.appNotifier),
       ),
     );
 
@@ -542,6 +574,13 @@ bool userExists(String email, String username) {
   return userBox.values.any((user) =>
       user['email'] == lowerEmail || user['username'] == username);
 }
+
+bool userCodeExists(int usercode) {
+  final userBox = Hive.box('userBox');
+  return userBox.values.any((user) =>
+      user['usercode'] == usercode);
+}
+
 
 
 Future<void> _syncChangesWithFirestore() async {
@@ -597,6 +636,7 @@ Future<void> _syncChangesWithFirestore() async {
 
             // Remove the synced user data from the local database
            // await userBox.delete(key);
+   
 
             print('Changes synced with Firestore for key $key.');
           } else {

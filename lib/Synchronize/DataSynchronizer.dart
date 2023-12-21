@@ -1,7 +1,9 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
+import 'package:project/hive/authorization_hive.dart';
 import 'package:project/hive/hiveuser.dart';
+import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart'; // Replace with your actual Hive user class
 
@@ -20,12 +22,17 @@ class DataSynchronizer {
 
       var translationsBox = await Hive.openBox<Translations>('translationsBox');
       List<Translations> translations = translationsBox.values.toList();
+
+    var authorizationBox = await Hive.openBox<Authorization>('authorizationBox');
+      List<Authorization> authorization = authorizationBox.values.toList();
+
       // Check for an internet connection
       if (await hasInternetConnection()) {
         // If there's an internet connection, update or add data to Firestore
         await _updateFirestoreUsers(users);
         await _updateFirestoreUserGroup(usersGroup);
         await _updateFirestoreTranslations(translations);
+        await _updateFirestoreAuthorization(authorization);
         // Update or add other data to Firestore if needed
 
       }
@@ -46,7 +53,7 @@ class DataSynchronizer {
 
       if (!users.contains(userEmail)) {
         // User exists in Firestore but not in Hive, delete it
-        await _firestore.collection('Users').doc(doc.id).delete();
+      //  await _firestore.collection('Users').doc(doc.id).delete();
       }
     }
 
@@ -69,14 +76,16 @@ class DataSynchronizer {
           String documentId = querySnapshot.docs[0].id;
           await _firestore.collection('Users').doc(documentId).update(
             {
+              'usercode': userData?['usercode'],
               'username': userData?['username'],
+              'userFname': userData?['userFname'],
               'email': userData?['email'],
               'password': userData?['password'],
               'phonenumber': userData?['phonenumber'],
               'imeicode': userData?['imeicode'],
               'warehouse': userData?['warehouse'],
               'active': userData?['active'],
-              'imageLink': userData?['imageLink'],
+              //'imageLink': userData?['imageLink'],
               'usergroup': userData?['usergroup'],
               'languages': userData?['languages'],
               'font': userData?['font'],
@@ -86,7 +95,9 @@ class DataSynchronizer {
           // Add the user to Firestore if it doesn't exist
           await _firestore.collection('Users').add(
             {
+              'usercode': userData?['usercode'],
               'username': userData?['username'],
+              'userFname': userData?['userFname'],
               'email': userData?['email'],
               'password': userData?['password'],
               'phonenumber': userData?['phonenumber'],
@@ -188,6 +199,44 @@ class DataSynchronizer {
     }
   }
 
+   Future<void> _updateFirestoreAuthorization(List<Authorization> authorizations) async {
+    // Loop through each user and update or add to Firestore
+    for (Authorization authorization in authorizations) {
+   
+      try {
+        // Check if the user already exists in Firestore
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('Authorization')
+            .where('groupcode', isEqualTo: authorization.groupcode)
+            .where('usercode', isEqualTo: authorization.menucode)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          // Update the existing user in Firestore
+          String documentId = querySnapshot.docs[0].id;
+          await _firestore.collection('Authorization').doc(documentId).update(
+            {
+              'groupcode': authorization.groupcode,
+              'menucode': authorization.menucode
+            
+            },
+          );
+        } else {
+          // Add the user to Firestore if it doesn't exist
+          await _firestore.collection('Authorization').add(
+            {
+           'groupcode': authorization.groupcode,
+              'menucode': authorization.menucode
+            },
+          );
+        }
+      } catch (e) {
+        print('Error updating Firestore user: $e');
+      }
+    }
+  }
+
+ 
   Future<bool> hasInternetConnection() async {
     try {
       var connectivityResult = await Connectivity().checkConnectivity();

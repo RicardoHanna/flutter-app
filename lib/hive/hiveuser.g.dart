@@ -17,45 +17,51 @@ class UserAdapter extends TypeAdapter<User> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return User(
-      fields[0] as String,
+      fields[0] as int,
       fields[1] as String,
       fields[2] as String,
       fields[3] as String,
       fields[4] as String,
       fields[5] as String,
-      fields[6] as bool,
+      fields[6] as String,
       fields[7] as String,
-      fields[8] as int,
+      fields[8] as bool,
       fields[9] as String,
       fields[10] as int,
+      fields[11] as String,
+      fields[12] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(13)
       ..writeByte(0)
-      ..write(obj.username)
+      ..write(obj.usercode)
       ..writeByte(1)
-      ..write(obj.email)
+      ..write(obj.username)
       ..writeByte(2)
-      ..write(obj.password)
+      ..write(obj.userFname)
       ..writeByte(3)
-      ..write(obj.phonenumber)
+      ..write(obj.email)
       ..writeByte(4)
-      ..write(obj.imeicode)
+      ..write(obj.password)
       ..writeByte(5)
-      ..write(obj.warehouse)
+      ..write(obj.phonenumber)
       ..writeByte(6)
-      ..write(obj.active)
+      ..write(obj.imeicode)
       ..writeByte(7)
-      ..write(obj.imageLink)
+      ..write(obj.warehouse)
       ..writeByte(8)
-      ..write(obj.usergroup)
+      ..write(obj.active)
       ..writeByte(9)
-      ..write(obj.languages)
+      ..write(obj.imageLink)
       ..writeByte(10)
+      ..write(obj.usergroup)
+      ..writeByte(11)
+      ..write(obj.languages)
+      ..writeByte(12)
       ..write(obj.font);
   }
 

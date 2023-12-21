@@ -5,40 +5,48 @@ part 'hiveuser.g.dart';
 @HiveType(typeId: 0)
 class User extends HiveObject {
   @HiveField(0)
-  late String username;
+  late int usercode;
 
   @HiveField(1)
-  late String email;
+  late String username;
 
   @HiveField(2)
-  late String password;
+  late String userFname;
 
   @HiveField(3)
-  late String phonenumber;
+  late String email;
 
   @HiveField(4)
-  late String imeicode;
+  late String password;
 
   @HiveField(5)
-  late String warehouse;
+  late String phonenumber;
 
   @HiveField(6)
-  late bool active;
+  late String imeicode;
 
   @HiveField(7)
-  late String imageLink;
- 
+  late String warehouse;
+
   @HiveField(8)
-  late int usergroup;
+  late bool active;
 
   @HiveField(9)
+  late String imageLink;
+ 
+  @HiveField(10)
+  late int usergroup;
+
+  @HiveField(11)
   late String languages;
 
-  @HiveField(10)
+  @HiveField(12)
   late int font;
 
   User(
+    this.usercode,
     this.username,
+    this.userFname,
     this.email,
     this.password,
     this.phonenumber,

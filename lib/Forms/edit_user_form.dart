@@ -5,7 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/numeriqrangeformatters.dart';
 import 'package:project/hive/translations_hive.dart';
-import 'package:project/screens/admin_page.dart';
+import 'package:project/screens/admin_users_page.dart';
 import 'package:validators/validators.dart';
 import 'package:project/classes/validations.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +13,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:project/classes/Languages.dart';
 
 class EditUserForm extends StatefulWidget {
+  final int usercode;
   final String username;
+  final String userFname;
   final String email;
   final String password;
   final String warehouse;
@@ -26,7 +28,9 @@ class EditUserForm extends StatefulWidget {
   final AppNotifier appNotifier;
 
   EditUserForm({
+    required this.usercode,
     required this.username,
+    required this.userFname,
     required this.email,
     required this.password,
     required this.phonenumber,
@@ -45,6 +49,8 @@ class EditUserForm extends StatefulWidget {
 }
 
 class _EditUserFormState extends State<EditUserForm> {
+    TextEditingController _usernameFController = TextEditingController();
+      TextEditingController _usercodeController = TextEditingController();
   TextEditingController _usernameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
@@ -64,6 +70,8 @@ String username='';
 void initState() {
   super.initState();
   // Initialize the controllers with the existing username and email
+  _usercodeController.text=widget.usercode.toString();
+   _usernameFController.text = widget.userFname;
   _usernameController.text = widget.username;
   _emailController.text = widget.email;
   _passwordController.text = widget.password;
@@ -124,6 +132,7 @@ Future<void> fetchUserGroups() async {
       userGroups = [...fetchedUserGroups];
       print(userGroups);
     });
+    
   } catch (e) {
     print('Error fetching user groups: $e');
   }
@@ -140,8 +149,12 @@ Future<String?> getUsernameByCode(int usercode) async {
       orElse: () => Translations(usercode: 0, translations: {}), // Default translation when not found
     );
 
-    // Retrieve the username from the translation
-    return username=translation.translations[language] ?? usercode.toString();
+   // Retrieve the username from the translation
+  return username = translation.translations[language] ?? usercode.toString();
+
+    // Close the Hive box
+  
+  
   } catch (e) {
     print('Error retrieving username: $e');
     return null; // or throw an exception if appropriate
@@ -162,10 +175,24 @@ Future<String?> getUsernameByCode(int usercode) async {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+         TextField(
+          style: _appTextStyle,
+          keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+          controller: _usercodeController,
+          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
+        ),
         TextField(
           style: _appTextStyle,
           controller: _usernameController,
           decoration: InputDecoration(labelText: AppLocalizations.of(context)!.username),
+        ),
+            TextField(
+          style: _appTextStyle,
+          controller: _usernameFController,
+          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.userFname),
         ),
         SizedBox(height: 12),
         TextField(
@@ -241,17 +268,35 @@ Future<String?> getUsernameByCode(int usercode) async {
       ),
 
         SizedBox(height: 16),
-        TextField(
-           keyboardType: TextInputType.number,
-        inputFormatters: <TextInputFormatter>[
-            
-             LimitRange(1, 30),
-          FilteringTextInputFormatter.digitsOnly
-        ],
-          style: _appTextStyle,
-          controller: _fontController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.font),
-        ),
+      Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Text(
+      AppLocalizations.of(context)!.font,
+      style: _appTextStyle,
+    ),
+    SizedBox(height: 8.0),
+    Slider(
+      value: _fontController.text.isEmpty ? 1.0 : double.parse(_fontController.text),
+      min: 12.0,
+      max: 30.0,
+      divisions: 29,
+      onChanged: (double value) {
+        setState(() {
+          _fontController.text = value.toInt().toString();
+        });
+      },
+    ),
+    SizedBox(height: 8.0),
+ Center(
+      child: Text(
+        _fontController.text, // Display the selected font size
+        style: _appTextStyle,
+      ),
+ ),
+  ],
+),
+
         SizedBox(height: 16),
             Theme(
         data: Theme.of(context).copyWith(
@@ -313,7 +358,9 @@ Future<String?> getUsernameByCode(int usercode) async {
           onPressed: () {
             _updateUser(
               widget.username,
+              int.parse(_usercodeController.text),
               _usernameController.text,
+              _usernameFController.text,
               _emailController.text,
               _passwordController.text,
               _phonenumberController.text,
@@ -342,7 +389,9 @@ Future<String?> getUsernameByCode(int usercode) async {
 
   void _updateUser(
     String oldUsername,
+    int newUsercode,
     String newUsername,
+    String newFUsername,
     String newEmail,
     String newPassword,
     String newPhoneNumber,
@@ -389,6 +438,7 @@ var translation = translationsBox.values.firstWhere(
 userSelectGroup = translation.usercode;
 
 print(userSelectGroup);
+
       }
 
       if(newLanguages=='إنجليزي') newLanguages='English'; else newLanguages='Arabic';
@@ -402,7 +452,9 @@ print(userSelectGroup);
 
     // If the user is found, update the fields
     if (user != null) {
+     user['usercode']=newUsercode;
       user['username'] = newUsername;
+      user['userFname'] = newFUsername;
       user['email'] = newEmail;
       user['password'] = newPassword;
       user['phonenumber'] = newPhoneNumber;
@@ -417,6 +469,7 @@ print(userSelectGroup);
       await userBox.put(userEmail, user);
       
     }
+
   } catch (e) {
     print('Error updating local database: $e');
   }
@@ -427,7 +480,7 @@ print(userSelectGroup);
     Navigator.pushReplacement(
   context,
   MaterialPageRoute(
-    builder: (context) => AdminPage(appNotifier: widget.appNotifier),
+    builder: (context) => AdminUsersPage(appNotifier: widget.appNotifier),
   ),
 );
 

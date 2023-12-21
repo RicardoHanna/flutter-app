@@ -31,9 +31,9 @@
     "@invalidEmail": {
         "description": "Invalid email or password"
     },
-    "adminPage": "Admin Page",
+    "adminPage": "Administator",
     "@adminPage": {
-        "description": "Admin Page"
+        "description": "Administrator"
     },
     "serchName": "Search by name or email",
     "@serchName": {
@@ -59,9 +59,9 @@
     "@usergroupen": {
         "description": "In English"
     },
-    "font": "Font",
+    "font": "Font Size",
     "@font": {
-        "description": "Font"
+        "description": "Font Size"
     },
     "languages": "Languages",
     "@languages": {
@@ -183,11 +183,30 @@
     "useroremailExists": "User with this email or username already exists",
     "@useroremailExists": {
         "useroremailExists": "User with this email or username already exists"
+    },
+    "userFname": "Foreign Name",
+    "@username": {
+        "description": "Foreign Name"
+    },
+    "usercode": "User Code",
+    "@username": {
+        "description": "User Code"
+    },
+    "usercodeExists": "User Code already exists",
+    "@usercodeExists": {
+        "description": "User Code already exists"
+    },
+    "rememberMe": "keep me logged in",
+    "@rememberMe": {
+        "description": "keep me logged in"
+    },
+    "emailusercodeusername": "Email or UserName",
+    "@emailusercodeusername": {
+        "description": "Email or UserName"
     }
-    
 
     
-    
+  
 
 
 

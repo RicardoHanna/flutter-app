@@ -44,6 +44,7 @@ Future<void> updateFontSize(int newSize) async {
       userDataDynamic['languages'] = newLanguage;
       await userBox.put(_userEmail, userDataDynamic);
        }
+
       // Query for the document with the provided email
     } catch (e) {
       print('Error updating user: $e');

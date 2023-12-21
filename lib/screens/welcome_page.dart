@@ -8,26 +8,33 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/Forms/Items_Form.dart';
+import 'package:project/Forms/Price_Lists_Form.dart';
+import 'package:project/Forms/settings_edit_user_form.dart';
 import 'package:project/app_notifier.dart';
+import 'package:project/Synchronize/DataSynchronizerFromFirebaseToHive.dart';
+import 'package:project/hive/authorization_hive.dart';
 import 'package:project/hive/hiveuser.dart';
+import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/translations_hive.dart';
+import 'package:project/screens/admin_page.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/utils.dart';
-import 'package:project/screens/admin_page.dart';
 import 'settings_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:project/resources/add_data.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:project/hive/usergroup_hive.dart';
-import 'package:project/classes/DataSynchronizer.dart';
+import 'package:project/Synchronize/DataSynchronizer.dart';
 
 
 class welcomePage extends StatefulWidget {
+  final String identifier;
   final String email;
   final String password;
   final AppNotifier appNotifier;
-  welcomePage({required this.email,required this.password, required this.appNotifier});
+  welcomePage({required this.identifier,required this.password, required this.appNotifier,required this.email});
 
   @override
   State<welcomePage> createState() => _welcomePageState();
@@ -37,29 +44,43 @@ class _welcomePageState extends State<welcomePage> {
   late String _profilePicturePath='';
 Uint8List ? _image;
 String ?_image1;
- int? _userGroup;
+ int _userGroup=0;
  String ? _username;
+
+ String ? _userFname;
    @override
-  void initState() {
-    super.initState();
-    _loadUserGroup();
+void initState() {
+  super.initState();
+ 
+  _loadUserGroup();
     loadUserGroupHive();
-    _synchronizeData();
-  }
-   Future<void> _synchronizeData() async {
+
+
+     _synchronizeData();
+ 
+}
+
+
+ 
+  
+     Future<void> _synchronizeData() async {
     DataSynchronizer dataSynchronizer = DataSynchronizer();
     await dataSynchronizer.synchronizeData();
+
+
   }
 
   Future<void> loadUserGroupHive() async {
     await Hive.initFlutter();
+    //await insertUsers();
+   // await insertUsersGroup();
     await printUserDataTranslations();
   }
 
- /*Future<void> insertUsers() async {
+ Future<void> insertUsers() async {
 
 
-    var userTranslationsBox = await Hive.openBox('translationsBox');
+    var userTranslationsBox = await Hive.openBox<Translations>('translationsBox');
 
     // Insert users with roles
     var userGroupsTranslations = <Translations>[
@@ -74,8 +95,27 @@ String ?_image1;
     await userTranslationsBox.addAll(userGroupsTranslations);
 
     print('Data inserted successfully');
-  }*/
+  }
 
+ Future<void> insertUsersGroup() async {
+
+
+    var userGroupBox = await Hive.openBox<UserGroup>('userGroupBox');
+
+    // Insert users with roles
+    var userGroups = <UserGroup>[
+      UserGroup(usercode: 1, username:'Admin'),
+      UserGroup(usercode: 2, username:'User'),
+      UserGroup(usercode: 3, username:'representative'),
+      UserGroup(usercode: 4,  username:'hr'),
+
+    
+    ];
+
+    await userGroupBox.addAll(userGroups);
+
+    print('Data inserted successfully');
+  }
  
 
 Future<void> printUserDataTranslations() async {
@@ -88,6 +128,7 @@ Future<void> printUserDataTranslations() async {
       print('Email: ${user.email}');
       print('-------------------------');
     }
+  
   // Open 'translationsBox' for Translations
   var userTranslationBox = await Hive.openBox('translationsBox');
 
@@ -98,6 +139,7 @@ Future<void> printUserDataTranslations() async {
     print('Arabic Translation: ${userTGroup.translations['ar']}');
     print('-------------------------');
   }
+  
   print('Printed all data');
 }
 
@@ -109,20 +151,24 @@ Future<void> _loadUserGroup() async {
     
     // Retrieve user data from Hive box
     var user = userBox.get(widget.email) as Map<dynamic, dynamic>?;
-
-
+print(user.toString());
+print(widget.email);
     if (user != null && mounted) {
       setState(() {
         _userGroup = user['usergroup'];
         _username = user['username'];
+        _userFname= user['userFname'];
+
       });
     } else {
       print('User not found in Hive.');
       // Handle the case when the user is not found in Hive.
     }
+  
   } catch (e) {
     print('Error loading user group and username: $e');
   }
+
 }
 
 Future<Uint8List?> _loadProfilePicturePath() async {
@@ -138,7 +184,9 @@ Future<Uint8List?> _loadProfilePicturePath() async {
         if (await hasInternetConnection()) {
           // If there is internet, load the image from the online source
          String localPath = user['imageLink'];
-          Uint8List localImageBytes = await _getLocalImageBytes(localPath);
+         print('nooooo'+localPath);
+          Uint8List localImageBytes = await _getImageBytes(localPath);
+          print(localImageBytes);
           return localImageBytes;
         } else {
           // If there is no internet, load the image from the locally stored path
@@ -150,6 +198,7 @@ Future<Uint8List?> _loadProfilePicturePath() async {
     }
 
     return null;
+    
   } catch (e) {
     print('Error loading profile picture path from Hive: $e');
     return null;
@@ -179,9 +228,52 @@ Future<Uint8List> _getImageBytes(String imageUrl) async {
 }
 
 
+
+
 Future<void> _selectProfilePicture() async {
-  XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
-  
+  try {
+    // Show a dialog with options to select from camera or gallery
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select Profile Picture'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                GestureDetector(
+                  child: Text('Camera'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await _pickImage(ImageSource.camera);
+                  },
+                ),
+                Padding(padding: EdgeInsets.all(8.0)),
+                GestureDetector(
+                  child: Text('Gallery'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await _pickImage(ImageSource.gallery);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  } catch (e) {
+    print('Error selecting profile picture: $e');
+    // Handle the error as needed
+  }
+}
+
+Future<void> _pickImage(ImageSource source) async {
+  final ImagePicker _picker = ImagePicker();
+  XFile? image = await _picker.pickImage(
+    source: source,
+  );
+
   if (image != null) {
     Uint8List img = await image.readAsBytes();
     setState(() {
@@ -192,16 +284,82 @@ Future<void> _selectProfilePicture() async {
     saveProfile(localPath);
   }
 }
-void saveProfile(String localPath) async {
-  String email = widget.email;
-  String resp = await StoreData().saveData(email: email, file: _image!, localPath: localPath);
+
+Future<bool> checkAuthorization(int menucode, int userGroup) async {
+  var authorizationBox = await Hive.openBox<Authorization>('authorizationBox');
+
+  // Use a composite key to query for authorization
+  int compositeKey = _generateCompositeKey(menucode, userGroup);
+
+  // Check if the authorization exists
+  return authorizationBox.containsKey(compositeKey);
+}
+
+int _generateCompositeKey(int menucode, int groupcode) {
+  // Use any logic that ensures uniqueness for your composite key
+  return int.parse('$menucode$groupcode');
 }
 
 
 
+
+void saveProfile(String localPath) async {
+  String? email = widget.email;
+  String resp = await StoreData().saveData(email: email, file: _image!, localPath: localPath);
+
+  // Save image to Firebase Storage
+  String downloadURL = await StoreData().uploadImageToStorage('profileImage', _image!);
+
+  FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Save download URL in Firestore
+  try {
+    await _firestore.collection('Users').where('email', isEqualTo: email).get().then(
+      (QuerySnapshot<Map<String, dynamic>> querySnapshot) {
+        if (querySnapshot.docs.isNotEmpty) {
+          // Update the existing user in Firestore
+          String documentId = querySnapshot.docs[0].id;
+          _firestore.collection('Users').doc(documentId).update({
+            'imageLink': downloadURL,
+          });
+        }
+      },
+    );
+  } catch (e) {
+    print('Error updating Firestore user: $e');
+  }
+}
+
+final List<String> data = <String>['Items', 'Price Lists'];
+
+   final Map<String, IconData> iconData = {
+    'Items': Icons.shopping_cart,
+    'Price Lists': Icons.attach_money,
+  };
+
+ 
+
   
   @override
   Widget build(BuildContext context) {
+     final Map<String, Widget> formWidgets = {
+    'Items': ItemsForm(appNotifier: widget.appNotifier,),
+    'Price Lists': PriceLists(appNotifier: widget.appNotifier,),
+    
+  };
+
+  final Map<String, int> menuCodes = {
+  'Items': Menu.ITEMS_MENU_CODE,
+  'Price Lists': Menu.PRICELISTS_MENU_CODE,
+  // Add other menu items and their menu codes
+};
+
+  String languageUser='';
+         if(AppLocalizations.of(context)!.language=='English'){
+languageUser=_username!;
+}else{
+  languageUser=_userFname!;
+}
       TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
        TextStyle _SappTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble(),color: Colors.white);
     return Scaffold(
@@ -214,8 +372,9 @@ void saveProfile(String localPath) async {
     padding: EdgeInsets.zero,
     children: [
       UserAccountsDrawerHeader(
-        accountName: Text('$_username'),
-        accountEmail: Text(widget.email),
+ 
+        accountName: Text(languageUser),
+        accountEmail: Text(widget.email!),
         currentAccountPicture: Stack(
           children: [
             FutureBuilder<Uint8List?>(
@@ -256,38 +415,72 @@ void saveProfile(String localPath) async {
       ListTile(
         leading: Icon(Icons.settings),
         title: Text(AppLocalizations.of(context)!.settings, style: _appTextStyle),
-        onTap: () {
+       onTap: () async {
+    // Check if the user has the required authorization
+    bool hasAccess = await checkAuthorization(Menu.SETTINGS_MENU_CODE, _userGroup);
+
+    if (hasAccess) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SettingsPage(
+              builder: (context) => SettingsEditUserForm(
                 email: widget.email,
                 password: widget.password,
                 appNotifier: widget.appNotifier,
               ),
             ),
           );
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.permissionAccess),
+        ),
+      );
+    }
         },
       ),
-      ListTile(
-        leading: Icon(Icons.admin_panel_settings),
-        title: Text(AppLocalizations.of(context)!.adminPage, style: _appTextStyle),
-        onTap: () {
-          if (_userGroup == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AdminPage(appNotifier: widget.appNotifier),
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.permissionAccess),
-              ),
-            );
-          }
-        },
+  ListTile(
+  leading: Icon(Icons.admin_panel_settings),
+  title: Text(AppLocalizations.of(context)!.adminPage, style: _appTextStyle),
+  onTap: () async {
+    // Check if the user has the required authorization
+    bool hasAccess = await checkAuthorization(Menu.ADMIN_MENU_CODE, _userGroup);
+
+    if (hasAccess) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AdminPage(appNotifier: widget.appNotifier),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.permissionAccess),
+        ),
+      );
+    }
+  },
+),
+
+      
+       ListTile(
+       leading: Icon(Icons.sync),
+        title: Text('Syncronize', style: _appTextStyle),
+        onTap: () async {
+    // Check if the user has the required authorization
+    bool hasAccess = await checkAuthorization(Menu.SYNCRONIZE_MENU_CODE, _userGroup);
+
+    if (hasAccess) {
+       _synchronizeDatatoHive();
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.permissionAccess),
+        ),
+      );
+    }
+    }
       ),
       ListTile(
         leading: Icon(Icons.logout_rounded),
@@ -303,24 +496,81 @@ void saveProfile(String localPath) async {
       ),
     ],
   ),
+  
 ),
-      body: Padding(
-      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-      child: Container(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Your welcome page content goes here',
-                style: _appTextStyle,
+ 
+body: Padding(
+  padding: EdgeInsets.all(8),
+  child: ListView.separated(
+    itemCount: data.length,
+    itemBuilder: (BuildContext context, int index) {
+      return ListTile(
+        title: Text(data[index]),
+        leading: Icon(iconData[data[index]]),
+        onTap: () async {
+          int menuCode = menuCodes[data[index]] ?? 0; // Default to 0 if menu code not found
+
+          // Check if the user has the required authorization
+          bool hasAccess = await checkAuthorization(menuCode, _userGroup);
+
+          if (hasAccess) {
+            Widget? formWidget = formWidgets[data[index]];
+            if (formWidget != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => formWidget,
+                ),
+              );
+            } else {
+              // Handle the case where the widget is null
+              print('Form widget is null for ${data[index]}');
+            }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.permissionAccess),
               ),
-            ],
-          ),
-        ),
-      ),
-    ),
+            );
+          }
+        },
+      );
+    },
+    separatorBuilder: (BuildContext context, int index) => const Divider(),
+  ),
+),
+
+      
+
   );
 }
-      
+ void _synchronizeDatatoHive() async {
+    try {
+      // Show loading indicator or other UI feedback
+      // You can use a package like `modal_progress_hud` for a loading spinner
+
+      // Create an instance of your synchronizer class
+      DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
+
+      // Run the synchronization process
+      await synchronizer.synchronizeData();
+      await synchronizer.synchronizeDataPriceLists();
+      await synchronizer.synchronizeDataItemPrice();
+      await synchronizer.synchronizeDataItemAttach();
+      await synchronizer.synchronizeDataItemBrand();
+      await synchronizer.synchronizeDataItemCateg();
+      await synchronizer.synchronizeDataItemUOM();
+      await synchronizer.synchronizeDataItemGroup();
+      await synchronizer.synchronizeDataUserPL();
+      await synchronizer.synchronizeDataUser();
+      await synchronizer.synchronizeDataMenu();
+      // Display a success message or update UI as needed
+
+    } catch (e) {
+      // Handle errors and display an error message or update UI accordingly
+      print('Error synchronizing data: $e');
+    } finally {
+      // Hide loading indicator or perform any cleanup
+    }
+  }
 }
