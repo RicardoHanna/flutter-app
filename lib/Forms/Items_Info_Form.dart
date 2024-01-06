@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:project/Forms/Attachements_Item_Form.dart';
+import 'package:project/app_notifier.dart';
 import 'package:project/hive/items_hive.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class ItemsInfoForm extends StatelessWidget {
   final Items item;
+    final AppNotifier appNotifier;
 
-  ItemsInfoForm({required this.item});
+  ItemsInfoForm({required this.item,required this.appNotifier});
 
   @override
   Widget build(BuildContext context) {
+  TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble());
+    TextStyle   _appTextStyleAppBar = TextStyle(fontSize:appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
-        title: Text('Item Details'),
+        title: Text(AppLocalizations.of(context)!.itemdetails,style: _appTextStyleAppBar,),
       ),
     body: SingleChildScrollView( // Wrap with SingleChildScrollView
         child: Padding(
@@ -36,8 +41,8 @@ class ItemsInfoForm extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('Item Code:', item.itemCode ?? ''),
-                      _buildTitleText('Item Name:', item.itemName ?? ''),
+                      _buildTitleText(AppLocalizations.of(context)!.itemcode, item.itemCode ?? ''),
+                      _buildTitleText(AppLocalizations.of(context)!.itemname, item.itemName ?? ''),
                     ],
                   ),
                 ],
@@ -45,22 +50,22 @@ class ItemsInfoForm extends StatelessWidget {
 
             // Display item details below the picture and item code
             SizedBox(height: 16.0), // Add spacing between top and details
-            _buildTitleText('Item PrName:', item.itemPrFName ?? ''),
-            _buildTitleText('Item FName:', item.itemFName ?? ''),
-            _buildTitleText('Group Code:', item.groupCode ?? ''),
-            _buildTitleText('Categ Code:', item.categCode ?? ''),
-            _buildTitleText('Brand Code:', item.brandCode ?? ''),
-            _buildTitleText('Item Type:', item.itemType ?? ''),
-            _buildTitleText('BarCode:', item.barCode ?? ''),
-            _buildTitleText('UOM:', item.uom ?? ''),
-            _buildTitleText('Remark:', item.remark ?? ''),
-            _buildTitleText('Brand:', item.brand ?? ''),
-            _buildTitleText('ManageBy:', item.manageBy ?? ''),
-            _buildTitleTextNumber('vatRate:', item.vatRate ?? ''),
-            _buildTitleTextNumber('Active:', item.active ?? ''),
-            _buildTitleTextNumber('Weight:', item.weight ?? ''),
-            _buildTitleText('Charect1:', item.charect1 ?? ''),
-            _buildTitleText('Active:', item.charact2 ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.itemprname, item.itemPrFName ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.itemfname, item.itemFName ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.groupcode, item.groupCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.categcode, item.categCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.brandcode, item.brandCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.itemtype, item.itemType ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.barcode, item.barCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.uom, item.uom ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.remark, item.remark ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.brand, item.brand ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.manageby, item.manageBy ?? ''),
+            _buildTitleTextNumber(AppLocalizations.of(context)!.vatrate, item.vatRate ?? ''),
+            _buildTitleTextNumber(AppLocalizations.of(context)!.active, item.active ?? ''),
+            _buildTitleTextNumber(AppLocalizations.of(context)!.weight, item.weight ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.charect1, item.charect1 ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.charect2, item.charact2 ?? ''),
           ],
           ),
         ),
@@ -71,7 +76,7 @@ class ItemsInfoForm extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AttachementsItemForm(itemCode: item.itemCode),
+              builder: (context) => AttachementsItemForm(itemCode: item.itemCode,appNotifier: appNotifier,),
             ),
           );
         },
@@ -81,22 +86,26 @@ class ItemsInfoForm extends StatelessWidget {
   }
 
   Widget _buildTitleText(String title, String value) {
+             TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble()-4);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
           style: TextStyle(
+                 
+
             color: Colors.blue, // Set the text color to blue
-            fontSize: 16.0, // Set the font size
+            fontSize:appNotifier.fontSize.toDouble() ,// Set the font size
             fontWeight: FontWeight.bold, // Set the font weight to bold
           ),
         ),
-        Text(value),
+        Text(value,style: _appTextStyle),
       ],
     );
   }
   Widget _buildTitleTextNumber(String title, Object value) {
+     TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble()-4);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -104,11 +113,11 @@ class ItemsInfoForm extends StatelessWidget {
           title,
           style: TextStyle(
             color: Colors.blue, // Set the text color to blue
-            fontSize: 16.0, // Set the font size
+            fontSize: appNotifier.fontSize.toDouble(), // Set the font size
             fontWeight: FontWeight.bold, // Set the font weight to bold
           ),
         ),
-        Text(value.toString()),
+        Text(value.toString(),style: _appTextStyle,),
       ],
     );
   }

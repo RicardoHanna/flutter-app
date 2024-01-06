@@ -40,6 +40,16 @@ class _PriceListsState extends State<PriceLists> {
  TextEditingController searchController = TextEditingController();
   late List<PriceList> filteredPrices=[];
 
+late List<String> priceCodeList = [];
+  late List<String> priceNameList = [];
+  late List<String> securityGroupList= [];
+  late List<String> selectedPriceCode = [];
+  late List<String> selectedPriceName = [];
+  late List<String> selectedSecurityGroup = [];
+   late String selectedSortingOption = 'Alphabetic';
+  late Box<PriceList> pricelistBox;
+
+TextStyle _appTextStyle=TextStyle();
 final TextEditingController codeFilterController = TextEditingController();
   final TextEditingController groupFilterController = TextEditingController();
   final TextEditingController priceNameFilterController = TextEditingController();
@@ -47,6 +57,7 @@ final TextEditingController codeFilterController = TextEditingController();
   @override
   void initState() {
     super.initState();
+         pricelistBox = Hive.box<PriceList>('pricelists');
     initializeData();
   }
 
@@ -54,7 +65,40 @@ final TextEditingController codeFilterController = TextEditingController();
   //  await insertSamplePriceLists();
     prices=await _getPriceLists();
     filteredPrices = List.from(prices);
+
+    priceCodeList = await getDistinctValuesFromBox('plCode', pricelistBox);
+    priceNameList = await getDistinctValuesFromBox('plName', pricelistBox);
+    securityGroupList = await getDistinctValuesFromBox('securityGroup', pricelistBox);
   }
+
+  
+  Future<List<String>> getDistinctValuesFromBox(String fieldName, Box<PriceList> box) async {
+    var distinctValues = <String>[];
+    var distinctSet = <String>{};
+
+    for (var item in box.values) {
+      var value = getField(item, fieldName);
+      if (value != null && distinctSet.add(value)) {
+        distinctValues.add(value);
+      }
+    }
+
+    return distinctValues;
+  }
+dynamic getField(PriceList item, String fieldName) {
+    switch (fieldName) {
+      case 'plCode':
+        return item.plCode;
+      case 'plName':
+        return item.plName;
+      case 'securityGroup':
+        return item.securityGroup;
+      // Add cases for other fields as needed
+      default:
+        return null;
+    }
+  }
+
 
   Future<void> insertSamplePriceLists() async {
   var priceListsBox = await Hive.openBox<PriceList>('pricelists');
@@ -77,11 +121,31 @@ final TextEditingController codeFilterController = TextEditingController();
     return allPriceLists;
   }
 
+    void _applySorting() {
+    switch (selectedSortingOption) {
+      case 'PLCode':
+        filteredPrices.sort((a, b) => a.plCode!.compareTo(b.plCode!));
+        break;
+      case 'SecurityGroup':
+        filteredPrices.sort((a, b) => a.securityGroup!.compareTo(b.securityGroup!));
+        break;
+      case 'Alphabetic':
+        filteredPrices.sort((a, b) => a.plName!.compareTo(b.plName!));
+        break;
+    }
+
+    setState(() {
+      // Update the UI with the sorted items
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+     TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
+        TextStyle   _appTextStyleAppBar = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
     return Scaffold(
      appBar: AppBar(
-        title: Text('Price Lists'),
+        title: Text(AppLocalizations.of(context)!.pricelists,style: _appTextStyleAppBar,),
         actions: [
           // Search Icon
           IconButton(
@@ -89,6 +153,29 @@ final TextEditingController codeFilterController = TextEditingController();
             onPressed: () {
               showSearch(context: context, delegate: DataSearchPriceLists(pricesList: prices, appNotifier:widget.appNotifier));
             },
+          ),
+
+             PopupMenuButton<String>(
+            onSelected: (String value) {
+              setState(() {
+                selectedSortingOption = value;
+                _applySorting();
+              });
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'PLCode',
+                child: Text(AppLocalizations.of(context)!.sortbycode,style: _appTextStyle,),
+              ),
+              PopupMenuItem<String>(
+                value: 'SecurityGroup',
+                child: Text(AppLocalizations.of(context)!.sortbysecurity,style: _appTextStyle,),
+              ),
+              PopupMenuItem<String>(
+                value: 'Alphabetic',
+                child: Text(AppLocalizations.of(context)!.sortalphabetic,style: _appTextStyle,),
+              ),
+            ],
           ),
           // Filter Icon
           IconButton(
@@ -117,8 +204,8 @@ final TextEditingController codeFilterController = TextEditingController();
                   var priceList = filteredPrices[index];
                   return Card(
                     child: ListTile(
-                      title: Text(priceList.plCode ?? ''),
-                      subtitle: Text(priceList.plName ?? ''),
+                      title: Text(priceList.plCode ?? '',style: _appTextStyle,),
+                      subtitle: Text(priceList.plName ?? '',style: _appTextStyle,),
                       onTap: () {
                         // Navigate to the PriceListInfoForm page and pass the selected price list
                         Navigator.push(
@@ -139,64 +226,96 @@ final TextEditingController codeFilterController = TextEditingController();
     );
   }
 
-   _showFilterDialog(BuildContext context) {
+ void _showFilterDialog(BuildContext context) {
+       TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Filter Items'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: codeFilterController,
-                decoration: InputDecoration(labelText: 'Price Code'),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.filterpricelists,style: _appTextStyle,),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildMultiSelectChip(AppLocalizations.of(context)!.plcode, priceCodeList, selectedPriceCode, setState),
+                  _buildMultiSelectChip(AppLocalizations.of(context)!.pricelistname, priceNameList, selectedPriceName, setState),
+                  _buildMultiSelectChip(AppLocalizations.of(context)!.securitygroup, securityGroupList, selectedSecurityGroup, setState),
+                ],
               ),
-              TextFormField(
-                controller: priceNameFilterController,
-                decoration: InputDecoration(labelText: 'Price Name'),
-              ),
-              TextFormField(
-                controller: groupFilterController,
-                decoration: InputDecoration(labelText: 'Security Group'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                _applyFilters();
-                Navigator.pop(context);
-              },
-              child: Text('Apply'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(AppLocalizations.of(context)!.cancel,style: _appTextStyle,),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _applyFilters();
+                    Navigator.pop(context);
+                  },
+                  child: Text(AppLocalizations.of(context)!.apply,style: _appTextStyle,),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
-   void _applyFilters() {
-    // Update the filteredItems list based on the selected filters
-    filteredPrices = prices.where((price) {
-      // Check conditions based on selected filters
-      var codeMatch = price.plCode.contains(codeFilterController.text);
-      var itemNameMatch = price.plName.contains(priceNameFilterController.text);
-      var groupMatch = price.securityGroup.contains(groupFilterController.text);
-     
+  Widget _buildMultiSelectChip(
+    String label,
+    List<String> options,
+    List<String> selectedValues,
+    Function(void Function()) setStateCallback,
+  ) {
+         TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble()-6);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,style: _appTextStyle,),
+        Wrap(
+          spacing: 8.0,
+          children: options.map((option) {
+            final isSelected = selectedValues.contains(option);
+            return FilterChip(
+              label: Text(option,style: _appTextStyle,),
+              selected: isSelected,
+              onSelected: (bool selected) {
+                setStateCallback(() {
+                  if (selected) {
+                    selectedValues.add(option);
+                  } else {
+                    selectedValues.remove(option);
+                  }
+                });
+              },
+              backgroundColor: isSelected ? Colors.blue : null,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : null,
+                fontWeight: isSelected ? FontWeight.bold : null,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
 
-      // Return true if all conditions are met, otherwise return false
-      return codeMatch && itemNameMatch && groupMatch;
+ void _applyFilters() {
+    filteredPrices = prices.where((price) {
+
+      var pricecodeMatch = selectedPriceCode.isEmpty || selectedPriceCode.contains(price.plCode);
+      var pricenameMatch = selectedPriceName.isEmpty || selectedPriceName.contains(price.plName);
+      var securityMatch = selectedSecurityGroup.isEmpty || selectedSecurityGroup.contains(price.securityGroup);
+
+      return pricecodeMatch && pricenameMatch && securityMatch;
     }).toList();
 
     setState(() {
-      // No need to update the items list here
+      // Update the UI with the filtered items
     });
   }
 

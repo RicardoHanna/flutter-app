@@ -10,6 +10,9 @@ class Menu extends HiveObject {
   @HiveField(1)
   late String menuname;
 
+  @HiveField(3)
+  late String menuarname;
+
 static const int ADMIN_MENU_CODE = 1;
 static const int SETTINGS_MENU_CODE = 2;
 static const int SYNCRONIZE_MENU_CODE = 3;
@@ -18,6 +21,7 @@ static const int PRICELISTS_MENU_CODE = 5;
   Menu({
   required  this.menucode,
    required this.menuname,
+   required this.menuarname,
   }
   );
 }

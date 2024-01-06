@@ -44,6 +44,8 @@ class _SettingsEditUserFormState extends State<SettingsEditUserForm> {
  String _selectedLanguage = 'English';
   int _selectedFont = 16;
     late TextStyle _appTextStyle;
+      bool _formChanged = false; // Added to track changes
+
 @override
 void initState() {
   super.initState();
@@ -214,163 +216,201 @@ Future<String?> getUsernameByCode(int usercode) async {
   @override
   Widget build(BuildContext context) {
   TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.editUserForm,style: _appTextStyle),
-      ),
-    body: SingleChildScrollView(
-  child: Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TextField(
-          style: _appTextStyle,
-          keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ],
-          controller: _usercodeController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
-        ),
-        TextField(
-          style: _appTextStyle,
-          controller: _usernameController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.username),
-        ),
-         TextField(
-          style: _appTextStyle,
-          controller: _userFnameController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.userFname),
-        ),
-        SizedBox(height: 12),
-        TextField(
-          style: _appTextStyle,
-          controller: _emailController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.email),
-        ),
-        SizedBox(height: 12),
-        TextField(
-          style: _appTextStyle,
-          controller: _passwordController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.password),
-        ),
-        SizedBox(height: 12),
-        TextField(
-          style: _appTextStyle,
-           keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ], 
-          controller: _phonenumberController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.phoneNumber),
-        ),
-        SizedBox(height: 12),
-         TextField(
-          style: _appTextStyle,
-           keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ], 
-          controller: _imeicodeController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.imeiNumber),
-        ),
-        SizedBox(height: 12),
-        TextField(
-          style: _appTextStyle,
-          controller: _warehouseController,
-          decoration: InputDecoration(labelText:AppLocalizations.of(context)!.warehouse),
-        ),
-        SizedBox(height: 12),
-     Theme(
-  data: Theme.of(context).copyWith(
-    // Set the text theme for the DropdownButtonFormField
-    textTheme: TextTheme(
-      subtitle1: TextStyle(
-        fontSize: widget.appNotifier.fontSize.toDouble(),
-        color: Colors.black,
-      ),
-    ),
-  ),
-  
-  child: AbsorbPointer(
-    absorbing: true,
-    child: DropdownButtonFormField<String>(
-      value: username,
-      onChanged: (String? newValue) {
-        setState(() {
-          username = newValue!;
-          print(username);
-        });
+    return WillPopScope(
+      onWillPop: () async {
+       if (_formChanged) {
+          // Show the discard changes dialog only if there are changes
+          return await _showDiscardChangesDialog();
+        } else {
+          // If no changes, allow popping without showing the dialog
+          return true;
+        }
       },
-      items: [
-        ...userGroups.map((String userGroup) {
-          return DropdownMenuItem<String>(
-            value: userGroup,
-            child: Text(userGroup, style: _appTextStyle),
-          );
-        }),
-      ],
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.usergroup,
-      ),
-      hint: Text(
-        AppLocalizations.of(context)!.usergroup,
-        style: _appTextStyle,
-      ),
-      isExpanded: true,
-       onTap: () {}, // Disable onTap
-  
-    ),
-  ),
-),
-   SizedBox(height: 12.0),
-      _buildLanguageDropdown(context),
-              SizedBox(height: 12.0),
-                 _buildFontTextField(context),
-      Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Row(
-      children: [
-        Text(AppLocalizations.of(context)!.active,style: _appTextStyle,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context)!.editUserForm,style: _appTextStyle),
         ),
-        SizedBox(width: 10),
-        Switch(
-          value: _isActive,
-          onChanged: (bool newValue) {
-            setState(() {
-              _isActive = newValue;
-            });
-          },
+      body: SingleChildScrollView(
+      child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            style: _appTextStyle,
+            keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ],
+            controller: _usercodeController,
+              onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
+          ),
+          TextField(
+            style: _appTextStyle,
+            controller: _usernameController,
+              onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.username),
+          ),
+           TextField(
+            style: _appTextStyle,
+            controller: _userFnameController,
+              onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.userFname),
+          ),
+          SizedBox(height: 12),
+          TextField(
+            style: _appTextStyle,
+            controller: _emailController,
+              onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.email),
+          ),
+          SizedBox(height: 12),
+          TextField(
+            style: _appTextStyle,
+            controller: _passwordController,
+              onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.password),
+          ),
+          SizedBox(height: 12),
+          TextField(
+            style: _appTextStyle,
+             keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ], 
+            controller: _phonenumberController,
+            onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.phoneNumber),
+          ),
+          SizedBox(height: 12),
+           TextField(
+            style: _appTextStyle,
+             keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ], 
+            controller: _imeicodeController,
+               onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.imeiNumber),
+          ),
+          SizedBox(height: 12),
+          TextField(
+            style: _appTextStyle,
+            controller: _warehouseController,
+               onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText:AppLocalizations.of(context)!.warehouse),
+          ),
+          SizedBox(height: 12),
+       Theme(
+      data: Theme.of(context).copyWith(
+      // Set the text theme for the DropdownButtonFormField
+      textTheme: TextTheme(
+        subtitle1: TextStyle(
+          fontSize: widget.appNotifier.fontSize.toDouble(),
+          color: Colors.black,
         ),
-      ],
-    ),
-  ),
-        ElevatedButton(
-          onPressed: () {
-            _updateUser(
-             widget.email,
-             int.parse(_usercodeController.text),
-              _usernameController.text,
-              _userFnameController.text,
-              _emailController.text,
-              _passwordController.text,
-              _phonenumberController.text,
-              _imeicodeController.text,
-              _warehouseController.text,
-              _isActive,
-              _selectedFont,
-
+      ),
+      ),
+      
+      child: AbsorbPointer(
+      absorbing: true,
+      child: DropdownButtonFormField<String>(
+        value: username,
+        onChanged: (String? newValue) {
+          setState(() {
+            username = newValue!;
+            print(username);
+          });
+        },
+        items: [
+          ...userGroups.map((String userGroup) {
+            return DropdownMenuItem<String>(
+              value: userGroup,
+              child: Text(userGroup, style: _appTextStyle),
             );
-          },
-          child: Text(AppLocalizations.of(context)!.update,style: _appTextStyle),
+          }),
+        ],
+        decoration: InputDecoration(
+          labelText: AppLocalizations.of(context)!.usergroup,
         ),
-
-      ],
+        hint: Text(
+          AppLocalizations.of(context)!.usergroup,
+          style: _appTextStyle,
+        ),
+        isExpanded: true,
+         onTap: () {}, // Disable onTap
+      
+      ),
+      ),
     ),
-  ),
-),
-
+       SizedBox(height: 12.0),
+        _buildLanguageDropdown(context),
+                SizedBox(height: 12.0),
+                   _buildFontTextField(context),
+        Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Text(AppLocalizations.of(context)!.active,style: _appTextStyle,
+          ),
+          SizedBox(width: 10),
+          Switch(
+            value: _isActive,
+            onChanged: (bool newValue) {
+              setState(() {
+                _isActive = newValue;
+                _formChanged=true;
+              });
+              
+              
+            },
+          ),
+        ],
+      ),
+      ),
+          ElevatedButton(
+            onPressed: () {
+              _updateUser(
+               widget.email,
+               int.parse(_usercodeController.text),
+                _usernameController.text,
+                _userFnameController.text,
+                _emailController.text,
+                _passwordController.text,
+                _phonenumberController.text,
+                _imeicodeController.text,
+                _warehouseController.text,
+                _isActive,
+                _selectedFont,
+    
+              );
+            },
+            child: Text(AppLocalizations.of(context)!.update,style: _appTextStyle),
+          ),
+    
+        ],
+      ),
+      ),
+    ),
+    
+      ),
     );
 
   }
@@ -392,6 +432,7 @@ Widget _buildLanguageDropdown(BuildContext context) {
         if (_selectedLanguage != newValue) {
           setState(() {
             _selectedLanguage = newValue!;
+            _formChanged=true;
           });
 
       
@@ -438,6 +479,7 @@ Widget _buildFontTextField(BuildContext context) {
         onChanged: (double value) {
           setState(() {
             _selectedFont = value.toInt();
+            _formChanged=true;
           });
         },
       ),
@@ -572,6 +614,37 @@ try {
       Navigator.pop(context);
    
   } 
+Future<bool> _showDiscardChangesDialog() async {
+  bool? result = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(AppLocalizations.of(context)!.discardchanges),
+        content: Text(AppLocalizations.of(context)!.areyousuretodiscardchanges),
+        actions: <Widget>[
+          TextButton(
+            child: Text(AppLocalizations.of(context)!.no),
+            onPressed: () {
+              Navigator.of(context).pop(false); // Return false
+            },
+          ),
+          TextButton(
+            child: Text(AppLocalizations.of(context)!.yes),
+            onPressed: () {
+              Navigator.of(context).pop(true); // Return true
+              Navigator.of(context).pop(); // Close the current page
+            },
+          ),
+        ],
+      );
+    },
+  );
+
+  // If the dialog is dismissed, return false as a default value
+  return result ?? false;
+}
+
+
 
 
 Future<void> _syncChangesWithFirestore() async {

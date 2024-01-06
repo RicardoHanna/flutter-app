@@ -58,6 +58,7 @@ dependencies:
   hive_generator: ^2.0.1
   connectivity_plus: ^5.0.2
   barcode_scan2: ^4.3.0
+  local_auth: ^2.1.7
 
 
 dev_dependencies:

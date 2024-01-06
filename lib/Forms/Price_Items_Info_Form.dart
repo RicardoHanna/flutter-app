@@ -3,7 +3,7 @@ import 'package:project/Forms/Attachements_Item_Form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/itemsprices_hive.dart';
-
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PriceItemsInfo extends StatelessWidget {
   
@@ -15,23 +15,25 @@ class PriceItemsInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+       TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble());
+        TextStyle   _appTextStyleAppBar = TextStyle(fontSize:appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
-        title: Text('Item Price Details'),
+        title: Text(AppLocalizations.of(context)!.itempricedetails,style: _appTextStyleAppBar,),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTitleText('PL Code: ', itemsPrices.plCode ?? ''),
-            _buildTitleText('Item Code: ',itemsPrices.itemCode ?? ''),
-            _buildTitleText('UOM: ',itemsPrices.uom?? ''),
-            _buildTitleNumber('Base Price: ',itemsPrices.basePrice?? ''),
-            _buildTitleText('Currency: ',itemsPrices.currency?? ''),
-            _buildTitleNumber('Auto: ',itemsPrices.auto?? ''),
-            _buildTitleNumber('Disc:',itemsPrices.disc?? ''),
-            _buildTitleNumber('Price: ',itemsPrices.price?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.plcode, itemsPrices.plCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.itemcode,itemsPrices.itemCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.uom,itemsPrices.uom?? ''),
+            _buildTitleNumber(AppLocalizations.of(context)!.baseprice,itemsPrices.basePrice?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.currency,itemsPrices.currency?? ''),
+            _buildTitleNumber(AppLocalizations.of(context)!.auto,itemsPrices.auto?? ''),
+            _buildTitleNumber(AppLocalizations.of(context)!.disc,itemsPrices.disc?? ''),
+            _buildTitleNumber(AppLocalizations.of(context)!.price,itemsPrices.price?? ''),
             // Add more details if needed
           ],
         ),
@@ -42,7 +44,7 @@ class PriceItemsInfo extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AttachementsItemForm(itemCode: itemsPrices.itemCode),
+              builder: (context) => AttachementsItemForm(itemCode: itemsPrices.itemCode,appNotifier: appNotifier,),
             ),
           );
         },
@@ -52,6 +54,7 @@ class PriceItemsInfo extends StatelessWidget {
   }
 
   Widget _buildTitleText(String title, String value) {
+        TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble()-4);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -59,16 +62,17 @@ class PriceItemsInfo extends StatelessWidget {
           title,
           style: TextStyle(
             color: Colors.blue, // Set the text color to blue
-            fontSize: 16.0, // Set the font size
+            fontSize: appNotifier.fontSize.toDouble(), // Set the font size
             fontWeight: FontWeight.bold, // Set the font weight to bold
           ),
         ),
-        Text(value),
+        Text(value,style: _appTextStyle,),
       ],
     );
   }
 
   Widget _buildTitleNumber(String title, Object value) {
+       TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble()-4);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -76,11 +80,11 @@ class PriceItemsInfo extends StatelessWidget {
           title,
           style: TextStyle(
             color: Colors.blue, // Set the text color to blue
-            fontSize: 16.0, // Set the font size
+            fontSize: appNotifier.fontSize.toDouble(), // Set the font size
             fontWeight: FontWeight.bold, // Set the font weight to bold
           ),
         ),
-        Text(value.toString()),
+        Text(value.toString(),style: _appTextStyle,),
       ],
     );
   }

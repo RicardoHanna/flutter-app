@@ -65,6 +65,8 @@ String _selectedLanguage = 'English';
 List<String> userGroups = [];
   bool isInitialized = false;
 String username='';
+      bool _formChanged = false; // Added to track changes
+
  TextStyle _appTextStyle=TextStyle();
 @override
 void initState() {
@@ -165,226 +167,293 @@ Future<String?> getUsernameByCode(int usercode) async {
   @override
   Widget build(BuildContext context) {
      _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.editUserForm,style: _appTextStyle),
-      ),
-    body: SingleChildScrollView(
-  child: Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-         TextField(
-          style: _appTextStyle,
-          keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ],
-          controller: _usercodeController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
-        ),
-        TextField(
-          style: _appTextStyle,
-          controller: _usernameController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.username),
-        ),
-            TextField(
-          style: _appTextStyle,
-          controller: _usernameFController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.userFname),
-        ),
-        SizedBox(height: 12),
-        TextField(
-          style: _appTextStyle,
-          controller: _emailController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.email),
-        ),
-        SizedBox(height: 12),
-        TextField(
-          style: _appTextStyle,
-          controller: _passwordController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.password),
-        ),
-        SizedBox(height: 12),
-        TextField(
-          style: _appTextStyle,
-           keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ], 
-          controller: _phonenumberController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.phoneNumber),
-        ),
-        SizedBox(height: 12),
-         TextField(
-          style: _appTextStyle,
-           keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ], 
-          controller: _imeicodeController,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.imeiNumber),
-        ),
-        SizedBox(height: 12),
-        TextField(
-          style: _appTextStyle,
-          controller: _warehouseController,
-          decoration: InputDecoration(labelText:AppLocalizations.of(context)!.warehouse),
-        ),
-        SizedBox(height: 12),
-         Theme(
-        data: Theme.of(context).copyWith(
-    // Set the text theme for the DropdownButtonFormField
-    textTheme: TextTheme(
-      subtitle1: TextStyle(
-        fontSize: widget.appNotifier.fontSize.toDouble(),
-        color: Colors.black,
-      ),
-    ),
-  ),
-        child: DropdownButtonFormField<String>(
-        value: username,
-        onChanged: (String? newValue) {
-          setState(() {
-        username = newValue!;
-        print(username);
-          });
-        },
-        items: [
-                    ...userGroups.map((String userGroup) {
-                      return DropdownMenuItem<String>(
-                        value: userGroup,
-                        child: Text(userGroup, style: _appTextStyle,),
-                      );
-                    }),
-                  ],
-        decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usergroup),
-        hint: Text(
-        AppLocalizations.of(context)!.usergroup,
-        style: _appTextStyle,
-      ),
-      ),
-      ),
-
-        SizedBox(height: 16),
-      Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    Text(
-      AppLocalizations.of(context)!.font,
-      style: _appTextStyle,
-    ),
-    SizedBox(height: 8.0),
-    Slider(
-      value: _fontController.text.isEmpty ? 1.0 : double.parse(_fontController.text),
-      min: 12.0,
-      max: 30.0,
-      divisions: 29,
-      onChanged: (double value) {
-        setState(() {
-          _fontController.text = value.toInt().toString();
-        });
+    return WillPopScope(
+        onWillPop: () async {
+       if (_formChanged) {
+          // Show the discard changes dialog only if there are changes
+          return await _showDiscardChangesDialog();
+        } else {
+          // If no changes, allow popping without showing the dialog
+          return true;
+        }
       },
-    ),
-    SizedBox(height: 8.0),
- Center(
-      child: Text(
-        _fontController.text, // Display the selected font size
-        style: _appTextStyle,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context)!.editUserForm,style: _appTextStyle),
+        ),
+      body: SingleChildScrollView(
+      child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+           TextField(
+            style: _appTextStyle,
+            keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ],
+            controller: _usercodeController,
+             onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
+          ),
+          TextField(
+            style: _appTextStyle,
+            controller: _usernameController,
+             onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.username),
+          ),
+              TextField(
+            style: _appTextStyle,
+            controller: _usernameFController,
+             onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.userFname),
+          ),
+          SizedBox(height: 12),
+          TextField(
+            style: _appTextStyle,
+            controller: _emailController,
+             onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.email),
+          ),
+          SizedBox(height: 12),
+          TextField(
+            style: _appTextStyle,
+            controller: _passwordController,
+             onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.password),
+          ),
+          SizedBox(height: 12),
+          TextField(
+            style: _appTextStyle,
+             keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ], 
+            controller: _phonenumberController,
+             onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.phoneNumber),
+          ),
+          SizedBox(height: 12),
+           TextField(
+            style: _appTextStyle,
+             keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ], 
+            controller: _imeicodeController,
+             onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.imeiNumber),
+          ),
+          SizedBox(height: 12),
+          TextField(
+            style: _appTextStyle,
+            controller: _warehouseController,
+             onChanged: (value) {
+                    _formChanged = true; 
+                  },
+            decoration: InputDecoration(labelText:AppLocalizations.of(context)!.warehouse),
+          ),
+          SizedBox(height: 12),
+           Theme(
+          data: Theme.of(context).copyWith(
+      // Set the text theme for the DropdownButtonFormField
+      textTheme: TextTheme(
+        subtitle1: TextStyle(
+          fontSize: widget.appNotifier.fontSize.toDouble(),
+          color: Colors.black,
+        ),
       ),
- ),
-  ],
-),
-
-        SizedBox(height: 16),
-            Theme(
-        data: Theme.of(context).copyWith(
-    // Set the text theme for the DropdownButtonFormField
-    textTheme: TextTheme(
-      subtitle1: TextStyle(
-        fontSize: widget.appNotifier.fontSize.toDouble(),
-        color: Colors.black,
       ),
-    ),
-  ),
-             child: DropdownButtonFormField<String>(
-  value: _selectedLanguage,
-  onChanged: (String? newValue) {
-    setState(() {
-      _selectedLanguage = newValue!;
-    });
-  },
-  items: Language.languageList().map<DropdownMenuItem<String>>((lang) {
-    final String languageName =
-        AppLocalizations.of(context)!.language == 'English'
-            ? lang.name
-            : lang.nameInArabic;
-
-    return DropdownMenuItem<String>(
-      value: languageName,
-      child: Row(
-        children: <Widget>[
-          Text(languageName, style: _appTextStyle),
-        ],
-      ),
-    );
-  }).toList(),
-                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.languages),
-                      hint: Text(
-        AppLocalizations.of(context)!.usergroup,
-        style: _appTextStyle,
-      ),
-                    ),
-            ),
-      Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Row(
-      children: [
-        Text(AppLocalizations.of(context)!.active,style: _appTextStyle),
-        SizedBox(width: 10),
-        Switch(
-          value: _isActive,
-          onChanged: (bool newValue) {
+          child: DropdownButtonFormField<String>(
+          value: username,
+          onChanged: (String? newValue) {
             setState(() {
-              _isActive = newValue;
+          username = newValue!;
+          _formChanged=true;
+          print(username);
             });
           },
+          items: [
+                      ...userGroups.map((String userGroup) {
+                        return DropdownMenuItem<String>(
+                          value: userGroup,
+                          child: Text(userGroup, style: _appTextStyle,),
+                        );
+                      }),
+                    ],
+          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usergroup),
+          hint: Text(
+          AppLocalizations.of(context)!.usergroup,
+          style: _appTextStyle,
         ),
+        ),
+        ),
+    
+          SizedBox(height: 16),
+        Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+      Text(
+        AppLocalizations.of(context)!.font,
+        style: _appTextStyle,
+      ),
+      SizedBox(height: 8.0),
+      Slider(
+        value: _fontController.text.isEmpty ? 1.0 : double.parse(_fontController.text),
+        min: 12.0,
+        max: 30.0,
+        divisions: 29,
+        onChanged: (double value) {
+          setState(() {
+            _fontController.text = value.toInt().toString();
+            _formChanged=true;
+          });
+        },
+      ),
+      SizedBox(height: 8.0),
+     Center(
+        child: Text(
+          _fontController.text, // Display the selected font size
+          style: _appTextStyle,
+        ),
+     ),
       ],
     ),
-  ),
-        ElevatedButton(
-          onPressed: () {
-            _updateUser(
-              widget.username,
-              int.parse(_usercodeController.text),
-              _usernameController.text,
-              _usernameFController.text,
-              _emailController.text,
-              _passwordController.text,
-              _phonenumberController.text,
-              _imeicodeController.text,
-              _warehouseController.text,
-              int.parse(_selectedUserGroup),
-              int.parse(_fontController.text),
-              _selectedLanguage,
-              _isActive,
-
-            );
-          },
-          child: Text(AppLocalizations.of(context)!.update,style: _appTextStyle),
+    
+          SizedBox(height: 16),
+              Theme(
+          data: Theme.of(context).copyWith(
+      // Set the text theme for the DropdownButtonFormField
+      textTheme: TextTheme(
+        subtitle1: TextStyle(
+          fontSize: widget.appNotifier.fontSize.toDouble(),
+          color: Colors.black,
         ),
-      ],
+      ),
+      ),
+               child: DropdownButtonFormField<String>(
+      value: _selectedLanguage,
+      onChanged: (String? newValue) {
+      setState(() {
+        _selectedLanguage = newValue!;
+        _formChanged=true;
+      });
+      },
+      items: Language.languageList().map<DropdownMenuItem<String>>((lang) {
+      final String languageName =
+          AppLocalizations.of(context)!.language == 'English'
+              ? lang.name
+              : lang.nameInArabic;
+    
+      return DropdownMenuItem<String>(
+        value: languageName,
+        child: Row(
+          children: <Widget>[
+            Text(languageName, style: _appTextStyle),
+          ],
+        ),
+      );
+      }).toList(),
+                        decoration: InputDecoration(labelText: AppLocalizations.of(context)!.languages),
+                        hint: Text(
+          AppLocalizations.of(context)!.usergroup,
+          style: _appTextStyle,
+        ),
+                      ),
+              ),
+        Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Text(AppLocalizations.of(context)!.active,style: _appTextStyle),
+          SizedBox(width: 10),
+          Switch(
+            value: _isActive,
+            onChanged: (bool newValue) {
+              setState(() {
+                _isActive = newValue;
+                _formChanged=true;
+              });
+            },
+          ),
+        ],
+      ),
+      ),
+          ElevatedButton(
+            onPressed: () {
+              _updateUser(
+                widget.username,
+                int.parse(_usercodeController.text),
+                _usernameController.text,
+                _usernameFController.text,
+                _emailController.text,
+                _passwordController.text,
+                _phonenumberController.text,
+                _imeicodeController.text,
+                _warehouseController.text,
+                int.parse(_selectedUserGroup),
+                int.parse(_fontController.text),
+                _selectedLanguage,
+                _isActive,
+    
+              );
+            },
+            child: Text(AppLocalizations.of(context)!.update,style: _appTextStyle),
+          ),
+        ],
+      ),
+      ),
     ),
-  ),
-),
-
+    
+      ),
     );
   }
 
   
+Future<bool> _showDiscardChangesDialog() async {
+  bool? result = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Discard Changes'),
+        content: Text('Are you sure you want to discard the changes?'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('No'),
+            onPressed: () {
+              Navigator.of(context).pop(false); // Return false
+            },
+          ),
+          TextButton(
+            child: Text('Yes'),
+            onPressed: () {
+              Navigator.of(context).pop(true); // Return true
+              Navigator.of(context).pop(); // Close the current page
+            },
+          ),
+        ],
+      );
+    },
+  );
 
+  // If the dialog is dismissed, return false as a default value
+  return result ?? false;
+}
 
 
   void _updateUser(

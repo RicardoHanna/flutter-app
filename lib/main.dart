@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/firebase_options.dart';
+import 'package:project/hive/adminsubmenu_hive.dart';
 import 'package:project/hive/authorization_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/itemattach_hive.dart';
@@ -17,6 +18,7 @@ import 'package:project/hive/itemsprices_hive.dart';
 import 'package:project/hive/itemuom_hive.dart';
 import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/pricelist_hive.dart';
+import 'package:project/hive/syncronizesubmenu_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/hive/userpl_hive.dart';
@@ -46,6 +48,8 @@ void main() async {
 Hive.registerAdapter(UserPLAdapter());
 Hive.registerAdapter(AuthorizationAdapter());
 Hive.registerAdapter(MenuAdapter());
+Hive.registerAdapter(AdminSubMenuAdapter());
+Hive.registerAdapter(SynchronizeSubMenuAdapter());
 
   await Hive.openBox<Items>('items');
   await Hive.openBox<PriceList>('pricelists');
@@ -61,7 +65,9 @@ Hive.registerAdapter(MenuAdapter());
    await Hive.openBox<UserPL>('userpl');
     await Hive.openBox<Authorization>('authorizationBox');
    await Hive.openBox<Menu>('menuBox');
-
+   await Hive.openBox<AdminSubMenu>('adminSubMenuBox');
+   await Hive.openBox<SynchronizeSubMenu>('synchronizeSubMenu');
+   
   runApp(
     MultiProvider(
       providers: [

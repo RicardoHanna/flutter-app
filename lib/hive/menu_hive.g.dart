@@ -19,17 +19,20 @@ class MenuAdapter extends TypeAdapter<Menu> {
     return Menu(
       menucode: fields[0] as int,
       menuname: fields[1] as String,
+      menuarname: fields[3] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Menu obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.menucode)
       ..writeByte(1)
-      ..write(obj.menuname);
+      ..write(obj.menuname)
+      ..writeByte(3)
+      ..write(obj.menuarname);
   }
 
   @override

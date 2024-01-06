@@ -442,7 +442,7 @@ void _deleteUser(int usercode, String username) async {
      _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.adminPage,style: _appTextStyle),
+        title: Text(AppLocalizations.of(context)!.adminusergroup,style: _appTextStyle),
       ),
       body: Column(
         children: [

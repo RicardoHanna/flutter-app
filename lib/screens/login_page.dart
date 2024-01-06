@@ -18,6 +18,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:project/app_notifier.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:local_auth/local_auth.dart';
+
 
 class LoginPage extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -33,14 +35,102 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 bool _rememberMe = false;
  DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
-
+late final LocalAuthentication auth ;
+bool _supportState=false;
 
  @override
   void initState() {
     super.initState();
     // Load saved login information from SharedPreferences
     _loadSavedLoginInfo();
+    auth=LocalAuthentication();
+    auth.isDeviceSupported().then(
+              (bool isSupported) => setState( (){
+_supportState=isSupported;
+              })
+
+    );
   }
+
+ Future<void> _loginWithFingerprint(String identifier) async {
+  if (_supportState) {
+    // If fingerprint is supported, use fingerprint
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Using fingerprint for login."),
+      ),
+    );
+
+    // Add your fingerprint login logic here
+    // For now, let's assume fingerprint authentication is successful
+    bool fingerprintAuthenticationSuccessful = true;
+
+    if (fingerprintAuthenticationSuccessful) {
+      // If fingerprint authentication is successful, proceed with login
+      await _loginLocalDatabase(identifier, "");
+    } else {
+      // Handle the case where fingerprint authentication fails
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Fingerprint authentication failed."),
+        ),
+      );
+    }
+  } else {
+    // Handle the case where fingerprint is not supported
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Fingerprint not supported."),
+      ),
+    );
+  }
+}
+
+Future<void> _authenticate() async {
+  try {
+    bool authenticated = await auth.authenticate(
+      localizedReason: 'Use Your Finger to Login',
+      options: const AuthenticationOptions(
+        stickyAuth: true,
+        biometricOnly: true,
+        useErrorDialogs: true,
+      ),
+    );
+
+    print("Authenticated : $authenticated");
+
+    if (authenticated) {
+      // If fingerprint authentication is successful, proceed with fingerprint login
+      String identifier = _emailController.text.trim(); // Use email by default
+      if (isEmail(identifier)) {
+        // If it's a valid email, use email
+        identifier = _emailController.text.trim();
+      } else if (isNumeric(identifier)) {
+        identifier = _emailController.text.trim();
+      } else {
+        // If it's not an email or numeric, assume it's a username
+        identifier = _emailController.text.trim();
+      }
+
+      await _loginLocalDatabaseWithFingerprint(identifier);
+    }
+  } on PlatformException catch (e) {
+    print(e);
+  }
+}
+
+
+
+
+Future<void> _getAvailableBiometrics() async {
+ List<BiometricType> availableBiometrics= await auth.getAvailableBiometrics();
+
+ print('list od available bio :$availableBiometrics');
+
+ if(!mounted)
+ return;
+}
+
 
 void _loadSavedLoginInfo() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -57,6 +147,99 @@ void _loadSavedLoginInfo() async {
     }
   });
 }
+Future<void> _loginLocalDatabaseWithFingerprint(String identifier) async {
+  var userBox = await Hive.openBox('userBox');
+
+  String identifierField = 'email'; // Default to email
+  if (isEmail(identifier)) {
+    identifierField = 'email';
+  } else if (isInt(identifier)) {
+    identifierField = 'usercode';
+  } else {
+    identifierField = 'username';
+  }
+
+  // Print or log all data in the local database for debugging
+  print('All data in local database: ${userBox.values.toList()}');
+
+  await synchronizer.synchronizeDataUserGroup();
+  await synchronizer.synchronizeDataUserGroupTranslations();
+
+  // Retrieve user data from Hive based on identifier
+  var userData;
+  try {
+    userData = userBox.values.firstWhere(
+      (user) => user is Map && user[identifierField] == identifier,
+      orElse: () => {
+        'email': '',
+        'password': '',
+        // Add other default values here
+      },
+    );
+  } catch (e) {
+    print('Error retrieving user data: $e');
+    // Handle the error as needed
+    return;
+  }
+
+  // Print or log the user data for debugging
+  print('User data from local database: $userData');
+
+  if (userData[identifierField] != null) {
+    print('User found in local database');
+
+    String userLanguage = userData['languages'];
+    int userFont = userData['font'];
+    String email = userData['email'] ?? ''; // Initialize with an empty string
+
+    print('Identifier: $identifierField');
+    print('Value: $identifier');
+    print('Language: $userLanguage');
+
+    if (userBox.containsKey(email.toLowerCase())) {
+      // User found in the local database, proceed with login
+      String userLanguage = userBox.get(email.toLowerCase())?['languages'];
+      int userFont = userBox.get(email.toLowerCase())?['font'];
+      email = userBox.get(email.toLowerCase())?['email'] ?? ''; // Reassign the variable
+
+      if (userLanguage == 'English') {
+        Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('en'));
+      } else {
+        Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('ar'));
+      }
+
+      Provider.of<AppNotifier>(context, listen: false).updateFontSize(userFont);
+
+      print('Login with fingerprint successful');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => welcomePage(
+            identifier: identifier,
+            password: "", // Password is empty when logging in with fingerprint
+            appNotifier: widget.appNotifier,
+            email: email,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.invalidEmail),
+        ),
+      );
+    }
+  } else {
+    print('User not found in the local database');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.invalidEmail),
+        ),
+      );
+    // Handle the case where the user is not found in the local database
+  }
+}
+
 
 Future<void> _loginLocalDatabase(String identifier, String password) async {
   var userBox = await Hive.openBox('userBox');
@@ -78,7 +261,7 @@ Future<void> _loginLocalDatabase(String identifier, String password) async {
   } else {
     // Clear the saved login information when "Remember Me" is unchecked
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove('identifier');
+   // prefs.remove('identifier');
     prefs.remove('password');
   }
 
@@ -243,7 +426,7 @@ String _emailkey=userDoc.get('email');
         TextStyle _appRemTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble()-5);
     TextStyle _SappTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble(), fontWeight: FontWeight.bold);
-
+   TextStyle _appFingerTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble()-8);
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: SafeArea(
@@ -308,49 +491,65 @@ String _emailkey=userDoc.get('email');
                       ),
                     ),
             
-                    Padding(
-                      
-                      padding: const EdgeInsets.only(left: 20, right: 20),
-                      child: Form(
-                        key: _formKey,
-                        child: TextFormField(
-                          style: _appTextStyle,
-                          controller: _passwordController,
-                          obscuringCharacter: '*',
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                            prefixIcon: Icon(
-                              Icons.key,
-                              color: Colors.blue,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            labelText: AppLocalizations.of(context)!.password,
-                            hintText: '*********',
-                            labelStyle: TextStyle(color: Colors.blue),
-                          ),
-                          
-                          validator: (value) {
-                            if (value!.isEmpty && value.length < 5) {
-                              return AppLocalizations.of(context)!.validPassword;
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ),
+                 Padding(
+  padding: const EdgeInsets.only(left: 20, right: 20),
+  child: Form(
+    key: _formKey,
+    child: Column(
+      children: [
+        TextFormField(
+          style: _appTextStyle,
+          controller: _passwordController,
+          obscuringCharacter: '*',
+          obscureText: true,
+          decoration: InputDecoration(
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.all(
+                Radius.circular(10),
+              ),
+            ),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.all(
+                Radius.circular(10),
+              ),
+            ),
+            prefixIcon: Icon(
+              Icons.key,
+              color: Colors.blue,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            labelText: AppLocalizations.of(context)!.password,
+            hintText: '*********',
+            labelStyle: TextStyle(color: Colors.blue),
+          ),
+          validator: (value) {
+            if (value!.isEmpty && value.length < 5) {
+              return AppLocalizations.of(context)!.validPassword;
+            }
+            return null;
+          },
+        ),
+
+    Text(AppLocalizations.of(context)!.orfingerprints , style:_appFingerTextStyle),
+    const SizedBox(height: 8,),
+        GestureDetector(
+          onTap: () async {
+          _authenticate();
+          },
+          child: Icon(
+            Icons.fingerprint,
+            size: 40,
+            color: Colors.blue,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
                     CheckboxListTile(
                     title: Text(
                       AppLocalizations.of(context)!.rememberMe,
@@ -374,17 +573,20 @@ String _emailkey=userDoc.get('email');
         fixedSize: Size(250, 20), // Adjust the width and height as needed
 
   ),
-  onPressed: () async {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.processingData,
-            style: _appTextStyle,
-          ),
+// Update your login button onPressed to call _login instead of _loginLocalDatabase
+onPressed: () async {
+  if (_formKey.currentState!.validate()) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context)!.processingData,
+          style: _appTextStyle,
         ),
-      );
-    }
+      ),
+    );
+  }
+
+
 int userC=0;
    String identifier = _emailController.text.trim(); // Use email by default
 if (isEmail(identifier)) {

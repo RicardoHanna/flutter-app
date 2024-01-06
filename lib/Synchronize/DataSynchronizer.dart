@@ -199,44 +199,80 @@ class DataSynchronizer {
     }
   }
 
-   Future<void> _updateFirestoreAuthorization(List<Authorization> authorizations) async {
-    // Loop through each user and update or add to Firestore
-    for (Authorization authorization in authorizations) {
-   
-      try {
-        // Check if the user already exists in Firestore
+Future<void> _updateFirestoreAuthorization(List<Authorization> authorizations) async {
+  // Get all existing authorizations from Firestore
+  QuerySnapshot<Map<String, dynamic>> allAuthorizationsSnapshot =
+      await _firestore.collection('Authorization').get();
+
+  // Get a list of existing group codes and menu codes in Firestore
+  List<int> existingGroupCodes =
+      allAuthorizationsSnapshot.docs.map((doc) => doc['groupcode'] as int).toList();
+  List<int> existingMenuCodes =
+      allAuthorizationsSnapshot.docs.map((doc) => doc['menucode'] as int).toList();
+
+  // Loop through each user and update or add to Firestore
+  for (Authorization authorization in authorizations) {
+    try {
+      // Check if the authorization already exists in Firestore
+      bool authorizationExists = existingGroupCodes.contains(authorization.groupcode) &&
+          existingMenuCodes.contains(authorization.menucode);
+
+      if (authorizationExists) {
+        // Authorization already exists, check for updates
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
             .collection('Authorization')
             .where('groupcode', isEqualTo: authorization.groupcode)
-            .where('usercode', isEqualTo: authorization.menucode)
+            .where('menucode', isEqualTo: authorization.menucode)
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
-          // Update the existing user in Firestore
           String documentId = querySnapshot.docs[0].id;
-          await _firestore.collection('Authorization').doc(documentId).update(
-            {
-              'groupcode': authorization.groupcode,
-              'menucode': authorization.menucode
-            
-            },
-          );
-        } else {
-          // Add the user to Firestore if it doesn't exist
-          await _firestore.collection('Authorization').add(
-            {
-           'groupcode': authorization.groupcode,
-              'menucode': authorization.menucode
-            },
-          );
+
+          // Check if there are changes before updating
+          Map<String, dynamic> existingAuthorizationData = querySnapshot.docs[0].data()!;
+      
+            await _firestore.collection('Authorization').doc(documentId).update(
+              {
+                'groupcode': authorization.groupcode,
+                'menucode': authorization.menucode,
+              },
+            );
+            print('Authorization updated: ${authorization.groupcode}, ${authorization.menucode}');
+          
         }
-      } catch (e) {
-        print('Error updating Firestore user: $e');
+      } else {
+        // Add the user to Firestore if it doesn't exist
+        await _firestore.collection('Authorization').add(
+          {
+            'groupcode': authorization.groupcode,
+            'menucode': authorization.menucode,
+          },
+        );
+        print('Authorization added: ${authorization.groupcode}, ${authorization.menucode}');
       }
+    } catch (e) {
+      print('Error updating Firestore authorization: $e');
     }
   }
 
- 
+  // Delete authorizations in Firestore that don't exist in Hive
+  /*for (QueryDocumentSnapshot<Map<String, dynamic>> doc in allAuthorizationsSnapshot.docs) {
+    int groupCode = doc['groupcode'] as int;
+    int menuCode = doc['menucode'] as int;
+
+    // Check if the authorization exists in the Hive list
+    bool authorizationExistsInHive =
+        authorizations.any((auth) => auth.groupcode == groupCode && auth.menucode == menuCode);
+
+    if (!authorizationExistsInHive) {
+      // Authorization doesn't exist in Hive, delete it from Firestore
+      await _firestore.collection('Authorization').doc(doc.id).delete();
+      print('Authorization deleted: $groupCode, $menuCode');
+    }
+  }*/
+}
+
+
   Future<bool> hasInternetConnection() async {
     try {
       var connectivityResult = await Connectivity().checkConnectivity();

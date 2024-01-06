@@ -66,13 +66,14 @@ class DataSearchPriceLists extends SearchDelegate<String> {
   }
 
   Widget _buildSearchResults(List<PriceList> results) {
+         TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble());
     return ListView.builder(
       itemCount: results.length,
       itemBuilder: (context, index) {
         final price = results[index];
         return ListTile(
-          title: Text(price.plCode),
-          subtitle: Text(price.plName),
+          title: Text(price.plCode,style: _appTextStyle,),
+          subtitle: Text(price.plName,style: _appTextStyle,),
         onTap: () {
                         // Navigate to the ItemsInfoForm page and pass the selected item
                         Navigator.push(

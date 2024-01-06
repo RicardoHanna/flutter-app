@@ -28,8 +28,9 @@ import 'package:project/Synchronize/DataSynchronizer.dart';
 
 class AttachementsItemForm extends StatefulWidget {
   final String itemCode;
+  final AppNotifier appNotifier;
 
-  AttachementsItemForm({required this.itemCode});
+  AttachementsItemForm({required this.itemCode,required this.appNotifier});
 
   @override
   _AttachementsItemFormState createState() => _AttachementsItemFormState();
@@ -73,9 +74,11 @@ class _AttachementsItemFormState extends State<AttachementsItemForm> {
 
   @override
   Widget build(BuildContext context) {
+      TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
+         TextStyle   _appTextStyleAppBar = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
-        title: Text('Attachments for Item ${widget.itemCode}'),
+        title: Text(AppLocalizations.of(context)!.attachmentsforitem + widget.itemCode,style: _appTextStyleAppBar,),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -87,7 +90,7 @@ class _AttachementsItemFormState extends State<AttachementsItemForm> {
             } else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Text('No attachments found for Item ${widget.itemCode}');
+              return Text(AppLocalizations.of(context)!.noattachmentsfoundforitem+' '+widget.itemCode);
             } else {
               return GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -104,15 +107,20 @@ class _AttachementsItemFormState extends State<AttachementsItemForm> {
                     return Card(
                       child: Column(
                         children: [
-                          Image.network(
-                            attachment.attachmentPath,
-                            height: 100,
-                            width: 300,
-                            
-                          ),
+                         GestureDetector(
+  onTap: () {
+    _showImageDialog(attachment.attachmentPath);
+  },
+  child: Image.network(
+    attachment.attachmentPath,
+    height: 100,
+    width: 300,
+  ),
+)
+,
                           ListTile(
-                            title: Text('Type: ${attachment.attachmentType}'),
-                            subtitle: Text('Note: ${attachment.note}'),
+                            title: Text(AppLocalizations.of(context)!.type +':'+ attachment.attachmentType,style: _appTextStyle,),
+                            subtitle: Text(AppLocalizations.of(context)!.note +':'+ attachment.note,style: _appTextStyle,),
                             trailing: Icon(Icons.attach_file),
                           ),
                         ],
@@ -123,8 +131,8 @@ class _AttachementsItemFormState extends State<AttachementsItemForm> {
                   // For other types or if the URL is not valid, display a placeholder
                   return Card(
                     child: ListTile(
-                      title: Text('Type: ${attachment.attachmentType}'),
-                      subtitle: Text('Note: ${attachment.note}'),
+                      title: Text(AppLocalizations.of(context)!.type +':'+attachment.attachmentType,style: _appTextStyle,),
+                      subtitle: Text(AppLocalizations.of(context)!.note +':'+attachment.note,style: _appTextStyle,),
                       trailing: Icon(Icons.attach_file),
                     ),
                   );
@@ -136,4 +144,24 @@ class _AttachementsItemFormState extends State<AttachementsItemForm> {
       ),
     );
   }
+  Future<void> _showImageDialog(String imageUrl) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: Container(
+          height: 300,
+          width: 300,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: NetworkImage(imageUrl),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 }

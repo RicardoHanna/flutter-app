@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
+import 'package:project/classes/PriceItemKey.dart';
+import 'package:project/hive/adminsubmenu_hive.dart';
+import 'package:project/hive/authorization_hive.dart';
 import 'package:project/hive/itembrand_hive.dart';
 import 'package:project/hive/itemcateg_hive.dart';
 import 'package:project/hive/itemgroup_hive.dart';
@@ -9,6 +12,7 @@ import 'package:project/hive/itemattach_hive.dart';
 import 'package:project/hive/itemuom_hive.dart';
 import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/pricelist_hive.dart';
+import 'package:project/hive/syncronizesubmenu_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/hive/userpl_hive.dart';
@@ -207,7 +211,9 @@ Future<void> synchronizeDataItemPrice() async {
       var firestoreItems = await _firestore.collection('ItemsPrices').get();
 
       // Open Hive boxes
-      var itempriceBox = await Hive.openBox<ItemsPrices>('itemprices');
+var itempriceBox = await Hive.openBox<ItemsPrices>('itemprices');
+
+
       // Open other boxes if needed
 
       // Synchronize data
@@ -222,7 +228,7 @@ Future<void> synchronizeDataItemPrice() async {
     }
   }
 
- Future<void> _synchronizeItemPrice(
+Future<void> _synchronizeItemPrice(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreItemPrice,
   Box<ItemsPrices> itempriceBox,
 ) async {
@@ -230,52 +236,51 @@ Future<void> synchronizeDataItemPrice() async {
     // Iterate over Firestore documents
     for (var doc in firestoreItemPrice) {
       var plCode = doc['plCode'];
-      // Check if the item exists in Hive
-      var hivePriceItem = itempriceBox.get(plCode);
+      var itemCode = doc['itemCode'];
 
-      // If the item doesn't exist in Hive, add it
-      if (hivePriceItem == null) {
-        var newPriceItem= ItemsPrices(
-          doc['plCode'],
-          doc['itemCode'],
-          doc['uom'],
-          doc['basePrice'].toDouble(),
-          doc['currency'],
-          doc['auto'],
-          doc['disc'].toDouble(),
-          doc['price'].toDouble(),
-        );
-        await itempriceBox.put(plCode, newPriceItem);
-      }
-      // If the item exists in Hive, update it if needed
-      else {
-        var updatedPriceItem = ItemsPrices(
-          doc['plCode'],
-          doc['itemCode'],
-          doc['uom'],
-          doc['basePrice'].toDouble(),
-          doc['currency'],
-          doc['auto'],
-          doc['disc'].toDouble(),
-          doc['price'].toDouble(),
-        );
-        // Update the item in Hive
-        await itempriceBox.put(plCode, updatedPriceItem);
-      }
+      // Use compound key (plCode, itemCode)
+    // Use compound key (plCode_itemCode)
+var hivePriceItem = itempriceBox.get('$plCode$itemCode');
+
+// If the item doesn't exist in Hive, add it
+if (hivePriceItem == null) {
+  var newPriceItem = ItemsPrices(
+    plCode,
+    itemCode,
+    doc['uom'],
+    doc['basePrice'].toDouble(),
+    doc['currency'],
+    doc['auto'],
+    doc['disc'].toDouble(),
+    doc['price'].toDouble(),
+  );
+  await itempriceBox.put('$plCode$itemCode', newPriceItem);
+
+    }
+// If the item exists in Hive, update it if needed
+else {
+  var updatedPriceItem = ItemsPrices(
+    plCode,
+    itemCode,
+    doc['uom'],
+    doc['basePrice'].toDouble(),
+    doc['currency'],
+    doc['auto'],
+    doc['disc'].toDouble(),
+    doc['price'].toDouble(),
+  );
+  // Update the item in Hive
+  await itempriceBox.put('$plCode$itemCode', updatedPriceItem);
+}
+ 
     }
 
-    // Check for items in Hive that don't exist in Firestore and delete them
-    itempriceBox.keys.toList().forEach((hivePriceItemCode) {
-        if (!firestoreItemPrice.any((doc) => doc['plCode'] == hivePriceItemCode)) {
-          // Item exists in Hive but not in Firestore, so delete it from Hive
-          itempriceBox.delete(hivePriceItemCode);
-        }
-      });
 
   } catch (e) {
-    print('Error synchronizing PricesList from Firebase to Hive: $e');
+    print('Error synchronizing ItemPrices from Firebase to Hive: $e');
   }
 }
+
 
 
 //-------------------------------------------------------------------------------------------------
@@ -350,7 +355,7 @@ Future<void> synchronizeDataItemAttach() async {
       });
 
   } catch (e) {
-    print('Error synchronizing PricesList from Firebase to Hive: $e');
+    print('Error synchronizing ItemAttach from Firebase to Hive: $e');
   }
 }
 
@@ -937,7 +942,6 @@ Future<void> _synchronizeUsersTranslations(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-
 Future<void> synchronizeDataMenu() async {
   try {
     // Fetch data from Firestore
@@ -945,13 +949,175 @@ Future<void> synchronizeDataMenu() async {
 
     // Open Hive boxes
     var menuBox = await Hive.openBox<Menu>('menuBox');
+    var userGroupBox = await Hive.openBox<AdminSubMenu>('adminSubMenuBox');
+  var syncGroupBox = await Hive.openBox<SynchronizeSubMenu>('synchronizeSubMenu');
+    print('All data in group database: ${menuBox.values.toList()}');
+
+    // Synchronize data
+    await _synchronizeMenu(firestoreItems.docs, menuBox, userGroupBox,syncGroupBox);
+  } catch (e) {
+    print('Error synchronizing data from Firebase to Hive: $e');
+  }
+}
+
+Future<void> _synchronizeMenu(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreMenus,
+  Box<Menu> menuBox,
+  Box<AdminSubMenu> userGroupBox,
+  Box<SynchronizeSubMenu>syncGroupBox
+) async {
+  try {
+    // Iterate over Firestore documents
+    for (var doc in firestoreMenus) {
+      var menucode = doc['menucode'];
+
+      // Check if the menu item exists in Hive
+      var hiveMenu = menuBox.get(menucode);
+
+      // If the menu item doesn't exist in Hive, add it
+      if (hiveMenu == null) {
+        var newMenu = Menu(
+          menucode: doc['menucode'],
+          menuname: doc['menuname'],
+          menuarname: doc['menuarname']
+        );
+        await menuBox.put(menucode, newMenu);
+      } else {
+        // If the menu item exists in Hive, update it if needed
+        var updatedMenu = Menu(
+          menucode: doc['menucode'],
+          menuname: doc['menuname'],
+          menuarname: doc['menuarname'],
+        );
+        // Update the item in Hive
+        await menuBox.put(menucode, updatedMenu);
+      }
+
+      // Synchronize the usergroups subcollection
+      await _synchronizeSubMenu(menucode, doc.reference.collection('usergroups'), userGroupBox);
+      await synchronizeIESubMenu(menucode,doc.reference.collection('syncronizesubmenu'),syncGroupBox);
+    }
+
+    // Delete menu items from Hive that don't exist in Firestore
+    menuBox.keys.toList().forEach((hiveMenuCode) {
+      if (!firestoreMenus.any((doc) => doc['menucode'] == hiveMenuCode)) {
+        // Menu item exists in Hive but not in Firestore, so delete it from Hive
+        menuBox.delete(hiveMenuCode);
+      }
+    });
+  } catch (e) {
+    print('Error synchronizing Menus from Firestore to Hive: $e');
+  }
+}
+
+Future<void> _synchronizeSubMenu(int menucode, CollectionReference usergroupsCollection, Box<AdminSubMenu> userGroupBox) async {
+  try {
+    var firestoreUserGroups = await usergroupsCollection.get();
+
+    for (var userGroupDoc in firestoreUserGroups.docs) {
+      var groupcode = userGroupDoc['groupcode'];
+
+      // Check if the usergroup exists in Hive
+      var hiveUserGroup = userGroupBox.get(groupcode);
+
+      // If the usergroup doesn't exist in Hive, add it
+      if (hiveUserGroup == null) {
+        print('admin is null');
+        var newUserGroup = AdminSubMenu(
+          groupcode: userGroupDoc['groupcode'],
+          groupname: userGroupDoc['groupname'],
+          grouparname: userGroupDoc['grouparname'],
+         
+        );
+        await userGroupBox.put(groupcode, newUserGroup);
+      } else {
+        print('updated admin');
+        // If the usergroup exists in Hive, update it if needed
+        var updatedUserGroup = AdminSubMenu(
+          groupcode: userGroupDoc['groupcode'],
+          groupname: userGroupDoc['groupname'],
+          grouparname: userGroupDoc['grouparname'],
+        );
+        // Update the item in Hive
+        await userGroupBox.put(groupcode, updatedUserGroup);
+      }
+    }
+    print('Admin Sub Menu');
+
+    // Delete usergroups from Hive that don't exist in Firestore
+  
+    print('All data in adminSubMenuBox: ${userGroupBox.values.toList()}');
+
+  } catch (e) {
+    print('Error synchronizing AdminSubMenu from Firestore to Hive: $e');
+  }
+}
+//-----
+
+
+Future<void> synchronizeIESubMenu(int menucode, CollectionReference syncgroupsCollection, Box<SynchronizeSubMenu> syncGroupBox) async {
+  try {
+    var firestoreUserGroups = await syncgroupsCollection.get();
+
+    for (var syncGroupDoc in firestoreUserGroups.docs) {
+      var groupcode = syncGroupDoc['syncronizecode'];
+
+      // Check if the usergroup exists in Hive
+      var hiveSyncGroup = syncGroupBox.get(groupcode);
+
+      // If the usergroup doesn't exist in Hive, add it
+      if (hiveSyncGroup == null) {
+        print('sync is null');
+        var newSyncGroup = SynchronizeSubMenu(
+          syncronizecode: syncGroupDoc['syncronizecode'],
+          syncronizename: syncGroupDoc['syncronizename'],
+          syncronizearname: syncGroupDoc['syncronizearname'],
+         
+        );
+        await syncGroupBox.put(groupcode, newSyncGroup);
+      } else {
+        print('updated Sync');
+        // If the usergroup exists in Hive, update it if needed
+        var updatedSyncGroup = SynchronizeSubMenu(
+          syncronizecode: syncGroupDoc['syncronizecode'],
+          syncronizename: syncGroupDoc['syncronizename'],
+          syncronizearname: syncGroupDoc['syncronizearname'],
+        );
+        // Update the item in Hive
+        await syncGroupBox.put(groupcode, updatedSyncGroup);
+      }
+    }
+    print('Sync Sub Menu');
+
+    // Delete usergroups from Hive that don't exist in Firestore
+  
+    print('All data in SyncSubMenuBox: ${syncGroupBox.values.toList()}');
+
+  } catch (e) {
+    print('Error synchronizing SyncSubMENY from Firestore to Hive: $e');
+  }
+}
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
+Future<void> synchronizeDataAuthorization() async {
+  try {
+    // Fetch data from Firestore
+    var firestoreItems = await _firestore.collection('Authorization').get();
+
+    // Open Hive boxes
+    var authoBox = await Hive.openBox<Authorization>('authorizationBox');
     // Open other boxes if needed
 
-    print('All data in group database: ${menuBox.values.toList()}');
+    print('All data in group database: ${authoBox.values.toList()}');
 
 
     // Synchronize data
-    await _synchronizeMenu(firestoreItems.docs, menuBox);
+    await _synchronizeAutho(firestoreItems.docs, authoBox);
     // Synchronize other data if needed
 
     // Close Hive boxes
@@ -962,39 +1128,51 @@ Future<void> synchronizeDataMenu() async {
   }
 }
 
-Future<void> _synchronizeMenu(
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreUsersGroup,
-  Box<Menu> menuGroup,
+Future<void> _synchronizeAutho(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreAutho,
+  Box<Authorization> autho,
 ) async {
   try {
     // Iterate over Firestore documents
-    for (var doc in firestoreUsersGroup) {
-      var menucode = doc['menucode'];
+    for (var doc in firestoreAutho) {
+            var menucode=doc['menucode'];
+      var groupcode = doc['groupcode'];
+
       // Check if the item exists in Hive
-      var hivemenugroup = menuGroup.get(menucode);
+      var hiveusergroup = autho.get('$menucode$groupcode');
 
       // If the item doesn't exist in Hive, add it
-      if (hivemenugroup == null) {
-        var newMenuGroup = Menu(
-          menucode: doc['menucode'],
-          menuname: doc['menuname'],
+      if (hiveusergroup == null) {
+        var newUserGroup = Authorization(
+           menucode: doc['menucode'],
+          groupcode: doc['groupcode'],
+         
         );
-        await menuGroup.put(menucode, newMenuGroup);
+        await autho.put(int.parse('$menucode$groupcode'), newUserGroup);
       }
       // If the item exists in Hive, update it if needed
       else {
-        var updatedmenugroup = Menu(
-        menucode: doc['menucode'],
-          menuname: doc['menuname'],
+        var updatedusergroup = Authorization(
+            menucode: doc['menucode'],
+          groupcode: doc['groupcode'],
+        
         );
         // Update the item in Hive
-        await menuGroup.put(menucode, updatedmenugroup);
+        await autho.put(int.parse('$menucode$groupcode'), updatedusergroup);
       }
     }
   } catch (e) {
-    print('Error synchronizing Users from Firebase to Hive: $e');
+    print('Error synchronizing Autho from Firebase to Hive: $e');
   }
 }
+
+
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
 
 
 

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:project/Forms/Items_Info_Form.dart';
+import 'package:project/app_notifier.dart';
 import 'package:project/hive/items_hive.dart';
 
 class DataSearch extends SearchDelegate<String> {
   final List<Items> itemsList;
+  final AppNotifier appNotifier;
 
-  DataSearch({required this.itemsList});
+ TextStyle   _appTextStyleNormal = TextStyle();
+  DataSearch({required this.itemsList,required this.appNotifier});
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -63,19 +66,20 @@ class DataSearch extends SearchDelegate<String> {
   }
 
   Widget _buildSearchResults(List<Items> results) {
+     TextStyle   _appTextStyle = TextStyle(fontSize: appNotifier.fontSize.toDouble());
     return ListView.builder(
       itemCount: results.length,
       itemBuilder: (context, index) {
         final item = results[index];
         return ListTile(
-          title: Text(item.itemName),
-          subtitle: Text(item.itemCode),
+          title: Text(item.itemName,style: _appTextStyle,),
+          subtitle: Text(item.itemCode,style: _appTextStyle,),
         onTap: () {
                         // Navigate to the ItemsInfoForm page and pass the selected item
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ItemsInfoForm(item: item),
+                            builder: (context) => ItemsInfoForm(item: item,appNotifier:this.appNotifier,),
                           ),
                         );
                       },

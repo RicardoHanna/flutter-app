@@ -15,10 +15,12 @@ import 'package:project/app_notifier.dart';
 import 'package:project/Synchronize/DataSynchronizerFromFirebaseToHive.dart';
 import 'package:project/hive/authorization_hive.dart';
 import 'package:project/hive/hiveuser.dart';
+import 'package:project/hive/itemsprices_hive.dart';
 import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/screens/admin_page.dart';
 import 'package:project/screens/login_page.dart';
+import 'package:project/screens/synchronize_data_page.dart';
 import 'package:project/utils.dart';
 import 'settings_page.dart';
 import 'package:image_picker/image_picker.dart';
@@ -54,9 +56,9 @@ void initState() {
  
   _loadUserGroup();
     loadUserGroupHive();
+printUserMenu();
 
-
-     _synchronizeData();
+    // _synchronizeData();
  
 }
 
@@ -76,6 +78,30 @@ void initState() {
    // await insertUsersGroup();
     await printUserDataTranslations();
   }
+
+    Future<void> printUserMenu() async {
+ var itemsBox = await Hive.openBox<Authorization>('authorizationBox');
+  var itemspriceBox = await Hive.openBox<ItemsPrices>('itemprices');
+   print('Printing Users wdsdsd:');
+    for (var item in itemspriceBox.values) {
+      print('Username: ${item.plCode}');
+      print('Email: ${item.price}');
+}
+    print('Printing Users Authooo:');
+    for (var item in itemsBox.values) {
+      print(item.key);
+      print('Menu Code: ${item.menucode}');
+      print('Grp Code: ${item.groupcode}');
+
+      print('-------------------------');
+    }
+   // itemsBox.clear();
+  // Open 'translationsBox' for Translations
+//itemsBox.clear();
+  print('Printed all data');
+
+
+}
 
  Future<void> insertUsers() async {
 
@@ -237,12 +263,12 @@ Future<void> _selectProfilePicture() async {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Select Profile Picture'),
+          title: Text(AppLocalizations.of(context)!.selectprofile),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 GestureDetector(
-                  child: Text('Camera'),
+                  child: Text(AppLocalizations.of(context)!.camera),
                   onTap: () async {
                     Navigator.pop(context);
                     await _pickImage(ImageSource.camera);
@@ -250,7 +276,7 @@ Future<void> _selectProfilePicture() async {
                 ),
                 Padding(padding: EdgeInsets.all(8.0)),
                 GestureDetector(
-                  child: Text('Gallery'),
+                  child: Text(AppLocalizations.of(context)!.gallery),
                   onTap: () async {
                     Navigator.pop(context);
                     await _pickImage(ImageSource.gallery);
@@ -290,7 +316,8 @@ Future<bool> checkAuthorization(int menucode, int userGroup) async {
 
   // Use a composite key to query for authorization
   int compositeKey = _generateCompositeKey(menucode, userGroup);
-
+  print('hi');
+print(compositeKey);
   // Check if the authorization exists
   return authorizationBox.containsKey(compositeKey);
 }
@@ -330,12 +357,7 @@ void saveProfile(String localPath) async {
   }
 }
 
-final List<String> data = <String>['Items', 'Price Lists'];
 
-   final Map<String, IconData> iconData = {
-    'Items': Icons.shopping_cart,
-    'Price Lists': Icons.attach_money,
-  };
 
  
 
@@ -343,16 +365,22 @@ final List<String> data = <String>['Items', 'Price Lists'];
   @override
   Widget build(BuildContext context) {
      final Map<String, Widget> formWidgets = {
-    'Items': ItemsForm(appNotifier: widget.appNotifier,),
-    'Price Lists': PriceLists(appNotifier: widget.appNotifier,),
+   AppLocalizations.of(context)!.items: ItemsForm(appNotifier: widget.appNotifier,),
+    AppLocalizations.of(context)!.pricelists: PriceLists(appNotifier: widget.appNotifier,),
     
   };
 
   final Map<String, int> menuCodes = {
-  'Items': Menu.ITEMS_MENU_CODE,
-  'Price Lists': Menu.PRICELISTS_MENU_CODE,
+  AppLocalizations.of(context)!.items: Menu.ITEMS_MENU_CODE,
+  AppLocalizations.of(context)!.pricelists: Menu.PRICELISTS_MENU_CODE,
   // Add other menu items and their menu codes
 };
+final List<String> data = <String>[AppLocalizations.of(context)!.items, AppLocalizations.of(context)!.pricelists];
+
+   final Map<String, IconData> iconData = {
+    AppLocalizations.of(context)!.items: Icons.shopping_cart,
+    AppLocalizations.of(context)!.pricelists: Icons.attach_money,
+  };
 
   String languageUser='';
          if(AppLocalizations.of(context)!.language=='English'){
@@ -360,12 +388,13 @@ languageUser=_username!;
 }else{
   languageUser=_userFname!;
 }
+  TextStyle _appTextStyleAppBar = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
       TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
        TextStyle _SappTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble(),color: Colors.white);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: Text(AppLocalizations.of(context)!.welcome,style: _appTextStyle,),
+        title: Text(AppLocalizations.of(context)!.welcome,style: _appTextStyleAppBar,),
       ),
      drawer:Drawer(
   child: ListView(
@@ -373,8 +402,8 @@ languageUser=_username!;
     children: [
       UserAccountsDrawerHeader(
  
-        accountName: Text(languageUser),
-        accountEmail: Text(widget.email!),
+        accountName: Text(languageUser,style: _appTextStyle,),
+        accountEmail: Text(widget.email!,style: _appTextStyle,),
         currentAccountPicture: Stack(
           children: [
             FutureBuilder<Uint8List?>(
@@ -450,7 +479,7 @@ languageUser=_username!;
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AdminPage(appNotifier: widget.appNotifier),
+          builder: (context) => AdminPage(appNotifier: widget.appNotifier,email: widget.email,),
         ),
       );
     } else {
@@ -466,20 +495,43 @@ languageUser=_username!;
       
        ListTile(
        leading: Icon(Icons.sync),
-        title: Text('Syncronize', style: _appTextStyle),
+        title: Text(AppLocalizations.of(context)!.syncronize, style: _appTextStyle),
         onTap: () async {
     // Check if the user has the required authorization
     bool hasAccess = await checkAuthorization(Menu.SYNCRONIZE_MENU_CODE, _userGroup);
 
     if (hasAccess) {
-       _synchronizeDatatoHive();
-    }else{
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SynchronizeDataPage(appNotifier: widget.appNotifier,email: widget.email,),
+        ),
+      );
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.permissionAccess),
         ),
       );
     }
+  //  if (hasAccess) {
+      // bool? confirmed = await _showSyncConfirmationDialog(context);
+
+    //  if (confirmed != null && confirmed) {
+     //  _synchronizeDatatoHive();
+    /*   ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.syncronized),
+        ),
+      );*/
+   // }
+   /* }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.permissionAccess),
+        ),
+      );
+    }*/
     }
       ),
       ListTile(
@@ -505,7 +557,7 @@ body: Padding(
     itemCount: data.length,
     itemBuilder: (BuildContext context, int index) {
       return ListTile(
-        title: Text(data[index]),
+        title: Text(data[index],style: _appTextStyle,),
         leading: Icon(iconData[data[index]]),
         onTap: () async {
           int menuCode = menuCodes[data[index]] ?? 0; // Default to 0 if menu code not found
@@ -544,6 +596,35 @@ body: Padding(
 
   );
 }
+
+Future<bool?> _showSyncConfirmationDialog(BuildContext context) async {
+    TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  return showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(AppLocalizations.of(context)!.syncronizedata, style: _appTextStyle),
+        content: Text(AppLocalizations.of(context)!.areyousuretosyncdata, style: _appTextStyle),
+        actions: <Widget>[
+          TextButton(
+            child: Text(AppLocalizations.of(context)!.no, style: _appTextStyle),
+            onPressed: () {
+              Navigator.of(context).pop(false); // Return false
+            },
+          ),
+          TextButton(
+            child: Text(AppLocalizations.of(context)!.yes, style: _appTextStyle),
+            onPressed: () {
+              Navigator.of(context).pop(true); // Return true
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
  void _synchronizeDatatoHive() async {
     try {
       // Show loading indicator or other UI feedback
@@ -564,6 +645,7 @@ body: Padding(
       await synchronizer.synchronizeDataUserPL();
       await synchronizer.synchronizeDataUser();
       await synchronizer.synchronizeDataMenu();
+      await synchronizer.synchronizeDataAuthorization();
       // Display a success message or update UI as needed
 
     } catch (e) {

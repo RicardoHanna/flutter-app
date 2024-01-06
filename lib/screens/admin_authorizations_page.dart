@@ -8,11 +8,13 @@ import 'package:project/classes/UserClass.dart';
 import 'package:project/Forms/edit_user_form.dart';
 import 'package:project/Forms/user_form.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:project/hive/adminsubmenu_hive.dart';
 import 'package:project/hive/authorization_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive/hive.dart';
 import 'package:project/hive/menu_hive.dart';
+import 'package:project/hive/syncronizesubmenu_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
@@ -156,17 +158,28 @@ Future<Stream<List<TranslationsClass>>> _getUserStream() async {
 
 Future<void> _assignUserGroup(BuildContext context, String updatedGroupEn, String updatedGroupAr, int groupcode) async {
   var menuBox = await Hive.openBox<Menu>('menuBox');
-  var menuItems = menuBox.values.toList();
-  Set<int> selectedItems = {};
-
+  var adminSubMenuBox = await Hive.openBox<AdminSubMenu>('adminSubMenuBox');
+   var synchronizeSubMenuBox = await Hive.openBox<SynchronizeSubMenu>('synchronizeSubMenu');
+  Set<dynamic> selectedItems = {};
+//adminSubMenuBox.clear();
   // Load existing authorizations for the specified groupcode
   var authorizationBox = await Hive.openBox<Authorization>('authorizationBox');
   var existingAuthorizations = authorizationBox.values.where((auth) => auth.groupcode == groupcode);
-
+    _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
   // Mark selected items based on existing authorizations
   for (var authorization in existingAuthorizations) {
     selectedItems.add(authorization.menucode);
   }
+
+  // Get all menu items from the menuBox
+  var allMenuItems = menuBox.values.toList();
+
+  // Get the Administrator menu from the menuBox
+  var administratorMenu = allMenuItems.firstWhere((menu) => menu.menuname == 'Administrator' || menu.menuarname == 'الإدارة');
+  var synchronizeMenu = allMenuItems.firstWhere((menu) => menu.menuname == 'Synchronize' || menu.menuarname == 'تزامن');
+
+var langdetec=AppLocalizations.of(context)!.language == "English" ? administratorMenu.menuname:administratorMenu.menuarname;
+var langdetecSync=AppLocalizations.of(context)!.language == "English" ? synchronizeMenu.menuname:synchronizeMenu.menuarname;
 
   // ignore: use_build_context_synchronously
   await showDialog(
@@ -175,30 +188,180 @@ Future<void> _assignUserGroup(BuildContext context, String updatedGroupEn, Strin
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
-            title: Text('Assign User Group to Menu', style: _appTextStyle),
-            content: Column(
-              children: [
-                for (var item in menuItems)
-                  CheckboxListTile(
-                    title: Text(item.menuname),
-                    value: selectedItems.contains(item.menucode),
-                    onChanged: (value) {
-                      setState(() {
-                        if (value!) {
-                          selectedItems.add(item.menucode);
-                          // Insert authorization when checking
-                          int compositeKey = _generateCompositeKey(item.menucode, groupcode);
-                          authorizationBox.put(compositeKey, Authorization(menucode: item.menucode, groupcode: groupcode));
-                        } else {
-                          selectedItems.remove(item.menucode);
-                          // Delete authorization when unchecking
-                          int compositeKey = _generateCompositeKey(item.menucode, groupcode);
-                          authorizationBox.delete(compositeKey);
-                        }
-                      });
-                    },
+            title: Text(AppLocalizations.of(context)!.assignusergrouptomenu, style: _appTextStyle),
+            content: SingleChildScrollView( // Add SingleChildScrollView
+              child: Column(
+                children: [
+                  // Display Administrator menu and its submenus
+            CheckboxListTile(
+  title: Text(langdetec,style: _appTextStyle,),
+  value: selectedItems.contains(administratorMenu.menucode),
+  onChanged: (value) {
+    setState(() {
+      if (value!) {
+        // Mark Administrator menu and its submenus as selected
+        selectedItems.add(administratorMenu.menucode);
+          int compositeKey = _generateCompositeKey(administratorMenu.menucode, groupcode);
+                            authorizationBox.put(compositeKey, Authorization(menucode: administratorMenu.menucode, groupcode: groupcode));
+      //  selectedItems.addAll(adminSubMenuBox.keys);
+      } else {
+        // Unmark Administrator menu and its submenus
+        selectedItems.remove(administratorMenu.menucode);
+    // Delete authorization when unchecking
+                            int compositeKey = _generateCompositeKey(administratorMenu.menucode, groupcode);
+                            authorizationBox.delete(compositeKey);
+
+      }
+
+      // Also update the state of admin submenus
+      for (var submenu in adminSubMenuBox.values) {
+        if (value) {
+          selectedItems.add(submenu.groupcode);
+          // Insert authorization when checking
+          int compositeKey = _generateCompositeKey(submenu.groupcode, groupcode);
+          authorizationBox.put(compositeKey, Authorization(menucode: submenu.groupcode, groupcode: groupcode));
+        } else {
+          // Unmark the submenu
+          selectedItems.remove(submenu.groupcode);
+          // Delete authorization when unchecking
+          int compositeKey = _generateCompositeKey(submenu.groupcode, groupcode);
+          authorizationBox.delete(compositeKey);
+        }
+      }
+    });
+  },
+),
+
+                  // Use an ExpansionTile for the Administrator menu and its submenus
+                  ExpansionTile(
+                    title: Text(AppLocalizations.of(context)!.adminmenus,style: _appTextStyle,),
+                    children: [
+                      for (var submenu in adminSubMenuBox.values)
+                        CheckboxListTile(
+                          title: Text(AppLocalizations.of(context)!.language == "English" ? submenu.groupname :  submenu.grouparname,style: _appTextStyle,),
+                          value: selectedItems.contains(submenu.groupcode),
+                          onChanged: (value) {
+                            setState(() {
+                              if (value!) {
+                                 selectedItems.add(submenu.groupcode);
+                            // Insert authorization when checking
+                            int compositeKey = _generateCompositeKey(submenu.groupcode, groupcode);
+                            authorizationBox.put(compositeKey, Authorization(menucode: submenu.groupcode, groupcode: groupcode));
+                                // Mark the submenu
+                                
+                              } else {
+                                // Unmark the submenu
+                              
+
+                                  selectedItems.remove(submenu.groupcode);
+                            // Delete authorization when unchecking
+                            int compositeKey = _generateCompositeKey(submenu.groupcode, groupcode);
+                            authorizationBox.delete(compositeKey);
+                              }
+                            });
+                          },
+                        ),
+                    ],
                   ),
-              ],
+///-------------------------------------------------------------------------------------------------------------
+///-------------------------------------------------------------------------------------------------------------
+///-------------------------------------------------------------------------------------------------------------
+   
+                     CheckboxListTile(
+  title: Text(langdetecSync,style: _appTextStyle,),
+  value: selectedItems.contains(synchronizeMenu.menucode),
+  onChanged: (value) {
+    setState(() {
+      if (value!) {
+        // Mark Administrator menu and its submenus as selected
+        selectedItems.add(synchronizeMenu.menucode);
+          int compositeKey = _generateCompositeKey(synchronizeMenu.menucode, groupcode);
+                            authorizationBox.put(compositeKey, Authorization(menucode: synchronizeMenu.menucode, groupcode: groupcode));
+      //  selectedItems.addAll(adminSubMenuBox.keys);
+      } else {
+        // Unmark Administrator menu and its submenus
+        selectedItems.remove(synchronizeMenu.menucode);
+    // Delete authorization when unchecking
+                            int compositeKey = _generateCompositeKey(synchronizeMenu.menucode, groupcode);
+                            authorizationBox.delete(compositeKey);
+
+      }
+
+      // Also update the state of admin submenus
+      for (var submenu in synchronizeSubMenuBox.values) {
+        if (value) {
+          selectedItems.add(submenu.syncronizecode);
+          // Insert authorization when checking
+          int compositeKey = _generateCompositeKey(submenu.syncronizecode, groupcode);
+          authorizationBox.put(compositeKey, Authorization(menucode: submenu.syncronizecode, groupcode: groupcode));
+        } else {
+          // Unmark the submenu
+          selectedItems.remove(submenu.syncronizecode);
+          // Delete authorization when unchecking
+          int compositeKey = _generateCompositeKey(submenu.syncronizecode, groupcode);
+          authorizationBox.delete(compositeKey);
+        }
+      }
+    });
+  },
+),
+
+                  // Use an ExpansionTile for the Administrator menu and its submenus
+                  ExpansionTile(
+                    title: Text('Synchronize Menus',style: _appTextStyle,),
+                    children: [
+                      for (var submenu in synchronizeSubMenuBox.values)
+                        CheckboxListTile(
+                          title: Text(AppLocalizations.of(context)!.language == "English" ? submenu.syncronizename :  submenu.syncronizearname,style: _appTextStyle,),
+                          value: selectedItems.contains(submenu.syncronizecode),
+                          onChanged: (value) {
+                            setState(() {
+                              if (value!) {
+                                 selectedItems.add(submenu.syncronizecode);
+                            // Insert authorization when checking
+                            int compositeKey = _generateCompositeKey(submenu.syncronizecode, groupcode);
+                            authorizationBox.put(compositeKey, Authorization(menucode: submenu.syncronizecode, groupcode: groupcode));
+                                // Mark the submenu
+                                
+                              } else {
+                                // Unmark the submenu
+                              
+
+                                  selectedItems.remove(submenu.syncronizecode);
+                            // Delete authorization when unchecking
+                            int compositeKey = _generateCompositeKey(submenu.syncronizecode, groupcode);
+                            authorizationBox.delete(compositeKey);
+                              }
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 16), // Add some space
+
+                  // Display other menu items
+                  for (var menuItem in allMenuItems.where((menu) => menu.menuname != 'Administrator' || menu.menuarname != 'الإدارة'))
+                    CheckboxListTile(
+                      title: Text(AppLocalizations.of(context)!.language == "English" ? menuItem.menuname : menuItem.menuarname,style: _appTextStyle,),
+                      value: selectedItems.contains(menuItem.menucode),
+                      onChanged: (value) {
+                        setState(() {
+                          if (value!) {
+                            selectedItems.add(menuItem.menucode);
+                            // Insert authorization when checking
+                            int compositeKey = _generateCompositeKey(menuItem.menucode, groupcode);
+                            authorizationBox.put(compositeKey, Authorization(menucode: menuItem.menucode, groupcode: groupcode));
+                          } else {
+                            selectedItems.remove(menuItem.menucode);
+                            // Delete authorization when unchecking
+                            int compositeKey = _generateCompositeKey(menuItem.menucode, groupcode);
+                            authorizationBox.delete(compositeKey);
+                          }
+                        });
+                      },
+                    ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -230,6 +393,10 @@ Future<void> _assignUserGroup(BuildContext context, String updatedGroupEn, Strin
   );
 }
 
+
+
+
+
 // Function to generate a composite key
 int _generateCompositeKey(int menucode, int groupcode) {
   // Use any logic that ensures uniqueness for your composite key
@@ -245,7 +412,7 @@ int _generateCompositeKey(int menucode, int groupcode) {
      _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
-        title: Text('Authorizations',style: _appTextStyle),
+        title: Text(AppLocalizations.of(context)!.authorizations,style: _appTextStyle),
       ),
       body: Column(
         children: [

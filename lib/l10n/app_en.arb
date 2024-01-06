@@ -144,9 +144,9 @@
     "@selectFont": {
         "description": "Select Font Size"
     },
-    "permissionAccess": "You do not have permission to access the Admin Page.",
+    "permissionAccess": "You do not have permission to access this Page.",
     "@permissionAccess": {
-        "description": "You do not have permission to access the Admin Page"
+        "description": "You do not have permission to access this Page"
     },
     "logout": "Log-Out",
     "@logout": {
@@ -203,7 +203,272 @@
     "emailusercodeusername": "Email or UserName",
     "@emailusercodeusername": {
         "description": "Email or UserName"
+    },
+    "items": "Items",
+    "@items": {
+        "description": "Items"
+    },
+    "pricelists": "Price Lists",
+    "@pricelists": {
+        "description": "Price Lists"
+    },
+    "itemprices": "Item Prices",
+    "@itemprices": {
+        "description": "Item Prices"
+    },
+    "itemdetails": "Item Details",
+    "@itemdetails": {
+        "description": "Item Details"
+    },
+    "itemcode": "Item Code",
+    "@itemcode": {
+        "description": "Item Code"
+    },
+    "itemname": "Item Name",
+    "@itemname": {
+        "description": "Item Name"
+    },
+    "itemprname": "Item PRName",
+    "@itemprname": {
+        "description": "Item PRName"
+    },
+    "itemfname": "Item FName",
+    "@itemfname": {
+        "description": "Item FName"
+    },
+    "groupcode": "Group Code",
+    "@groupcode": {
+        "description": "Group Code"
+    },
+    "categcode": "Categ Code",
+    "@categcode": {
+        "description": "Categ Code"
+    },
+    "brandcode": "Brand Code",
+    "@brandcode": {
+        "description": "Brand Code"
+    },
+    "itemtype": "Item Type",
+    "@itemtype": {
+        "description": "Item Type"
+    },
+    "barcode": "Bar Code",
+    "@barcode": {
+        "description": "Bar Code"
+    },
+    "uom": "UOM",
+    "@uom": {
+        "description": "UOM"
+    },
+    "remark": "Remark",
+    "@remark": {
+        "description": "Remark"
+    },
+    "brand": "Brand",
+    "@brand": {
+        "description": "Brand"
+    },
+    "manageby": "ManageBy",
+    "@manageby": {
+        "description": "ManageBy"
+    },
+    "vatrate": "VatRate",
+    "@vatrate": {
+        "description": "VatRate"
+    },
+    "active": "Active",
+    "@active": {
+        "description": "Active"
+    },
+    "weight": "Weight",
+    "@weight": {
+        "description": "Weight"
+    },
+    "charect1": "Charect1",
+    "@charect1": {
+        "description": "Charect1"
+    },
+    "charect2": "Charect2",
+    "@charect2": {
+        "description": "Charect2"
+    },
+    "attachmentsforitem": "Attachments for Item",
+    "@attachmentsforitem": {
+        "description": "Attachments for Item"
+    },
+    "type": "Type",
+    "@type": {
+        "description": "Type"
+    },
+    "note": "Note",
+    "@note": {
+        "description": "Note"
+    },
+    "noattachmentsfoundforitem": "No attachments found for Item",
+    "@noattachmentsfoundforitem": {
+        "description": "No attachments found for Item"
+    },
+    "itempricedetails": "Item Price Details",
+    "@itempricedetails": {
+        "description": "Item Price Details"
+    },
+    "plcode": "PL Code",
+    "@plcode": {
+        "description": "PL Code"
+    },
+    "baseprice": "Base Price",
+    "@baseprice": {
+        "description": "Base Price"
+    },
+    "currency": "Currency",
+    "@currency": {
+        "description": "Currency"
+    },
+    "auto": "Auto",
+    "@auto": {
+        "description": "Auto"
+    },
+    "disc": "Disc",
+    "@disc": {
+        "description": "Disc"
+    },
+    "price": "Price",
+    "@price": {
+        "description": "Price"
+    },
+    "syncronize": "Syncronize",
+    "@syncronize": {
+        "description": "Syncronize"
+    },
+    "syncronizedata": "Syncronize Data",
+    "@syncronizedata": {
+        "description": "Syncronize Data"
+    },
+    "syncronized": "Syncronized",
+    "@syncronized": {
+        "description": "Syncronized"
+    },
+    "gallery": "Gallery",
+    "@gallery": {
+        "description": "Gallery"
+    },
+    "camera": "Camera",
+    "@camera": {
+        "description": "Camera"
+    },
+    "yes": "Yes",
+    "@yes": {
+        "description": "Yes"
+    },
+    "no": "No",
+    "@no": {
+        "description": "No"
+    },
+    "areyousuretosyncdata": "Are you sure you want to synchronize data?",
+    "@areyousuretosyncdata": {
+        "description": "Are you sure you want to synchronize data?"
+    },
+    "selectprofile": "Select Profile Picture",
+    "@selectprofile": {
+        "description": "Select Profile Picture"
+    },
+    "discardchanges": "Discard Changes",
+    "@discardchanges": {
+        "description": "Discard Changes"
+    },
+    "areyousuretodiscardchanges": "Are you sure you want to discard the changes?",
+    "@areyousuretodiscardchanges": {
+        "description": "Are you sure you want to discard the changes?"
+    },
+    "adminusers": "Admin Users",
+    "@adminusers": {
+        "description": "Admin Users"
+    },
+    "adminusergroup": "Admin User Group",
+    "@adminusergroup": {
+        "description": "Admin User Group"
+    },
+    "authorizations": "Authorizations",
+    "@authorizations": {
+        "description": "Authorizations"
+    },
+    "filteritems": "Filter Items",
+    "@filteritems": {
+        "description": "Filter Items"
+    },
+    "apply": "Apply",
+    "@apply": {
+        "description": "Apply"
+    },
+    "sortbybrand": "Sort By Brand",
+    "@sortbybrand": {
+        "description": "Sort By Brand"
+    },
+    "sortbyitemgroup": "Sort By Item Group",
+    "@sortbyitemgroup": {
+        "description": "Sort By Item Group"
+    },
+    "sortalphabetic": "Sort Alphabetically",
+    "@sortalphabetic": {
+        "description": "Sort Alphabetically"
+    },
+    "pricelistname": "Price Lists Name",
+    "@pricelistname": {
+        "description": "Price Lists Name"
+    },
+    "securitygroup": "Security Group",
+    "@securitygroup": {
+        "description": "Security Group"
+    },
+    "sortbysecurity": "Sort By Security",
+    "@securitygroup": {
+        "description": "Sort By Security"
+    },
+    "sortbycode": "Sort By Code",
+    "@sortbycode": {
+        "description": "Sort By Code"
+    },
+    "sortbyitem": "Sort By Item",
+    "@sortbyitem": {
+        "description": "Sort By Item"
+    },
+    "sortbyprice": "Sort By Price",
+    "@sortbyprice": {
+        "description": "Sort By Price"
+    },
+    "filterpricelists": "Filter Price Lists",
+    "@filterpricelists": {
+        "description": "Filter Price Lists"
+    },
+    "orfingerprints": "Or Finger Prints",
+    "@orfingerprints": {
+        "description": "Or Finger Prints"
+    },
+    "choosefields": "Choose Fields",
+    "@choosefields": {
+        "description": "Choose Fields"
+    },
+    "field": "Field",
+    "@field": {
+        "description": "Field"
+    },
+    "save": "Save",
+    "@save": {
+        "description": "Save"
+    },
+    "assignusergrouptomenu": "Assign User Group To Menu",
+    "@assignusergrouptomenu": {
+        "description": "Assign User Group To Menu"
+    },
+    "adminmenus": "Admin Menus",
+    "@adminmenus": {
+        "description": "Admin Menus"
     }
+    
+    
+    
+    
+    
 
     
   
