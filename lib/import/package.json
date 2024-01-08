@@ -1,9 +1,22 @@
 {
   "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
     "csv-parser": "^3.0.0",
+    "express": "^4.18.2",
     "firebase-admin": "^12.0.0",
     "msnodesqlv8": "^4.1.2",
     "mssql": "^10.0.1",
     "xlsx": "^0.18.5"
-  }
+  },
+  "name": "import",
+  "version": "1.0.0",
+  "main": "exportscripts.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

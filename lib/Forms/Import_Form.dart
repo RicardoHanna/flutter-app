@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,7 +18,8 @@ import 'package:project/hive/syncronizesubmenu_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
-
+import 'package:process/process.dart';
+import 'package:http/http.dart' as http;
 
 class ImportForm extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -32,7 +34,21 @@ class ImportForm extends StatefulWidget {
 
 class _ImportFormState extends State<ImportForm> {
   // Track the selected checkboxes
- 
+  
+
+  final String serverUrl = 'http://localhost:5000'; // Update with your server URL
+
+  Future<void> importData() async {
+  final response = await http.post(Uri.parse('$serverUrl/importData'));
+
+  if (response.statusCode == 200) {
+    print('Data migration complete');
+  } else {
+    print('Failed to import data. Status code: ${response.statusCode}');
+  }
+}
+
+
   bool _importItems = false;
   bool _importPriceLists = false;
   bool _importSystem = false;
@@ -105,18 +121,14 @@ bool _loading = false; // Track loading state
       
           SizedBox(height: 16),
             // Display the Import button
-            ElevatedButton(
-              onPressed: () {
-                // Implement logic to handle the selected checkboxes and perform the import
-                // You can use the values of _importItems, _importPriceLists, etc.
-                print('Items: $_importItems');
-                print('PriceLists: $_importPriceLists');
-                print('Users: $_importSystem');
-             
-                // Add your import logic here
-              },
-              child: Text('Import'),
-            ),
+ ElevatedButton(
+          onPressed: () async {
+            await importData();
+          },
+          child: Text('Import'),
+        ),
+      
+
       ];
       
     } else if (widget.title == 'Import from Backend to Mobile') {
