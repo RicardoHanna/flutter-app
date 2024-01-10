@@ -37,6 +37,7 @@ bool _rememberMe = false;
  DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
 late final LocalAuthentication auth ;
 bool _supportState=false;
+bool _loading=false;
 
  @override
   void initState() {
@@ -51,6 +52,55 @@ _supportState=isSupported;
 
     );
   }
+
+
+
+Future<void> _synchronizeDatatoHive() async {
+    TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  try {
+    // Set loading state to true before starting synchronization
+    setState(() {
+      _loading = true;
+    });
+
+    // Your existing synchronization logic
+    DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
+
+    // Run the synchronization process
+    /*await synchronizer.synchronizeData();
+    await synchronizer.synchronizeDataPriceLists();
+    await synchronizer.synchronizeDataItemPrice();
+    await synchronizer.synchronizeDataItemAttach();
+    await synchronizer.synchronizeDataItemBrand();
+    await synchronizer.synchronizeDataItemCateg();
+    await synchronizer.synchronizeDataItemUOM();
+    await synchronizer.synchronizeDataItemGroup();
+    await synchronizer.synchronizeDataUserPL();*/
+    await synchronizer.synchronizeDataUser();
+    await synchronizer.synchronizeDataMenu();
+    await synchronizer.synchronizeDataAuthorization();
+    await synchronizer.synchronizeDataUserGroup();
+  await synchronizer.synchronizeDataUserGroupTranslations();
+
+    // Simulate a delay for demonstration purposes (remove in production)
+    await Future.delayed(Duration(seconds: 3));
+
+    // Display a success message or update UI as needed
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Data synchronized successfully',style: _appTextStyle,),
+      ),
+    );
+  } catch (e) {
+    // Handle errors and display an error message or update UI accordingly
+    print('Error synchronizing data: $e');
+  } finally {
+    // Set loading state to false after synchronization
+    setState(() {
+      _loading = false;
+    });
+  }
+}
 
  Future<void> _loginWithFingerprint(String identifier) async {
   if (_supportState) {
@@ -268,8 +318,7 @@ Future<void> _loginLocalDatabase(String identifier, String password) async {
   // Print or log all data in the local database for debugging
   print('All data in local database: ${userBox.values.toList()}');
 
-  await synchronizer.synchronizeDataUserGroup();
-  await synchronizer.synchronizeDataUserGroupTranslations();
+  
 
   // Retrieve user data from Hive based on identifier and password
   var userData;
@@ -321,8 +370,10 @@ print(identifierField);
     }
 
     Provider.of<AppNotifier>(context, listen: false).updateFontSize(userFont);
+  
 
     print('hiiiiii');
+    await _synchronizeDatatoHive();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -374,7 +425,7 @@ print(identifierField);
 String _emailkey=userDoc.get('email');
             // Add the user to the local Hive box
             userBox.put(_emailkey, userData);
-
+await _synchronizeDatatoHive();
             // Proceed with login for the new user
             String userLanguage = userData['languages'];
             int userFont = userData['font'];
@@ -386,6 +437,7 @@ String _emailkey=userDoc.get('email');
             }
 
             Provider.of<AppNotifier>(context, listen: false).updateFontSize(userFont);
+            
 
             Navigator.push(
               context,

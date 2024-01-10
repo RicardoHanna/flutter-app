@@ -15,6 +15,7 @@ import 'package:hive/hive.dart';
 import 'package:project/screens/admin_authorizations_page.dart';
 import 'package:project/screens/admin_users_page.dart';
 import 'package:project/screens/admin_usersgroup_page.dart';
+import 'package:project/screens/general_settings_page.dart';
 
 class AdminPage extends StatefulWidget {
     final AppNotifier appNotifier;
@@ -63,25 +64,28 @@ print(widget.email);
   Widget build(BuildContext context) {
       TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
 
-    final List<String> data = <String>[AppLocalizations.of(context)!.adminusers, AppLocalizations.of(context)!.adminusergroup,AppLocalizations.of(context)!.authorizations];
+    final List<String> data = <String>[AppLocalizations.of(context)!.adminusers, AppLocalizations.of(context)!.adminusergroup,AppLocalizations.of(context)!.authorizations,AppLocalizations.of(context)!.generalSettings];
 
    final Map<String, IconData> iconData = {
     AppLocalizations.of(context)!.adminusers: Icons.people,
 AppLocalizations.of(context)!.adminusergroup: Icons.groups_2,
-   AppLocalizations.of(context)!.authorizations : Icons.security_outlined
+   AppLocalizations.of(context)!.authorizations : Icons.security_outlined,
+   AppLocalizations.of(context)!.generalSettings: Icons.settings_accessibility
+   
   };
 
     final Map<String, int> menuCodes = {
     AppLocalizations.of(context)!.adminusers: AdminSubMenu.ADMIN_USERS_MENU_CODE,
 AppLocalizations.of(context)!.adminusergroup: AdminSubMenu.SETTINGS_USERSGROUP_MENU_CODE,
-AppLocalizations.of(context)!.authorizations: AdminSubMenu.AUTHORIZATIONS_MENU_CODE
- 
+AppLocalizations.of(context)!.authorizations: AdminSubMenu.AUTHORIZATIONS_MENU_CODE,
+    AppLocalizations.of(context)!.generalSettings: AdminSubMenu.GENERAL_SETTINGS_MENU_CODE
 };
 
     final Map<String, Widget> formWidgets = {
     AppLocalizations.of(context)!.adminusers: AdminUsersPage(appNotifier: widget.appNotifier,),
 AppLocalizations.of(context)!.adminusergroup: AdminUsersGroupPage(appNotifier: widget.appNotifier,),
 AppLocalizations.of(context)!.authorizations: AdminAuthorizationsPage(appNotifier: widget.appNotifier,),
+AppLocalizations.of(context)!.generalSettings: GeneralSettings(appNotifier: widget.appNotifier),
   };
      _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return Scaffold(

@@ -16,7 +16,7 @@ class AdminSubMenu extends HiveObject {
 static const int ADMIN_USERS_MENU_CODE = 101;
 static const int SETTINGS_USERSGROUP_MENU_CODE = 102;
 static const int AUTHORIZATIONS_MENU_CODE = 103;
-
+static const int GENERAL_SETTINGS_MENU_CODE = 104;
   AdminSubMenu({
   required  this.groupcode,
    required this.groupname,

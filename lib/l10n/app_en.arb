@@ -463,6 +463,10 @@
     "adminmenus": "Admin Menus",
     "@adminmenus": {
         "description": "Admin Menus"
+    },
+    "generalSettings": "General Settings",
+    "@generalSettings": {
+        "description": "General Settings"
     }
     
     

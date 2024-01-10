@@ -36,9 +36,9 @@ class _ImportFormState extends State<ImportForm> {
   // Track the selected checkboxes
   
 
-  final String serverUrl = 'http://localhost:5000'; // Update with your server URL
+final String serverUrl = 'https://f627-212-101-253-237.ngrok-free.app'; // Update with your ngrok URL
 
-  Future<void> importData() async {
+Future<void> importData() async {
   final response = await http.post(Uri.parse('$serverUrl/importData'));
 
   if (response.statusCode == 200) {
@@ -55,10 +55,9 @@ class _ImportFormState extends State<ImportForm> {
 
   bool _selectAll = false;
 bool _loading = false; // Track loading state
-
-  @override
+ @override
   Widget build(BuildContext context) {
-         TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -66,42 +65,36 @@ bool _loading = false; // Track loading state
       body: Padding(
         padding: EdgeInsets.all(16),
         child: ListView.builder(
-          itemCount: _buildCheckboxList().length + 1,
+          itemCount: _buildSwitchList().length + 1,
           itemBuilder: (context, index) {
             if (index == 0) {
-              return CheckboxListTile(
-                title: Text('Select All',style: _appTextStyle,),
+              return SwitchListTile(
+                title: Text('Select All', style: _appTextStyle),
                 value: _selectAll,
                 onChanged: (value) {
                   setState(() {
                     _selectAll = value ?? false;
-                    // Update the state of all other checkboxes based on the "Select All" checkbox
                     _importItems = _selectAll;
                     _importPriceLists = _selectAll;
                     _importSystem = _selectAll;
-                   
                   });
-
-                  // Execute synchronization process when "Select All" is clicked
-                  
                 },
               );
             } else {
-              return _buildCheckboxList()[index - 1];
+              return _buildSwitchList()[index - 1];
             }
           },
         ),
       ),
     );
   }
-  List<Widget> _buildCheckboxList() {
-       TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+
+  List<Widget> _buildSwitchList() {
+    TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     if (widget.title == 'Import from ERP To Mobile') {
-     
       return [
-         
-        CheckboxListTile(
-          title: Text('Items',style: _appTextStyle,),
+        SwitchListTile(
+          title: Text('Items', style: _appTextStyle),
           value: _importItems,
           onChanged: (value) {
             setState(() {
@@ -109,8 +102,8 @@ bool _loading = false; // Track loading state
             });
           },
         ),
-        CheckboxListTile(
-          title: Text('PriceLists',style: _appTextStyle,),
+        SwitchListTile(
+          title: Text('PriceLists', style: _appTextStyle),
           value: _importPriceLists,
           onChanged: (value) {
             setState(() {
@@ -118,68 +111,51 @@ bool _loading = false; // Track loading state
             });
           },
         ),
-      
-          SizedBox(height: 16),
-            // Display the Import button
- ElevatedButton(
+        SizedBox(height: 16),
+        ElevatedButton(
           onPressed: () async {
             await importData();
           },
           child: Text('Import'),
         ),
-      
-
       ];
-      
     } else if (widget.title == 'Import from Backend to Mobile') {
       return [
-        CheckboxListTile(
-          title: Text('Items',style: _appTextStyle,),
+        SwitchListTile(
+          title: Text('Items', style: _appTextStyle),
           value: _importItems,
           onChanged: (value) {
             setState(() {
               _importItems = value ?? false;
             });
-
-          
           },
         ),
-        CheckboxListTile(
-          title: Text('PriceLists',style: _appTextStyle,),
+        SwitchListTile(
+          title: Text('PriceLists', style: _appTextStyle),
           value: _importPriceLists,
           onChanged: (value) {
             setState(() {
               _importPriceLists = value ?? false;
             });
-
-           
           },
         ),
-        CheckboxListTile(
-          title: Text('System',style: _appTextStyle,),
+        SwitchListTile(
+          title: Text('System', style: _appTextStyle),
           value: _importSystem,
           onChanged: (value) {
             setState(() {
               _importSystem = value ?? false;
             });
-
-           
-         
           },
         ),
-       
-         ElevatedButton(
-            onPressed: () async {
-              // Execute synchronization process when the button is pressed
-              await _synchronizeAll();
-            },
-            child: Text('Import',style: _appTextStyle,),
-          ),
-
+        ElevatedButton(
+          onPressed: () async {
+            await _synchronizeAll();
+          },
+          child: Text('Import', style: _appTextStyle),
+        ),
       ];
     }
-
-    // Return an empty list if the title does not match any options
     return [];
   }
 
@@ -276,6 +252,8 @@ Future<void> _synchronizeDatatoHive() async {
     await synchronizer.synchronizeDataUser();
     await synchronizer.synchronizeDataMenu();
     await synchronizer.synchronizeDataAuthorization();
+    await synchronizer.synchronizeDataUserGroup();
+    await synchronizer.synchronizeDataUserGroupTranslations();
 
     // Simulate a delay for demonstration purposes (remove in production)
     await Future.delayed(Duration(seconds: 3));
