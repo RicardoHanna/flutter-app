@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -36,10 +37,17 @@ class _ImportFormState extends State<ImportForm> {
   // Track the selected checkboxes
   
 
-final String serverUrl = 'https://f627-212-101-253-237.ngrok-free.app'; // Update with your ngrok URL
+
+
+final String serverUrl = 'https://8a8e-212-101-253-118.ngrok-free.app';
+final int userGroupCode = 1;
 
 Future<void> importData() async {
-  final response = await http.post(Uri.parse('$serverUrl/importData'));
+  final response = await http.post(
+    Uri.parse('$serverUrl/importData'),
+    headers: {'Content-Type': 'application/json'}, // Set content-type to application/json
+    body: jsonEncode({'userGroupCode': userGroupCode}), // Encode the body as JSON
+  );
 
   if (response.statusCode == 200) {
     print('Data migration complete');
@@ -47,6 +55,8 @@ Future<void> importData() async {
     print('Failed to import data. Status code: ${response.statusCode}');
   }
 }
+
+
 
 
   bool _importItems = false;
@@ -218,6 +228,7 @@ bool _loading = false; // Track loading state
       await synchronizer.synchronizeDataUserGroupTranslations();
       await synchronizer.synchronizeDataAuthorization();
         await synchronizer.synchronizeDataMenu();
+        await synchronizer.synchronizeDataGeneralSettings();
         ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('System synchronized successfully',style: _appTextStyle,),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:project/Synchronize/DataSynchronizer.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/UserClass.dart';
 import 'package:project/Forms/edit_user_form.dart';
@@ -12,6 +13,7 @@ import 'package:project/hive/authorization_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive/hive.dart';
+import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/screens/admin_authorizations_page.dart';
 import 'package:project/screens/admin_users_page.dart';
 import 'package:project/screens/admin_usersgroup_page.dart';
@@ -31,9 +33,79 @@ class _AdminPageState extends State<AdminPage> {
 void initState() {
   super.initState();
  
-  _loadUserGroup();
-
+  _initializeApp();
 }
+
+Future<void> _initializeApp() async {
+  await _loadUserGroup();
+  await _initApp();
+}
+
+Future<bool> checkSystemAdminExport(int userGroup) async {
+  try {
+    // Open the systemAdminBox
+    var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
+print(userGroup);
+    // Check if the userGroup exists in the systemAdminBox
+    if (systemAdminBox.containsKey(userGroup)) {
+      // Retrieve the SystemAdmin object for the specified userGroup
+      SystemAdmin? systemAdmin = systemAdminBox.get(userGroup);
+
+print('kosk');
+      // Check if the importFromErpToMobile field is true
+      if (systemAdmin?.autoExport == true) {
+        // User has access
+        return true;
+      }
+   
+    }
+
+  
+
+    // User does not have access
+    return false;
+  } catch (e) {
+    // Handle any errors that might occur during the process
+    print('Error checking system admin: $e');
+    return false;
+  }
+}
+Future<void> _initApp() async {
+    // Perform any other initialization tasks here
+      TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
+    // Check for internet connection
+    bool hasAccess = await checkSystemAdminExport(_userGroup);
+print('joo');
+
+if (hasAccess) {
+   print('loksd');
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      // Internet connection is available
+      // Run your synchronization function
+     
+      await _synchronizeData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Data is synchronized!', style: _appTextStyle),
+        ),
+      );
+    } else {
+      // No internet connection
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No internet connection. Data will be synchronized when online.', style: _appTextStyle),
+        ),
+      );
+    }
+}
+  }
+   Future<void> _synchronizeData() async {
+    DataSynchronizer dataSynchronizer = DataSynchronizer();
+    await dataSynchronizer.synchronizeData();
+
+
+  }
    int _userGroup=0;
 Future<void> _loadUserGroup() async {
   print(widget.email);

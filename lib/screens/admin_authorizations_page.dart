@@ -176,10 +176,10 @@ Future<void> _assignUserGroup(BuildContext context, String updatedGroupEn, Strin
 
   // Get the Administrator menu from the menuBox
   var administratorMenu = allMenuItems.firstWhere((menu) => menu.menuname == 'Administrator' || menu.menuarname == 'الإدارة');
-  var synchronizeMenu = allMenuItems.firstWhere((menu) => menu.menuname == 'Synchronize' || menu.menuarname == 'تزامن');
+  //var synchronizeMenu = allMenuItems.firstWhere((menu) => menu.menuname == 'Synchronize' || menu.menuarname == 'تزامن');
 
 var langdetec=AppLocalizations.of(context)!.language == "English" ? administratorMenu.menuname:administratorMenu.menuarname;
-var langdetecSync=AppLocalizations.of(context)!.language == "English" ? synchronizeMenu.menuname:synchronizeMenu.menuarname;
+//var langdetecSync=AppLocalizations.of(context)!.language == "English" ? synchronizeMenu.menuname:synchronizeMenu.menuarname;
 
   // ignore: use_build_context_synchronously
   await showDialog(
@@ -267,7 +267,7 @@ var langdetecSync=AppLocalizations.of(context)!.language == "English" ? synchron
 ///-------------------------------------------------------------------------------------------------------------
 ///-------------------------------------------------------------------------------------------------------------
    
-                     CheckboxListTile(
+   /*                  CheckboxListTile(
   title: Text(langdetecSync,style: _appTextStyle,),
   value: selectedItems.contains(synchronizeMenu.menucode),
   onChanged: (value) {
@@ -304,10 +304,10 @@ var langdetecSync=AppLocalizations.of(context)!.language == "English" ? synchron
       }
     });
   },
-),
+),*/
 
                   // Use an ExpansionTile for the Administrator menu and its submenus
-                  ExpansionTile(
+               /*   ExpansionTile(
                     title: Text('Synchronize Menus',style: _appTextStyle,),
                     children: [
                       for (var submenu in synchronizeSubMenuBox.values)
@@ -336,7 +336,7 @@ var langdetecSync=AppLocalizations.of(context)!.language == "English" ? synchron
                           },
                         ),
                     ],
-                  ),
+                  ),*/
                   SizedBox(height: 16), // Add some space
 
                   // Display other menu items

@@ -19,6 +19,7 @@ import 'package:project/hive/itemuom_hive.dart';
 import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/pricelist_hive.dart';
 import 'package:project/hive/syncronizesubmenu_hive.dart';
+import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/hive/userpl_hive.dart';
@@ -50,6 +51,7 @@ Hive.registerAdapter(AuthorizationAdapter());
 Hive.registerAdapter(MenuAdapter());
 Hive.registerAdapter(AdminSubMenuAdapter());
 Hive.registerAdapter(SynchronizeSubMenuAdapter());
+Hive.registerAdapter(SystemAdminAdapter());
 
   await Hive.openBox<Items>('items');
   await Hive.openBox<PriceList>('pricelists');
@@ -67,6 +69,7 @@ Hive.registerAdapter(SynchronizeSubMenuAdapter());
    await Hive.openBox<Menu>('menuBox');
    await Hive.openBox<AdminSubMenu>('adminSubMenuBox');
    await Hive.openBox<SynchronizeSubMenu>('synchronizeSubMenu');
+   await Hive.openBox<SystemAdmin>('systemAdminBox');
    
   runApp(
     MultiProvider(

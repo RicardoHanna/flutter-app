@@ -13,6 +13,7 @@ import 'package:project/hive/itemuom_hive.dart';
 import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/pricelist_hive.dart';
 import 'package:project/hive/syncronizesubmenu_hive.dart';
+import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/hive/userpl_hive.dart';
@@ -1174,6 +1175,82 @@ Future<void> _synchronizeAutho(
 //-------------------------------------------------------------------------------------------------
 
 
+
+Future<void> synchronizeDataGeneralSettings() async {
+  try {
+    // Fetch data from Firestore
+    var firestoreItems = await _firestore.collection('SystemAdmin').get();
+
+    // Open Hive boxes
+    var systemAdminBox= await Hive.openBox<SystemAdmin>('systemAdminBox');
+    // Open other boxes if needed
+
+    print('All data in group database: ${systemAdminBox.values.toList()}');
+
+
+    // Synchronize data
+    await _synchronizeSystem(firestoreItems.docs, systemAdminBox);
+    // Synchronize other data if needed
+
+    // Close Hive boxes
+    //await userGroupBox.close();
+    // Close other boxes if needed
+  } catch (e) {
+    print('Error synchronizing data from Firebase to Hive: $e');
+  }
+}
+
+Future<void> _synchronizeSystem(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreAutho,
+  Box<SystemAdmin> system,
+) async {
+  try {
+    // Iterate over Firestore documents
+    for (var doc in firestoreAutho) {
+        
+      var groupcode = doc['groupcode'];
+
+      // Check if the item exists in Hive
+      var hivesystem= system.get(groupcode);
+
+      // If the item doesn't exist in Hive, add it
+      if (hivesystem == null) {
+        var newSystem = SystemAdmin(
+        
+             autoExport:doc['autoExport'],
+             connDatabase: doc['connDatabase'],
+              connServer: doc['connServer'],
+              connPassword:doc['connPassword'],
+              connPort: doc['connPort'],
+              typeDatabase: doc['typeDatabase'],
+              groupcode:doc['groupcode'],
+              importFromErpToMobile: doc['importFromErpToMobile'],
+              importFromBackendToMobile: doc['importFromBackendToMobile'],
+        );
+        await system.put(groupcode, newSystem);
+      }
+      // If the item exists in Hive, update it if needed
+      else {
+        var updatedsystem = SystemAdmin(
+             autoExport:doc['autoExport'],
+             connDatabase: doc['connDatabase'],
+              connServer: doc['connServer'],
+              connPassword:doc['connPassword'],
+              connPort: doc['connPort'],
+              typeDatabase: doc['typeDatabase'],
+              groupcode:doc['groupcode'],
+              importFromErpToMobile: doc['importFromErpToMobile'],
+              importFromBackendToMobile: doc['importFromBackendToMobile'],
+        
+        );
+        // Update the item in Hive
+        await system.put(groupcode, updatedsystem);
+      }
+    }
+  } catch (e) {
+    print('Error synchronizing System General Settings from Firebase to Hive: $e');
+  }
+}
 
 
 }

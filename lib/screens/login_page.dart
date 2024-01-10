@@ -67,21 +67,13 @@ Future<void> _synchronizeDatatoHive() async {
     DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
 
     // Run the synchronization process
-    /*await synchronizer.synchronizeData();
-    await synchronizer.synchronizeDataPriceLists();
-    await synchronizer.synchronizeDataItemPrice();
-    await synchronizer.synchronizeDataItemAttach();
-    await synchronizer.synchronizeDataItemBrand();
-    await synchronizer.synchronizeDataItemCateg();
-    await synchronizer.synchronizeDataItemUOM();
-    await synchronizer.synchronizeDataItemGroup();
-    await synchronizer.synchronizeDataUserPL();*/
+    
     await synchronizer.synchronizeDataUser();
     await synchronizer.synchronizeDataMenu();
     await synchronizer.synchronizeDataAuthorization();
     await synchronizer.synchronizeDataUserGroup();
   await synchronizer.synchronizeDataUserGroupTranslations();
-
+ await synchronizer.synchronizeDataGeneralSettings(); 
     // Simulate a delay for demonstration purposes (remove in production)
     await Future.delayed(Duration(seconds: 3));
 
@@ -373,7 +365,7 @@ print(identifierField);
   
 
     print('hiiiiii');
-    await _synchronizeDatatoHive();
+
     Navigator.push(
       context,
       MaterialPageRoute(
