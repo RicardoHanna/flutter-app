@@ -41,14 +41,15 @@ async function importDataToFirestore(userGroupCode) {
 
     // Configuration for SQL Server connection based on Firestore data
     const sqlConfig = {
-      server: configData.connServer,
-      database: configData.connDatabase,
-      options: {
-        trustedConnection: true,
-      },
-      driver: "msnodesqlv8",
-    };
-
+        server: configData.connServer, // Update this with your SQL Server hostname
+        database: configData.connDatabase,
+        options: {
+          trustedConnection: true,
+        },
+        port: 1433, // Use the specified port or the default port 1433
+        driver: "msnodesqlv8",
+      };
+      
     // Connect to SQL Server and fetch data
     await sql.connect(sqlConfig);
     const result = await new sql.Request().query('SELECT * FROM Items');
