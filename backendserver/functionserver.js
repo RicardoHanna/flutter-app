@@ -5,7 +5,7 @@ const sql = require('mssql');
 async function importDataToFirestore(userGroupCode) {
   try {
     // Initialize Firebase Admin SDK
-    const serviceAccount = require('C:/Users/ricardo/Downloads/sales-bab47-firebase-adminsdk-gqqph-a89e060434.json');
+    const serviceAccount = require('./sales-bab47-firebase-adminsdk-gqqph-a89e060434.json');
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       databaseURL: 'https://sales-bab47.firebaseio.com', // Update with your actual database URL
