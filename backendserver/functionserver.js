@@ -46,6 +46,9 @@ async function importDataToFirestore(userGroupCode) {
         options: {
           trustedConnection: true,
         },
+        extra: {
+            trustServerCertificate: true,
+          },
         port: 1433, // Use the specified port or the default port 1433
         driver: "msnodesqlv8",
       };
