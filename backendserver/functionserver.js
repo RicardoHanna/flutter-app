@@ -1,7 +1,7 @@
 const admin = require('firebase-admin');
 const sql = require('mssql');
 
-const serviceAccount = require('./sales-bab47-firebase-adminsdk-gqqph-a89e060434.json');
+const serviceAccount = require('./sales-bab47-firebase-adminsdk-gqqph-a89e060434');
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
