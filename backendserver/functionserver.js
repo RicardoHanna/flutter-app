@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
-const sql = require('mssql/msnodesqlv8');
+const sql = require('mssql');
+
 
 async function importDataToFirestore(userGroupCode) {
   try {
