@@ -41,7 +41,7 @@ async function importDataToFirestore(userGroupCode) {
 
     // Configuration for SQL Server connection based on Firestore data
     const sqlConfig = {
-        server: configData.connServer, // Update this with your SQL Server hostname
+        connServer: 'DESKTOP-3J3L4AJ\\SQLEXPRESS01',
         database: configData.connDatabase,
         options: {
           trustedConnection: true,
