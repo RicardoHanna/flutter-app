@@ -11,7 +11,7 @@ app.get('/', (req, res) => {
   res.send('Welcome to the Express.js server!');
 });
 
-const importDataToFirestore = require('./functionscripts');
+const importDataToFirestore = require('./functions/functionscripts'); // Adjust the path
 
 app.use(express.json());
 app.post('/importData', async (req, res) => {
@@ -22,11 +22,9 @@ app.post('/importData', async (req, res) => {
     res.status(200).json({ message: 'Data migration complete.' });
   } else {
     res.status(400).json({ error: `Bad Request - userGroupCode is undefined or invalid: ${userGroupCode}` });
-
   }
-  
-
 });
+
 
 
 app.listen(port, '0.0.0.0', () => {
