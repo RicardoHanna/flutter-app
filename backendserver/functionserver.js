@@ -41,12 +41,11 @@ async function importDataToFirestore(userGroupCode) {
 
     // Configuration for SQL Server connection based on Firestore data
     const sqlConfig = {
-        connServer: 'DESKTOP-3J3L4AJ\\SQLEXPRESS01',
+        server: "DESKTOP-3J3L4AJ\SQLEXPRESS01", // Update this with your SQL Server hostname
         database: configData.connDatabase,
         options: {
           trustedConnection: true,
         },
-        port: 1433, // Use the specified port or the default port 1433
         driver: "msnodesqlv8",
       };
       
