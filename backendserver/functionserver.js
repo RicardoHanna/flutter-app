@@ -1,21 +1,15 @@
 const admin = require('firebase-admin');
 const sql = require('mssql');
 
+const serviceAccount = require('./sales-bab47-firebase-adminsdk-gqqph-a89e060434.json');
 
+// Initialize Firebase Admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: 'https://sales-bab47.firebaseio.com', // Update with your actual database URL
+});
 async function importDataToFirestore(userGroupCode) {
-    const serviceAccount = require('./sales-bab47-firebase-adminsdk-gqqph-a89e060434.json');
-  try {
-    // Initialize Firebase Admin SDK
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: 'https://sales-bab47.firebaseio.com', // Update with your actual database URL
-    });
-  } catch (err) {
-    if (err.code !== 'app/duplicate-app') {
-      console.error('Error initializing Firebase app:', err);
-    }
-  }
-
+   
   try {
     // Fetch user configuration from Firestore based on user's group code
 // Search for a document where 'userGroupCode' matches the specified value
