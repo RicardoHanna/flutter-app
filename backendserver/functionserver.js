@@ -43,7 +43,7 @@ async function importDataToFirestore(userGroupCode) {
     const sqlConfig = {
       user: "maroun",
       password: "semne",
-      server: configData.connServer,
+      server: "DESKTOP-3J3L4AJ\\SQLEXPRESS01",
       database: configData.connDatabase,
       options: {
         trustServerCertificate: true,
