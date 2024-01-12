@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install": "npm install msnodesqlv8 --msvs_version=2015 --save",
+    "postinstall": "node ./node_modules/msnodesqlv8/install.js --odbc_version=17",
+    "start": "node express.js"
   },
+  
   "keywords": [],
   "author": "",
   "license": "ISC",
