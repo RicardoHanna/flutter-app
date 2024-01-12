@@ -36,7 +36,7 @@ async function importDataToFirestore(userGroupCode) {
 
     // Configuration for SQL Server connection based on Firestore data
   // Configuration for SQL Server connection based on Firestore data
-const sqlConfig = "Driver={SQL Server Native Client 11.0};Server=DESKTOP-3J3L4AJ\\SQLEXPRESS01;Database=Sales;Trusted_Connection=Yes";
+  const sqlConfig = "Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-3J3L4AJ\\SQLEXPRESS01;Database=Sales;Trusted_Connection=Yes";
 
     // Connect to SQL Server and fetch data
     const query = "select * from Items";
