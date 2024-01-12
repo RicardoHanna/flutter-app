@@ -46,7 +46,8 @@ async function importDataToFirestore(userGroupCode) {
       server: configData.connServer,
       database: configData.connDatabase,
       options: {
-        trustServerCertificate: true
+        trustServerCertificate: true,
+        port: 1433
       }
     };
       
