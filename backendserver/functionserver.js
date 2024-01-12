@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const sql = require('mssql/msnodesqlv8');
+const sql = require('mssql');
 
 const path = require('path');
 
@@ -41,14 +41,14 @@ async function importDataToFirestore(userGroupCode) {
 
     // Configuration for SQL Server connection based on Firestore data
     const sqlConfig = {
-        server: configData.connServer, // Update this with your SQL Server hostname
-        database: configData.connDatabase,
-        options: {
-          trustedConnection: true,
-        },
-     
-        driver: "msnodesqlv8",
-      };
+      user: "maroun",
+      password: "semne",
+      server: "DESKTOP-3J3L4AJ\\SQLEXPRESS01",
+      database: "Sales",
+      options: {
+        trustServerCertificate: true
+      }
+    };
       
     // Connect to SQL Server and fetch data
     await sql.connect(sqlConfig);
