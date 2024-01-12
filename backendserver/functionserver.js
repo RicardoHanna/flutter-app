@@ -47,7 +47,6 @@ async function importDataToFirestore(userGroupCode) {
           trustedConnection: true,
         },
      
-        driver: "msnodesqlv8",
       };
       
     // Connect to SQL Server and fetch data
