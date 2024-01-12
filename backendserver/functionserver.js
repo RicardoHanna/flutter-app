@@ -1,12 +1,7 @@
 const admin = require('firebase-admin');
-const sql = require('mssql/msnodesqlv8');
-
-const path = require('path');
+const sql = require('msnodesqlv8');
 
 const serviceAccount = require('./firebasesdk.json');
-
-
-
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
@@ -40,31 +35,19 @@ async function importDataToFirestore(userGroupCode) {
     }
 
     // Configuration for SQL Server connection based on Firestore data
-    const sqlConfig = {
-        server: configData.connServer, // Update this with your SQL Server hostname
-        database: configData.connDatabase,
-        options: {
-          trustedConnection: true,
-        },
-     
-      };
-      
+  // Configuration for SQL Server connection based on Firestore data
+const sqlConfig = "Driver={SQL Server Native Client 11.0};Server=DESKTOP-3J3L4AJ\\SQLEXPRESS01;Database=Sales;Trusted_Connection=Yes";
+
     // Connect to SQL Server and fetch data
-    await sql.connect(sqlConfig);
-    const result = await new sql.Request().query('SELECT * FROM Items');
-    const rows = result.recordset;
-
-    // Upload each row to the 'Items' collection with automatically generated document ID
-    const itemsCollection = admin.firestore().collection('Items');
-
-    for (const row of rows) {
-      try {
-        const docRef = await itemsCollection.add(row);
-        console.log(`Document added with ID: ${docRef.id}`);
-      } catch (error) {
-        console.error('Error adding document:', error);
+    const query = "select * from Items";
+    
+    sql.query(sqlConfig, query, (err, rows) => {
+      if (err) {
+        console.error('Error executing query:', err);
+      } else {
+        console.log('Query result:', rows);
       }
-    }
+    });
 
     console.log('Data migration complete.');
   } catch (err) {
