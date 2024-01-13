@@ -19,7 +19,7 @@ async function importDataToFirestore(userGroupCode) {
     // Fetch user configuration from Firestore based on user's group code
     const configSnapshot = await admin.firestore().collection('SystemAdmin').where('groupcode', '==', 1).get();
     console.log('Firestore Query:', `groupcode == ${userGroupCode?.toString()}`);
-    console.log('Config Snapshot:', configSnapshot.docs.map(doc => doc.data()));
+//    console.log('Config Snapshot:', configSnapshot.docs.map(doc => doc.data()));
 
     if (configSnapshot.empty) {
       console.error('User configuration not found for group code:', userGroupCode);
@@ -45,15 +45,17 @@ const sqlConfig = {
   user: "SA",
   password: "Ma#@!Lia",
   server: "5.189.137.171",
-  port: 1433, // Specify the correct port
-  database: "MSuite_V8",
+  database: "Test",
+  port: 1433,
   options: {
+    encrypt: false,
     trustServerCertificate: true,
-  }
+    }
 };
 
     // Connect to SQL Server and fetch data
     await sql.connect(sqlConfig);
+    
     const result = await new sql.Request().query('SELECT * FROM Items');
     const rows = result.recordset;
 
