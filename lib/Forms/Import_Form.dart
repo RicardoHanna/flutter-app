@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project/Synchronize/DataSynchronizerFromFirebaseToHive.dart';
 import 'package:project/app_notifier.dart';
+import 'package:project/classes/LoadingHelper.dart';
 import 'package:project/classes/TranslationsClass.dart';
 import 'package:project/classes/UserClass.dart';
 import 'package:project/Forms/edit_user_form.dart';
@@ -21,6 +22,7 @@ import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
 import 'package:process/process.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class ImportForm extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -39,10 +41,11 @@ class _ImportFormState extends State<ImportForm> {
 
 
 
-final String serverUrl = 'https://6e8c-212-101-253-59.ngrok-free.app';
+final String serverUrl = 'http://localhost:5000';
 final int userGroupCode = 1;
 
 Future<void> importData() async {
+    TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
   final response = await http.post(
     Uri.parse('$serverUrl/importData'),
     headers: {'Content-Type': 'application/json'}, // Set content-type to application/json
@@ -51,8 +54,17 @@ Future<void> importData() async {
 
   if (response.statusCode == 200) {
     print('Data migration complete');
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Data synchronized successfully',style: _appTextStyle,),
+      ),
+    );
   } else {
     print('Failed to import data. Status code: ${response.statusCode}');
+    
+    SnackBar(
+        content: Text('Failed to import data. Status code:',style: _appTextStyle,),
+      );
   }
 }
 
@@ -100,74 +112,98 @@ bool _loading = false; // Track loading state
   }
 
   List<Widget> _buildSwitchList() {
-    TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-    if (widget.title == 'Import from ERP To Mobile') {
-      return [
-        SwitchListTile(
-          title: Text('Items', style: _appTextStyle),
-          value: _importItems,
-          onChanged: (value) {
-            setState(() {
-              _importItems = value ?? false;
-            });
-          },
+  TextStyle _appTextStyle =
+      TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  if (widget.title == 'Import from ERP To Mobile') {
+    return [
+      SwitchListTile(
+        title: Text('Items', style: _appTextStyle),
+        value: _importItems,
+        onChanged: (value) {
+          setState(() {
+            _importItems = value ?? false;
+          });
+        },
+      ),
+      SwitchListTile(
+        title: Text('PriceLists', style: _appTextStyle),
+        value: _importPriceLists,
+        onChanged: (value) {
+          setState(() {
+            _importPriceLists = value ?? false;
+          });
+        },
+      ),
+      SizedBox(height: 10),
+      Center(
+          child: Stack(
+            children: [
+              ElevatedButton(
+               onPressed: () async {
+  LoadingHelper.configureLoading();
+  LoadingHelper.showLoading(); // Show loading indicator
+  await importData();
+  LoadingHelper.dismissLoading(); // Dismiss loading indicator
+},
+child: Text('Import', style: _appTextStyle),
+
+              ),
+            ],
+          ),
         ),
-        SwitchListTile(
-          title: Text('PriceLists', style: _appTextStyle),
-          value: _importPriceLists,
-          onChanged: (value) {
-            setState(() {
-              _importPriceLists = value ?? false;
-            });
-          },
+      
+    ];
+  } else if (widget.title == 'Import from Backend to Mobile') {
+    return [
+      SwitchListTile(
+        title: Text('Items', style: _appTextStyle),
+        value: _importItems,
+        onChanged: (value) {
+          setState(() {
+            _importItems = value ?? false;
+          });
+        },
+      ),
+      SwitchListTile(
+        title: Text('PriceLists', style: _appTextStyle),
+        value: _importPriceLists,
+        onChanged: (value) {
+          setState(() {
+            _importPriceLists = value ?? false;
+          });
+        },
+      ),
+      SwitchListTile(
+        title: Text('System', style: _appTextStyle),
+        value: _importSystem,
+        onChanged: (value) {
+          setState(() {
+            _importSystem = value ?? false;
+          });
+        },
+      ),
+      SizedBox(height:10),
+           Center(
+          child: Stack(
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+  LoadingHelper.configureLoading();
+  LoadingHelper.showLoading(); // Show loading indicator
+  await _synchronizeAll();
+  LoadingHelper.dismissLoading(); // Dismiss loading indicator
+},
+child: Text('Import', style: _appTextStyle),
+
+              ),
+            ],
+          ),
         ),
-        SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: () async {
-            await importData();
-          },
-          child: Text('Import'),
-        ),
-      ];
-    } else if (widget.title == 'Import from Backend to Mobile') {
-      return [
-        SwitchListTile(
-          title: Text('Items', style: _appTextStyle),
-          value: _importItems,
-          onChanged: (value) {
-            setState(() {
-              _importItems = value ?? false;
-            });
-          },
-        ),
-        SwitchListTile(
-          title: Text('PriceLists', style: _appTextStyle),
-          value: _importPriceLists,
-          onChanged: (value) {
-            setState(() {
-              _importPriceLists = value ?? false;
-            });
-          },
-        ),
-        SwitchListTile(
-          title: Text('System', style: _appTextStyle),
-          value: _importSystem,
-          onChanged: (value) {
-            setState(() {
-              _importSystem = value ?? false;
-            });
-          },
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            await _synchronizeAll();
-          },
-          child: Text('Import', style: _appTextStyle),
-        ),
-      ];
-    }
-    return [];
+
+    ];
   }
+  return [];
+}
 
    Future<void> _synchronizeAll() async {
 
@@ -187,8 +223,8 @@ bool _loading = false; // Track loading state
       await _synchronizeSystem();
     }
 
-
     }
+    
   }
  Future<void> _synchronizeItems() async {
     TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
@@ -288,8 +324,13 @@ Future<void> _synchronizeDatatoHive() async {
 
 // Add this function to show a loading indicator using FutureBuilder
 Widget _buildLoadingIndicator() {
-  return Center(
-    child: CircularProgressIndicator(),
-  );
+  if (_loading) {
+    EasyLoading.show(status: 'Loading...');
+  } else {
+    EasyLoading.dismiss();
+  }
+
+  return Container();
 }
+
 }

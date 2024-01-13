@@ -20,19 +20,20 @@ class SystemAdminAdapter extends TypeAdapter<SystemAdmin> {
       autoExport: fields[0] as bool,
       connDatabase: fields[1] as String,
       connServer: fields[2] as String,
-      connPassword: fields[3] as String,
-      connPort: fields[4] as int,
-      typeDatabase: fields[5] as String,
-      groupcode: fields[6] as int,
-      importFromErpToMobile: fields[7] as bool,
-      importFromBackendToMobile: fields[8] as bool,
+      connUser: fields[3] as String,
+      connPassword: fields[4] as String,
+      connPort: fields[5] as int,
+      typeDatabase: fields[6] as String,
+      groupcode: fields[7] as int,
+      importFromErpToMobile: fields[8] as bool,
+      importFromBackendToMobile: fields[9] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, SystemAdmin obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.autoExport)
       ..writeByte(1)
@@ -40,16 +41,18 @@ class SystemAdminAdapter extends TypeAdapter<SystemAdmin> {
       ..writeByte(2)
       ..write(obj.connServer)
       ..writeByte(3)
-      ..write(obj.connPassword)
+      ..write(obj.connUser)
       ..writeByte(4)
-      ..write(obj.connPort)
+      ..write(obj.connPassword)
       ..writeByte(5)
-      ..write(obj.typeDatabase)
+      ..write(obj.connPort)
       ..writeByte(6)
-      ..write(obj.groupcode)
+      ..write(obj.typeDatabase)
       ..writeByte(7)
-      ..write(obj.importFromErpToMobile)
+      ..write(obj.groupcode)
       ..writeByte(8)
+      ..write(obj.importFromErpToMobile)
+      ..writeByte(9)
       ..write(obj.importFromBackendToMobile);
   }
 

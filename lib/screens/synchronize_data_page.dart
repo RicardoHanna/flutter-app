@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project/Forms/Import_Form.dart';
 import 'package:project/Synchronize/DataSynchronizer.dart';
 import 'package:project/app_notifier.dart';
+import 'package:project/classes/LoadingHelper.dart';
 import 'package:project/classes/TranslationsClass.dart';
 import 'package:project/classes/UserClass.dart';
 import 'package:project/Forms/edit_user_form.dart';
@@ -19,6 +20,8 @@ import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+
 
 class SynchronizeDataPage extends StatefulWidget {
     final AppNotifier appNotifier;
@@ -265,8 +268,13 @@ bool hasAccess = await checkSystemAdmin(_userGroup,importSource);
                   // Handle other actions as before
               String exportSource = await _showExportDialog();
               if(exportSource=='Yes'){
- 
+                 LoadingHelper.configureLoading();
+  LoadingHelper.showLoading(); // Show loading indicator
   await _synchronizeData();
+  LoadingHelper.dismissLoading(); // Dismiss loading indicator
+
+
+  EasyLoading.dismiss();
       ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Data is Exported!',style: _appTextStyle,),

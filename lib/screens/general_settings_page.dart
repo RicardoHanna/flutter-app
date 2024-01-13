@@ -50,6 +50,7 @@ String searchUsersGroup='';
    TextEditingController _connDatabaseController = TextEditingController();
   TextEditingController _connServerController = TextEditingController();
    TextEditingController _connPasswordController = TextEditingController();
+      TextEditingController _connUserController = TextEditingController();
   TextEditingController _connPortController = TextEditingController();
   TextEditingController _typeDatabaseController = TextEditingController();
  
@@ -127,6 +128,7 @@ void _toggleAssignMenuExpansion(int usercode) {
         _connDatabaseController.text = systemAdmin.connDatabase;
         _connServerController.text = systemAdmin.connServer;
         _connPasswordController.text = systemAdmin.connPassword;
+        _connUserController.text=systemAdmin.connUser;
         _connPortController.text = systemAdmin.connPort.toString();
         _typeDatabaseController.text = systemAdmin.typeDatabase;
         importFromErpToMobile=systemAdmin.importFromErpToMobile;
@@ -332,8 +334,16 @@ int _generateCompositeKey(int menucode, int groupcode) {
               onChanged: (value) {
                     _formChanged = true; 
                   },
+                            ),
+                             TextField(
+                              decoration: InputDecoration(labelText: 'Connection UserName'),
+                           controller: _connUserController,
+              onChanged: (value) {
+                    _formChanged = true; 
+                  },
                      
                             ),
+                 
                             TextField(
                               decoration: InputDecoration(labelText: 'Connection Password'),
                            controller: _connPasswordController,
@@ -380,6 +390,7 @@ int _generateCompositeKey(int menucode, int groupcode) {
       autoExport: autoExport,
       connDatabase: _connDatabaseController.text,
       connServer: _connServerController.text,
+      connUser: _connUserController.text,
       connPassword: _connPasswordController.text,
       connPort: int.tryParse(_connPortController.text) ?? 0,
       typeDatabase: _typeDatabaseController.text,

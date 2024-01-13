@@ -19,7 +19,7 @@ async function importDataToFirestore(userGroupCode) {
     // Fetch user configuration from Firestore based on user's group code
     const configSnapshot = await admin.firestore().collection('SystemAdmin').where('groupcode', '==', 1).get();
     console.log('Firestore Query:', `groupcode == ${userGroupCode?.toString()}`);
-//    console.log('Config Snapshot:', configSnapshot.docs.map(doc => doc.data()));
+    console.log('Config Snapshot:', configSnapshot.docs.map(doc => doc.data()));
 
     if (configSnapshot.empty) {
       console.error('User configuration not found for group code:', userGroupCode);
@@ -40,52 +40,39 @@ async function importDataToFirestore(userGroupCode) {
     }
 
     // Configuration for SQL Server connection based on Firestore data
-// Configuration for SQL Server connection based on Firestore data
-const sqlConfig = {
-  user: "SA",
-  password: "Ma#@!Lia",
-  server: "5.189.137.171",
-  database: "Test",
-  port: 1433,
-  options: {
-    encrypt: false,
-    trustServerCertificate: true,
+    const sqlConfig = {
+      user: configData.connUser,
+      password: configData.connPassword,
+      server: configData.connServer,
+      database: configData.connDatabase,
+      options: {
+        encrypt: false,
+        trustServerCertificate: true,
+        port: 1433
+      }
+    };
+      
+    // Connect to SQL Server and fetch data
+    await sql.connect(sqlConfig);
+    const result = await new sql.Request().query('SELECT * FROM Items');
+    const rows = result.recordset;
+
+    // Upload each row to the 'Items' collection with automatically generated document ID
+    const itemsCollection = admin.firestore().collection('Items');
+
+    for (const row of rows) {
+      try {
+        const docRef = await itemsCollection.add(row);
+        console.log(`Document added with ID: ${docRef.id}`);
+      } catch (error) {
+        console.error('Error adding document:', error);
+      }
     }
-};
 
-// Connect to SQL Server and fetch data
-   // Connect to SQL Server and fetch data
-   await sql.connect(sqlConfig);
-    
-   const result = await new sql.Request().query('SELECT * FROM Items');
-   const rows = result.recordset;
-
-   if (!rows || rows.length === 0) {
-     console.warn('No data retrieved from SQL Server.');
-     return;
-   }
-
-   // Upload each row to the 'Items' collection with automatically generated document ID
-   const itemsCollection = admin.firestore().collection('Items');
-
-   for (const row of rows) {
-     try {
-       const docRef = await itemsCollection.add(row);
-       console.log(`Document added with ID: ${docRef.id}`);
-     } catch (error) {
-       console.error('Error adding document:', error);
-     }
-   }
-
-   console.log('Data migration complete.');
- } catch (err) {
-   console.error('Error:', err);
- } finally {
-   // Always close the SQL Server connection
-   await sql.close();
- }
+    console.log('Data migration complete.');
+  } catch (err) {
+    console.error('Error:', err);
+  }
 }
-
-module.exports = importDataToFirestore;
 
 module.exports = importDataToFirestore;

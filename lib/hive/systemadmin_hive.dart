@@ -14,21 +14,24 @@ class SystemAdmin extends HiveObject {
   late String connServer;
 
   @HiveField(3)
-  late String connPassword;
+  late String connUser;
 
   @HiveField(4)
-  late int connPort;
+  late String connPassword;
 
   @HiveField(5)
-  late String typeDatabase;
+  late int connPort;
 
   @HiveField(6)
-  late int groupcode;
+  late String typeDatabase;
 
   @HiveField(7)
-  late bool importFromErpToMobile;
+  late int groupcode;
 
   @HiveField(8)
+  late bool importFromErpToMobile;
+
+  @HiveField(9)
   late bool importFromBackendToMobile;
 
 
@@ -36,6 +39,7 @@ class SystemAdmin extends HiveObject {
    required  this.autoExport,
    required this.connDatabase,
    required this.connServer,
+   required this.connUser,
    required this.connPassword,
    required this.connPort,
    required this.typeDatabase,

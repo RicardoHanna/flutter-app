@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:project/Synchronize/DataSynchronizerFromFirebaseToHive.dart';
 import 'package:project/app_notifier.dart';
+import 'package:project/classes/LoadingHelper.dart';
 import 'package:project/screens/settings_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:validators/validators.dart';
@@ -19,6 +20,7 @@ import 'package:provider/provider.dart';
 import 'package:project/app_notifier.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -153,8 +155,11 @@ Future<void> _authenticate() async {
         // If it's not an email or numeric, assume it's a username
         identifier = _emailController.text.trim();
       }
-
-      await _loginLocalDatabaseWithFingerprint(identifier);
+ LoadingHelper.configureLoading();
+  LoadingHelper.showLoading(); // Show loading indicator
+await _loginLocalDatabaseWithFingerprint(identifier);
+  LoadingHelper.dismissLoading(); // Dismiss loading indicator
+      
     }
   } on PlatformException catch (e) {
     print(e);
@@ -648,8 +653,12 @@ if (isEmail(identifier)) {
 print('hids'+identifier);
 
 String password = _passwordController.text.trim();
-
+ LoadingHelper.configureLoading();
+  LoadingHelper.showLoading(); // Show loading indicator
 await _loginLocalDatabase(identifier, password);
+
+  LoadingHelper.dismissLoading(); // Dismiss loading indicator
+
 
 
  if (_rememberMe) {
