@@ -42,23 +42,16 @@ async function importDataToFirestore(userGroupCode) {
     // Configuration for SQL Server connection based on Firestore data
 // Configuration for SQL Server connection based on Firestore data
 const sqlConfig = {
-  user: process.env.SQL_USER || "SA",
-  password: process.env.SQL_PASSWORD || "Ma#@!Lia",
-  server: process.env.SQL_SERVER || "5.189.137.171",
-  database: process.env.SQL_DATABASE || "Test",
-  port: parseInt(process.env.SQL_PORT, 10) || 1433,
+  user: "SA",
+  password: "Ma#@!Lia",
+  server: "5.189.137.171",
+  database: "Test",
+  port: 1433,
   options: {
-    encrypt: process.env.SQL_ENCRYPT === "true" || false,
-    trustServerCertificate: process.env.SQL_TRUST_SERVER_CERT === "true" || true,
-    requestTimeout: 15000,  // Set request timeout to match the connection timeout
-  },
+    encrypt: false,
+    trustServerCertificate: true,
+    }
 };
-
-console.log("Attempting to connect to SQL Server with config:", sqlConfig);
-
-// Rest of your code...
-
-
 
 // Connect to SQL Server and fetch data
    // Connect to SQL Server and fetch data
