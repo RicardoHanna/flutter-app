@@ -42,39 +42,51 @@ async function importDataToFirestore(userGroupCode) {
     // Configuration for SQL Server connection based on Firestore data
 // Configuration for SQL Server connection based on Firestore data
 const sqlConfig = {
-  user: "SA",
-  password: "Ma#@!Lia",
-  server: "5.189.137.171",
-  database: "Test",
-  port: 1433,
+  user: process.env.SQL_USER || "SA",
+  password: process.env.SQL_PASSWORD || "Ma#@!Lia",
+  server: process.env.SQL_SERVER || "5.189.137.171",
+  database: process.env.SQL_DATABASE || "Test",
+  port: parseInt(process.env.SQL_PORT, 10) || 1433,
   options: {
-    encrypt: false,
-    trustServerCertificate: true,
-    }
+    encrypt: process.env.SQL_ENCRYPT === "true" || false,
+    trustServerCertificate: process.env.SQL_TRUST_SERVER_CERT === "true" || true,
+  },
 };
 
-    // Connect to SQL Server and fetch data
-    await sql.connect(sqlConfig);
+
+// Connect to SQL Server and fetch data
+   // Connect to SQL Server and fetch data
+   await sql.connect(sqlConfig);
     
-    const result = await new sql.Request().query('SELECT * FROM Items');
-    const rows = result.recordset;
+   const result = await new sql.Request().query('SELECT * FROM Items');
+   const rows = result.recordset;
 
-    // Upload each row to the 'Items' collection with automatically generated document ID
-    const itemsCollection = admin.firestore().collection('Items');
+   if (!rows || rows.length === 0) {
+     console.warn('No data retrieved from SQL Server.');
+     return;
+   }
 
-    for (const row of rows) {
-      try {
-        const docRef = await itemsCollection.add(row);
-        console.log(`Document added with ID: ${docRef.id}`);
-      } catch (error) {
-        console.error('Error adding document:', error);
-      }
-    }
+   // Upload each row to the 'Items' collection with automatically generated document ID
+   const itemsCollection = admin.firestore().collection('Items');
 
-    console.log('Data migration complete.');
-  } catch (err) {
-    console.error('Error:', err);
-  }
+   for (const row of rows) {
+     try {
+       const docRef = await itemsCollection.add(row);
+       console.log(`Document added with ID: ${docRef.id}`);
+     } catch (error) {
+       console.error('Error adding document:', error);
+     }
+   }
+
+   console.log('Data migration complete.');
+ } catch (err) {
+   console.error('Error:', err);
+ } finally {
+   // Always close the SQL Server connection
+   await sql.close();
+ }
 }
+
+module.exports = importDataToFirestore;
 
 module.exports = importDataToFirestore;
