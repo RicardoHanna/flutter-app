@@ -50,8 +50,14 @@ const sqlConfig = {
   options: {
     encrypt: process.env.SQL_ENCRYPT === "true" || false,
     trustServerCertificate: process.env.SQL_TRUST_SERVER_CERT === "true" || true,
+    requestTimeout: 15000,  // Set request timeout to match the connection timeout
   },
 };
+
+console.log("Attempting to connect to SQL Server with config:", sqlConfig);
+
+// Rest of your code...
+
 
 
 // Connect to SQL Server and fetch data
