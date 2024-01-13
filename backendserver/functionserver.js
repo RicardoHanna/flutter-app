@@ -40,16 +40,18 @@ async function importDataToFirestore(userGroupCode) {
     }
 
     // Configuration for SQL Server connection based on Firestore data
-    const sqlConfig = {
-      user: "SA",
-      password: "Ma#@!Lia",
-      server: "http://5.189.137.171/",
-      database: "MSuite_V8",
-      options: {
-        trustServerCertificate: true,
-      }
-    };
-      
+// Configuration for SQL Server connection based on Firestore data
+const sqlConfig = {
+  user: "SA",
+  password: "Ma#@!Lia",
+  server: "5.189.137.171",
+  port: 1433, // Specify the correct port
+  database: "MSuite_V8",
+  options: {
+    trustServerCertificate: true,
+  }
+};
+
     // Connect to SQL Server and fetch data
     await sql.connect(sqlConfig);
     const result = await new sql.Request().query('SELECT * FROM Items');
