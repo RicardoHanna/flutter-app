@@ -41,13 +41,12 @@ async function importDataToFirestore(userGroupCode) {
 
     // Configuration for SQL Server connection based on Firestore data
     const sqlConfig = {
-      user: "maroun",
-      password: "semne",
-      server: configData.connServer,
-      database: configData.connDatabase,
+      user: "SA",
+      password: "Ma#@!Lia",
+      server: "http://5.189.137.171/",
+      database: "MSuite_V8",
       options: {
         trustServerCertificate: true,
-        port: 1433
       }
     };
       
