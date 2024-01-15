@@ -64,6 +64,9 @@ class Items extends HiveObject {
   @HiveField(19)
   late String charact2;
 
+  @HiveField(20)
+  late String cmpCode;
+
   Items(
     this.itemCode,
     this.itemName,
@@ -85,5 +88,6 @@ class Items extends HiveObject {
     this.weight,
     this.charect1,
     this.charact2,
+    this.cmpCode
   );
 }

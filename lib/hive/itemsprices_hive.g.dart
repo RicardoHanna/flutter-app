@@ -25,13 +25,14 @@ class ItemsPricesAdapter extends TypeAdapter<ItemsPrices> {
       fields[5] as bool,
       fields[6] as double,
       fields[7] as double,
+      fields[8] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, ItemsPrices obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.plCode)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class ItemsPricesAdapter extends TypeAdapter<ItemsPrices> {
       ..writeByte(6)
       ..write(obj.disc)
       ..writeByte(7)
-      ..write(obj.price);
+      ..write(obj.price)
+      ..writeByte(8)
+      ..write(obj.cmpCode);
   }
 
   @override

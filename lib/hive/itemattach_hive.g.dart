@@ -21,13 +21,14 @@ class ItemAttachAdapter extends TypeAdapter<ItemAttach> {
       fields[1] as String,
       fields[2] as String,
       fields[3] as String,
+      fields[4] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, ItemAttach obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.itemCode)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class ItemAttachAdapter extends TypeAdapter<ItemAttach> {
       ..writeByte(2)
       ..write(obj.attachmentPath)
       ..writeByte(3)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(4)
+      ..write(obj.cmpCode);
   }
 
   @override

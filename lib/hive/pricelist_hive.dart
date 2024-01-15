@@ -25,6 +25,8 @@ class PriceList extends HiveObject {
   @HiveField(6)
   late String securityGroup;
 
+  @HiveField(7)
+  late String cmpCode;
 
   PriceList(
     this.plCode,
@@ -34,5 +36,6 @@ class PriceList extends HiveObject {
     this.factor,
     this.incVAT,
     this.securityGroup,
+    this.cmpCode
   );
 }

@@ -21,13 +21,14 @@ class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
       fields[1] as String,
       fields[2] as double,
       fields[3] as String,
+      fields[4] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, ItemUOM obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.itemCode)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
       ..writeByte(2)
       ..write(obj.qtyperUOM)
       ..writeByte(3)
-      ..write(obj.barCode);
+      ..write(obj.barCode)
+      ..writeByte(4)
+      ..write(obj.cmpCode);
   }
 
   @override

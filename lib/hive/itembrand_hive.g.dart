@@ -20,19 +20,22 @@ class ItemBrandAdapter extends TypeAdapter<ItemBrand> {
       fields[0] as String,
       fields[1] as String,
       fields[2] as String,
+      fields[3] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, ItemBrand obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.brandCode)
       ..writeByte(1)
       ..write(obj.brandName)
       ..writeByte(2)
-      ..write(obj.brandFName);
+      ..write(obj.brandFName)
+      ..writeByte(3)
+      ..write(obj.cmpCode);
   }
 
   @override

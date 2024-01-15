@@ -20,19 +20,22 @@ class ItemCategAdapter extends TypeAdapter<ItemCateg> {
       fields[0] as String,
       fields[1] as String,
       fields[2] as String,
+      fields[3] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, ItemCateg obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.categCode)
       ..writeByte(1)
       ..write(obj.categName)
       ..writeByte(2)
-      ..write(obj.categFName);
+      ..write(obj.categFName)
+      ..writeByte(3)
+      ..write(obj.cmpCode);
   }
 
   @override

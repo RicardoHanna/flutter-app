@@ -13,10 +13,13 @@ class ItemCateg extends HiveObject {
   @HiveField(2)
   late String categFName;
 
+  @HiveField(3)
+  late String cmpCode;
 
   ItemCateg(
     this.categCode,
     this.categName,
     this.categFName,
+    this.cmpCode
   );
 }

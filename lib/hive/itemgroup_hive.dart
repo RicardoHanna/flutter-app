@@ -13,10 +13,14 @@ class ItemGroup extends HiveObject {
   @HiveField(2)
   late String groupFName;
 
+  @HiveField(3)
+  late String cmpCode;
+
 
   ItemGroup(
     this.groupCode,
     this.groupName,
     this.groupFName,
+    this.cmpCode
   );
 }

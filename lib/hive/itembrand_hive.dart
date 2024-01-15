@@ -13,10 +13,14 @@ class ItemBrand extends HiveObject {
   @HiveField(2)
   late String brandFName;
 
+  @HiveField(3)
+  late String cmpCode;
+
 
   ItemBrand(
     this.brandCode,
     this.brandName,
     this.brandFName,
+    this.cmpCode
   );
 }

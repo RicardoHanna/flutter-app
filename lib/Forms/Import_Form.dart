@@ -43,30 +43,41 @@ class _ImportFormState extends State<ImportForm> {
 
 final String serverUrl = 'http://localhost:5000';
 final int userGroupCode = 1;
-
 Future<void> importData() async {
-    TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  
+  // Create a Map to hold the data you want to send in the body
+  Map<String, dynamic> requestBody = {
+    'userGroupCode': userGroupCode,
+    'itemTable': itemTable,
+    'priceListsTable': priceListsTable,
+    'selectAllTables': selectAllTables
+  };
+
   final response = await http.post(
     Uri.parse('$serverUrl/importData'),
-    headers: {'Content-Type': 'application/json'}, // Set content-type to application/json
-    body: jsonEncode({'userGroupCode': userGroupCode}), // Encode the body as JSON
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode(requestBody),
   );
 
   if (response.statusCode == 200) {
     print('Data migration complete');
-      ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Data synchronized successfully',style: _appTextStyle,),
+        content: Text('Data synchronized successfully', style: _appTextStyle),
       ),
     );
   } else {
     print('Failed to import data. Status code: ${response.statusCode}');
     
-    SnackBar(
-        content: Text('Failed to import data. Status code:',style: _appTextStyle,),
-      );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to import data. Status code: ${response.statusCode}', style: _appTextStyle),
+      ),
+    );
   }
 }
+
 
 
 
@@ -74,6 +85,9 @@ Future<void> importData() async {
   bool _importItems = false;
   bool _importPriceLists = false;
   bool _importSystem = false;
+  String itemTable='';
+   String priceListsTable='';
+    String selectAllTables='';
 
   bool _selectAll = false;
 bool _loading = false; // Track loading state
@@ -99,6 +113,7 @@ bool _loading = false; // Track loading state
                     _importItems = _selectAll;
                     _importPriceLists = _selectAll;
                     _importSystem = _selectAll;
+                    if(_selectAll==true) selectAllTables='selectall'; else selectAllTables='';
                   });
                 },
               );
@@ -122,6 +137,8 @@ bool _loading = false; // Track loading state
         onChanged: (value) {
           setState(() {
             _importItems = value ?? false;
+            if(_importItems==true) itemTable='Items'; else itemTable='';
+            print(itemTable);
           });
         },
       ),
@@ -131,6 +148,8 @@ bool _loading = false; // Track loading state
         onChanged: (value) {
           setState(() {
             _importPriceLists = value ?? false;
+            if(_importPriceLists==true) priceListsTable='PriceList'; else priceListsTable='';
+            print(priceListsTable);
           });
         },
       ),

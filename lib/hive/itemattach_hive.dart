@@ -16,10 +16,15 @@ class ItemAttach extends HiveObject {
   @HiveField(3)
   late String note;
 
+  @HiveField(4)
+  late String cmpCode;
+
+
   ItemAttach(
     this.itemCode,
     this.attachmentType,
     this.attachmentPath,
     this.note,
+    this.cmpCode
   );
 }
