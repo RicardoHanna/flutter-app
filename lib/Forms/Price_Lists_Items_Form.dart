@@ -132,10 +132,10 @@ dynamic getField(ItemsPrices item, String fieldName) {
   var itempricesBox = await Hive.openBox<ItemsPrices>('itemprices');
 
   // Insert sample data
-  var itemPrices1 = ItemsPrices('PL001', '003', 'Piece', 100.0, 'USD', true, 10.0, 200.0);
-  var itemPrices2 = ItemsPrices('PL002', '002', 'Piece', 130.0, 'EUR', false, 12.0, 270.0);
-  var itemPrices3 = ItemsPrices('PL001', '001', 'lop', 149.0, 'USD', true, 14.0, 290.0);
-  var itemPrices4 = ItemsPrices('PL002', '002', 'lop', 140.0, 'USD', true, 14.0, 240.0);
+  var itemPrices1 = ItemsPrices('PL001', '003', 'Piece', 100.0, 'USD', true, 10.0, 200.0,'');
+  var itemPrices2 = ItemsPrices('PL002', '002', 'Piece', 130.0, 'EUR', false, 12.0, 270.0,'');
+  var itemPrices3 = ItemsPrices('PL001', '001', 'lop', 149.0, 'USD', true, 14.0, 290.0,'');
+  var itemPrices4 = ItemsPrices('PL002', '002', 'lop', 140.0, 'USD', true, 14.0, 240.0,'');
  
  // await itempricesBox.add( itemPrices1);
 //await itempricesBox.add(itemPrices3);

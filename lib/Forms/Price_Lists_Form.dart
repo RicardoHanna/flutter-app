@@ -104,9 +104,9 @@ dynamic getField(PriceList item, String fieldName) {
   var priceListsBox = await Hive.openBox<PriceList>('pricelists');
 
   // Insert sample data
-  var priceList1 = PriceList('PL001', 'Price List 1', 'USD', 100.0, 1.0, true, 'Group1');
-  var priceList2 = PriceList('PL002', 'Price List 2', 'EUR', 150.0, 1.2, false, 'Group2');
-  var priceList3 = PriceList('PL001', 'Price List 1', 'EUR', 150.0, 1.2, false, 'Group2');
+  var priceList1 = PriceList('PL001', 'Price List 1', 'USD', 100.0, 1.0, true, 'Group1','');
+  var priceList2 = PriceList('PL002', 'Price List 2', 'EUR', 150.0, 1.2, false, 'Group2','');
+  var priceList3 = PriceList('PL001', 'Price List 1', 'EUR', 150.0, 1.2, false, 'Group2','');
   await priceListsBox.put(priceList1.plCode, priceList1);
   await priceListsBox.put(priceList2.plCode, priceList2);
 

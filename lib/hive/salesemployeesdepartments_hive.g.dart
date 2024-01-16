@@ -9,7 +9,7 @@ part of 'salesemployeesdepartments_hive.dart';
 class SalesEmployeesDepartementsAdapter
     extends TypeAdapter<SalesEmployeesDepartements> {
   @override
-  final int typeId = 28;
+  final int typeId = 29;
 
   @override
   SalesEmployeesDepartements read(BinaryReader reader) {

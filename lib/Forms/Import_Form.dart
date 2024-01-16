@@ -51,7 +51,9 @@ Future<void> importData() async {
     'userGroupCode': userGroupCode,
     'itemTable': itemTable,
     'priceListsTable': priceListsTable,
-    'selectAllTables': selectAllTables
+    'selectAllTables': selectAllTables,
+    'customersTable': customersTables,
+    'systemTables': systemTables,
   };
 
   final response = await http.post(
@@ -85,9 +87,12 @@ Future<void> importData() async {
   bool _importItems = false;
   bool _importPriceLists = false;
   bool _importSystem = false;
+  bool _importCustomers= false;
   String itemTable='';
-   String priceListsTable='';
-    String selectAllTables='';
+  String priceListsTable='';
+  String selectAllTables='';
+  String customersTables='';
+  String systemTables='';
 
   bool _selectAll = false;
 bool _loading = false; // Track loading state
@@ -113,6 +118,7 @@ bool _loading = false; // Track loading state
                     _importItems = _selectAll;
                     _importPriceLists = _selectAll;
                     _importSystem = _selectAll;
+                    _importCustomers=_selectAll;
                     if(_selectAll==true) selectAllTables='selectall'; else selectAllTables='';
                   });
                 },
@@ -132,6 +138,17 @@ bool _loading = false; // Track loading state
   if (widget.title == 'Import from ERP To Mobile') {
     return [
       SwitchListTile(
+        title: Text('System', style: _appTextStyle),
+        value: _importSystem,
+        onChanged: (value) {
+          setState(() {
+            _importSystem = value ?? false;
+            if(_importSystem==true) systemTables='System'; else systemTables='';
+            print(systemTables);
+          });
+        },
+      ),
+      SwitchListTile(
         title: Text('Items', style: _appTextStyle),
         value: _importItems,
         onChanged: (value) {
@@ -150,6 +167,18 @@ bool _loading = false; // Track loading state
             _importPriceLists = value ?? false;
             if(_importPriceLists==true) priceListsTable='PriceList'; else priceListsTable='';
             print(priceListsTable);
+          });
+        },
+      ),
+
+       SwitchListTile(
+        title: Text('Customers', style: _appTextStyle),
+        value: _importCustomers,
+        onChanged: (value) {
+          setState(() {
+            _importCustomers = value ?? false;
+            if(_importCustomers==true) customersTables='Customers'; else customersTables='';
+            print(customersTables);
           });
         },
       ),
@@ -174,6 +203,15 @@ child: Text('Import', style: _appTextStyle),
     ];
   } else if (widget.title == 'Import from Backend to Mobile') {
     return [
+         SwitchListTile(
+        title: Text('System', style: _appTextStyle),
+        value: _importSystem,
+        onChanged: (value) {
+          setState(() {
+            _importSystem = value ?? false;
+          });
+        },
+      ),
       SwitchListTile(
         title: Text('Items', style: _appTextStyle),
         value: _importItems,
@@ -192,12 +230,13 @@ child: Text('Import', style: _appTextStyle),
           });
         },
       ),
-      SwitchListTile(
-        title: Text('System', style: _appTextStyle),
-        value: _importSystem,
+   
+         SwitchListTile(
+        title: Text('Customers', style: _appTextStyle),
+        value: _importCustomers,
         onChanged: (value) {
           setState(() {
-            _importSystem = value ?? false;
+            _importCustomers = value ?? false;
           });
         },
       ),
@@ -242,6 +281,10 @@ child: Text('Import', style: _appTextStyle),
       await _synchronizeSystem();
     }
 
+    if(_importCustomers){
+      await _synchronizeCustomers();
+    }
+
     }
     
   }
@@ -279,11 +322,35 @@ child: Text('Import', style: _appTextStyle),
       TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
      DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
     await synchronizer.synchronizeDataUser();
-     await synchronizer.synchronizeDataUserGroup();
-      await synchronizer.synchronizeDataUserGroupTranslations();
-      await synchronizer.synchronizeDataAuthorization();
-        await synchronizer.synchronizeDataMenu();
-        await synchronizer.synchronizeDataGeneralSettings();
+    await synchronizer.synchronizeDataUserGroup();
+    await synchronizer.synchronizeDataUserGroupTranslations();
+    await synchronizer.synchronizeDataAuthorization();
+    await synchronizer.synchronizeDataMenu();
+    await synchronizer.synchronizeDataGeneralSettings();
+    await synchronizer.synchronizeCompanies();
+    await synchronizer.synchronizeDepartements();
+    await synchronizer.synchronizeExchangeRates();
+    await synchronizer.synchronizeCurrencies();
+     await synchronizer.synchronizeVATGroups();
+      await synchronizer.synchronizeCustGroups();
+
+    await synchronizer.synchronizeCustProperties();
+    await synchronizer.synchronizeRegions();
+    await synchronizer.synchronizeWarehouses();
+    await synchronizer.synchronizePaymentTerms();
+     await synchronizer.synchronizeSalesEmployees();
+      await synchronizer.synchronizeSalesEmployeesCustomers();
+
+          await synchronizer.synchronizeSalesEmployeesDepartements();
+    await synchronizer.synchronizeSalesEmployeesItemsBrands();
+    await synchronizer.synchronizeSalesEmployeesItemsCategories();
+    await synchronizer.synchronizeSalesEmployeesItemsGroups();
+     await synchronizer.synchronizeSalesEmployeesItems();
+
+      await synchronizer.synchronizeUserSalesEmployees();
+      
+
+        
         ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('System synchronized successfully',style: _appTextStyle,),
@@ -292,7 +359,37 @@ child: Text('Import', style: _appTextStyle),
     print('System synchronized successfully');
   }
 
+ Future<void> _synchronizeCustomers() async {
+      TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+     DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
+    await synchronizer.synchronizeCustomers();
+    await synchronizer.synchronizeCustomerAddresses();
+    await synchronizer.synchronizeCustomerContacts();
+    await synchronizer.synchronizeCustomerProperties();
+    await synchronizer.synchronizeCustomerAttachments();
+    await synchronizer.synchronizeCustomerItemsSpecialPrice();
+    await synchronizer.synchronizeCustomerBrandsSpecialPrice();
+    await synchronizer.synchronizeCustomerGroupsSpecialPrice();
+    await synchronizer.synchronizeCustomerCategSpecialPrice();
+    await synchronizer.synchronizeCustomerGroupItemsSpecialPrice();
+    await synchronizer.synchronizeCustomerGroupBrandSpecialPrice();
+    await synchronizer.synchronizeCustomerGroupGroupSpecialPrice();
 
+    await synchronizer.synchronizeCustomerGroupCategSpecialPrice();
+    await synchronizer.synchronizeCustomerPropItemsSpecialPrice();
+    await synchronizer.synchronizeCustomerPropBrandSpecialPrice();
+    await synchronizer.synchronizeCustomerPropGroupSpecialPrice();
+     await synchronizer.synchronizeCustomerPropCategSpecialPrice();
+
+
+      
+        ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Customers synchronized successfully',style: _appTextStyle,),
+      ),
+    );
+    print('Customers synchronized successfully');
+  }
 
 Future<void> _synchronizeDatatoHive() async {
     TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
@@ -321,6 +418,29 @@ Future<void> _synchronizeDatatoHive() async {
     await synchronizer.synchronizeDataUserGroup();
     await synchronizer.synchronizeDataUserGroupTranslations();
 
+      await synchronizer.synchronizeDataGeneralSettings();
+    await synchronizer.synchronizeDepartements();
+    await synchronizer.synchronizeExchangeRates();
+    await synchronizer.synchronizeCurrencies();
+     await synchronizer.synchronizeVATGroups();
+      await synchronizer.synchronizeCustGroups();
+
+    await synchronizer.synchronizeCustProperties();
+    await synchronizer.synchronizeRegions();
+    await synchronizer.synchronizeWarehouses();
+    await synchronizer.synchronizePaymentTerms();
+     await synchronizer.synchronizeSalesEmployees();
+      await synchronizer.synchronizeSalesEmployeesCustomers();
+
+          await synchronizer.synchronizeSalesEmployeesDepartements();
+    await synchronizer.synchronizeSalesEmployeesItemsBrands();
+    await synchronizer.synchronizeSalesEmployeesItemsCategories();
+    await synchronizer.synchronizeSalesEmployeesItemsGroups();
+     await synchronizer.synchronizeSalesEmployeesItems();
+
+      await synchronizer.synchronizeUserSalesEmployees();
+
+await _synchronizeCustomers();
     // Simulate a delay for demonstration purposes (remove in production)
     await Future.delayed(Duration(seconds: 3));
 

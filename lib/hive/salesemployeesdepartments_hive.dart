@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'salesemployeesdepartments_hive.g.dart';
 
-@HiveType(typeId: 28)
+@HiveType(typeId: 29)
 class SalesEmployeesDepartements extends HiveObject {
   @HiveField(0)
   late String cmpCode;

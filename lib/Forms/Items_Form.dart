@@ -145,6 +145,7 @@ Future<void> insertSampleData() async {
       1.5, // Sample Weight
       'Sample Charect1 1',
       'Sample Charact2 1',
+      ''
     ),
   );
 
@@ -170,6 +171,7 @@ Future<void> insertSampleData() async {
       2.0, // Sample Weight
       'Sample Charect1 2',
       'Sample Charact2 2',
+      ''
     ),
   );
 
