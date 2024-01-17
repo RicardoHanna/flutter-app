@@ -20,14 +20,15 @@ class CustomerAttachmentsAdapter extends TypeAdapter<CustomerAttachments> {
       cmpCode: fields[0] as String,
       custCode: fields[1] as String,
       attach: fields[2] as String,
-      notes: fields[3] as String,
+      attachType: fields[3] as String,
+      notes: fields[4] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, CustomerAttachments obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.cmpCode)
       ..writeByte(1)
@@ -35,6 +36,8 @@ class CustomerAttachmentsAdapter extends TypeAdapter<CustomerAttachments> {
       ..writeByte(2)
       ..write(obj.attach)
       ..writeByte(3)
+      ..write(obj.attachType)
+      ..writeByte(4)
       ..write(obj.notes);
   }
 

@@ -39,10 +39,10 @@ class CustomersAdapter extends TypeAdapter<Customers> {
       vatCode: fields[19] as String,
       prListCode: fields[20] as String,
       payTermsCode: fields[21] as String,
-      discount: fields[22] as double,
-      creditLimit: fields[23] as double,
-      balance: fields[24] as double,
-      balanceDue: fields[25] as double,
+      discount: fields[22] as int,
+      creditLimit: fields[23] as int,
+      balance: fields[24] as int,
+      balanceDue: fields[25] as int,
       notes: fields[26] as String,
     );
   }

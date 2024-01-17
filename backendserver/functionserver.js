@@ -230,328 +230,332 @@ const rowsCustomerPropGroupSpecialPrice = resultCustomerPropGroupSpecialPrice.re
 const rowsCustomerPropCategSpecialPrice = resultCustomerPropCategSpecialPrice.recordset;
 
     // Upload each row to the respective Firestore collection with automatically generated document ID
-
+    let docRefItems, docRefItemPrices, docRefItemBrand, docRefItemCateg, docRefItemAttach, docRefItemGroup, docRefItemUOM, docRefPriceLists;
+    let docRefCustomers, docRefCustomerAddresses, docRefCustomerContacts, docRefCustomerProperties, docRefCustomerAttachments, docRefCustomerItemsSpecialPrice, docRefCustomerBrandSpecialPrice, docRefCustomerGroupSpecialPrice, docRefCustomerCategSpecialPrice, docRefCustomerGroupItemsSpecialPrice, docRefCustomerGroupBrandSpecialPrice, docRefCustomerGroupGroupSpecialPrice, docRefCustomerGroupCategSpecialPrice, docRefCustomerPropItemsSpecialPrice, docRefCustomerPropBrandSpecialPrice, docRefCustomerPropGroupSpecialPrice, docRefCustomerPropCategSpecialPrice;
+    let  docRefCompanies ,docRefDepartments,docRefExchangeRate, docRefCurrencies, docRefVATGroups, docRefCustGroups,docRefCustProperties, docRefRegions , docRefWarehouses, docRefPaymentTerms ,docRefSalesEmployees ,  docRefSalesEmployeesCustomers , docRefSalesEmployeesDepartments , docRefSalesEmployeesItemsBrands , docRefSalesEmployeesItemsCategories , docRefSalesEmployeesItemsGroups , docRefSalesEmployeesItems , docRefUsersSalesEmployees;
+    // ... rest of your code
+    
       try {
         if (selectAllTables === 'selectall') {
           if (rowsItems && rowsItems.length) {
           for (let i = 0; i < rowsItems.length; i++) {
-          const docRefItems = await admin.firestore().collection('Items').add(rowsItems[i]);
+           docRefItems = await admin.firestore().collection('Items').add(rowsItems[i]);
           }
           }
           if (rowsItemPrices && rowsItemPrices.length) {
           for (let i = 0; i < rowsItemPrices.length; i++) {
            
-          const docRefItemPrices = await admin.firestore().collection('ItemsPrices').add(rowsItemPrices[i]);
+           docRefItemPrices = await admin.firestore().collection('ItemsPrices').add(rowsItemPrices[i]);
             }
           }
           if (rowsItemBrand && rowsItemBrand.length) {
           for (let i = 0; i < rowsItemBrand.length; i++) {
           
-          const docRefItemBrand = await admin.firestore().collection('ItemBrand').add(rowsItemBrand[i]);
+           docRefItemBrand = await admin.firestore().collection('ItemBrand').add(rowsItemBrand[i]);
             }
           }
           if (rowsItemCateg && rowsItemCateg.length) {
           for (let i = 0; i < rowsItemCateg.length; i++) {
          
-          const docRefItemCateg = await admin.firestore().collection('ItemCateg').add(rowsItemCateg[i]);
+           docRefItemCateg = await admin.firestore().collection('ItemCateg').add(rowsItemCateg[i]);
           }
         }
         if (rowsItemAttach && rowsItemAttach.length) {
         for (let i = 0; i < rowsItemAttach.length; i++) {
     
-          const docRefItemAttach = await admin.firestore().collection('ItemAttach').add(rowsItemAttach[i]);
+           docRefItemAttach = await admin.firestore().collection('ItemAttach').add(rowsItemAttach[i]);
           }
           }
           if (rowsItemGroup && rowsItemGroup.length) {
           for (let i = 0; i < rowsItemGroup.length; i++) {
             
-          const docRefItemGroup = await admin.firestore().collection('ItemGroup').add(rowsItemGroup[i]);
+           docRefItemGroup = await admin.firestore().collection('ItemGroup').add(rowsItemGroup[i]);
             }
           }
           if (rowsItemUOM && rowsItemUOM.length) {
           for (let i = 0; i < rowsItemUOM.length; i++) {
          
-          const docRefItemUOM = await admin.firestore().collection('ItemUOM').add(rowsItemUOM[i]);
+           docRefItemUOM = await admin.firestore().collection('ItemUOM').add(rowsItemUOM[i]);
             }
           }
           if (rowsPriceList && rowsPriceList.length) {
           for (let i = 0; i < rowsPriceList.length; i++) {
     
-          const docRefPriceLists = await admin.firestore().collection('PriceLists').add(rowsPriceList[i]);
+           docRefPriceLists = await admin.firestore().collection('PriceLists').add(rowsPriceList[i]);
             }
           }
           //------
           if (rowsCustomers && rowsCustomers.length) {
           for (let i = 0; i < rowsCustomers.length; i++) {
           
-          const docRefCustomers = await admin.firestore().collection('Customers').add(rowsCustomers[i]);
+           docRefCustomers = await admin.firestore().collection('Customers').add(rowsCustomers[i]);
             }
           }
           if (rowsCustomerAddresses && rowsCustomerAddresses.length) {
           for (let i = 0; i < rowsCustomerAddresses.length; i++) {
        
-          const docRefCustomerAddresses = await admin.firestore().collection('CustomerAddresses').add(rowsCustomerAddresses[i]);
+           docRefCustomerAddresses = await admin.firestore().collection('CustomerAddresses').add(rowsCustomerAddresses[i]);
             }
           }
           if (rowsCustomerContacts && rowsCustomerContacts.length) {
           for (let i = 0; i < rowsCustomerContacts.length; i++) {
         
-          const docRefCustomerContacts = await admin.firestore().collection('CustomerContacts').add(rowsCustomerContacts[i]);
+           docRefCustomerContacts = await admin.firestore().collection('CustomerContacts').add(rowsCustomerContacts[i]);
             }
           }
           if (rowsCustomerProperties && rowsCustomerProperties.length) {
           for (let i = 0; i < rowsCustomerProperties.length; i++) {
           
-          const docRefCustomerProperties = await admin.firestore().collection('CustomerProperties').add(rowsCustomerProperties[i]);
+           docRefCustomerProperties = await admin.firestore().collection('CustomerProperties').add(rowsCustomerProperties[i]);
             }
           }
           if (rowsCustomerAttachments && rowsCustomerAttachments.length) {
           for (let i = 0; i < rowsCustomerAttachments.length; i++) {
         
-          const docRefCustomerAttachments = await admin.firestore().collection('CustomerAttachments').add(rowsCustomerAttachments[i]);
+           docRefCustomerAttachments = await admin.firestore().collection('CustomerAttachments').add(rowsCustomerAttachments[i]);
             }
           }
           if (rowsCustomerItemsSpecialPrice && rowsCustomerItemsSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerItemsSpecialPrice.length; i++) {
            
-          const docRefCustomerItemsSpecialPrice = await admin.firestore().collection('CustomerItemsSpecialPrice').add(rowsCustomerItemsSpecialPrice[i]);
+           docRefCustomerItemsSpecialPrice = await admin.firestore().collection('CustomerItemsSpecialPrice').add(rowsCustomerItemsSpecialPrice[i]);
             }
           }
           if (rowsCustomerBrandSpecialPrice && rowsCustomerBrandSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerBrandSpecialPrice.length; i++) {
           
-          const docRefCustomerBrandSpecialPrice = await admin.firestore().collection('CustomerBrandSpecialPrice').add(rowsCustomerBrandSpecialPrice[i]);
+           docRefCustomerBrandSpecialPrice = await admin.firestore().collection('CustomerBrandSpecialPrice').add(rowsCustomerBrandSpecialPrice[i]);
             }
           }
           if (rowsCustomerGroupSpecialPrice && rowsCustomerGroupSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerGroupSpecialPrice.length; i++) {
     
-          const docRefCustomerGroupSpecialPrice = await admin.firestore().collection('CustomerGroupSpecialPrice').add(rowsCustomerGroupSpecialPrice[i]);
+           docRefCustomerGroupSpecialPrice = await admin.firestore().collection('CustomerGroupSpecialPrice').add(rowsCustomerGroupSpecialPrice[i]);
             }
           }
           if (rowsCustomerCategSpecialPrice && rowsCustomerCategSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerCategSpecialPrice.length; i++) {
        
-          const docRefCustomerCategSpecialPrice = await admin.firestore().collection('CustomerCategSpecialPrice').add(rowsCustomerCategSpecialPrice[i]);
+           docRefCustomerCategSpecialPrice = await admin.firestore().collection('CustomerCategSpecialPrice').add(rowsCustomerCategSpecialPrice[i]);
             }
           }
           if (rowsCustomerGroupItemsSpecialPrice && rowsCustomerGroupItemsSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerGroupItemsSpecialPrice.length; i++) {
        
-          const docRefCustomerGroupItemsSpecialPrice = await admin.firestore().collection('CustomerGroupItemsSpecialPrice').add(rowsCustomerGroupItemsSpecialPrice[i]);
+           docRefCustomerGroupItemsSpecialPrice = await admin.firestore().collection('CustomerGroupItemsSpecialPrice').add(rowsCustomerGroupItemsSpecialPrice[i]);
             }
           }
           if (rowsCustomerGroupBrandSpecialPrice && rowsCustomerGroupBrandSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerGroupBrandSpecialPrice.length; i++) {
 
-          const docRefCustomerGroupBrandSpecialPrice = await admin.firestore().collection('CustomerGroupBrandSpecialPrice').add(rowsCustomerGroupBrandSpecialPrice[i]);
+           docRefCustomerGroupBrandSpecialPrice = await admin.firestore().collection('CustomerGroupBrandSpecialPrice').add(rowsCustomerGroupBrandSpecialPrice[i]);
             }
           }
           if (rowsCustomerGroupGroupSpecialPrice && rowsCustomerGroupGroupSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerGroupGroupSpecialPrice.length; i++) {
         
-          const docRefCustomerGroupGroupSpecialPrice = await admin.firestore().collection('CustomerGroupGroupSpecialPrice').add(rowsCustomerGroupGroupSpecialPrice[i]);
+           docRefCustomerGroupGroupSpecialPrice = await admin.firestore().collection('CustomerGroupGroupSpecialPrice').add(rowsCustomerGroupGroupSpecialPrice[i]);
             }
           }
           if (rowsCustomerGroupCategSpecialPrice && rowsCustomerGroupCategSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerGroupCategSpecialPrice.length; i++) {
     
-          const docRefCustomerGroupCategSpecialPrice = await admin.firestore().collection('CustomerGroupCategSpecialPrice').add(rowsCustomerGroupCategSpecialPrice[i]);
+           docRefCustomerGroupCategSpecialPrice = await admin.firestore().collection('CustomerGroupCategSpecialPrice').add(rowsCustomerGroupCategSpecialPrice[i]);
             }
           }
           if (rowsCustomerPropItemsSpecialPrice && rowsCustomerPropItemsSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerPropItemsSpecialPrice.length; i++) {
         
-          const docRefCustomerPropItemsSpecialPrice = await admin.firestore().collection('CustomerPropItemsSpecialPrice').add(rowsCustomerPropItemsSpecialPrice[i]);
+           docRefCustomerPropItemsSpecialPrice = await admin.firestore().collection('CustomerPropItemsSpecialPrice').add(rowsCustomerPropItemsSpecialPrice[i]);
             }
           }
           if (rowsCustomerPropBrandSpecialPrice && rowsCustomerPropBrandSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerPropBrandSpecialPrice.length; i++) {
         
-          const docRefCustomerPropBrandSpecialPrice = await admin.firestore().collection('CustomerPropBrandSpecialPrice').add(rowsCustomerPropBrandSpecialPrice[i]);
+           docRefCustomerPropBrandSpecialPrice = await admin.firestore().collection('CustomerPropBrandSpecialPrice').add(rowsCustomerPropBrandSpecialPrice[i]);
             }
           }
           if (rowsCustomerPropGroupSpecialPrice && rowsCustomerPropGroupSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerPropGroupSpecialPrice.length; i++) {
  
-          const docRefCustomerPropGroupSpecialPrice = await admin.firestore().collection('CustomerPropGroupSpecialPrice').add(rowsCustomerPropGroupSpecialPrice[i]);
+           docRefCustomerPropGroupSpecialPrice = await admin.firestore().collection('CustomerPropGroupSpecialPrice').add(rowsCustomerPropGroupSpecialPrice[i]);
             }
           }
           if (rowsCustomerPropCategSpecialPrice && rowsCustomerPropCategSpecialPrice.length) {
           for (let i = 0; i < rowsCustomerPropCategSpecialPrice.length; i++) {
     
-          const docRefCustomerPropCategSpecialPrice = await admin.firestore().collection('CustomerPropCategSpecialPrice').add(rowsCustomerPropCategSpecialPrice[i]);
+           docRefCustomerPropCategSpecialPrice = await admin.firestore().collection('CustomerPropCategSpecialPrice').add(rowsCustomerPropCategSpecialPrice[i]);
             }
           }
         
-          console.log(`Document added to Customers collection with IDs: ${docRefCustomers.id}, ${docRefCustomerAddresses.id}, ${docRefCustomerContacts.id}, ${docRefCustomerProperties.id}, ${docRefCustomerAttachments.id}, ${docRefCustomerItemsSpecialPrice.id}, ${docRefCustomerBrandSpecialPrice.id}, ${docRefCustomerGroupSpecialPrice.id}, ${docRefCustomerCategSpecialPrice.id}, ${docRefCustomerGroupItemsSpecialPrice.id}, ${docRefCustomerGroupBrandSpecialPrice.id}, ${docRefCustomerGroupGroupSpecialPrice.id}, ${docRefCustomerGroupCategSpecialPrice.id}, ${docRefCustomerPropItemsSpecialPrice.id}, ${docRefCustomerPropBrandSpecialPrice.id}, ${docRefCustomerPropGroupSpecialPrice.id}, ${docRefCustomerPropCategSpecialPrice.id}`);
+          console.log(`Document added to Customers collection with IDs: ${docRefCustomers?.id}, ${docRefCustomerAddresses?.id}, ${docRefCustomerContacts?.id}, ${docRefCustomerProperties?.id}, ${docRefCustomerAttachments?.id}, ${docRefCustomerItemsSpecialPrice?.id}, ${docRefCustomerBrandSpecialPrice?.id}, ${docRefCustomerGroupSpecialPrice?.id}, ${docRefCustomerCategSpecialPrice?.id}, ${docRefCustomerGroupItemsSpecialPrice?.id}, ${docRefCustomerGroupBrandSpecialPrice?.id}, ${docRefCustomerGroupGroupSpecialPrice?.id}, ${docRefCustomerGroupCategSpecialPrice?.id}, ${docRefCustomerPropItemsSpecialPrice?.id}, ${docRefCustomerPropBrandSpecialPrice?.id}, ${docRefCustomerPropGroupSpecialPrice?.id}, ${docRefCustomerPropCategSpecialPrice?.id}`);
           //-----
           if (rowsCompanies && rowsCompanies.length) {
           for (let i = 0; i < rowsCompanies.length; i++) {
 
-          const docRefCompanies = await admin.firestore().collection('Companies').add(rowsCompanies[i]);
+           docRefCompanies = await admin.firestore().collection('Companies').add(rowsCompanies[i]);
             }
           }
           if (rowsDepartments && rowsDepartments.length) {
           for (let i = 0; i < rowsDepartments.length; i++) {
      
-          const docRefDepartments = await admin.firestore().collection('Departments').add(rowsDepartments[i]);
+           docRefDepartments = await admin.firestore().collection('Departments').add(rowsDepartments[i]);
             }
           }
           if (rowsExchangeRate && rowsExchangeRate.length) {
           for (let i = 0; i < rowsExchangeRate.length; i++) {
       
-          const docRefExchangeRate = await admin.firestore().collection('ExchangeRate').add(rowsExchangeRate[i]);
+           docRefExchangeRate = await admin.firestore().collection('ExchangeRate').add(rowsExchangeRate[i]);
             }
           }
           if (rowsCurrencies && rowsCurrencies.length) {
           for (let i = 0; i < rowsCurrencies.length; i++) {
 
-          const docRefCurrencies = await admin.firestore().collection('Currencies').add(rowsCurrencies[i]);
+           docRefCurrencies = await admin.firestore().collection('Currencies').add(rowsCurrencies[i]);
             }
           }
           if (rowsVATGroups && rowsVATGroups.length) {
           for (let i = 0; i < rowsVATGroups.length; i++) {
          
-          const docRefVATGroups = await admin.firestore().collection('VATGroups').add(rowsVATGroups[i]);
+           docRefVATGroups = await admin.firestore().collection('VATGroups').add(rowsVATGroups[i]);
             }
           }
           if (rowsCustGroups && rowsCustGroups.length) {
           for (let i = 0; i < rowsCustGroups.length; i++) {
            
-          const docRefCustGroups = await admin.firestore().collection('CustGroups').add(rowsCustGroups[i]);
+           docRefCustGroups = await admin.firestore().collection('CustGroups').add(rowsCustGroups[i]);
             }
           }
           if (rowsCustProperties && rowsCustProperties.length) {
           for (let i = 0; i < rowsCustProperties.length; i++) {
      
-          const docRefCustProperties = await admin.firestore().collection('CustProperties').add(rowsCustProperties[i]);
+           docRefCustProperties = await admin.firestore().collection('CustProperties').add(rowsCustProperties[i]);
             }
           }
           if (rowsRegions && rowsRegions.length) {
           for (let i = 0; i < rowsRegions.length; i++) {
           
-          const docRefRegions = await admin.firestore().collection('Regions').add(rowsRegions[i]);
+           docRefRegions = await admin.firestore().collection('Regions').add(rowsRegions[i]);
             }
           }
           if (rowsWarehouses && rowsWarehouses.length) {
           for (let i = 0; i < rowsWarehouses.length; i++) {
       
-          const docRefWarehouses = await admin.firestore().collection('Warehouses').add(rowsWarehouses[i]);
+           docRefWarehouses = await admin.firestore().collection('Warehouses').add(rowsWarehouses[i]);
             }
           }
           if (rowsPaymentTerms && rowsPaymentTerms.length) {
           for (let i = 0; i < rowsPaymentTerms.length; i++) {
          
-          const docRefPaymentTerms = await admin.firestore().collection('PaymentTerms').add(rowsPaymentTerms[i]);
+           docRefPaymentTerms = await admin.firestore().collection('PaymentTerms').add(rowsPaymentTerms[i]);
             }
           }
           if (rowsSalesEmployees && rowsSalesEmployees.length) {
           for (let i = 0; i < rowsSalesEmployees.length; i++) {
          
-          const docRefSalesEmployees = await admin.firestore().collection('SalesEmployees').add(rowsSalesEmployees[i]);
+           docRefSalesEmployees = await admin.firestore().collection('SalesEmployees').add(rowsSalesEmployees[i]);
             }
           }
           if (rowsSalesEmployeesCustomers && rowsSalesEmployeesCustomers.length) {
           for (let i = 0; i < rowsSalesEmployeesCustomers.length; i++) {
     
-          const docRefSalesEmployeesCustomers = await admin.firestore().collection('SalesEmployeesCustomers').add(rowsSalesEmployeesCustomers[i]);
+           docRefSalesEmployeesCustomers = await admin.firestore().collection('SalesEmployeesCustomers').add(rowsSalesEmployeesCustomers[i]);
             }
           }
           if (rowsSalesEmployeesDepartments && rowsSalesEmployeesDepartments.length) {
           for (let i = 0; i < rowsSalesEmployeesDepartments.length; i++) {
         
-          const docRefSalesEmployeesDepartments = await admin.firestore().collection('SalesEmployeesDepartments').add(rowsSalesEmployeesDepartments[i]);
+           docRefSalesEmployeesDepartments = await admin.firestore().collection('SalesEmployeesDepartments').add(rowsSalesEmployeesDepartments[i]);
             }
           }
           if (rowsSalesEmployeesItemsBrands && rowsSalesEmployeesItemsBrands.length) {
           for (let i = 0; i < rowsSalesEmployeesItemsBrands.length; i++) {
             
-          const docRefSalesEmployeesItemsBrands = await admin.firestore().collection('SalesEmployeesItemsBrands').add(rowsSalesEmployeesItemsBrands[i]);
+           docRefSalesEmployeesItemsBrands = await admin.firestore().collection('SalesEmployeesItemsBrands').add(rowsSalesEmployeesItemsBrands[i]);
             }
           }
           if (rowsSalesEmployeesItemsCategories && rowsSalesEmployeesItemsCategories.length) {
           for (let i = 0; i < rowsSalesEmployeesItemsCategories.length; i++) {
           
-          const docRefSalesEmployeesItemsCategories = await admin.firestore().collection('SalesEmployeesItemsCategories').add(rowsSalesEmployeesItemsCategories[i]);
+           docRefSalesEmployeesItemsCategories = await admin.firestore().collection('SalesEmployeesItemsCategories').add(rowsSalesEmployeesItemsCategories[i]);
             }
           }
           if (rowsSalesEmployeesItemsGroups && rowsSalesEmployeesItemsGroups.length) {
           for (let i = 0; i < rowsSalesEmployeesItemsGroups.length; i++) {
 
-          const docRefSalesEmployeesItemsGroups = await admin.firestore().collection('SalesEmployeesItemsGroups').add(rowsSalesEmployeesItemsGroups[i]);
+           docRefSalesEmployeesItemsGroups = await admin.firestore().collection('SalesEmployeesItemsGroups').add(rowsSalesEmployeesItemsGroups[i]);
             }
           }
           if (rowsSalesEmployeesItems && rowsSalesEmployeesItems.length) {
           for (let i = 0; i < rowsSalesEmployeesItems.length; i++) {
       
-          const docRefSalesEmployeesItems = await admin.firestore().collection('SalesEmployeesItems').add(rowsSalesEmployeesItems[i]);
+           docRefSalesEmployeesItems = await admin.firestore().collection('SalesEmployeesItems').add(rowsSalesEmployeesItems[i]);
             }
           }
           if (rowsUsersSalesEmployees && rowsUsersSalesEmployees.length) {
           for (let i = 0; i < rowsUsersSalesEmployees.length; i++) {
           
-          const docRefUsersSalesEmployees = await admin.firestore().collection('UsersSalesEmployees').add(rowsUsersSalesEmployees[i]);
+           docRefUsersSalesEmployees = await admin.firestore().collection('UsersSalesEmployees').add(rowsUsersSalesEmployees[i]);
             }
           }
         
-          console.log(`Document added to System collection with IDs: ${docRefCompanies.id}, ${docRefDepartments.id}, ${docRefExchangeRate.id}, ${docRefCurrencies.id}, ${docRefVATGroups.id}, ${docRefCustGroups.id}, ${docRefCustProperties.id}, ${docRefRegions.id}, ${docRefWarehouses.id}, ${docRefPaymentTerms.id}, ${docRefSalesEmployees.id}, ${docRefSalesEmployeesCustomers.id}, ${docRefSalesEmployeesDepartments.id}, ${docRefSalesEmployeesItemsBrands.id}, ${docRefSalesEmployeesItemsCategories.id}, ${docRefSalesEmployeesItemsGroups.id}, ${docRefSalesEmployeesItems.id}, ${docRefUsersSalesEmployees.id}`);
+          console.log(`Document added to System collection with IDs: ${docRefCompanies?.id}, ${docRefDepartments?.id}, ${docRefExchangeRate?.id}, ${docRefCurrencies?.id}, ${docRefVATGroups?.id}, ${docRefCustGroups?.id}, ${docRefCustProperties?.id}, ${docRefRegions?.id}, ${docRefWarehouses?.id}, ${docRefPaymentTerms?.id}, ${docRefSalesEmployees?.id}, ${docRefSalesEmployeesCustomers?.id}, ${docRefSalesEmployeesDepartments?.id}, ${docRefSalesEmployeesItemsBrands?.id}, ${docRefSalesEmployeesItemsCategories?.id}, ${docRefSalesEmployeesItemsGroups?.id}, ${docRefSalesEmployeesItems?.id}, ${docRefUsersSalesEmployees?.id}`);
 
-          console.log(`Document added to Items collection with IDs: ${docRefItems.id}, ${docRefItemPrices.id}, ${docRefItemBrand.id}, ${docRefItemCateg.id}, ${docRefItemAttach.id}, ${docRefItemGroup.id}, ${docRefItemUOM.id}`);
+          console.log(`Document added to Items collection with IDs: ${docRefItems?.id}, ${docRefItemPrices?.id}, ${docRefItemBrand?.id}, ${docRefItemCateg?.id}, ${docRefItemAttach?.id}, ${docRefItemGroup?.id}, ${docRefItemUOM?.id}`);
         }
 
 
         if (itemTable === 'Items') {
           if (rowsItems && rowsItems.length) {
             for (let i = 0; i < rowsItems.length; i++) {
-            const docRefItems = await admin.firestore().collection('Items').add(rowsItems[i]);
+             docRefItems = await admin.firestore().collection('Items').add(rowsItems[i]);
             }
             }
             if (rowsItemPrices && rowsItemPrices.length) {
             for (let i = 0; i < rowsItemPrices.length; i++) {
              
-            const docRefItemPrices = await admin.firestore().collection('ItemsPrices').add(rowsItemPrices[i]);
+             docRefItemPrices = await admin.firestore().collection('ItemsPrices').add(rowsItemPrices[i]);
               }
             }
             if (rowsItemBrand && rowsItemBrand.length) {
             for (let i = 0; i < rowsItemBrand.length; i++) {
             
-            const docRefItemBrand = await admin.firestore().collection('ItemBrand').add(rowsItemBrand[i]);
+             docRefItemBrand = await admin.firestore().collection('ItemBrand').add(rowsItemBrand[i]);
               }
             }
             if (rowsItemCateg && rowsItemCateg.length) {
             for (let i = 0; i < rowsItemCateg.length; i++) {
            
-            const docRefItemCateg = await admin.firestore().collection('ItemCateg').add(rowsItemCateg[i]);
+             docRefItemCateg = await admin.firestore().collection('ItemCateg').add(rowsItemCateg[i]);
             }
           }
           if (rowsItemAttach && rowsItemAttach.length) {
           for (let i = 0; i < rowsItemAttach.length; i++) {
       
-            const docRefItemAttach = await admin.firestore().collection('ItemAttach').add(rowsItemAttach[i]);
+             docRefItemAttach = await admin.firestore().collection('ItemAttach').add(rowsItemAttach[i]);
             }
             }
             if (rowsItemGroup && rowsItemGroup.length) {
             for (let i = 0; i < rowsItemGroup.length; i++) {
               
-            const docRefItemGroup = await admin.firestore().collection('ItemGroup').add(rowsItemGroup[i]);
+             docRefItemGroup = await admin.firestore().collection('ItemGroup').add(rowsItemGroup[i]);
               }
             }
             if (rowsItemUOM && rowsItemUOM.length) {
             for (let i = 0; i < rowsItemUOM.length; i++) {
            
-            const docRefItemUOM = await admin.firestore().collection('ItemUOM').add(rowsItemUOM[i]);
+             docRefItemUOM = await admin.firestore().collection('ItemUOM').add(rowsItemUOM[i]);
               }
             }
 
-          console.log(`Document added to Items collection with IDs: ${docRefItems.id}, ${docRefItemPrices.id}, ${docRefItemBrand.id}, ${docRefItemCateg.id}, ${docRefItemAttach.id}, ${docRefItemGroup.id}, ${docRefItemUOM.id}`);
+          console.log(`Document added to Items collection with IDs: ${docRefItems?.id}, ${docRefItemPrices?.id}, ${docRefItemBrand?.id}, ${docRefItemCateg?.id}, ${docRefItemAttach?.id}, ${docRefItemGroup?.id}, ${docRefItemUOM?.id}`);
         }
 
         if (priceListsTable === 'PriceList') {
           if (rowsPriceList && rowsPriceList.length) {
             for (let i = 0; i < rowsPriceList.length; i++) {
       
-            const docRefPriceLists = await admin.firestore().collection('PriceLists').add(rowsPriceList[i]);
+             docRefPriceLists = await admin.firestore().collection('PriceLists').add(rowsPriceList[i]);
               }
             }
         }
@@ -560,222 +564,222 @@ const rowsCustomerPropCategSpecialPrice = resultCustomerPropCategSpecialPrice.re
           if (rowsCustomers && rowsCustomers.length) {
             for (let i = 0; i < rowsCustomers.length; i++) {
             
-            const docRefCustomers = await admin.firestore().collection('Customers').add(rowsCustomers[i]);
+             docRefCustomers = await admin.firestore().collection('Customers').add(rowsCustomers[i]);
               }
             }
             if (rowsCustomerAddresses && rowsCustomerAddresses.length) {
             for (let i = 0; i < rowsCustomerAddresses.length; i++) {
          
-            const docRefCustomerAddresses = await admin.firestore().collection('CustomerAddresses').add(rowsCustomerAddresses[i]);
+             docRefCustomerAddresses = await admin.firestore().collection('CustomerAddresses').add(rowsCustomerAddresses[i]);
               }
             }
             if (rowsCustomerContacts && rowsCustomerContacts.length) {
             for (let i = 0; i < rowsCustomerContacts.length; i++) {
           
-            const docRefCustomerContacts = await admin.firestore().collection('CustomerContacts').add(rowsCustomerContacts[i]);
+             docRefCustomerContacts = await admin.firestore().collection('CustomerContacts').add(rowsCustomerContacts[i]);
               }
             }
             if (rowsCustomerProperties && rowsCustomerProperties.length) {
             for (let i = 0; i < rowsCustomerProperties.length; i++) {
             
-            const docRefCustomerProperties = await admin.firestore().collection('CustomerProperties').add(rowsCustomerProperties[i]);
+             docRefCustomerProperties = await admin.firestore().collection('CustomerProperties').add(rowsCustomerProperties[i]);
               }
             }
             if (rowsCustomerAttachments && rowsCustomerAttachments.length) {
             for (let i = 0; i < rowsCustomerAttachments.length; i++) {
           
-            const docRefCustomerAttachments = await admin.firestore().collection('CustomerAttachments').add(rowsCustomerAttachments[i]);
+             docRefCustomerAttachments = await admin.firestore().collection('CustomerAttachments').add(rowsCustomerAttachments[i]);
               }
             }
             if (rowsCustomerItemsSpecialPrice && rowsCustomerItemsSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerItemsSpecialPrice.length; i++) {
              
-            const docRefCustomerItemsSpecialPrice = await admin.firestore().collection('CustomerItemsSpecialPrice').add(rowsCustomerItemsSpecialPrice[i]);
+             docRefCustomerItemsSpecialPrice = await admin.firestore().collection('CustomerItemsSpecialPrice').add(rowsCustomerItemsSpecialPrice[i]);
               }
             }
             if (rowsCustomerBrandSpecialPrice && rowsCustomerBrandSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerBrandSpecialPrice.length; i++) {
             
-            const docRefCustomerBrandSpecialPrice = await admin.firestore().collection('CustomerBrandSpecialPrice').add(rowsCustomerBrandSpecialPrice[i]);
+             docRefCustomerBrandSpecialPrice = await admin.firestore().collection('CustomerBrandSpecialPrice').add(rowsCustomerBrandSpecialPrice[i]);
               }
             }
             if (rowsCustomerGroupSpecialPrice && rowsCustomerGroupSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerGroupSpecialPrice.length; i++) {
       
-            const docRefCustomerGroupSpecialPrice = await admin.firestore().collection('CustomerGroupSpecialPrice').add(rowsCustomerGroupSpecialPrice[i]);
+             docRefCustomerGroupSpecialPrice = await admin.firestore().collection('CustomerGroupSpecialPrice').add(rowsCustomerGroupSpecialPrice[i]);
               }
             }
             if (rowsCustomerCategSpecialPrice && rowsCustomerCategSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerCategSpecialPrice.length; i++) {
          
-            const docRefCustomerCategSpecialPrice = await admin.firestore().collection('CustomerCategSpecialPrice').add(rowsCustomerCategSpecialPrice[i]);
+             docRefCustomerCategSpecialPrice = await admin.firestore().collection('CustomerCategSpecialPrice').add(rowsCustomerCategSpecialPrice[i]);
               }
             }
             if (rowsCustomerGroupItemsSpecialPrice && rowsCustomerGroupItemsSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerGroupItemsSpecialPrice.length; i++) {
          
-            const docRefCustomerGroupItemsSpecialPrice = await admin.firestore().collection('CustomerGroupItemsSpecialPrice').add(rowsCustomerGroupItemsSpecialPrice[i]);
+             docRefCustomerGroupItemsSpecialPrice = await admin.firestore().collection('CustomerGroupItemsSpecialPrice').add(rowsCustomerGroupItemsSpecialPrice[i]);
               }
             }
             if (rowsCustomerGroupBrandSpecialPrice && rowsCustomerGroupBrandSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerGroupBrandSpecialPrice.length; i++) {
   
-            const docRefCustomerGroupBrandSpecialPrice = await admin.firestore().collection('CustomerGroupBrandSpecialPrice').add(rowsCustomerGroupBrandSpecialPrice[i]);
+             docRefCustomerGroupBrandSpecialPrice = await admin.firestore().collection('CustomerGroupBrandSpecialPrice').add(rowsCustomerGroupBrandSpecialPrice[i]);
               }
             }
             if (rowsCustomerGroupGroupSpecialPrice && rowsCustomerGroupGroupSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerGroupGroupSpecialPrice.length; i++) {
           
-            const docRefCustomerGroupGroupSpecialPrice = await admin.firestore().collection('CustomerGroupGroupSpecialPrice').add(rowsCustomerGroupGroupSpecialPrice[i]);
+             docRefCustomerGroupGroupSpecialPrice = await admin.firestore().collection('CustomerGroupGroupSpecialPrice').add(rowsCustomerGroupGroupSpecialPrice[i]);
               }
             }
             if (rowsCustomerGroupCategSpecialPrice && rowsCustomerGroupCategSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerGroupCategSpecialPrice.length; i++) {
       
-            const docRefCustomerGroupCategSpecialPrice = await admin.firestore().collection('CustomerGroupCategSpecialPrice').add(rowsCustomerGroupCategSpecialPrice[i]);
+             docRefCustomerGroupCategSpecialPrice = await admin.firestore().collection('CustomerGroupCategSpecialPrice').add(rowsCustomerGroupCategSpecialPrice[i]);
               }
             }
             if (rowsCustomerPropItemsSpecialPrice && rowsCustomerPropItemsSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerPropItemsSpecialPrice.length; i++) {
           
-            const docRefCustomerPropItemsSpecialPrice = await admin.firestore().collection('CustomerPropItemsSpecialPrice').add(rowsCustomerPropItemsSpecialPrice[i]);
+             docRefCustomerPropItemsSpecialPrice = await admin.firestore().collection('CustomerPropItemsSpecialPrice').add(rowsCustomerPropItemsSpecialPrice[i]);
               }
             }
             if (rowsCustomerPropBrandSpecialPrice && rowsCustomerPropBrandSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerPropBrandSpecialPrice.length; i++) {
           
-            const docRefCustomerPropBrandSpecialPrice = await admin.firestore().collection('CustomerPropBrandSpecialPrice').add(rowsCustomerPropBrandSpecialPrice[i]);
+             docRefCustomerPropBrandSpecialPrice = await admin.firestore().collection('CustomerPropBrandSpecialPrice').add(rowsCustomerPropBrandSpecialPrice[i]);
               }
             }
             if (rowsCustomerPropGroupSpecialPrice && rowsCustomerPropGroupSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerPropGroupSpecialPrice.length; i++) {
    
-            const docRefCustomerPropGroupSpecialPrice = await admin.firestore().collection('CustomerPropGroupSpecialPrice').add(rowsCustomerPropGroupSpecialPrice[i]);
+             docRefCustomerPropGroupSpecialPrice = await admin.firestore().collection('CustomerPropGroupSpecialPrice').add(rowsCustomerPropGroupSpecialPrice[i]);
               }
             }
             if (rowsCustomerPropCategSpecialPrice && rowsCustomerPropCategSpecialPrice.length) {
             for (let i = 0; i < rowsCustomerPropCategSpecialPrice.length; i++) {
       
-            const docRefCustomerPropCategSpecialPrice = await admin.firestore().collection('CustomerPropCategSpecialPrice').add(rowsCustomerPropCategSpecialPrice[i]);
+             docRefCustomerPropCategSpecialPrice = await admin.firestore().collection('CustomerPropCategSpecialPrice').add(rowsCustomerPropCategSpecialPrice[i]);
               }
             }
           
         
-          console.log(`Document added to Customers collection with IDs: ${docRefCustomers.id}, ${docRefCustomerAddresses.id}, ${docRefCustomerContacts.id}, ${docRefCustomerProperties.id}, ${docRefCustomerAttachments.id}, ${docRefCustomerItemsSpecialPrice.id}, ${docRefCustomerBrandSpecialPrice.id}, ${docRefCustomerGroupSpecialPrice.id}, ${docRefCustomerCategSpecialPrice.id}, ${docRefCustomerGroupItemsSpecialPrice.id}, ${docRefCustomerGroupBrandSpecialPrice.id}, ${docRefCustomerGroupGroupSpecialPrice.id}, ${docRefCustomerGroupCategSpecialPrice.id}, ${docRefCustomerPropItemsSpecialPrice.id}, ${docRefCustomerPropBrandSpecialPrice.id}, ${docRefCustomerPropGroupSpecialPrice.id}, ${docRefCustomerPropCategSpecialPrice.id}`);
-        }
+            console.log(`Document added to Customers collection with IDs: ${docRefCustomers?.id}, ${docRefCustomerAddresses?.id}, ${docRefCustomerContacts?.id}, ${docRefCustomerProperties?.id}, ${docRefCustomerAttachments?.id}, ${docRefCustomerItemsSpecialPrice?.id}, ${docRefCustomerBrandSpecialPrice?.id}, ${docRefCustomerGroupSpecialPrice?.id}, ${docRefCustomerCategSpecialPrice?.id}, ${docRefCustomerGroupItemsSpecialPrice?.id}, ${docRefCustomerGroupBrandSpecialPrice?.id}, ${docRefCustomerGroupGroupSpecialPrice?.id}, ${docRefCustomerGroupCategSpecialPrice?.id}, ${docRefCustomerPropItemsSpecialPrice?.id}, ${docRefCustomerPropBrandSpecialPrice?.id}, ${docRefCustomerPropGroupSpecialPrice?.id}, ${docRefCustomerPropCategSpecialPrice?.id}`);
+          }
         
         if(systemTables === 'System'){
           if (rowsCompanies && rowsCompanies.length) {
             for (let i = 0; i < rowsCompanies.length; i++) {
   
-            const docRefCompanies = await admin.firestore().collection('Companies').add(rowsCompanies[i]);
+             docRefCompanies = await admin.firestore().collection('Companies').add(rowsCompanies[i]);
               }
             }
             if (rowsDepartments && rowsDepartments.length) {
             for (let i = 0; i < rowsDepartments.length; i++) {
        
-            const docRefDepartments = await admin.firestore().collection('Departments').add(rowsDepartments[i]);
+             docRefDepartments = await admin.firestore().collection('Departments').add(rowsDepartments[i]);
               }
             }
             if (rowsExchangeRate && rowsExchangeRate.length) {
             for (let i = 0; i < rowsExchangeRate.length; i++) {
         
-            const docRefExchangeRate = await admin.firestore().collection('ExchangeRate').add(rowsExchangeRate[i]);
+             docRefExchangeRate = await admin.firestore().collection('ExchangeRate').add(rowsExchangeRate[i]);
               }
             }
             if (rowsCurrencies && rowsCurrencies.length) {
             for (let i = 0; i < rowsCurrencies.length; i++) {
   
-            const docRefCurrencies = await admin.firestore().collection('Currencies').add(rowsCurrencies[i]);
+             docRefCurrencies = await admin.firestore().collection('Currencies').add(rowsCurrencies[i]);
               }
             }
             if (rowsVATGroups && rowsVATGroups.length) {
             for (let i = 0; i < rowsVATGroups.length; i++) {
            
-            const docRefVATGroups = await admin.firestore().collection('VATGroups').add(rowsVATGroups[i]);
+             docRefVATGroups = await admin.firestore().collection('VATGroups').add(rowsVATGroups[i]);
               }
             }
             if (rowsCustGroups && rowsCustGroups.length) {
             for (let i = 0; i < rowsCustGroups.length; i++) {
              
-            const docRefCustGroups = await admin.firestore().collection('CustGroups').add(rowsCustGroups[i]);
+             docRefCustGroups = await admin.firestore().collection('CustGroups').add(rowsCustGroups[i]);
               }
             }
             if (rowsCustProperties && rowsCustProperties.length) {
             for (let i = 0; i < rowsCustProperties.length; i++) {
        
-            const docRefCustProperties = await admin.firestore().collection('CustProperties').add(rowsCustProperties[i]);
+             docRefCustProperties = await admin.firestore().collection('CustProperties').add(rowsCustProperties[i]);
               }
             }
             if (rowsRegions && rowsRegions.length) {
             for (let i = 0; i < rowsRegions.length; i++) {
             
-            const docRefRegions = await admin.firestore().collection('Regions').add(rowsRegions[i]);
+             docRefRegions = await admin.firestore().collection('Regions').add(rowsRegions[i]);
               }
             }
             if (rowsWarehouses && rowsWarehouses.length) {
             for (let i = 0; i < rowsWarehouses.length; i++) {
         
-            const docRefWarehouses = await admin.firestore().collection('Warehouses').add(rowsWarehouses[i]);
+             docRefWarehouses = await admin.firestore().collection('Warehouses').add(rowsWarehouses[i]);
               }
             }
             if (rowsPaymentTerms && rowsPaymentTerms.length) {
             for (let i = 0; i < rowsPaymentTerms.length; i++) {
            
-            const docRefPaymentTerms = await admin.firestore().collection('PaymentTerms').add(rowsPaymentTerms[i]);
+             docRefPaymentTerms = await admin.firestore().collection('PaymentTerms').add(rowsPaymentTerms[i]);
               }
             }
             if (rowsSalesEmployees && rowsSalesEmployees.length) {
             for (let i = 0; i < rowsSalesEmployees.length; i++) {
            
-            const docRefSalesEmployees = await admin.firestore().collection('SalesEmployees').add(rowsSalesEmployees[i]);
+             docRefSalesEmployees = await admin.firestore().collection('SalesEmployees').add(rowsSalesEmployees[i]);
               }
             }
             if (rowsSalesEmployeesCustomers && rowsSalesEmployeesCustomers.length) {
             for (let i = 0; i < rowsSalesEmployeesCustomers.length; i++) {
       
-            const docRefSalesEmployeesCustomers = await admin.firestore().collection('SalesEmployeesCustomers').add(rowsSalesEmployeesCustomers[i]);
+             docRefSalesEmployeesCustomers = await admin.firestore().collection('SalesEmployeesCustomers').add(rowsSalesEmployeesCustomers[i]);
               }
             }
             if (rowsSalesEmployeesDepartments && rowsSalesEmployeesDepartments.length) {
             for (let i = 0; i < rowsSalesEmployeesDepartments.length; i++) {
           
-            const docRefSalesEmployeesDepartments = await admin.firestore().collection('SalesEmployeesDepartments').add(rowsSalesEmployeesDepartments[i]);
+             docRefSalesEmployeesDepartments = await admin.firestore().collection('SalesEmployeesDepartments').add(rowsSalesEmployeesDepartments[i]);
               }
             }
             if (rowsSalesEmployeesItemsBrands && rowsSalesEmployeesItemsBrands.length) {
             for (let i = 0; i < rowsSalesEmployeesItemsBrands.length; i++) {
               
-            const docRefSalesEmployeesItemsBrands = await admin.firestore().collection('SalesEmployeesItemsBrands').add(rowsSalesEmployeesItemsBrands[i]);
+             docRefSalesEmployeesItemsBrands = await admin.firestore().collection('SalesEmployeesItemsBrands').add(rowsSalesEmployeesItemsBrands[i]);
               }
             }
             if (rowsSalesEmployeesItemsCategories && rowsSalesEmployeesItemsCategories.length) {
             for (let i = 0; i < rowsSalesEmployeesItemsCategories.length; i++) {
             
-            const docRefSalesEmployeesItemsCategories = await admin.firestore().collection('SalesEmployeesItemsCategories').add(rowsSalesEmployeesItemsCategories[i]);
+             docRefSalesEmployeesItemsCategories = await admin.firestore().collection('SalesEmployeesItemsCategories').add(rowsSalesEmployeesItemsCategories[i]);
               }
             }
             if (rowsSalesEmployeesItemsGroups && rowsSalesEmployeesItemsGroups.length) {
             for (let i = 0; i < rowsSalesEmployeesItemsGroups.length; i++) {
   
-            const docRefSalesEmployeesItemsGroups = await admin.firestore().collection('SalesEmployeesItemsGroups').add(rowsSalesEmployeesItemsGroups[i]);
+             docRefSalesEmployeesItemsGroups = await admin.firestore().collection('SalesEmployeesItemsGroups').add(rowsSalesEmployeesItemsGroups[i]);
               }
             }
             if (rowsSalesEmployeesItems && rowsSalesEmployeesItems.length) {
             for (let i = 0; i < rowsSalesEmployeesItems.length; i++) {
         
-            const docRefSalesEmployeesItems = await admin.firestore().collection('SalesEmployeesItems').add(rowsSalesEmployeesItems[i]);
+             docRefSalesEmployeesItems = await admin.firestore().collection('SalesEmployeesItems').add(rowsSalesEmployeesItems[i]);
               }
             }
             if (rowsUsersSalesEmployees && rowsUsersSalesEmployees.length) {
             for (let i = 0; i < rowsUsersSalesEmployees.length; i++) {
             
-            const docRefUsersSalesEmployees = await admin.firestore().collection('UsersSalesEmployees').add(rowsUsersSalesEmployees[i]);
+             docRefUsersSalesEmployees = await admin.firestore().collection('UsersSalesEmployees').add(rowsUsersSalesEmployees[i]);
               }
             }
         
-          console.log(`Document added to System collection with IDs: ${docRefCompanies.id}, ${docRefDepartments.id}, ${docRefExchangeRate.id}, ${docRefCurrencies.id}, ${docRefVATGroups.id}, ${docRefCustGroups.id}, ${docRefCustProperties.id}, ${docRefRegions.id}, ${docRefWarehouses.id}, ${docRefPaymentTerms.id}, ${docRefSalesEmployees.id}, ${docRefSalesEmployeesCustomers.id}, ${docRefSalesEmployeesDepartments.id}, ${docRefSalesEmployeesItemsBrands.id}, ${docRefSalesEmployeesItemsCategories.id}, ${docRefSalesEmployeesItemsGroups.id}, ${docRefSalesEmployeesItems.id}, ${docRefUsersSalesEmployees.id}`);
-        }
+            console.log(`Document added to System collection with IDs: ${docRefCompanies?.id}, ${docRefDepartments?.id}, ${docRefExchangeRate?.id}, ${docRefCurrencies?.id}, ${docRefVATGroups?.id}, ${docRefCustGroups?.id}, ${docRefCustProperties?.id}, ${docRefRegions?.id}, ${docRefWarehouses?.id}, ${docRefPaymentTerms?.id}, ${docRefSalesEmployees?.id}, ${docRefSalesEmployeesCustomers?.id}, ${docRefSalesEmployeesDepartments?.id}, ${docRefSalesEmployeesItemsBrands?.id}, ${docRefSalesEmployeesItemsCategories?.id}, ${docRefSalesEmployeesItemsGroups?.id}, ${docRefSalesEmployeesItems?.id}, ${docRefUsersSalesEmployees?.id}`);
+          }
         
         // Add other cases for different tables
         

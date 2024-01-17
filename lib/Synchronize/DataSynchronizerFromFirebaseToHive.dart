@@ -1400,7 +1400,7 @@ Future<void> _synchronizeCompanies(
 Future<void> synchronizeDepartements() async {
   try {
     // Fetch data from Firestore
-    var firestoreDepartements = await FirebaseFirestore.instance.collection('Departements').get();
+    var firestoreDepartements = await FirebaseFirestore.instance.collection('Departments').get();
 
     // Open Hive box
     var departementsBox = await Hive.openBox<Departements>('departmentsBox');
@@ -2121,7 +2121,7 @@ Future<void> synchronizeSalesEmployeesDepartements() async {
   try {
     // Fetch data from Firestore
     var firestoreSalesEmployeesDepartements =
-        await FirebaseFirestore.instance.collection('SalesEmployeesDepartements').get();
+        await FirebaseFirestore.instance.collection('SalesEmployeesDepartments').get();
 
     // Open Hive box
     var salesEmployeesDepartementsBox =
@@ -2460,7 +2460,7 @@ Future<void> synchronizeUserSalesEmployees() async {
   try {
     // Fetch data from Firestore
     var firestoreUserSalesEmployees =
-        await FirebaseFirestore.instance.collection('UserSalesEmployees').get();
+        await FirebaseFirestore.instance.collection('UsersSalesEmployees').get();
 
     // Open Hive box
     var userSalesEmployeesBox =
@@ -2726,7 +2726,8 @@ Future<void> _synchronizeCustomerContacts(
       var contactID = doc['contactID'];
       var custCode = doc['custCode'];
       var cmpCode = doc['cmpCode'];
-
+  print('contactID: $contactID, custCode: $custCode, cmpCode: $cmpCode');
+ print(doc.data());
       // Check if the contact exists in Hive
       var hiveContact = contacts.get('$cmpCode$custCode$contactID');
 
@@ -2871,6 +2872,7 @@ Future<void> _synchronizeCustomerAttachments(
           cmpCode: doc['cmpCode'],
           custCode: doc['custCode'],
           attach: doc['attach'],
+          attachType: doc['attachType'],
           notes: doc['notes'],
         );
         await attachments.put('$cmpCode$custCode', newAttachment);
@@ -2881,6 +2883,7 @@ Future<void> _synchronizeCustomerAttachments(
           cmpCode: doc['cmpCode'],
           custCode: doc['custCode'],
           attach: doc['attach'],
+          attachType: doc['attachType'],
           notes: doc['notes'],
         );
         // Update the attachment in Hive

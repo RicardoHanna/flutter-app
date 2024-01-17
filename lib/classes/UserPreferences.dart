@@ -17,4 +17,18 @@ class UserPreferences {
   }
 
 
+  bool showActiveCustomers = true;
+  bool showDiscTypeCustomers = true;
+  bool showCurCodeCustomers = true;
+  bool showMOFNumCustomers = true;
+
+List<String> getSelectedFieldsCust() {
+    List<String> selectedFields = [];
+    if (showActiveCustomers) selectedFields.add('Active');
+    if (showDiscTypeCustomers) selectedFields.add('DiscType');
+    if (showCurCodeCustomers) selectedFields.add('CurCode');
+    if (showMOFNumCustomers) selectedFields.add('MOFNum');
+    return selectedFields;
+  }
+
 }

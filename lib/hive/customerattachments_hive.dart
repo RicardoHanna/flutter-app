@@ -14,6 +14,9 @@ class CustomerAttachments extends HiveObject {
   late String attach;
 
   @HiveField(3)
+  late String attachType;
+
+  @HiveField(4)
   late String notes;
 
  
@@ -21,6 +24,7 @@ class CustomerAttachments extends HiveObject {
     required this.cmpCode,
     required this.custCode,
     required this.attach,
+    required this.attachType,
     required this.notes,
   });
 

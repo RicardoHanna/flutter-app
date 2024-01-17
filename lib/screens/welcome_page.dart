@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/Forms/Customers_Form.dart';
 import 'package:project/Forms/Items_Form.dart';
 import 'package:project/Forms/Price_Lists_Form.dart';
 import 'package:project/Forms/settings_edit_user_form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/Synchronize/DataSynchronizerFromFirebaseToHive.dart';
 import 'package:project/hive/authorization_hive.dart';
+import 'package:project/hive/customers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/itemsprices_hive.dart';
 import 'package:project/hive/menu_hive.dart';
@@ -367,19 +369,21 @@ void saveProfile(String localPath) async {
      final Map<String, Widget> formWidgets = {
    AppLocalizations.of(context)!.items: ItemsForm(appNotifier: widget.appNotifier,),
     AppLocalizations.of(context)!.pricelists: PriceLists(appNotifier: widget.appNotifier,),
-    
+    'Customers':CustomersForm(appNotifier:widget.appNotifier),
   };
 
   final Map<String, int> menuCodes = {
   AppLocalizations.of(context)!.items: Menu.ITEMS_MENU_CODE,
   AppLocalizations.of(context)!.pricelists: Menu.PRICELISTS_MENU_CODE,
+  'Customers':Menu.CUSTOMERS_MENU_CODE
   // Add other menu items and their menu codes
 };
-final List<String> data = <String>[AppLocalizations.of(context)!.items, AppLocalizations.of(context)!.pricelists];
+final List<String> data = <String>[AppLocalizations.of(context)!.items, AppLocalizations.of(context)!.pricelists,'Customers'];
 
    final Map<String, IconData> iconData = {
     AppLocalizations.of(context)!.items: Icons.shopping_cart,
     AppLocalizations.of(context)!.pricelists: Icons.attach_money,
+    'Customers':Icons.people_outline_outlined
   };
 
   String languageUser='';
