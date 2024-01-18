@@ -227,12 +227,17 @@ Future<void> synchronizeDataPriceLists() async {
     }
 
     // Check for items in Hive that don't exist in Firestore and delete them
-    pricelistsBox.keys.toList().forEach((hivePriceCode) {
-        if (!firestorePriceLists.any((doc) => doc['plCode'] == hivePriceCode)) {
-          // Item exists in Hive but not in Firestore, so delete it from Hive
-          pricelistsBox.delete(hivePriceCode);
-        }
-      });
+Set<String> firestorePriceCodes = Set.from(firestorePriceLists.map((doc) => doc['plCode']));
+Set<String> hivePriceCodes = Set.from(pricelistsBox.keys);
+
+// Identify items in Hive that don't exist in Firestore
+Set<String> itemsToDelete = hivePriceCodes.difference(firestorePriceCodes);
+
+// Delete items in Hive that don't exist in Firestore
+itemsToDelete.forEach((hivePriceCode) {
+  pricelistsBox.delete(hivePriceCode);
+});
+
 
   } catch (e) {
     print('Error synchronizing PricesList from Firebase to Hive: $e');
@@ -317,6 +322,17 @@ else {
  
     }
 
+Set<String> firestorePriceItemKeys =
+        Set.from(firestoreItemPrice.map((doc) => '${doc['plCode']}${doc['itemCode']}'));
+    Set<String> hivePriceItemKeys = Set.from(itempriceBox.keys);
+
+    // Identify items in Hive that don't exist in Firestore
+    Set<String> itemsToDelete = hivePriceItemKeys.difference(firestorePriceItemKeys);
+
+    // Delete items in Hive that don't exist in Firestore
+    itemsToDelete.forEach((hivePriceItemKey) {
+      itempriceBox.delete(hivePriceItemKey);
+    });
 
   } catch (e) {
     print('Error synchronizing ItemPrices from Firebase to Hive: $e');
@@ -391,12 +407,18 @@ Future<void> synchronizeDataItemAttach() async {
     }
 
     // Check for items in Hive that don't exist in Firestore and delete them
-    itemattachBox.keys.toList().forEach((hiveAttachItemCode) {
-        if (!firestoreItemAttach.any((doc) => doc['itemCode'] == hiveAttachItemCode)) {
-          // Item exists in Hive but not in Firestore, so delete it from Hive
-          itemattachBox.delete(hiveAttachItemCode);
-        }
-      });
+    Set<String> firestoreItemAttachCodes =
+        Set.from(firestoreItemAttach.map((doc) => doc['itemCode']));
+    Set<String> hiveItemAttachCodes = Set.from(itemattachBox.keys);
+
+    // Identify items in Hive that don't exist in Firestore
+    Set<String> itemsToDelete = hiveItemAttachCodes.difference(firestoreItemAttachCodes);
+
+    // Delete items in Hive that don't exist in Firestore
+    itemsToDelete.forEach((hiveItemAttachCode) {
+      itemattachBox.delete(hiveItemAttachCode);
+    });
+
 
   } catch (e) {
     print('Error synchronizing ItemAttach from Firebase to Hive: $e');
@@ -467,13 +489,18 @@ Future<void> synchronizeDataItemGroup() async {
       }
     }
 
-    // Check for items in Hive that don't exist in Firestore and delete them
-    itemgroupBox.keys.toList().forEach((hiveGroupItemCode) {
-        if (!firestoreItemGroup.any((doc) => doc['groupCode'] == hiveGroupItemCode)) {
-          // Item exists in Hive but not in Firestore, so delete it from Hive
-          itemgroupBox.delete(hiveGroupItemCode);
-        }
-      });
+// Check for items in Hive that don't exist in Firestore and delete them
+    Set<String> firestoreItemGroupCodes =
+        Set.from(firestoreItemGroup.map((doc) => doc['groupCode']));
+    Set<String> hiveItemGroupCodes = Set.from(itemgroupBox.keys);
+
+    // Identify items in Hive that don't exist in Firestore
+    Set<String> itemsToDelete = hiveItemGroupCodes.difference(firestoreItemGroupCodes);
+
+    // Delete items in Hive that don't exist in Firestore
+    itemsToDelete.forEach((hiveItemGroupCode) {
+      itemgroupBox.delete(hiveItemGroupCode);
+    });
 
   } catch (e) {
     print('Error synchronizing ItemGroup from Firebase to Hive: $e');
@@ -547,12 +574,17 @@ Future<void> synchronizeDataItemCateg() async {
     }
 
     // Check for items in Hive that don't exist in Firestore and delete them
-    itemcategBox.keys.toList().forEach((hiveGroupCategCode) {
-        if (!firestoreItemCateg.any((doc) => doc['categCode'] == hiveGroupCategCode)) {
-          // Item exists in Hive but not in Firestore, so delete it from Hive
-          itemcategBox.delete(hiveGroupCategCode);
-        }
-      });
+    Set<String> firestoreItemCategCodes =
+        Set.from(firestoreItemCateg.map((doc) => doc['categCode']));
+    Set<String> hiveItemCategCodes = Set.from(itemcategBox.keys);
+
+    // Identify items in Hive that don't exist in Firestore
+    Set<String> itemsToDelete = hiveItemCategCodes.difference(firestoreItemCategCodes);
+
+    // Delete items in Hive that don't exist in Firestore
+    itemsToDelete.forEach((hiveItemCategCode) {
+      itemcategBox.delete(hiveItemCategCode);
+    });
 
   } catch (e) {
     print('Error synchronizing ItemCateg from Firebase to Hive: $e');
@@ -625,12 +657,18 @@ Future<void> synchronizeDataItemBrand() async {
     }
 
     // Check for items in Hive that don't exist in Firestore and delete them
-    itembrandBox.keys.toList().forEach((hiveGroupBrandCode) {
-        if (!firestoreItemBrand.any((doc) => doc['brandCode'] == hiveGroupBrandCode)) {
-          // Item exists in Hive but not in Firestore, so delete it from Hive
-          itembrandBox.delete(hiveGroupBrandCode);
-        }
-      });
+Set<String> firestoreItemBrandCodes =
+        Set.from(firestoreItemBrand.map((doc) => doc['brandCode']));
+    Set<String> hiveItemBrandCodes = Set.from(itembrandBox.keys);
+
+    // Identify items in Hive that don't exist in Firestore
+    Set<String> itemsToDelete = hiveItemBrandCodes.difference(firestoreItemBrandCodes);
+
+    // Delete items in Hive that don't exist in Firestore
+    itemsToDelete.forEach((hiveItemBrandCode) {
+      itembrandBox.delete(hiveItemBrandCode);
+    });
+
 
   } catch (e) {
     print('Error synchronizing ItemBrand from Firebase to Hive: $e');
@@ -703,13 +741,19 @@ Future<void> synchronizeDataItemUOM() async {
       }
     }
 
-    // Check for items in Hive that don't exist in Firestore and delete them
-    itemuomBox.keys.toList().forEach((hiveGroupUOMCode) {
-        if (!firestoreItemUOM.any((doc) => doc['itemCode'] == hiveGroupUOMCode)) {
-          // Item exists in Hive but not in Firestore, so delete it from Hive
-          itemuomBox.delete(hiveGroupUOMCode);
-        }
-      });
+// Check for items in Hive that don't exist in Firestore and delete them
+    Set<String> firestoreItemUOMCodes =
+        Set.from(firestoreItemUOM.map((doc) => doc['itemCode']));
+    Set<String> hiveItemUOMCodes = Set.from(itemuomBox.keys);
+
+    // Identify items in Hive that don't exist in Firestore
+    Set<String> itemsToDelete = hiveItemUOMCodes.difference(firestoreItemUOMCodes);
+
+    // Delete items in Hive that don't exist in Firestore
+    itemsToDelete.forEach((hiveItemUOMCode) {
+      itemuomBox.delete(hiveItemUOMCode);
+    });
+
 
   } catch (e) {
     print('Error synchronizing UOM from Firebase to Hive: $e');
@@ -776,12 +820,18 @@ Future<void> synchronizeDataUserPL() async {
     }
 
     // Check for items in Hive that don't exist in Firestore and delete them
-    userplBox.keys.toList().forEach((hiveGroupUserPL) {
-        if (!firestoreUserPL.any((doc) => doc['userCode'] == hiveGroupUserPL)) {
-          // Item exists in Hive but not in Firestore, so delete it from Hive
-          userplBox.delete(hiveGroupUserPL);
-        }
-      });
+  Set<String> firestoreUserPLCodes =
+        Set.from(firestoreUserPL.map((doc) => doc['userCode']));
+    Set<String> hiveUserPLCodes = Set.from(userplBox.keys);
+
+    // Identify items in Hive that don't exist in Firestore
+    Set<String> itemsToDelete = hiveUserPLCodes.difference(firestoreUserPLCodes);
+
+    // Delete items in Hive that don't exist in Firestore
+    itemsToDelete.forEach((hiveUserPLCode) {
+      userplBox.delete(hiveUserPLCode);
+    });
+
 
   } catch (e) {
     print('Error synchronizing USERPL from Firebase to Hive: $e');
@@ -820,28 +870,35 @@ Future<void> _synchronizeUsers(
 ) async {
   try {
     var userBox = await Hive.openBox('userBox');
+    
+    // Get the list of emails from Firestore users
+    Set<String> firestoreUserEmails = Set.from(firestoreUsers.map((doc) => doc['email']));
+
+    // Get the list of emails in the Hive box
+    Set<String> hiveUserEmails = Set.from(userBox.keys);
+
+    // Identify emails in Hive that don't exist in Firestore
+    Set<String> emailsToDelete = hiveUserEmails.difference(firestoreUserEmails);
+
     // Iterate over Firestore documents
     for (var doc in firestoreUsers) {
       var email = doc['email'];
-      print(email);
-      var hiveuser = userBox.get(email);
-      print(hiveuser.toString());
+      var userData = doc.data() as Map<String, dynamic>;
 
       // If the item doesn't exist in Hive, add it
-      if (hiveuser == null) {
-        print('isnull');
-        Map<String, dynamic> userData = doc.data() as Map<String, dynamic>;
-
+      if (!hiveUserEmails.contains(email)) {
         await userBox.put(email, userData);
       }
       // If the item exists in Hive, update it if needed
       else {
-        print('guhhi');
-        Map<String, dynamic> userData = doc.data() as Map<String, dynamic>;
-
         await userBox.put(email, userData);
       }
     }
+
+    // Delete users in Hive that don't exist in Firestore
+    emailsToDelete.forEach((emailToDelete) {
+      userBox.delete(emailToDelete);
+    });
   } catch (e) {
     print('Error synchronizing Users from Firebase to Hive: $e');
   }
@@ -908,6 +965,19 @@ Future<void> _synchronizeUsersGroup(
         await usersGroup.put(usercode, updatedusergroup);
       }
     }
+    // Check for items in Hive that don't exist in Firestore and delete them
+    Set<String> firestoreUserGroupCodes =
+        Set.from(firestoreUsersGroup.map((doc) => doc['usercode']));
+    Set<String> hiveUserGroupCodes = Set.from(usersGroup.keys);
+
+    // Identify items in Hive that don't exist in Firestore
+    Set<String> itemsToDelete = hiveUserGroupCodes.difference(firestoreUserGroupCodes);
+
+    // Delete items in Hive that don't exist in Firestore
+    itemsToDelete.forEach((hiveUserGroupCode) {
+      usersGroup.delete(hiveUserGroupCode);
+    });
+
   } catch (e) {
     print('Error synchronizing Users from Firebase to Hive: $e');
   }
@@ -978,6 +1048,18 @@ Future<void> _synchronizeUsersTranslations(
         await translationBox.put(usercode, updatetrans);
       }
     }
+// Delete items in Hive that don't exist in Firestore
+    Set<String> firestoreUserTransCodes =
+        Set.from(firestoreUsersTranslations.map((doc) => doc['usercode']));
+    Set<String> hiveUserTransCodes = Set.from(translationBox.keys);
+
+    // Identify items in Hive that don't exist in Firestore
+    Set<String> itemsToDelete = hiveUserTransCodes.difference(firestoreUserTransCodes);
+
+    // Delete items in Hive that don't exist in Firestore
+    itemsToDelete.forEach((hiveUserTransCode) {
+      translationBox.delete(hiveUserTransCode);
+    });
 
    
   } catch (e) {
@@ -1096,7 +1178,18 @@ Future<void> _synchronizeSubMenu(int menucode, CollectionReference usergroupsCol
     }
     print('Admin Sub Menu');
 
-    // Delete usergroups from Hive that don't exist in Firestore
+// Create sets of usergroup codes from Firestore and Hive
+Set<String> firestoreUserGroupCodes = Set.from(firestoreUserGroups.docs.map((doc) => doc['groupcode']));
+Set<String> hiveUserGroupCodes = Set.from(userGroupBox.keys);
+
+// Identify items in Hive that don't exist in Firestore
+Set<String> itemsToDelete = hiveUserGroupCodes.difference(firestoreUserGroupCodes);
+
+// Delete items in Hive that don't exist in Firestore
+itemsToDelete.forEach((hiveUserGroupCode) {
+  userGroupBox.delete(hiveUserGroupCode);
+});
+
   
     print('All data in adminSubMenuBox: ${userGroupBox.values.toList()}');
 
@@ -1142,6 +1235,18 @@ Future<void> synchronizeIESubMenu(int menucode, CollectionReference syncgroupsCo
     print('Sync Sub Menu');
 
     // Delete usergroups from Hive that don't exist in Firestore
+    // Create sets of syncgroup codes from Firestore and Hive
+Set<String> firestoreSyncGroupCodes = Set.from(firestoreUserGroups.docs.map((doc) => doc['syncronizecode']));
+Set<String> hiveSyncGroupCodes = Set.from(syncGroupBox.keys);
+
+// Identify items in Hive that don't exist in Firestore
+Set<String> itemsToDelete = hiveSyncGroupCodes.difference(firestoreSyncGroupCodes);
+
+// Delete items in Hive that don't exist in Firestore
+itemsToDelete.forEach((hiveSyncGroupCode) {
+  syncGroupBox.delete(hiveSyncGroupCode);
+});
+
   
     print('All data in SyncSubMenuBox: ${syncGroupBox.values.toList()}');
 
@@ -1213,6 +1318,7 @@ Future<void> _synchronizeAutho(
         await autho.put(int.parse('$menucode$groupcode'), updatedusergroup);
       }
     }
+    
   } catch (e) {
     print('Error synchronizing Autho from Firebase to Hive: $e');
   }
@@ -1300,6 +1406,18 @@ Future<void> _synchronizeSystem(
         await system.put(groupcode, updatedsystem);
       }
     }
+    // Create sets of group codes from Firestore and Hive
+Set<String> firestoreSystemCodes = Set.from(firestoreAutho.map((doc) => doc['groupcode']));
+Set<String> hiveSystemCodes = Set.from(system.keys);
+
+// Identify items in Hive that don't exist in Firestore
+Set<String> itemsToDelete = hiveSystemCodes.difference(firestoreSystemCodes);
+
+// Delete items in Hive that don't exist in Firestore
+itemsToDelete.forEach((hiveSystemCode) {
+  system.delete(hiveSystemCode);
+});
+
   } catch (e) {
     print('Error synchronizing System General Settings from Firebase to Hive: $e');
   }
@@ -1388,6 +1506,18 @@ Future<void> _synchronizeCompanies(
         await companies.put(cmpCode, updatedCompany);
       }
     }
+    // Create sets of company codes from Firestore and Hive
+Set<String> firestoreCompanyCodes = Set.from(firestoreCompanies.map((doc) => doc['cmpCode']));
+Set<String> hiveCompanyCodes = Set.from(companies.keys);
+
+// Identify companies in Hive that don't exist in Firestore
+Set<String> companiesToDelete = hiveCompanyCodes.difference(firestoreCompanyCodes);
+
+// Delete companies in Hive that don't exist in Firestore
+companiesToDelete.forEach((hiveCompanyCode) {
+  companies.delete(hiveCompanyCode);
+});
+
   } catch (e) {
     print('Error synchronizing Companies from Firebase to Hive: $e');
   }
@@ -1452,6 +1582,18 @@ Future<void> _synchronizeDepartements(
         await departements.put('$cmpCode$depCode', updatedDepartement);
       }
     }
+    // Create sets of department keys from Firestore and Hive
+Set<String> firestoreDepartementKeys = Set.from(firestoreDepartements.map((doc) => '${doc['cmpCode']}${doc['depCode']}'));
+Set<String> hiveDepartementKeys = Set.from(departements.keys);
+
+// Identify departments in Hive that don't exist in Firestore
+Set<String> departementsToDelete = hiveDepartementKeys.difference(firestoreDepartementKeys);
+
+// Delete departments in Hive that don't exist in Firestore
+departementsToDelete.forEach((hiveDepartementKey) {
+  departements.delete(hiveDepartementKey);
+});
+
   } catch (e) {
     print('Error synchronizing Departements from Firebase to Hive: $e');
   }
@@ -1515,6 +1657,18 @@ Future<void> _synchronizeExchangeRates(
         await exchangeRates.put('$cmpCode$curCode', updatedExchangeRate);
       }
     }
+    // Create sets of exchange rate keys from Firestore and Hive
+Set<String> firestoreExchangeRateKeys = Set.from(firestoreExchangeRates.map((doc) => '${doc['cmpCode']}${doc['curCode']}'));
+Set<String> hiveExchangeRateKeys = Set.from(exchangeRates.keys);
+
+// Identify exchange rates in Hive that don't exist in Firestore
+Set<String> exchangeRatesToDelete = hiveExchangeRateKeys.difference(firestoreExchangeRateKeys);
+
+// Delete exchange rates in Hive that don't exist in Firestore
+exchangeRatesToDelete.forEach((hiveExchangeRateKey) {
+  exchangeRates.delete(hiveExchangeRateKey);
+});
+
   } catch (e) {
     print('Error synchronizing ExchangeRates from Firebase to Hive: $e');
   }
@@ -1580,6 +1734,20 @@ Future<void> _synchronizeCurrencies(
         await currencies.put('$cmpCode$curCode', updatedCurrency);
       }
     }
+
+    // Create sets of currency keys from Firestore and Hive
+Set<String> firestoreCurrencyKeys = Set.from(firestoreCurrencies.map((doc) => '${doc['cmpCode']}${doc['curCode']}'));
+Set<String> hiveCurrencyKeys = Set.from(currencies.keys);
+
+// Identify currencies in Hive that don't exist in Firestore
+Set<String> currenciesToDelete = hiveCurrencyKeys.difference(firestoreCurrencyKeys);
+
+// Delete currencies in Hive that don't exist in Firestore
+currenciesToDelete.forEach((hiveCurrencyKey) {
+  currencies.delete(hiveCurrencyKey);
+});
+
+
   } catch (e) {
     print('Error synchronizing Currencies from Firebase to Hive: $e');
   }
@@ -1646,6 +1814,18 @@ Future<void> _synchronizeVATGroups(
         await vatGroups.put('$cmpCode$vatCode', updatedVATGroup);
       }
     }
+    // Create sets of VAT group keys from Firestore and Hive
+Set<String> firestoreVATGroupKeys = Set.from(firestoreVATGroups.map((doc) => '${doc['cmpCode']}${doc['vatCode']}'));
+Set<String> hiveVATGroupKeys = Set.from(vatGroups.keys);
+
+// Identify VAT groups in Hive that don't exist in Firestore
+Set<String> vatGroupsToDelete = hiveVATGroupKeys.difference(firestoreVATGroupKeys);
+
+// Delete VAT groups in Hive that don't exist in Firestore
+vatGroupsToDelete.forEach((hiveVATGroupKey) {
+  vatGroups.delete(hiveVATGroupKey);
+});
+
   } catch (e) {
     print('Error synchronizing VATGroups from Firebase to Hive: $e');
   }
@@ -1710,6 +1890,18 @@ Future<void> _synchronizeCustGroups(
         await custGroups.put('$cmpCode$grpCode', updatedCustGroup);
       }
     }
+    // Create sets of customer group keys from Firestore and Hive
+Set<String> firestoreCustGroupKeys = Set.from(firestoreCustGroups.map((doc) => '${doc['cmpCode']}${doc['grpCode']}'));
+Set<String> hiveCustGroupKeys = Set.from(custGroups.keys);
+
+// Identify customer groups in Hive that don't exist in Firestore
+Set<String> custGroupsToDelete = hiveCustGroupKeys.difference(firestoreCustGroupKeys);
+
+// Delete customer groups in Hive that don't exist in Firestore
+custGroupsToDelete.forEach((hiveCustGroupKey) {
+  custGroups.delete(hiveCustGroupKey);
+});
+
   } catch (e) {
     print('Error synchronizing CustGroups from Firebase to Hive: $e');
   }
@@ -1774,6 +1966,18 @@ Future<void> _synchronizeCustProperties(
         await custProperties.put('$cmpCode$propCode', updatedCustProperty);
       }
     }
+    // Create sets of customer property keys from Firestore and Hive
+Set<String> firestoreCustPropertyKeys = Set.from(firestoreCustProperties.map((doc) => '${doc['cmpCode']}${doc['propCode']}'));
+Set<String> hiveCustPropertyKeys = Set.from(custProperties.keys);
+
+// Identify customer properties in Hive that don't exist in Firestore
+Set<String> custPropertiesToDelete = hiveCustPropertyKeys.difference(firestoreCustPropertyKeys);
+
+// Delete customer properties in Hive that don't exist in Firestore
+custPropertiesToDelete.forEach((hiveCustPropertyKey) {
+  custProperties.delete(hiveCustPropertyKey);
+});
+
   } catch (e) {
     print('Error synchronizing CustProperties from Firebase to Hive: $e');
   }
@@ -1838,6 +2042,18 @@ Future<void> _synchronizeRegions(
         await regions.put('$cmpCode$regCode', updatedRegion);
       }
     }
+    // Create sets of region keys from Firestore and Hive
+Set<String> firestoreRegionKeys = Set.from(firestoreRegions.map((doc) => '${doc['cmpCode']}${doc['regCode']}'));
+Set<String> hiveRegionKeys = Set.from(regions.keys);
+
+// Identify regions in Hive that don't exist in Firestore
+Set<String> regionsToDelete = hiveRegionKeys.difference(firestoreRegionKeys);
+
+// Delete regions in Hive that don't exist in Firestore
+regionsToDelete.forEach((hiveRegionKey) {
+  regions.delete(hiveRegionKey);
+});
+
   } catch (e) {
     print('Error synchronizing Regions from Firebase to Hive: $e');
   }
@@ -1903,6 +2119,18 @@ Future<void> _synchronizeWarehouses(
         await warehouses.put('$cmpCode$whsCode', updatedWarehouse);
       }
     }
+    // Create sets of warehouse keys from Firestore and Hive
+Set<String> firestoreWarehouseKeys = Set.from(firestoreWarehouses.map((doc) => '${doc['cmpCode']}${doc['whsCode']}'));
+Set<String> hiveWarehouseKeys = Set.from(warehouses.keys);
+
+// Identify warehouses in Hive that don't exist in Firestore
+Set<String> warehousesToDelete = hiveWarehouseKeys.difference(firestoreWarehouseKeys);
+
+// Delete warehouses in Hive that don't exist in Firestore
+warehousesToDelete.forEach((hiveWarehouseKey) {
+  warehouses.delete(hiveWarehouseKey);
+});
+
   } catch (e) {
     print('Error synchronizing Warehouses from Firebase to Hive: $e');
   }
@@ -1971,6 +2199,18 @@ Future<void> _synchronizePaymentTerms(
         await paymentTerms.put('$cmpCode$ptCode', updatedPaymentTerm);
       }
     }
+    // Create sets of payment term keys from Firestore and Hive
+Set<String> firestorePaymentTermKeys = Set.from(firestorePaymentTerms.map((doc) => '${doc['cmpCode']}${doc['ptCode']}'));
+Set<String> hivePaymentTermKeys = Set.from(paymentTerms.keys);
+
+// Identify payment terms in Hive that don't exist in Firestore
+Set<String> paymentTermsToDelete = hivePaymentTermKeys.difference(firestorePaymentTermKeys);
+
+// Delete payment terms in Hive that don't exist in Firestore
+paymentTermsToDelete.forEach((hivePaymentTermKey) {
+  paymentTerms.delete(hivePaymentTermKey);
+});
+
   } catch (e) {
     print('Error synchronizing PaymentTerms from Firebase to Hive: $e');
   }
@@ -2042,6 +2282,18 @@ Future<void> _synchronizeSalesEmployees(
         await salesEmployees.put('$cmpCode$seCode', updatedSalesEmployee);
       }
     }
+    // Create sets of sales employee keys from Firestore and Hive
+Set<String> firestoreSalesEmployeeKeys = Set.from(firestoreSalesEmployees.map((doc) => '${doc['cmpCode']}${doc['seCode']}'));
+Set<String> hiveSalesEmployeeKeys = Set.from(salesEmployees.keys);
+
+// Identify sales employees in Hive that don't exist in Firestore
+Set<String> salesEmployeesToDelete = hiveSalesEmployeeKeys.difference(firestoreSalesEmployeeKeys);
+
+// Delete sales employees in Hive that don't exist in Firestore
+salesEmployeesToDelete.forEach((hiveSalesEmployeeKey) {
+  salesEmployees.delete(hiveSalesEmployeeKey);
+});
+
   } catch (e) {
     print('Error synchronizing SalesEmployees from Firebase to Hive: $e');
   }
@@ -2107,6 +2359,18 @@ Future<void> _synchronizeSalesEmployeesCustomers(
         await salesEmployeesCustomers.put('$cmpCode$seCode$custCode', updatedSalesEmployeesCustomers);
       }
     }
+    // Create sets of sales employee customers keys from Firestore and Hive
+Set<String> firestoreSalesEmployeesCustomersKeys = Set.from(firestoreSalesEmployeesCustomers.map((doc) => '${doc['cmpCode']}${doc['seCode']}${doc['custCode']}'));
+Set<String> hiveSalesEmployeesCustomersKeys = Set.from(salesEmployeesCustomers.keys);
+
+// Identify sales employee customers relationships in Hive that don't exist in Firestore
+Set<String> salesEmployeesCustomersToDelete = hiveSalesEmployeesCustomersKeys.difference(firestoreSalesEmployeesCustomersKeys);
+
+// Delete sales employee customers relationships in Hive that don't exist in Firestore
+salesEmployeesCustomersToDelete.forEach((hiveSalesEmployeesCustomersKey) {
+  salesEmployeesCustomers.delete(hiveSalesEmployeesCustomersKey);
+});
+
   } catch (e) {
     print('Error synchronizing SalesEmployeesCustomers from Firebase to Hive: $e');
   }
@@ -2175,6 +2439,18 @@ Future<void> _synchronizeSalesEmployeesDepartements(
         await salesEmployeesDepartements.put('$cmpCode$seCode$deptCode', updatedSalesEmployeesDepartements);
       }
     }
+    // Create sets of sales employee departments keys from Firestore and Hive
+Set<String> firestoreSalesEmployeesDepartmentsKeys = Set.from(firestoreSalesEmployeesDepartements.map((doc) => '${doc['cmpCode']}${doc['seCode']}${doc['deptCode']}'));
+Set<String> hiveSalesEmployeesDepartmentsKeys = Set.from(salesEmployeesDepartements.keys);
+
+// Identify sales employee departments relationships in Hive that don't exist in Firestore
+Set<String> salesEmployeesDepartmentsToDelete = hiveSalesEmployeesDepartmentsKeys.difference(firestoreSalesEmployeesDepartmentsKeys);
+
+// Delete sales employee departments relationships in Hive that don't exist in Firestore
+salesEmployeesDepartmentsToDelete.forEach((hiveSalesEmployeesDepartmentsKey) {
+  salesEmployeesDepartements.delete(hiveSalesEmployeesDepartmentsKey);
+});
+
   } catch (e) {
     print('Error synchronizing SalesEmployeesDepartements from Firebase to Hive: $e');
   }
@@ -2242,6 +2518,18 @@ Future<void> _synchronizeSalesEmployeesItemsBrands(
         await salesEmployeesItemsBrands.put('$cmpCode$seCode$brandCode', updatedSalesEmployeesItemsBrands);
       }
     }
+    // Create sets of sales employee items brands keys from Firestore and Hive
+Set<String> firestoreSalesEmployeesItemsBrandsKeys = Set.from(firestoreSalesEmployeesItemsBrands.map((doc) => '${doc['cmpCode']}${doc['seCode']}${doc['brandCode']}'));
+Set<String> hiveSalesEmployeesItemsBrandsKeys = Set.from(salesEmployeesItemsBrands.keys);
+
+// Identify sales employee items brands relationships in Hive that don't exist in Firestore
+Set<String> salesEmployeesItemsBrandsToDelete = hiveSalesEmployeesItemsBrandsKeys.difference(firestoreSalesEmployeesItemsBrandsKeys);
+
+// Delete sales employee items brands relationships in Hive that don't exist in Firestore
+salesEmployeesItemsBrandsToDelete.forEach((hiveSalesEmployeesItemsBrandsKey) {
+  salesEmployeesItemsBrands.delete(hiveSalesEmployeesItemsBrandsKey);
+});
+
   } catch (e) {
     print('Error synchronizing SalesEmployeesItemsBrands from Firebase to Hive: $e');
   }
@@ -2311,6 +2599,18 @@ Future<void> _synchronizeSalesEmployeesItemsCategories(
         await salesEmployeesItemsCategories.put('$cmpCode$seCode$categCode', updatedSalesEmployeesItemsCategories);
       }
     }
+    // Create sets of sales employee items categories keys from Firestore and Hive
+Set<String> firestoreSalesEmployeesItemsCategoriesKeys = Set.from(firestoreSalesEmployeesItemsCategories.map((doc) => '${doc['cmpCode']}${doc['seCode']}${doc['categCode']}'));
+Set<String> hiveSalesEmployeesItemsCategoriesKeys = Set.from(salesEmployeesItemsCategories.keys);
+
+// Identify sales employee items categories relationships in Hive that don't exist in Firestore
+Set<String> salesEmployeesItemsCategoriesToDelete = hiveSalesEmployeesItemsCategoriesKeys.difference(firestoreSalesEmployeesItemsCategoriesKeys);
+
+// Delete sales employee items categories relationships in Hive that don't exist in Firestore
+salesEmployeesItemsCategoriesToDelete.forEach((hiveSalesEmployeesItemsCategoriesKey) {
+  salesEmployeesItemsCategories.delete(hiveSalesEmployeesItemsCategoriesKey);
+});
+
   } catch (e) {
     print('Error synchronizing SalesEmployeesItemsCategories from Firebase to Hive: $e');
   }
@@ -2378,6 +2678,18 @@ Future<void> _synchronizeSalesEmployeesItemsGroups(
         await salesEmployeesItemsGroups.put('$cmpCode$seCode$groupCode', updatedSalesEmployeesItemsGroups);
       }
     }
+    // Create sets of sales employee items groups keys from Firestore and Hive
+Set<String> firestoreSalesEmployeesItemsGroupsKeys = Set.from(firestoreSalesEmployeesItemsGroups.map((doc) => '${doc['cmpCode']}${doc['seCode']}${doc['groupCode']}'));
+Set<String> hiveSalesEmployeesItemsGroupsKeys = Set.from(salesEmployeesItemsGroups.keys);
+
+// Identify sales employee items groups relationships in Hive that don't exist in Firestore
+Set<String> salesEmployeesItemsGroupsToDelete = hiveSalesEmployeesItemsGroupsKeys.difference(firestoreSalesEmployeesItemsGroupsKeys);
+
+// Delete sales employee items groups relationships in Hive that don't exist in Firestore
+salesEmployeesItemsGroupsToDelete.forEach((hiveSalesEmployeesItemsGroupsKey) {
+  salesEmployeesItemsGroups.delete(hiveSalesEmployeesItemsGroupsKey);
+});
+
   } catch (e) {
     print('Error synchronizing SalesEmployeesItemsGroups from Firebase to Hive: $e');
   }
@@ -2447,6 +2759,18 @@ Future<void> _synchronizeSalesEmployeesItems(
         await salesEmployeesItems.put('$cmpCode$seCode$itemCode', updatedSalesEmployeesItems);
       }
     }
+    // Create sets of sales employee items keys from Firestore and Hive
+Set<String> firestoreSalesEmployeesItemsKeys = Set.from(firestoreSalesEmployeesItems.map((doc) => '${doc['cmpCode']}${doc['seCode']}${doc['itemCode']}'));
+Set<String> hiveSalesEmployeesItemsKeys = Set.from(salesEmployeesItems.keys);
+
+// Identify sales employee items relationships in Hive that don't exist in Firestore
+Set<String> salesEmployeesItemsToDelete = hiveSalesEmployeesItemsKeys.difference(firestoreSalesEmployeesItemsKeys);
+
+// Delete sales employee items relationships in Hive that don't exist in Firestore
+salesEmployeesItemsToDelete.forEach((hiveSalesEmployeesItemsKey) {
+  salesEmployeesItems.delete(hiveSalesEmployeesItemsKey);
+});
+
   } catch (e) {
     print('Error synchronizing SalesEmployeesItems from Firebase to Hive: $e');
   }
@@ -2512,6 +2836,17 @@ Future<void> _synchronizeUserSalesEmployees(
         await userSalesEmployees.put('$cmpCode$userCode$seCode', updatedUserSalesEmployees);
       }
     }
+    Set<String> firestoreUserSalesEmployeesKeys = Set.from(firestoreUserSalesEmployees.map((doc) => '${doc['cmpCode']}${doc['userCode']}${doc['seCode']}'));
+    Set<String> hiveUserSalesEmployeesKeys = Set.from(userSalesEmployees.keys);
+
+    // Identify user sales employees relationships in Hive that don't exist in Firestore
+    Set<String> userSalesEmployeesToDelete = hiveUserSalesEmployeesKeys.difference(firestoreUserSalesEmployeesKeys);
+
+    // Delete user sales employees relationships in Hive that don't exist in Firestore
+    userSalesEmployeesToDelete.forEach((hiveUserSalesEmployeesKey) {
+      userSalesEmployees.delete(hiveUserSalesEmployeesKey);
+    });
+
   } catch (e) {
     print('Error synchronizing UserSalesEmployees from Firebase to Hive: $e');
   }
@@ -2619,6 +2954,16 @@ Future<void> _synchronizeCustomers(
         await customers.put('$cmpCode$custCode', updatedCustomer);
       }
     }
+    Set<String> firestoreCustomersKeys = Set.from(firestoreCustomers.map((doc) => '${doc['cmpCode']}${doc['custCode']}'));
+    Set<String> hiveCustomersKeys = Set.from(customers.keys);
+
+    // Identify customers in Hive that don't exist in Firestore
+    Set<String> customersToDelete = hiveCustomersKeys.difference(firestoreCustomersKeys);
+
+    // Delete customers in Hive that don't exist in Firestore
+    customersToDelete.forEach((hiveCustomerKey) {
+      customers.delete(hiveCustomerKey);
+    });
   } catch (e) {
     print('Error synchronizing Customers from Firebase to Hive: $e');
   }
@@ -2652,11 +2997,11 @@ Future<void> _synchronizeCustomerAddresses(
   try {
     // Iterate over Firestore documents
     for (var doc in firestoreAddresses) {
+
+     
       var addressID = doc['addressID'];
-      var cmpCode = doc['cmpCode'];
-      var custCode = doc['custCode'];
       // Check if the address exists in Hive
-      var hiveAddress = addresses.get('$cmpCode$custCode$addressID');
+      var hiveAddress = addresses.get('$addressID');
 
       // If the address doesn't exist in Hive, add it
       if (hiveAddress == null) {
@@ -2671,7 +3016,7 @@ Future<void> _synchronizeCustomerAddresses(
           gpslong: doc['gpslong'],
           notes: doc['notes'],
         );
-        await addresses.put('$cmpCode$custCode$addressID', newAddress);
+        await addresses.put('$addressID', newAddress);
       }
       // If the address exists in Hive, update it if needed
       else {
@@ -2687,9 +3032,20 @@ Future<void> _synchronizeCustomerAddresses(
           notes: doc['notes'],
         );
         // Update the address in Hive
-        await addresses.put('$cmpCode$custCode$addressID', updatedAddress);
+        await addresses.put('$addressID', updatedAddress);
       }
     }
+    Set<String> firestoreAddressesKeys = Set.from(firestoreAddresses.map((doc) => '${doc['addressID']}'));
+    Set<String> hiveAddressesKeys = Set.from(addresses.keys);
+
+    // Identify addresses in Hive that don't exist in Firestore
+    Set<String> addressesToDelete = hiveAddressesKeys.difference(firestoreAddressesKeys);
+
+    // Delete addresses in Hive that don't exist in Firestore
+    addressesToDelete.forEach((hiveAddressKey) {
+      addresses.delete(hiveAddressKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerAddresses from Firebase to Hive: $e');
   }
@@ -2723,13 +3079,11 @@ Future<void> _synchronizeCustomerContacts(
   try {
     // Iterate over Firestore documents
     for (var doc in firestoreContacts) {
-      var contactID = doc['contactID'];
-      var custCode = doc['custCode'];
-      var cmpCode = doc['cmpCode'];
-  print('contactID: $contactID, custCode: $custCode, cmpCode: $cmpCode');
+
+   var contactID = doc['contactID'];
  print(doc.data());
       // Check if the contact exists in Hive
-      var hiveContact = contacts.get('$cmpCode$custCode$contactID');
+      var hiveContact = contacts.get('$contactID');
 
       // If the contact doesn't exist in Hive, add it
       if (hiveContact == null) {
@@ -2745,7 +3099,7 @@ Future<void> _synchronizeCustomerContacts(
           position: doc['position'],
           notes: doc['notes'],
         );
-        await contacts.put('$cmpCode$custCode$contactID', newContact);
+        await contacts.put('$contactID', newContact);
       }
       // If the contact exists in Hive, update it if needed
       else {
@@ -2762,9 +3116,20 @@ Future<void> _synchronizeCustomerContacts(
           notes: doc['notes'],
         );
         // Update the contact in Hive
-        await contacts.put('$cmpCode$custCode$contactID', updatedContact);
+        await contacts.put('$contactID', updatedContact);
       }
     }
+    Set<String> firestoreContactsKeys = Set.from(firestoreContacts.map((doc) => '${doc['contactID']}'));
+    Set<String> hiveContactsKeys = Set.from(contacts.keys);
+
+    // Identify contacts in Hive that don't exist in Firestore
+    Set<String> contactsToDelete = hiveContactsKeys.difference(firestoreContactsKeys);
+
+    // Delete contacts in Hive that don't exist in Firestore
+    contactsToDelete.forEach((hiveContactKey) {
+      contacts.delete(hiveContactKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerContacts from Firebase to Hive: $e');
   }
@@ -2798,12 +3163,11 @@ Future<void> _synchronizeCustomerProperties(
   try {
     // Iterate over Firestore documents
     for (var doc in firestoreProperties) {
-      var propCode = doc['propCode'];
-      var custCode = doc['custCode'];
-      var cmpCode = doc['cmpCode'];
+ 
+     var propCode = doc['propCode'];
 
       // Check if the property exists in Hive
-      var hiveProperty = properties.get('$cmpCode$propCode$custCode');
+      var hiveProperty = properties.get('$propCode');
 
       // If the property doesn't exist in Hive, add it
       if (hiveProperty == null) {
@@ -2813,7 +3177,7 @@ Future<void> _synchronizeCustomerProperties(
           propCode: doc['propCode'],
           notes: doc['notes'],
         );
-        await properties.put('$cmpCode$propCode$custCode', newProperty);
+        await properties.put('$propCode', newProperty);
       }
       // If the property exists in Hive, update it if needed
       else {
@@ -2824,9 +3188,20 @@ Future<void> _synchronizeCustomerProperties(
           notes: doc['notes'],
         );
         // Update the property in Hive
-        await properties.put('$cmpCode$propCode$custCode', updatedProperty);
+        await properties.put('$propCode', updatedProperty);
       }
     }
+    Set<String> firestorePropertiesKeys = Set.from(firestoreProperties.map((doc) => '${doc['propCode']}'));
+    Set<String> hivePropertiesKeys = Set.from(properties.keys);
+
+    // Identify properties in Hive that don't exist in Firestore
+    Set<String> propertiesToDelete = hivePropertiesKeys.difference(firestorePropertiesKeys);
+
+    // Delete properties in Hive that don't exist in Firestore
+    propertiesToDelete.forEach((hivePropertyKey) {
+      properties.delete(hivePropertyKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerProperties from Firebase to Hive: $e');
   }
@@ -2890,6 +3265,17 @@ Future<void> _synchronizeCustomerAttachments(
         await attachments.put('$cmpCode$custCode', updatedAttachment);
       }
     }
+    Set<String> firestoreAttachmentsKeys = Set.from(firestoreAttachments.map((doc) => '${doc['cmpCode']}${doc['custCode']}'));
+    Set<String> hiveAttachmentsKeys = Set.from(attachments.keys);
+
+    // Identify attachments in Hive that don't exist in Firestore
+    Set<String> attachmentsToDelete = hiveAttachmentsKeys.difference(firestoreAttachmentsKeys);
+
+    // Delete attachments in Hive that don't exist in Firestore
+    attachmentsToDelete.forEach((hiveAttachmentKey) {
+      attachments.delete(hiveAttachmentKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerAttachments from Firebase to Hive: $e');
   }
@@ -2969,6 +3355,17 @@ Future<void> _synchronizeCustomerItemsSpecialPrice(
         await specialPrice.put('$cmpCode$itemCode$custCode$uom', updatedSpecialPrice);
       }
     }
+    Set<String> firestoreSpecialPriceKeys = Set.from(firestoreSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['itemCode']}${doc['custCode']}${doc['uom']}'));
+    Set<String> hiveSpecialPriceKeys = Set.from(specialPrice.keys);
+
+    // Identify special prices in Hive that don't exist in Firestore
+    Set<String> specialPricesToDelete = hiveSpecialPriceKeys.difference(firestoreSpecialPriceKeys);
+
+    // Delete special prices in Hive that don't exist in Firestore
+    specialPricesToDelete.forEach((hiveSpecialPriceKey) {
+      specialPrice.delete(hiveSpecialPriceKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerItemsSpecialPrice from Firebase to Hive: $e');
   }
@@ -2980,6 +3377,7 @@ Future<void> _synchronizeCustomerItemsSpecialPrice(
 
 Future<void> synchronizeCustomerBrandsSpecialPrice() async {
   try {
+    print('hiiiiii');
     // Fetch data from Firestore
     var firestoreBrandsSpecialPrice =
         await FirebaseFirestore.instance.collection('CustomerBrandsSpecialPrice').get();
@@ -3009,7 +3407,7 @@ Future<void> _synchronizeCustomerBrandsSpecialPrice(
       var cmpCode = doc['cmpCode'];
       var custCode = doc['custCode'];
 
-
+print(doc.data());
       // Check if the brand special price exists in Hive
       var hiveBrandSpecialPrice = brandsSpecialPrice.get('$cmpCode$custCode$brandCode');
 
@@ -3037,6 +3435,17 @@ Future<void> _synchronizeCustomerBrandsSpecialPrice(
         await brandsSpecialPrice.put('$cmpCode$custCode$brandCode', updatedBrandSpecialPrice);
       }
     }
+    Set<String> firestoreBrandsSpecialPriceKeys = Set.from(firestoreBrandsSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custCode']}${doc['brandCode']}'));
+    Set<String> hiveBrandsSpecialPriceKeys = Set.from(brandsSpecialPrice.keys);
+
+    // Identify brand special prices in Hive that don't exist in Firestore
+    Set<String> brandsSpecialPricesToDelete = hiveBrandsSpecialPriceKeys.difference(firestoreBrandsSpecialPriceKeys);
+
+    // Delete brand special prices in Hive that don't exist in Firestore
+    brandsSpecialPricesToDelete.forEach((hiveBrandSpecialPriceKey) {
+      brandsSpecialPrice.delete(hiveBrandSpecialPriceKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerBrandsSpecialPrice from Firebase to Hive: $e');
   }
@@ -3104,6 +3513,16 @@ Future<void> _synchronizeCustomerGroupsSpecialPrice(
         await groupsSpecialPrice.put('$cmpCode$custCode$groupCode', updatedGroupSpecialPrice);
       }
     }
+     Set<String> firestoreGroupsSpecialPriceKeys = Set.from(firestoreGroupsSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custCode']}${doc['groupCode']}'));
+    Set<String> hiveGroupsSpecialPriceKeys = Set.from(groupsSpecialPrice.keys);
+
+    // Identify group special prices in Hive that don't exist in Firestore
+    Set<String> groupsSpecialPricesToDelete = hiveGroupsSpecialPriceKeys.difference(firestoreGroupsSpecialPriceKeys);
+
+    // Delete group special prices in Hive that don't exist in Firestore
+    groupsSpecialPricesToDelete.forEach((hiveGroupSpecialPriceKey) {
+      groupsSpecialPrice.delete(hiveGroupSpecialPriceKey);
+    });
   } catch (e) {
     print('Error synchronizing CustomerGroupsSpecialPrice from Firebase to Hive: $e');
   }
@@ -3170,6 +3589,17 @@ Future<void> _synchronizeCustomerCategSpecialPrice(
         await categSpecialPrice.put('$cmpCode$custCode$categCode', updatedCategSpecialPrice);
       }
     }
+        Set<String> firestoreCategSpecialPriceKeys = Set.from(firestoreCategSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custCode']}${doc['categCode']}'));
+    Set<String> hiveCategSpecialPriceKeys = Set.from(categSpecialPrice.keys);
+
+    // Identify categ special prices in Hive that don't exist in Firestore
+    Set<String> categSpecialPricesToDelete = hiveCategSpecialPriceKeys.difference(firestoreCategSpecialPriceKeys);
+
+    // Delete categ special prices in Hive that don't exist in Firestore
+    categSpecialPricesToDelete.forEach((hiveCategSpecialPriceKey) {
+      categSpecialPrice.delete(hiveCategSpecialPriceKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerCategSpecialPrice from Firebase to Hive: $e');
   }
@@ -3211,7 +3641,7 @@ Future<void> _synchronizeCustomerGroupItemsSpecialPrice(
       var cmpCode = doc['cmpCode'];
       var custGroupCode = doc['custGroupCode'];
       var uom = doc['uom'];
-
+print(doc.data());
       // Check if the group item special price exists in Hive
       var hiveGroupItemSpecialPrice = groupItemsSpecialPrice.get('$cmpCode$custGroupCode$itemCode$uom');
 
@@ -3249,6 +3679,16 @@ Future<void> _synchronizeCustomerGroupItemsSpecialPrice(
         await groupItemsSpecialPrice.put('$cmpCode$custGroupCode$itemCode$uom', updatedGroupItemSpecialPrice);
       }
     }
+    Set<String> firestoreGroupItemsSpecialPriceKeys = Set.from(firestoreGroupItemsSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custGroupCode']}${doc['itemCode']}${doc['uom']}'));
+    Set<String> hiveGroupItemsSpecialPriceKeys = Set.from(groupItemsSpecialPrice.keys);
+
+    // Identify group item special prices in Hive that don't exist in Firestore
+    Set<String> groupItemsSpecialPricesToDelete = hiveGroupItemsSpecialPriceKeys.difference(firestoreGroupItemsSpecialPriceKeys);
+
+    // Delete group item special prices in Hive that don't exist in Firestore
+    groupItemsSpecialPricesToDelete.forEach((hiveGroupItemSpecialPriceKey) {
+      groupItemsSpecialPrice.delete(hiveGroupItemSpecialPriceKey);
+    });
   } catch (e) {
     print('Error synchronizing CustomerGroupItemsSpecialPrice from Firebase to Hive: $e');
   }
@@ -3316,6 +3756,16 @@ Future<void> _synchronizeCustomerGroupBrandSpecialPrice(
         await groupBrandSpecialPrice.put('$cmpCode$custGroupCode$brandCode', updatedGroupBrandSpecialPrice);
       }
     }
+    Set<String> firestoreGroupBrandSpecialPriceKeys = Set.from(firestoreGroupBrandSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custGroupCode']}${doc['brandCode']}'));
+    Set<String> hiveGroupBrandSpecialPriceKeys = Set.from(groupBrandSpecialPrice.keys);
+
+    // Identify group brand special prices in Hive that don't exist in Firestore
+    Set<String> groupBrandSpecialPricesToDelete = hiveGroupBrandSpecialPriceKeys.difference(firestoreGroupBrandSpecialPriceKeys);
+
+    // Delete group brand special prices in Hive that don't exist in Firestore
+    groupBrandSpecialPricesToDelete.forEach((hiveGroupBrandSpecialPriceKey) {
+      groupBrandSpecialPrice.delete(hiveGroupBrandSpecialPriceKey);
+    });
   } catch (e) {
     print('Error synchronizing CustomerGroupBrandSpecialPrice from Firebase to Hive: $e');
   }
@@ -3383,6 +3833,16 @@ Future<void> _synchronizeCustomerGroupGroupSpecialPrice(
         await groupGroupSpecialPrice.put('$cmpCode$custGroupCode$groupCode', updatedGroupGroupSpecialPrice);
       }
     }
+    Set<String> firestoreGroupGroupSpecialPriceKeys = Set.from(firestoreGroupGroupSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custGroupCode']}${doc['groupCode']}'));
+    Set<String> hiveGroupGroupSpecialPriceKeys = Set.from(groupGroupSpecialPrice.keys);
+
+    // Identify group group special prices in Hive that don't exist in Firestore
+    Set<String> groupGroupSpecialPricesToDelete = hiveGroupGroupSpecialPriceKeys.difference(firestoreGroupGroupSpecialPriceKeys);
+
+    // Delete group group special prices in Hive that don't exist in Firestore
+    groupGroupSpecialPricesToDelete.forEach((hiveGroupGroupSpecialPriceKey) {
+      groupGroupSpecialPrice.delete(hiveGroupGroupSpecialPriceKey);
+    });
   } catch (e) {
     print('Error synchronizing CustomerGroupGroupSpecialPrice from Firebase to Hive: $e');
   }
@@ -3451,6 +3911,17 @@ Future<void> _synchronizeCustomerGroupCategSpecialPrice(
         await groupCategSpecialPrice.put('$cmpCode$custGroupCode$categCode', updatedGroupCategSpecialPrice);
       }
     }
+   Set<String> firestoreGroupCategSpecialPriceKeys = Set.from(firestoreGroupCategSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custGroupCode']}${doc['categCode']}'));
+    Set<String> hiveGroupCategSpecialPriceKeys = Set.from(groupCategSpecialPrice.keys);
+
+    // Identify group categ special prices in Hive that don't exist in Firestore
+    Set<String> groupCategSpecialPricesToDelete = hiveGroupCategSpecialPriceKeys.difference(firestoreGroupCategSpecialPriceKeys);
+
+    // Delete group categ special prices in Hive that don't exist in Firestore
+    groupCategSpecialPricesToDelete.forEach((hiveGroupCategSpecialPriceKey) {
+      groupCategSpecialPrice.delete(hiveGroupCategSpecialPriceKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerGroupCategSpecialPrice from Firebase to Hive: $e');
   }
@@ -3531,6 +4002,17 @@ Future<void> _synchronizeCustomerPropItemsSpecialPrice(
         await propItemsSpecialPrice.put('$cmpCode$custPropCode$itemCode$uom', updatedPropItemsSpecialPrice);
       }
     }
+    Set<String> firestorePropItemsSpecialPriceKeys = Set.from(firestorePropItemsSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custPropCode']}${doc['itemCode']}${doc['uom']}'));
+    Set<String> hivePropItemsSpecialPriceKeys = Set.from(propItemsSpecialPrice.keys);
+
+    // Identify prop items special prices in Hive that don't exist in Firestore
+    Set<String> propItemsSpecialPricesToDelete = hivePropItemsSpecialPriceKeys.difference(firestorePropItemsSpecialPriceKeys);
+
+    // Delete prop items special prices in Hive that don't exist in Firestore
+    propItemsSpecialPricesToDelete.forEach((hivePropItemsSpecialPriceKey) {
+      propItemsSpecialPrice.delete(hivePropItemsSpecialPriceKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerPropItemsSpecialPrice from Firebase to Hive: $e');
   }
@@ -3600,6 +4082,17 @@ Future<void> _synchronizeCustomerPropBrandSpecialPrice(
         await propBrandSpecialPrice.put('$cmpCode$custPropCode$brandCode', updatedPropBrandSpecialPrice);
       }
     }
+        Set<String> firestorePropBrandSpecialPriceKeys = Set.from(firestorePropBrandSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custPropCode']}${doc['brandCode']}'));
+    Set<String> hivePropBrandSpecialPriceKeys = Set.from(propBrandSpecialPrice.keys);
+
+    // Identify prop brand special prices in Hive that don't exist in Firestore
+    Set<String> propBrandSpecialPricesToDelete = hivePropBrandSpecialPriceKeys.difference(firestorePropBrandSpecialPriceKeys);
+
+    // Delete prop brand special prices in Hive that don't exist in Firestore
+    propBrandSpecialPricesToDelete.forEach((hivePropBrandSpecialPriceKey) {
+      propBrandSpecialPrice.delete(hivePropBrandSpecialPriceKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerPropBrandSpecialPrice from Firebase to Hive: $e');
   }
@@ -3669,6 +4162,17 @@ Future<void> _synchronizeCustomerPropGroupSpecialPrice(
         await propGroupSpecialPrice.put('$cmpCode$custGroupCode$propCode', updatedPropGroupSpecialPrice);
       }
     }
+    Set<String> firestorePropGroupSpecialPriceKeys = Set.from(firestorePropGroupSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custGroupCode']}${doc['propCode']}'));
+    Set<String> hivePropGroupSpecialPriceKeys = Set.from(propGroupSpecialPrice.keys);
+
+    // Identify prop group special prices in Hive that don't exist in Firestore
+    Set<String> propGroupSpecialPricesToDelete = hivePropGroupSpecialPriceKeys.difference(firestorePropGroupSpecialPriceKeys);
+
+    // Delete prop group special prices in Hive that don't exist in Firestore
+    propGroupSpecialPricesToDelete.forEach((hivePropGroupSpecialPriceKey) {
+      propGroupSpecialPrice.delete(hivePropGroupSpecialPriceKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerPropGroupSpecialPrice from Firebase to Hive: $e');
   }
@@ -3739,6 +4243,17 @@ Future<void> _synchronizeCustomerPropCategSpecialPrice(
         await propCategSpecialPrice.put('$cmpCode$custPropCode$categCode', updatedPropCategSpecialPrice);
       }
     }
+  Set<String>  firestorePropCategSpecialPriceKeys = Set.from(firestorePropCategSpecialPrice.map((doc) => '${doc['cmpCode']}${doc['custPropCode']}${doc['categCode']}'));
+    Set<String> hivePropCategSpecialPriceKeys = Set.from(propCategSpecialPrice.keys);
+
+    // Identify prop categ special prices in Hive that don't exist in Firestore
+    Set<String> propCategSpecialPricesToDelete = hivePropCategSpecialPriceKeys.difference(firestorePropCategSpecialPriceKeys);
+
+    // Delete prop categ special prices in Hive that don't exist in Firestore
+    propCategSpecialPricesToDelete.forEach((hivePropCategSpecialPriceKey) {
+      propCategSpecialPrice.delete(hivePropCategSpecialPriceKey);
+    });
+
   } catch (e) {
     print('Error synchronizing CustomerPropCategSpecialPrice from Firebase to Hive: $e');
   }

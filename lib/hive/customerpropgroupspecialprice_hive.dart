@@ -14,7 +14,7 @@ class CustomerPropGroupSpecialPrice extends HiveObject {
   late String propCode;
 
   @HiveField(3)
-  late String disc;
+  late int disc;
 
   @HiveField(4)
   late double notes;

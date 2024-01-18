@@ -21,7 +21,7 @@ class CustomerCategSpecialPriceAdapter
       cmpCode: fields[0] as String,
       custCode: fields[1] as String,
       categCode: fields[2] as String,
-      disc: fields[3] as double,
+      disc: fields[3] as int,
       notes: fields[4] as String,
     );
   }

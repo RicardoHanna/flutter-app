@@ -15,6 +15,11 @@ import 'package:project/app_notifier.dart';
 import 'package:project/classes/DataSearch.dart';
 import 'package:project/classes/DataSearchCustomers.dart';
 import 'package:project/classes/UserPreferences.dart';
+import 'package:project/hive/customeraddresses_hive.dart';
+import 'package:project/hive/customerbrandsspecialprice_hive.dart';
+import 'package:project/hive/customercontacts_hive.dart';
+import 'package:project/hive/customergroupitemsspecialprice_hive.dart';
+import 'package:project/hive/customergroupsspecialprice_hive.dart';
 import 'package:project/hive/customers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
@@ -70,6 +75,7 @@ void initState() {
   customerBox = Hive.box<Customers>('customersBox');
   initializeData();
   loadCheckboxPreferences();
+  printUserDataTranslations();
 }
 
 Future<void> loadCheckboxPreferences() async {
@@ -124,12 +130,12 @@ dynamic getField(Customers customers, String fieldName) {
 
 
 Future<void> printUserDataTranslations() async {
- var custBox = await Hive.openBox<Customers>('customersBox');
-    
-    print('Printing Users:');
+ var custBox = await Hive.openBox<CustomerGroupItemsSpecialPrice>('customerGroupItemsSpecialPriceBox');
+
+    print('Printinggg Users:');
     for (var cust in custBox.values) {
       print('CmpCode: ${cust.cmpCode}');
-      print('Name: ${cust.custName}');
+      print('Name: ${cust.disc}');
 
       print('-------------------------');
     }
@@ -189,8 +195,8 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
             },
             itemBuilder: (BuildContext context) => [
               PopupMenuItem<String>(
-                value: 'ItemGroup',
-                child: Text(AppLocalizations.of(context)!.sortbyitemgroup,style: _appTextStyleLead,),
+                value: 'GroupCode',
+                child: Text('Sort By Group Code',style: _appTextStyleLead,),
               ),
               PopupMenuItem<String>(
                 value: 'Alphabetic',
@@ -474,7 +480,7 @@ Widget _buildDropdown(String label, String? selectedValue, Function(String?) onC
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text(AppLocalizations.of(context)!.filteritems,style: _appTextStyleNormal,),
+              title: Text('Filter Customers',style: _appTextStyleNormal,),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

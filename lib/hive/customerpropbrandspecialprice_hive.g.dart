@@ -21,7 +21,7 @@ class CustomerPropBrandSpecialPriceAdapter
       cmpCode: fields[0] as String,
       custPropCode: fields[1] as String,
       brandCode: fields[2] as String,
-      disc: fields[3] as double,
+      disc: fields[3] as int,
       notes: fields[4] as String,
     );
   }

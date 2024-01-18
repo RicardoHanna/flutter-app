@@ -17,19 +17,19 @@ class CustomerGroupItemsSpecialPrice extends HiveObject {
   late String uom;
 
   @HiveField(4)
-  late double basePrice;
+  late int basePrice;
 
   @HiveField(5)
-  late double currency;
+  late String currency;
 
   @HiveField(6)
   late bool auto;
 
   @HiveField(7)
-  late double disc;
+  late int disc;
 
   @HiveField(8)
-  late double price;
+  late int price;
 
   @HiveField(9)
   late String notes;

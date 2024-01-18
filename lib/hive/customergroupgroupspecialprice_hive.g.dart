@@ -21,7 +21,7 @@ class CustomerGroupGroupSpecialPriceAdapter
       cmpCode: fields[0] as String,
       custGroupCode: fields[1] as String,
       groupCode: fields[2] as String,
-      disc: fields[3] as double,
+      disc: fields[3] as int,
       notes: fields[4] as String,
     );
   }
