@@ -20,6 +20,7 @@ import 'package:project/hive/customerbrandsspecialprice_hive.dart';
 import 'package:project/hive/customercontacts_hive.dart';
 import 'package:project/hive/customergroupitemsspecialprice_hive.dart';
 import 'package:project/hive/customergroupsspecialprice_hive.dart';
+import 'package:project/hive/customerpropgroupspecialprice_hive.dart';
 import 'package:project/hive/customers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
@@ -130,11 +131,11 @@ dynamic getField(Customers customers, String fieldName) {
 
 
 Future<void> printUserDataTranslations() async {
- var custBox = await Hive.openBox<CustomerGroupItemsSpecialPrice>('customerGroupItemsSpecialPriceBox');
+ var custBox = await Hive.openBox<CustomerPropGroupSpecialPrice>('customerPropGroupSpecialPriceBox');
 
     print('Printinggg Users:');
     for (var cust in custBox.values) {
-      print('CmpCode: ${cust.cmpCode}');
+      print('CmpCode: ${cust.custGroupCode}');
       print('Name: ${cust.disc}');
 
       print('-------------------------');

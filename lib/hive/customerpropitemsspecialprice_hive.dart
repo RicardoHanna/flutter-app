@@ -20,7 +20,7 @@ class CustomerPropItemsSpecialPrice extends HiveObject {
   late int basePrice;
 
   @HiveField(5)
-  late int currency;
+  late String currency;
 
   @HiveField(6)
   late bool auto;

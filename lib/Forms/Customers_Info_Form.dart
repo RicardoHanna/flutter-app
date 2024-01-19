@@ -289,19 +289,39 @@ class CustomersInfoForm extends StatelessWidget {
     child: Column(
        crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+         Center(
+           child: Text('CustomerItemsSpecialPrice',style: TextStyle(
+              color: Colors.blueGrey, // Set the text color to blue
+              fontSize:appNotifier.fontSize.toDouble() ,// Set the font size
+              fontWeight: FontWeight.bold, // Set the font weight to bold
+            )),
+         ),
         _buildBoxWidgetItemSpecial('customerItemsSpecialPriceBox'),
         _buildBoxWidgetBrandSpecial('customerBrandsSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetGroupSpecial('customerGroupsSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetCategSpecial('customerCategSpecialPriceBox'), // Add more boxes as needed
+        Center(
+          child: Text('CustomerGroupSpecialPrice',style: TextStyle(
+              color: Colors.blueGrey, // Set the text color to blue
+              fontSize:appNotifier.fontSize.toDouble() ,// Set the font size
+              fontWeight: FontWeight.bold, // Set the font weight to bold
+            )),
+        ),
         _buildBoxWidgetGroupItemSpecial('customerGroupItemsSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetGroupBrandSpecial('customerGroupBrandSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetGroupGroupSpecial('customerGroupGroupSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetGroupCategSpecial('customerGroupCategSpecialPriceBox'), // Add more boxes as needed
-
+  Center(
+    child: Text('CustomerPropSpecialPrice',style: TextStyle(
+              color: Colors.blueGrey, // Set the text color to blue
+              fontSize:appNotifier.fontSize.toDouble() ,// Set the font size
+              fontWeight: FontWeight.bold, // Set the font weight to bold
+            )),
+  ),
         _buildBoxWidgetPropItemsSpecial('customerPropItemsSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetPropBrandSpecial('customerPropBrandSpecialPriceBox'), // Add more boxes as needed
-     //   _buildBoxWidgetPropGroupSpecial('customerPropGroupSpecialPriceBox'), // Add more boxes as needed
-   //     _buildBoxWidgetPropCategSpecial('customerPropCategSpecialPriceBox'), // Add more boxes as needed
+        _buildBoxWidgetPropGroupSpecial('customerPropGroupSpecialPriceBox'), // Add more boxes as needed
+        _buildBoxWidgetPropCategSpecial('customerPropCategSpecialPriceBox'), // Add more boxes as needed
         
       ],
     ),
@@ -828,7 +848,7 @@ String getKey1FromCustomerProperties() {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                 
-                    _buildTitleTextNumber('PropCode', propitemspecialss?.propCode ?? 'N/A'),
+                    _buildTitleTextNumber('GroupCode', propitemspecialss?.custGroupCode ?? 'N/A'),
                      _buildTitleTextNumber('Disc', propitemspecialss?.disc ?? 'N/A'),
                       _buildTitleTextNumber('Notes', propitemspecialss?.notes ?? 'N/A'),
                           

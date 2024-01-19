@@ -23,7 +23,7 @@ class CustomerPropItemsSpecialPriceAdapter
       itemCode: fields[2] as String,
       uom: fields[3] as String,
       basePrice: fields[4] as int,
-      currency: fields[5] as int,
+      currency: fields[5] as String,
       auto: fields[6] as bool,
       disc: fields[7] as int,
       price: fields[8] as int,

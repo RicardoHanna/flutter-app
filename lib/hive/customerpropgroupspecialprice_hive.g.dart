@@ -22,7 +22,7 @@ class CustomerPropGroupSpecialPriceAdapter
       custGroupCode: fields[1] as String,
       propCode: fields[2] as String,
       disc: fields[3] as int,
-      notes: fields[4] as double,
+      notes: fields[4] as String,
     );
   }
 

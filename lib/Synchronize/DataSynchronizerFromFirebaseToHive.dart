@@ -710,9 +710,9 @@ Future<void> synchronizeDataItemUOM() async {
   try {
     // Iterate over Firestore documents
     for (var doc in firestoreItemUOM) {
-      var itemCode = doc['itemCode'];
+      var uom = doc['uom'];
       // Check if the item exists in Hive
-      var hiveuomItem = itemuomBox.get(itemCode);
+      var hiveuomItem = itemuomBox.get(uom);
 
       // If the item doesn't exist in Hive, add it
       if (hiveuomItem == null) {
@@ -725,7 +725,7 @@ Future<void> synchronizeDataItemUOM() async {
         
           
         );
-        await itemuomBox.put(itemCode, newUOMItem);
+        await itemuomBox.put(uom, newUOMItem);
       }
       // If the item exists in Hive, update it if needed
       else {
@@ -737,13 +737,13 @@ Future<void> synchronizeDataItemUOM() async {
          doc['cmpCode']
         );
         // Update the item in Hive
-        await itemuomBox.put(itemCode, updatedUOMItem);
+        await itemuomBox.put(uom, updatedUOMItem);
       }
     }
 
 // Check for items in Hive that don't exist in Firestore and delete them
     Set<String> firestoreItemUOMCodes =
-        Set.from(firestoreItemUOM.map((doc) => doc['itemCode']));
+        Set.from(firestoreItemUOM.map((doc) => doc['uom']));
     Set<String> hiveItemUOMCodes = Set.from(itemuomBox.keys);
 
     // Identify items in Hive that don't exist in Firestore

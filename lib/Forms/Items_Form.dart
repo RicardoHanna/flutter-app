@@ -15,6 +15,7 @@ import 'package:project/classes/DataSearch.dart';
 import 'package:project/classes/UserPreferences.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
+import 'package:project/hive/itemuom_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/utils.dart';
@@ -69,6 +70,7 @@ void initState() {
   itemBox = Hive.box<Items>('items');
   initializeData();
   loadCheckboxPreferences();
+  printUserDataTranslations();
 }
 
 Future<void> loadCheckboxPreferences() async {
@@ -180,13 +182,13 @@ Future<void> insertSampleData() async {
 }
 
 Future<void> printUserDataTranslations() async {
- var itemsBox = await Hive.openBox<Items>('items');
+ var itemsBox = await Hive.openBox<ItemUOM>('itemuom');
     
     print('Printing Users:');
     for (var item in itemsBox.values) {
       print('Username: ${item.itemCode}');
-      print('Email: ${item.itemName}');
-      print('Email: ${item.active}');
+      print('Email: ${item.uom}');
+      print('Email: ${item.qtyperUOM}');
       print('-------------------------');
     }
   // Open 'translationsBox' for Translations
