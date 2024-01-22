@@ -14,13 +14,13 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 
 class SettingsEditUserForm extends StatefulWidget {
-  final String email;
+  final String usercode;
   final String password;
   final AppNotifier appNotifier;
 
 
   SettingsEditUserForm({
-    required this.email,
+    required this.usercode,
     required this.password, required this.appNotifier,
   });
 
@@ -89,13 +89,13 @@ void _initializeConnectivity() {
   Future<void> _loadUserPreferences() async {
   try {
     var userBox = await Hive.openBox('userBox');
-String? userEmail = widget.email;
+String? userCode = widget.usercode;
 
 // Retrieve user data using the email as the key
-var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
+var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
 
 // Use the retrieved user data as needed
-  int? usercode = user?['usercode'];
+  String? usercode = user?['usercode'];
   String? userFname = user?['userFname'];
   String? userName = user?['username'];
   String? password = user?['password'];
@@ -104,16 +104,17 @@ var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
   String? warehouse = user?['warehouse'];
   int? userGroup = user?['usergroup'];
    bool? active = user?['active'];
+   String? email =user?['email'];
 
     if (userName != null && mounted) {
       // Wait for the result of getUsernameByCode
     
       if (mounted) {
         setState(() {
-          _usercodeController.text=usercode.toString() ;
+          _usercodeController.text=usercode ?? '' ;
           _userFnameController.text = userFname??'';
           _usernameController.text = userName;
-          _emailController.text = userEmail ?? '';
+          _emailController.text = email ?? '';
           _passwordController.text = password ?? '';
           _phonenumberController.text = phoneNumber ?? '';
           _imeicodeController.text = imeiCode ?? '';
@@ -138,7 +139,7 @@ String userLanguage='';
  int userFont=0 ;
 
 var userBox = await Hive.openBox('userBox');
-       dynamic userDataDynamic = userBox.get(widget.email);
+       dynamic userDataDynamic = userBox.get(widget.usercode);
        if (userDataDynamic != null) {
       // Update the font size locally
    userLanguage  =  userDataDynamic['languages'] ?? _selectedLanguage;
@@ -188,7 +189,7 @@ Future<void> fetchUserGroups() async {
     print('Error fetching user groups: $e');
   }
 }
-Future<String?> getUsernameByCode(int usercode) async {
+Future<String?> getUsernameByCode(int groupcode) async {
   String language = AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
 
   try {
@@ -196,15 +197,15 @@ Future<String?> getUsernameByCode(int usercode) async {
 
     // Look for a translation with the specified usercode
     var translation = translationsBox.values.firstWhere(
-      (t) => t.usercode == usercode,
-      orElse: () => Translations(usercode: 0, translations: {}), // Default translation when not found
+      (t) => t.groupcode == groupcode,
+      orElse: () => Translations(groupcode: 0, translations: {}), // Default translation when not found
     );
 
     // Close the Hive box
  
 
     // Retrieve the username from the translation
-    return translation.translations[language] ?? usercode.toString();
+    return translation.translations[language] ?? groupcode.toString();
   } catch (e) {
     print('Error retrieving username: $e');
     return null; // or throw an exception if appropriate
@@ -236,17 +237,17 @@ Future<String?> getUsernameByCode(int usercode) async {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
-            style: _appTextStyle,
-            keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly
-                ],
-            controller: _usercodeController,
-              onChanged: (value) {
-                    _formChanged = true; 
-                  },
-            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
+          AbsorbPointer(
+          absorbing: true,
+            child: TextField(
+              style: _appTextStyle,
+             
+              controller: _usercodeController,
+                onChanged: (value) {
+                      _formChanged = true; 
+                    },
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
+            ),
           ),
           TextField(
             style: _appTextStyle,
@@ -368,19 +369,22 @@ Future<String?> getUsernameByCode(int usercode) async {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Text(AppLocalizations.of(context)!.active,style: _appTextStyle,
+          Text(AppLocalizations.of(context)!.active,style: _appTextStyle
           ),
           SizedBox(width: 10),
-          Switch(
-            value: _isActive,
-            onChanged: (bool newValue) {
-              setState(() {
-                _isActive = newValue;
-                _formChanged=true;
-              });
-              
-              
-            },
+          AbsorbPointer(
+            absorbing: true,
+            child: Switch(
+              value: _isActive,
+              onChanged: (bool newValue) {
+                setState(() {
+                  _isActive = newValue;
+                  _formChanged=true;
+                });
+                
+                
+              },
+            ),
           ),
         ],
       ),
@@ -388,8 +392,8 @@ Future<String?> getUsernameByCode(int usercode) async {
           ElevatedButton(
             onPressed: () {
               _updateUser(
-               widget.email,
-               int.parse(_usercodeController.text),
+               widget.usercode,
+             _usercodeController.text,
                 _usernameController.text,
                 _userFnameController.text,
                 _emailController.text,
@@ -512,8 +516,7 @@ Future<void> _updateLocalDatabase(
     var userBox = await Hive.openBox('userBox');
 
     // Retrieve user data from Hive box based on email
-    String userEmail = widget.email;
-    var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
+    var user = userBox.get(_usercodeController.text) as Map<dynamic, dynamic>?;
 
     // If the user is found, update the fields
     if (user != null) {
@@ -529,7 +532,7 @@ Future<void> _updateLocalDatabase(
       user['font']=newSelectedFont;
 
       // Put the updated user data back into the Hive box
-      await userBox.put(userEmail, user);
+      await userBox.put(_usercodeController.text, user);
  
     }
   } catch (e) {
@@ -541,7 +544,7 @@ Future<void> _updateLocalDatabase(
 
   void _updateUser(
   String oldEmail,
-  int newUserCode,
+  String newUserCode,
   String newUsername,
   String newUserFname,
   String newEmail,
@@ -568,7 +571,7 @@ try {
     var userBox = await Hive.openBox('userBox');
 
     // Retrieve user data from Hive box based on email
-    String userEmail = widget.email;
+    String userEmail = widget.usercode;
     var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
 
     // If the user is found, update the fields
@@ -597,7 +600,7 @@ try {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.userUpdated)),
       );
-       Provider.of<AppNotifier>(context, listen: false).setUserEmail(widget.email);
+       Provider.of<AppNotifier>(context, listen: false).setUserEmail(_emailController.text);
  await Provider.of<AppNotifier>(context, listen: false).updateLang(Locale(_selectedLanguage!));
                 await Provider.of<AppNotifier>(context, listen: false)
                     .updateFontSize(_selectedFont);

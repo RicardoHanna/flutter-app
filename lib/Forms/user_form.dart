@@ -53,7 +53,7 @@ String selectedUserGroupArabic = '';
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            _buildDigits(AppLocalizations.of(context)!.usercode, Icons.code, usercodeController),
+            _buildTextField(AppLocalizations.of(context)!.usercode, Icons.code, usercodeController),
             _buildTextField(AppLocalizations.of(context)!.username, Icons.person, usernameController),
              _buildTextField(AppLocalizations.of(context)!.userFname, Icons.person_2, userFnameController),
             _buildTextField(AppLocalizations.of(context)!.email, Icons.email, emailController),
@@ -117,31 +117,32 @@ String selectedUserGroupArabic = '';
       ),
     );
   }
-
 Widget _buildDigitsFont(String label, IconData icon, TextEditingController controller) {
+  double defaultFontSize = 18.0;
+
   return Column(
     mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
         label,
- style: _appTextStyle,
+        style: _appTextStyle,
       ),
       SizedBox(height: 8.0),
       Slider(
-        value: double.tryParse(controller.text) ?? 12.0,
-        min: 12.0, // Minimum font size
-        max: 30.0, // Maximum font size
-        divisions: 29, // Number of divisions between min and max (adjust as needed)
+        value: double.tryParse(controller.text) ?? defaultFontSize,
+        min: 12.0,
+        max: 30.0,
+        divisions: 29,
         onChanged: (double value) {
-          controller.text = value.toInt().toString();
-          setState(() {}); // Trigger a rebuild to reflect the updated value
+          setState(() {
+            controller.text = value.toInt().toString();
+          });
         },
       ),
-
       Center(
         child: Text(
-          ' ${controller.text}', // Display the selected font size
+          ' ${controller.text.isEmpty ? defaultFontSize.toInt().toString() : controller.text}', // Display the selected font size or default size if not changed
           style: _appTextStyle,
         ),
       ),
@@ -442,10 +443,10 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
       (t) =>
           t.translations[language]?.toLowerCase() == newGroupEn.toLowerCase() ||
           t.translations[language]?.toLowerCase() == newGroupAr.toLowerCase(),
-      orElse: () => Translations(usercode: 0, translations: {}),
+      orElse: () => Translations(groupcode: 0, translations: {}),
     );
 
-    newUserCode = translation.usercode;
+    newUserCode = translation.groupcode;
   
   } else {
     // Group doesn't exist, fetch user code from user groups collection
@@ -454,18 +455,18 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
 
     if (userGroupBox.isNotEmpty) {
       latestUserCode = userGroupBox.values
-          .map<int>((userGroup) => userGroup.usercode)
+          .map<int>((userGroup) => userGroup.groupcode)
           .reduce((value, element) => value > element ? value : element);
     }
 
     newUserCode = latestUserCode + 1;
 
     // Add the new user group to the user groups box
-    await userGroupBox.add(UserGroup(usercode: newUserCode, username: newGroupEn));
+    await userGroupBox.add(UserGroup(groupcode: newUserCode, groupname: newGroupEn));
 
     // Add the new translation to the translations box
     await translationsBox.add(Translations(
-      usercode: newUserCode,
+      groupcode: newUserCode,
       translations: {'en': newGroupEn, 'ar': newGroupAr},
     ));
     
@@ -477,7 +478,7 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
 
   Future<void> _submitForm(BuildContext context) async {
   // Retrieve values from controllers
-  final int usercode=int.parse(usercodeController.text);
+  final String usercode=usercodeController.text;
   final String email = emailController.text;
   final String userFname = userFnameController.text;
   final String password = passwordController.text;
@@ -534,7 +535,7 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
     final userBox = await Hive.openBox('userBox');
 
     // Use the user's email as a unique identifier for the key
-    final userKey = email.toLowerCase(); // Use lowercase to ensure consistency
+    final userKey = usercode; // Use lowercase to ensure consistency
     // Add user data to the box using the unique key
     await userBox.put(userKey, {
       'usercode': usercode,
@@ -575,7 +576,7 @@ bool userExists(String email, String username) {
       user['email'] == lowerEmail || user['username'] == username);
 }
 
-bool userCodeExists(int usercode) {
+bool userCodeExists(String usercode) {
   final userBox = Hive.box('userBox');
   return userBox.values.any((user) =>
       user['usercode'] == usercode);
@@ -612,7 +613,7 @@ Future<void> _syncChangesWithFirestore() async {
           // Check if the user already exists in Firestore based on a unique identifier (e.g., email)
           QuerySnapshot querySnapshot = await FirebaseFirestore.instance
               .collection('Users')
-              .where('email', isEqualTo: userData['email'])
+              .where('usercode', isEqualTo: userData['email'])
               .get();
 
           if (querySnapshot.docs.isEmpty) {

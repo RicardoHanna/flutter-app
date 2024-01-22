@@ -17,8 +17,8 @@ class UserGroupAdapter extends TypeAdapter<UserGroup> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return UserGroup(
-      usercode: fields[0] as int,
-      username: fields[1] as String,
+      groupcode: fields[0] as int,
+      groupname: fields[1] as String,
     );
   }
 
@@ -27,9 +27,9 @@ class UserGroupAdapter extends TypeAdapter<UserGroup> {
     writer
       ..writeByte(2)
       ..writeByte(0)
-      ..write(obj.usercode)
+      ..write(obj.groupcode)
       ..writeByte(1)
-      ..write(obj.username);
+      ..write(obj.groupname);
   }
 
   @override

@@ -110,7 +110,7 @@ Future<Stream<List<TranslationsClass>>> _getUserStream() async {
         // Check if user is not null
         if (user != null) {
           offlineUsers.add(TranslationsClass(
-            usercode: user.usercode ?? 0,
+            groupcode: user.groupcode ?? 0,
             translations: {'en': user.translations['en']??'empty', 'ar': user.translations['ar']??'empty'},
           ));
         }
@@ -211,7 +211,7 @@ TextEditingController newGroupControllerEn = TextEditingController(text: updated
       (t) =>
           t.translations[language]?.toLowerCase() == groupEn.toLowerCase() ||
           t.translations[language]?.toLowerCase() == groupAr.toLowerCase(),
-      orElse: () => Translations(usercode: 0, translations: {}),
+      orElse: () => Translations(groupcode: 0, translations: {}),
     );
 
    // newUserCode = translation.usercode;
@@ -223,21 +223,21 @@ TextEditingController newGroupControllerEn = TextEditingController(text: updated
 var values = translationsBox.values;
   for (var userGroup in values) {
     if (userGroup.translations['en'] == updatedGroupEn) {
-      newUserCode=userGroup.usercode; // Assuming usercode is the key you want to retrieve
+      newUserCode=userGroup.groupcode; // Assuming usercode is the key you want to retrieve
     }
   }
      print(newUserCode);
     // Add the new user group to the user groups box
-    await userGroupBox.put(newUserCode,UserGroup(usercode: newUserCode, username: groupEn));
+    await userGroupBox.put(newUserCode,UserGroup(groupcode: newUserCode, groupname: groupEn));
 
     // Add the new translation to the translations box
     await translationsBox.put(newUserCode,Translations(
-      usercode: newUserCode,
+      groupcode: newUserCode,
       translations: {'en': groupEn, 'ar': groupAr},
     ));
     
   int indexToUpdate = offlineUsers.indexWhere(
-    (existingGroup) => existingGroup.usercode == newUserCode,
+    (existingGroup) => existingGroup.groupcode == newUserCode,
   );
 
   if (indexToUpdate != -1) {
@@ -344,10 +344,10 @@ Future<void> _addNewUserGroup(BuildContext context) async {
       (t) =>
           t.translations[language]?.toLowerCase() == groupEn.toLowerCase() ||
           t.translations[language]?.toLowerCase() == groupAr.toLowerCase(),
-      orElse: () => Translations(usercode: 0, translations: {}),
+      orElse: () => Translations(groupcode: 0, translations: {}),
     );
 
-    newUserCode = translation.usercode;
+    newUserCode = translation.groupcode;
   
   } else {
     // Group doesn't exist, fetch user code from user groups collection
@@ -356,23 +356,23 @@ Future<void> _addNewUserGroup(BuildContext context) async {
 
     if (userGroupBox.isNotEmpty) {
       latestUserCode = userGroupBox.values
-          .map<int>((userGroup) => userGroup.usercode)
+          .map<int>((userGroup) => userGroup.groupcode)
           .reduce((value, element) => value > element ? value : element);
     }
 
     newUserCode = latestUserCode + 1;
 
     // Add the new user group to the user groups box
-    await userGroupBox.put(newUserCode, UserGroup(usercode: newUserCode, username: groupEn));
+    await userGroupBox.put(newUserCode, UserGroup(groupcode: newUserCode, groupname: groupEn));
 
     // Add the new translation to the translations box
     await translationsBox.put(newUserCode, Translations(
-      usercode: newUserCode,
+      groupcode: newUserCode,
       translations: {'en': groupEn, 'ar': groupAr},
     ));
      setState(() {
       offlineUsers.add( TranslationsClass(
-            usercode:newUserCode ?? 0,
+            groupcode:newUserCode ?? 0,
             translations: {'en':groupEn, 'ar':  groupAr},));
     });
   }
@@ -392,7 +392,8 @@ Future<void> _addNewUserGroup(BuildContext context) async {
 
 
 
-void _deleteUser(int usercode, String username) async {
+void _deleteUser(int groupcode, String username) async {
+  print(groupcode);
   bool confirmDelete = await showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -423,13 +424,20 @@ void _deleteUser(int usercode, String username) async {
         var userBox = await Hive.openBox<Translations>('translationsBox');
   
   // Mark the user as deleted (you can use a specific field like 'isDeleted')
-  userBox.delete(usercode);
+  print(groupcode);
+ if (groupcode == 1) {
+         ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('You cannot Delete Admin')),
+                );
+      }
+      else{
+  userBox.delete(groupcode);
 
   // Update offlineUsers list after deletion
                 setState(() {
-                 offlineUsers.removeWhere((user) => user.usercode == usercode);
+                 offlineUsers.removeWhere((user) => user.groupcode == groupcode);
                 });
-               
+    }
     } catch (e) {
       print('Error deleting user: $e');
     }
@@ -500,7 +508,7 @@ languageUser=user.translations['en']!;
                 icon: Icon(Icons.delete),
                 color: Colors.red,
                 onPressed: () {
-                  _deleteUser(user.usercode,languageUser);
+                  _deleteUser(user.groupcode,languageUser);
                 },
               ),
             ],

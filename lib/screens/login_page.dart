@@ -203,7 +203,7 @@ Future<void> _loginLocalDatabaseWithFingerprint(String identifier) async {
   } else if (isInt(identifier)) {
     identifierField = 'usercode';
   } else {
-    identifierField = 'username';
+   identifierField = 'usercode';
   }
 
   // Print or log all data in the local database for debugging
@@ -235,19 +235,20 @@ Future<void> _loginLocalDatabaseWithFingerprint(String identifier) async {
   if (userData[identifierField] != null) {
     print('User found in local database');
 
-    String userLanguage = userData['languages'];
-    int userFont = userData['font'];
+    String userLanguage = userData['languages'] ?? '';
+    int userFont = userData['font'] ?? '';
     String email = userData['email'] ?? ''; // Initialize with an empty string
+    String usercode = userData['usercode'] ?? '';
 
     print('Identifier: $identifierField');
     print('Value: $identifier');
     print('Language: $userLanguage');
 
-    if (userBox.containsKey(email.toLowerCase())) {
+    if (userBox.containsKey(usercode)) {
       // User found in the local database, proceed with login
-      String userLanguage = userBox.get(email.toLowerCase())?['languages'];
-      int userFont = userBox.get(email.toLowerCase())?['font'];
-      email = userBox.get(email.toLowerCase())?['email'] ?? ''; // Reassign the variable
+      String userLanguage = userBox.get(usercode)?['languages'];
+      int userFont = userBox.get(usercode)?['font'];
+      email = userBox.get(usercode)?['email'] ?? ''; // Reassign the variable
 
       if (userLanguage == 'English') {
         Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('en'));
@@ -258,6 +259,8 @@ Future<void> _loginLocalDatabaseWithFingerprint(String identifier) async {
       Provider.of<AppNotifier>(context, listen: false).updateFontSize(userFont);
 
       print('Login with fingerprint successful');
+        if (userBox.containsKey(usercode) &&
+      userBox.get(usercode)?['active'] == true) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -269,10 +272,18 @@ Future<void> _loginLocalDatabaseWithFingerprint(String identifier) async {
           ),
         ),
       );
+      }else{
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('User is not Active'),
+        ),
+      );
+    }
+      
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.invalidEmail),
+          content: Text('Finger Prints Not Detected'),
         ),
       );
     }
@@ -297,7 +308,7 @@ Future<void> _loginLocalDatabase(String identifier, String password) async {
   } else if (isInt(identifier)) {
     identifierField = 'usercode';
   } else {
-    identifierField = 'username';
+    identifierField = 'usercode';
   }
 
   if (_rememberMe) {
@@ -344,21 +355,22 @@ print(identifierField);
 
    if (userData[identifierField] != null) {
     print('loo');
-  String userLanguage = userData['languages'];
-  int userFont = userData['font'];
+  String userLanguage = userData['languages'] ?? '';
+  int userFont = userData['font'] ?? 0;
   String email = userData['email'] ?? ''; // Initialize with an empty string
+  String usercode = userData['usercode'] ?? '';
 
   print('Identifier: $identifierField');
   print('Value: $identifier');
   print('Language: $userLanguage');
   print('Password: ${userData['password']}');
 
-  if (userBox.containsKey(email.toLowerCase()) &&
-      userBox.get(email.toLowerCase())?['password'] == password) {
+  if (userBox.containsKey(usercode) &&
+      userBox.get(usercode)?['password'] == password) {
     // User found in the local database, proceed with login
-    String userLanguage = userBox.get(email.toLowerCase())?['languages'];
-    int userFont = userBox.get(email.toLowerCase())?['font'];
-    email = userBox.get(email.toLowerCase())?['email'] ?? ''; // Reassign the variable
+    String userLanguage = userBox.get(usercode)?['languages'];
+    int userFont = userBox.get(usercode)?['font'];
+    usercode = userBox.get(usercode)?['usercode'] ?? ''; // Reassign the variable
 
     if (userLanguage == 'English') {
       Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('en'));
@@ -368,7 +380,8 @@ print(identifierField);
 
     Provider.of<AppNotifier>(context, listen: false).updateFontSize(userFont);
   
-
+  if (userBox.containsKey(usercode) &&
+      userBox.get(usercode)?['active'] == true) {
     print('hiiiiii');
 
     Navigator.push(
@@ -382,6 +395,13 @@ print(identifierField);
         ),
       ),
     );
+      }else{
+        ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('User is not Active'),
+              ),
+            );
+      }
   }else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

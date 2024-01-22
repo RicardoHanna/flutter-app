@@ -13,7 +13,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:project/classes/Languages.dart';
 
 class EditUserForm extends StatefulWidget {
-  final int usercode;
+  final String usercode;
   final String username;
   final String userFname;
   final String email;
@@ -72,7 +72,7 @@ String username='';
 void initState() {
   super.initState();
   // Initialize the controllers with the existing username and email
-  _usercodeController.text=widget.usercode.toString();
+  _usercodeController.text=widget.usercode;
    _usernameFController.text = widget.userFname;
   _usernameController.text = widget.username;
   _emailController.text = widget.email;
@@ -139,7 +139,7 @@ Future<void> fetchUserGroups() async {
     print('Error fetching user groups: $e');
   }
 }
-Future<String?> getUsernameByCode(int usercode) async {
+Future<String?> getUsernameByCode(int groupcode) async {
   String language = AppLocalizations.of(context)!.language == 'English' ? 'en' : 'ar';
 
   try {
@@ -147,12 +147,12 @@ Future<String?> getUsernameByCode(int usercode) async {
 
     // Look for a translation with the specified usercode
     var translation = translationsBox.values.firstWhere(
-      (t) => t.usercode == usercode,
-      orElse: () => Translations(usercode: 0, translations: {}), // Default translation when not found
+      (t) => t.groupcode == groupcode,
+      orElse: () => Translations(groupcode: 0, translations: {}), // Default translation when not found
     );
 
    // Retrieve the username from the translation
-  return username = translation.translations[language] ?? usercode.toString();
+  return username = translation.translations[language] ?? groupcode.toString();
 
     // Close the Hive box
   
@@ -187,18 +187,17 @@ Future<String?> getUsernameByCode(int usercode) async {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-           TextField(
-            style: _appTextStyle,
-            keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly
-                ],
-            controller: _usercodeController,
-             onChanged: (value) {
-                    _formChanged = true; 
-                  },
-            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
-          ),
+           AbsorbPointer(
+              absorbing: true,
+             child: TextField(
+              style: _appTextStyle,
+              controller: _usercodeController,
+               onChanged: (value) {
+                      _formChanged = true; 
+                    },
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.usercode),
+                     ),
+           ),
           TextField(
             style: _appTextStyle,
             controller: _usernameController,
@@ -398,7 +397,7 @@ Future<String?> getUsernameByCode(int usercode) async {
             onPressed: () {
               _updateUser(
                 widget.username,
-                int.parse(_usercodeController.text),
+               _usercodeController.text,
                 _usernameController.text,
                 _usernameFController.text,
                 _emailController.text,
@@ -458,7 +457,7 @@ Future<bool> _showDiscardChangesDialog() async {
 
   void _updateUser(
     String oldUsername,
-    int newUsercode,
+    String newUsercode,
     String newUsername,
     String newFUsername,
     String newEmail,
@@ -500,11 +499,11 @@ var translationsBox = await Hive.openBox<Translations>('translationsBox');
 // Perform a Hive query to find the translation by username
 var translation = translationsBox.values.firstWhere(
   (t) => t.translations[language] == username,
-  orElse: () => Translations(usercode: 1, translations: {}), // Provide a default value
+  orElse: () => Translations(groupcode: 1, translations: {}), // Provide a default value
 );
 
 // Now, you can safely use the translation
-userSelectGroup = translation.usercode;
+userSelectGroup = translation.groupcode;
 
 print(userSelectGroup);
 
@@ -516,8 +515,8 @@ print(userSelectGroup);
     var userBox = await Hive.openBox('userBox');
 
     // Retrieve user data from Hive box based on email
-    String userEmail = widget.email;
-    var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
+    String userCode = widget.usercode;
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
 
     // If the user is found, update the fields
     if (user != null) {
@@ -535,7 +534,7 @@ print(userSelectGroup);
       user['active'] = newisActive;
 
       // Put the updated user data back into the Hive box
-      await userBox.put(userEmail, user);
+      await userBox.put(userCode, user);
       
     }
 

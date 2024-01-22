@@ -5,7 +5,7 @@ part 'hiveuser.g.dart';
 @HiveType(typeId: 0)
 class User extends HiveObject {
   @HiveField(0)
-  late int usercode;
+  late String usercode;
 
   @HiveField(1)
   late String username;

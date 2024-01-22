@@ -1,7 +1,7 @@
 class TranslationsClass{
-   final int usercode;
+   final int groupcode;
    final Map<String,String> translations;
 
 
-  TranslationsClass({required this.usercode,required this.translations});
+  TranslationsClass({required this.groupcode,required this.translations});
 }

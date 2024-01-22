@@ -18,7 +18,7 @@ class UserSalesEmployeesAdapter extends TypeAdapter<UserSalesEmployees> {
     };
     return UserSalesEmployees(
       cmpCode: fields[0] as String,
-      userCode: fields[1] as int,
+      userCode: fields[1] as String,
       seCode: fields[2] as String,
       notes: fields[3] as String,
     );

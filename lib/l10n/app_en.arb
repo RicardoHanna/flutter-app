@@ -200,9 +200,9 @@
     "@rememberMe": {
         "description": "keep me logged in"
     },
-    "emailusercodeusername": "Email or UserName",
+    "emailusercodeusername": "Email or UserCode",
     "@emailusercodeusername": {
-        "description": "Email or UserName"
+        "description": "Email or UserCode"
     },
     "items": "Items",
     "@items": {
@@ -380,13 +380,13 @@
     "@areyousuretodiscardchanges": {
         "description": "Are you sure you want to discard the changes?"
     },
-    "adminusers": "Admin Users",
+    "adminusers": "Users",
     "@adminusers": {
-        "description": "Admin Users"
+        "description": "Users"
     },
-    "adminusergroup": "Admin User Group",
+    "adminusergroup": "Users Group",
     "@adminusergroup": {
-        "description": "Admin User Group"
+        "description": "Users Group"
     },
     "authorizations": "Authorizations",
     "@authorizations": {

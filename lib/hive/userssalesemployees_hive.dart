@@ -8,7 +8,7 @@ class UserSalesEmployees extends HiveObject {
   late String cmpCode;
 
   @HiveField(1)
-  late int userCode;
+  late String userCode;
 
   @HiveField(2)
   late String seCode;

@@ -17,7 +17,7 @@ class TranslationsAdapter extends TypeAdapter<Translations> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Translations(
-      usercode: fields[0] as int,
+      groupcode: fields[0] as int,
       translations: (fields[1] as Map).cast<String, String>(),
     );
   }
@@ -27,7 +27,7 @@ class TranslationsAdapter extends TypeAdapter<Translations> {
     writer
       ..writeByte(2)
       ..writeByte(0)
-      ..write(obj.usercode)
+      ..write(obj.groupcode)
       ..writeByte(1)
       ..write(obj.translations);
   }

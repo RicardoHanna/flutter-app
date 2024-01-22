@@ -25,8 +25,8 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class SynchronizeDataPage extends StatefulWidget {
     final AppNotifier appNotifier;
-    final String email;
-   SynchronizeDataPage({required this.appNotifier,required this.email});
+    final String usercode;
+   SynchronizeDataPage({required this.appNotifier,required this.usercode});
 
   @override
   _SynchronizeDataPageState createState() => _SynchronizeDataPageState();
@@ -47,14 +47,14 @@ Future<void> _initializeApp() async {
 }
    int _userGroup=0;
 Future<void> _loadUserGroup() async {
-  print(widget.email);
+  print(widget.usercode);
   try {
     var userBox = await Hive.openBox('userBox');
     
     // Retrieve user data from Hive box
-    var user = userBox.get(widget.email) as Map<dynamic, dynamic>?;
+    var user = userBox.get(widget.usercode) as Map<dynamic, dynamic>?;
 print(user.toString());
-print(widget.email);
+print(widget.usercode);
     if (user != null && mounted) {
       setState(() {
         _userGroup = user['usergroup'];
@@ -221,7 +221,7 @@ bool hasAccess = await checkSystemAdmin(_userGroup,importSource);
                       MaterialPageRoute(
                         builder: (context) => ImportForm(
                           appNotifier: widget.appNotifier,
-                          email: widget.email,
+                          usercode: widget.usercode,
                           title: 'Import from ERP To Mobile',
                         ),
                       ),
@@ -244,7 +244,7 @@ bool hasAccess = await checkSystemAdmin(_userGroup,importSource);
                       MaterialPageRoute(
                         builder: (context) => ImportForm(
                           appNotifier: widget.appNotifier,
-                          email: widget.email,
+                          usercode: widget.usercode,
                           title: 'Import from Backend to Mobile',
                         ),
                       ),

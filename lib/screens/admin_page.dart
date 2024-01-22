@@ -21,8 +21,8 @@ import 'package:project/screens/general_settings_page.dart';
 
 class AdminPage extends StatefulWidget {
     final AppNotifier appNotifier;
-    final String email;
-   AdminPage({required this.appNotifier,required this.email});
+    final String usercode;
+   AdminPage({required this.appNotifier,required this.usercode});
 
   @override
   _AdminPageState createState() => _AdminPageState();
@@ -108,14 +108,14 @@ if (hasAccess) {
   }
    int _userGroup=0;
 Future<void> _loadUserGroup() async {
-  print(widget.email);
+  print(widget.usercode);
   try {
     var userBox = await Hive.openBox('userBox');
     
     // Retrieve user data from Hive box
-    var user = userBox.get(widget.email) as Map<dynamic, dynamic>?;
+    var user = userBox.get(widget.usercode) as Map<dynamic, dynamic>?;
 print(user.toString());
-print(widget.email);
+print(widget.usercode);
     if (user != null && mounted) {
       setState(() {
         _userGroup = user['usergroup'];
@@ -164,41 +164,52 @@ AppLocalizations.of(context)!.generalSettings: GeneralSettings(appNotifier: widg
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.adminPage,style: _appTextStyle),
       ),
-      body: Padding(
+    body: Padding(
   padding: EdgeInsets.all(8),
   child: ListView.separated(
     itemCount: data.length,
     itemBuilder: (BuildContext context, int index) {
-      return ListTile(
-        title: Text(data[index],style: _appTextStyle,),
-        leading: Icon(iconData[data[index]]),
-        onTap: () async{
-          int menuCode = menuCodes[data[index]] ?? 0; // Default to 0 if menu code not found
-         print(menuCode);
-         print(_userGroup);
-             // Check if the user has the required authorization
-          bool hasAccess = await checkAuthorization(menuCode, _userGroup);
-
-          if (hasAccess) {
-     
-      Widget? formWidget = formWidgets[data[index]];
-            if (formWidget != null) {
-  
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => formWidget,
+      return FutureBuilder<bool>(
+        future: checkAuthorization(menuCodes[data[index]] ?? 0, _userGroup),
+        builder: (context, snapshot) {
+         if (snapshot.hasError || !(snapshot.data ?? false)) {
+            // If there is an error or the user doesn't have access, show grey text
+            return ListTile(
+              title: Text(
+                data[index],
+                style: _appTextStyle.copyWith(color: Colors.grey),
               ),
+              leading: Icon(iconData[data[index]]),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.permissionAccess),
+                  ),
+                );
+              },
             );
           } else {
-            // Handle the case where the widget is null
-            print('Form widget is null for ${data[index]}');
-          }
-          }else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.permissionAccess),
+            // If the user has access, show regular text
+            return ListTile(
+              title: Text(
+                data[index],
+                style: _appTextStyle,
               ),
+              leading: Icon(iconData[data[index]]),
+              onTap: () {
+                Widget? formWidget = formWidgets[data[index]];
+                if (formWidget != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => formWidget,
+                    ),
+                  );
+                } else {
+                  // Handle the case where the widget is null
+                  print('Form widget is null for ${data[index]}');
+                }
+              },
             );
           }
         },
@@ -207,6 +218,7 @@ AppLocalizations.of(context)!.generalSettings: GeneralSettings(appNotifier: widg
     separatorBuilder: (BuildContext context, int index) => const Divider(),
   ),
 ),
+
 
 
     );

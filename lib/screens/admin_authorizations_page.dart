@@ -132,7 +132,7 @@ Future<Stream<List<TranslationsClass>>> _getUserStream() async {
         // Check if user is not null
         if (user != null) {
           offlineUsers.add(TranslationsClass(
-            usercode: user.usercode ?? 0,
+            groupcode: user.groupcode ?? 0,
             translations: {'en': user.translations['en']??'empty', 'ar': user.translations['ar']??'empty'},
           ));
         }
@@ -463,7 +463,7 @@ languageUser=user.translations['en']!;
                 icon: Icon(Icons.assignment_add),
                 color: Colors.blue,
                 onPressed: () {
-                _assignUserGroup(context,user.translations['en']!,user.translations['ar']!,user.usercode);
+                _assignUserGroup(context,user.translations['en']!,user.translations['ar']!,user.groupcode);
                 },
               ),
              

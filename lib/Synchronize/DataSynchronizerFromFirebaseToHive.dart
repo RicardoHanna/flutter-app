@@ -872,7 +872,7 @@ Future<void> _synchronizeUsers(
     var userBox = await Hive.openBox('userBox');
     
     // Get the list of emails from Firestore users
-    Set<String> firestoreUserEmails = Set.from(firestoreUsers.map((doc) => doc['email']));
+    Set<String> firestoreUserEmails = Set.from(firestoreUsers.map((doc) => doc['usercode']));
 
     // Get the list of emails in the Hive box
     Set<String> hiveUserEmails = Set.from(userBox.keys);
@@ -882,16 +882,16 @@ Future<void> _synchronizeUsers(
 
     // Iterate over Firestore documents
     for (var doc in firestoreUsers) {
-      var email = doc['email'];
+      var usercode = doc['usercode'];
       var userData = doc.data() as Map<String, dynamic>;
 
       // If the item doesn't exist in Hive, add it
-      if (!hiveUserEmails.contains(email)) {
-        await userBox.put(email, userData);
+      if (!hiveUserEmails.contains(usercode)) {
+        await userBox.put(usercode, userData);
       }
       // If the item exists in Hive, update it if needed
       else {
-        await userBox.put(email, userData);
+        await userBox.put(usercode, userData);
       }
     }
 
@@ -943,31 +943,31 @@ Future<void> _synchronizeUsersGroup(
   try {
     // Iterate over Firestore documents
     for (var doc in firestoreUsersGroup) {
-      var usercode = doc['usercode'];
+      var groupcode = doc['groupcode'];
       // Check if the item exists in Hive
-      var hiveusergroup = usersGroup.get(usercode);
+      var hiveusergroup = usersGroup.get(groupcode);
 
       // If the item doesn't exist in Hive, add it
       if (hiveusergroup == null) {
         var newUserGroup = UserGroup(
-          usercode: doc['usercode'],
-          username: doc['username'],
+          groupcode: doc['groupcode'],
+          groupname: doc['groupname'],
         );
-        await usersGroup.put(usercode, newUserGroup);
+        await usersGroup.put(groupcode, newUserGroup);
       }
       // If the item exists in Hive, update it if needed
       else {
         var updatedusergroup = UserGroup(
-          usercode: doc['usercode'],
-          username: doc['username'],
+          groupcode: doc['groupcode'],
+          groupname: doc['groupname'],
         );
         // Update the item in Hive
-        await usersGroup.put(usercode, updatedusergroup);
+        await usersGroup.put(groupcode, updatedusergroup);
       }
     }
     // Check for items in Hive that don't exist in Firestore and delete them
     Set<String> firestoreUserGroupCodes =
-        Set.from(firestoreUsersGroup.map((doc) => doc['usercode']));
+        Set.from(firestoreUsersGroup.map((doc) => doc['groupcode']));
     Set<String> hiveUserGroupCodes = Set.from(usersGroup.keys);
 
     // Identify items in Hive that don't exist in Firestore
@@ -1022,35 +1022,35 @@ Future<void> _synchronizeUsersTranslations(
     // Iterate over Firestore documents
     for (var doc in firestoreUsersTranslations) {
       
-      var usercode = doc['usercode'];
+      var groupcode = doc['groupcode'];
       // Check if the item exists in Hive
-      var hiveusertrans = translationBox.get(usercode);
+      var hiveusertrans = translationBox.get(groupcode);
 
       // If the item doesn't exist in Hive, add it
       if (hiveusertrans == null) {
       
       var newtrans = Translations(
-  usercode: doc['usercode'],
+  groupcode: doc['groupcode'],
   translations: {'en': doc['translations.en'], 'ar': doc['translations.ar']},
 
         );
       
-        await translationBox.put(usercode, newtrans);
+        await translationBox.put(groupcode, newtrans);
       }
       // If the item exists in Hive, update it if needed
       else {
     var updatetrans = Translations(
-  usercode: doc['usercode'],
+  groupcode: doc['groupcode'],
   translations: {'en': doc['translations.en'], 'ar': doc['translations.ar']},
 
         );
       
-        await translationBox.put(usercode, updatetrans);
+        await translationBox.put(groupcode, updatetrans);
       }
     }
 // Delete items in Hive that don't exist in Firestore
     Set<String> firestoreUserTransCodes =
-        Set.from(firestoreUsersTranslations.map((doc) => doc['usercode']));
+        Set.from(firestoreUsersTranslations.map((doc) => doc['groupcode']));
     Set<String> hiveUserTransCodes = Set.from(translationBox.keys);
 
     // Identify items in Hive that don't exist in Firestore

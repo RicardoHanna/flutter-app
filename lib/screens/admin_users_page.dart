@@ -10,6 +10,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive/hive.dart';
+import 'package:project/hive/userssalesemployees_hive.dart';
 
 class AdminUsersPage extends StatefulWidget {
     final AppNotifier appNotifier;
@@ -29,9 +30,22 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   Stream<List<UserClass>> get _usersStream => _userStreamController.stream;
   late List<UserClass> offlineUsers = []; // Add this line
 
+final TextEditingController codeFilterController = TextEditingController();
+  final TextEditingController activeFilterController = TextEditingController();
+  final TextEditingController inactiveFilterController = TextEditingController();
+  final TextEditingController itemNameFilterController = TextEditingController();
 
-  void initState() {
-    super.initState();
+late List<String> activeList = [];
+
+  late List<String> selectedActive = [];
+
+  late Box userBox;
+
+void initState() {
+  super.initState();
+  // Call async method within initState
+userBox= Hive.box('userBox');
+  initializeData();
     _userStreamController = StreamController<List<UserClass>>.broadcast();
     _initUserStream();
 
@@ -41,6 +55,15 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     super.didChangeDependencies();
     _updateOfflineUsers();
   }
+Future<void> initializeData() async {
+  List<UserClass> userList = await _getUsers();
+  users = userList;
+  filteredUsers = List.from(users);
+
+  activeList = await getDistinctValuesFromBox('Active', userBox);
+
+}
+
 
  Future<void> _updateOfflineUsers() async {
   Stream<List<UserClass>>? userStream = await _getUserStream();
@@ -72,6 +95,88 @@ void _searchUsers(String query) {
     }
   });
 }
+Future<List<UserClass>> _getUsers() async {
+  var usersBox = await Hive.openBox('userBox');
+  var allUsers = usersBox.values.toList();
+
+  List<UserClass> usersList = []; // Adjust this type based on your UserClass
+
+  for (var userData in allUsers) {
+    var user = UserClass(
+      usercode: userData['usercode'],
+      username: userData['username'],
+      userFname: userData['userFname'],
+      email: userData['email'],
+      password: userData['password'],
+      phonenumber: userData['phonenumber'],
+      imeicode: userData['imeicode'],
+      warehouse: userData['warehouse'],
+      usergroup: userData['usergroup'],
+      font: userData['font'],
+      languages: userData['languages'],
+      active: userData['active'],
+    );
+
+    usersList.add(user);
+  }
+
+  return usersList;
+}
+
+
+Future<List<String>> getDistinctValuesFromBox(String fieldName, Box box) async {
+  var distinctValues = <String>{};
+  
+  for (var item in box.values) {
+    var value = getField(item, fieldName);
+    
+    // Handle bool values by converting them to String
+    if (value != null) {
+      if (value is bool) {
+        value = value.toString();
+      }
+
+      distinctValues.add(value);
+    }
+  }
+
+  return distinctValues.toList();
+}
+
+
+dynamic getField(dynamic item, String fieldName) {
+  if (item is User) {
+    switch (fieldName) {
+      case 'Active':
+        return item.active;
+     
+      // Add cases for other fields as needed
+      default:
+        return null;
+    }
+  } else if (item is Map<dynamic, dynamic>) {
+    // Handle the case when item is a Map<dynamic, dynamic>
+    switch (fieldName) {
+      case 'Active':
+        return item['active'];
+
+      default:
+        return null;
+    }
+  } else if (item is bool) {
+    // Handle the case when item is a bool
+    switch (fieldName) {
+      case 'Active':
+        return item;
+
+      // Add cases for other fields as needed
+      default:
+        return null;
+    }
+  } else {
+    return null;
+  }
+}
 
 
 
@@ -98,7 +203,7 @@ Future<Stream<List<UserClass>>> _getUserStream() async {
     if (userData != null) {
       // Convert Map from Hive to UserClass and add to the users list
       offlineUsers.add(UserClass(
-            usercode: userData['usercode'] ?? 0,
+            usercode: userData['usercode'] ?? '0',
             username: userData['username'] ?? 'DefaultUsername',
             userFname: userData['userFname'] ?? 'DefaultFUsername',
             email: userData['email'] ?? 'DefaultEmail',
@@ -119,12 +224,101 @@ Future<Stream<List<UserClass>>> _getUserStream() async {
 
   }
 
+void _showFilterDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Filters Active Users',style: _appTextStyle,),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildMultiSelectChip('Active', activeList, selectedActive, setState),
+            
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(AppLocalizations.of(context)!.cancel,style: _appTextStyle,),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _applyFilters();
+                    Navigator.pop(context);
+                  },
+                  child: Text(AppLocalizations.of(context)!.apply,style: _appTextStyle,),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+  Widget _buildMultiSelectChip(
+    String label,
+    List<String> options,
+    List<String> selectedValues,
+    Function(void Function()) setStateCallback,
+  ) {
+            TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble()-6);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,style: _appTextStyle,),
+        Wrap(
+          spacing: 8.0,
+          children: options.map((option) {
+            final isSelected = selectedValues.contains(option);
+            return FilterChip(
+              label: Text(option,style: _appTextStyle,),
+              selected: isSelected,
+              onSelected: (bool selected) {
+                setStateCallback(() {
+                  if (selected) {
+                    selectedValues.add(option);
+                  } else {
+                    selectedValues.remove(option);
+                  }
+                });
+              },
+              backgroundColor: isSelected ? Colors.blue : null,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : null,
+                fontWeight: isSelected ? FontWeight.bold : null,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+
+
+void _applyFilters() {
+  filteredUsers = users.where((user) {
+    var activeMatch = selectedActive.isEmpty || selectedActive.contains(user.active.toString());
+
+    return activeMatch;
+  }).toList();
+
+  setState(() {
+    // Update the UI with the filtered items
+  });
+}
 
 
 
 
-
-void _deleteUser(String username,String email) async {
+void _deleteUser(String username,String usercode) async {
   bool confirmDelete = await showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -148,24 +342,54 @@ void _deleteUser(String username,String email) async {
       );
     },
   );
+if (confirmDelete == true) {
+  try {
+    var userBox = await Hive.openBox('userBox');
+    
+    // Retrieve user data from Hive box based on usercode
+    var user = userBox.get(usercode) as Map<dynamic, dynamic>?;
 
-  if (confirmDelete == true) {
-    try {
-      
-        var userBox = await Hive.openBox('userBox');
-  
-  // Mark the user as deleted (you can use a specific field like 'isDeleted')
-  userBox.delete(email);
+    if (user != null) {
+      // Retrieve usergroup before deleting the user
+      var userGroupToDelete = user['usergroup'];
 
-  // Update offlineUsers list after deletion
-                setState(() {
-                  offlineUsers.removeWhere((user) => user.email == email);
-                });
-               
-    } catch (e) {
-      print('Error deleting user: $e');
+      if (userGroupToDelete == 1) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('You cannot delete Admin'),
+          ),
+        );
+      } else {
+        // Check if usercode exists in UsersSalesEmployee
+        var usersSalesEmployeeBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
+        var salesEmployee = usersSalesEmployeeBox.values.firstWhere(
+          (salesempl) => salesempl.userCode == usercode,
+       
+        );
+
+        if (salesEmployee != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('User is associated with a Sales Employee. Cannot delete!.'),
+            ),
+          );
+        } else {
+          // Continue with deletion if user is not associated with a Sales Employee
+          userBox.delete(usercode);
+
+          setState(() {
+            offlineUsers.removeWhere((user) => user.usercode == usercode);
+          });
+        }
+      }
+    } else {
+      print('User not found in Hive.');
+      // Handle the case when the user is not found in Hive.
     }
+  } catch (e) {
+    print('Error deleting user: $e');
   }
+}
 }
 
 
@@ -175,6 +399,15 @@ void _deleteUser(String username,String email) async {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.adminusers,style: _appTextStyle),
+        actions: [
+          
+   IconButton(
+            icon: Icon(Icons.filter_list),
+            onPressed: () {
+              _showFilterDialog(context);
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -217,7 +450,8 @@ languageUser=user.username;
   languageUser=user.userFname;
 }
         return ListTile(
-          title: Text(languageUser, style: _appTextStyle),
+          title: Text(user.usercode+"   "+languageUser, style: _appTextStyle),
+     
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children:[
@@ -251,7 +485,7 @@ languageUser=user.username;
                 icon: Icon(Icons.delete),
                 color: Colors.red,
                 onPressed: () {
-                  _deleteUser(user.username, user.email);
+                  _deleteUser(user.username, user.usercode);
                 },
               ),
             ],

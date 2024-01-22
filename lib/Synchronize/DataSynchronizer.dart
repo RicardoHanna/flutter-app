@@ -53,7 +53,7 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
 
     // Get a list of user emails in Firestore
     List<String> firestoreUserEmails =
-        firestoreUsers.docs.map((doc) => doc['email'] as String).toList();
+        firestoreUsers.docs.map((doc) => doc['usercode'] as String).toList();
 
     // Identify users that need to be added or updated in Firestore
     List<String> usersToAddOrUpdate =
@@ -64,21 +64,21 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
         firestoreUserEmails.where((userEmail) => !users.contains(userEmail)).toList();
 
     // Delete users that exist in Firestore but not in Hive
-    for (String userEmailToDelete in usersToDelete) {
+    for (String userCodeToDelete in usersToDelete) {
       QuerySnapshot<Map<String, dynamic>> userToDeleteSnapshot = await _firestore
           .collection('Users')
-          .where('email', isEqualTo: userEmailToDelete)
+          .where('usercode', isEqualTo: userCodeToDelete)
           .get();
 
       for (QueryDocumentSnapshot<Map<String, dynamic>> doc in userToDeleteSnapshot.docs) {
         await _firestore.collection('Users').doc(doc.id).delete();
-        print('User deleted: $userEmailToDelete');
+        print('User deleted: $userCodeToDelete');
       }
     }
 
     // Loop through each user to update or add to Firestore
-    for (String userEmailToAddOrUpdate in usersToAddOrUpdate) {
-      var userDataDynamic = userBox.get(userEmailToAddOrUpdate);
+    for (String userCodeToAddOrUpdate in usersToAddOrUpdate) {
+      var userDataDynamic = userBox.get(userCodeToAddOrUpdate);
       Map<String, dynamic>? userData =
           userDataDynamic is Map ? Map<String, dynamic>.from(userDataDynamic) : null;
 
@@ -86,7 +86,7 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
         // Check if the user already exists in Firestore
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
             .collection('Users')
-            .where('email', isEqualTo: userData?['email'])
+            .where('usercode', isEqualTo: userData?['usercode'])
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
@@ -149,7 +149,7 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
         // Check if the usergroup already exists in Firestore
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
             .collection('usergroup')
-            .where('usercode', isEqualTo: usergroup.usercode)
+            .where('groupcode', isEqualTo: usergroup.groupcode)
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
@@ -163,21 +163,21 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
           if (!dataEqualsUserGroup(existingUserGroupData, usergroup)) {
             await _firestore.collection('usergroup').doc(documentId).update(
               {
-                'usercode': usergroup.usercode,
-                'username': usergroup.username,
+                'groupcode': usergroup.groupcode,
+                'groupname': usergroup.groupname,
               },
             );
-            print('UserGroup updated: ${usergroup.usercode}');
+            print('UserGroup updated: ${usergroup.groupcode}');
           }
         } else {
           // Add the UserGroup to Firestore if it doesn't exist
           await _firestore.collection('usergroup').add(
             {
-              'usercode': usergroup.usercode,
-              'username': usergroup.username,
+              'groupcode': usergroup.groupcode,
+              'groupname': usergroup.groupname,
             },
           );
-          print('UserGroup added: ${usergroup.usercode}');
+          print('UserGroup added: ${usergroup.groupcode}');
         }
       } catch (e) {
         print('Error updating Firestore UserGroup: $e');
@@ -193,8 +193,8 @@ bool dataEqualsUserGroup(
     Map<String, dynamic> existingData, UserGroup newUserGroup) {
   // Compare fields and return true if they are equal, otherwise return false
   // Add conditions for each field you want to compare
-  return existingData['usercode'] == newUserGroup.usercode &&
-      existingData['username'] == newUserGroup.username;
+  return existingData['groupcode'] == newUserGroup.groupcode &&
+      existingData['groupname'] == newUserGroup.groupname;
   // Add additional conditions as needed
 }
 
@@ -207,7 +207,7 @@ Future<void> _updateFirestoreTranslations(List<Translations> translations) async
         // Check if the translation already exists in Firestore
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
             .collection('Translations')
-            .where('usercode', isEqualTo: translation.usercode)
+            .where('groupcode', isEqualTo: translation.groupcode)
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
@@ -221,27 +221,27 @@ Future<void> _updateFirestoreTranslations(List<Translations> translations) async
           if (!dataEqualsTranslations(existingTranslationData, translation)) {
             await _firestore.collection('Translations').doc(documentId).update(
               {
-                'usercode': translation.usercode,
+                'groupcode': translation.groupcode,
                 'translations': {
                   'en': translation.translations['en'],
                   'ar': translation.translations['ar'],
                 },
               },
             );
-            print('Translations updated: ${translation.usercode}');
+            print('Translations updated: ${translation.groupcode}');
           }
         } else {
           // Add the Translation to Firestore if it doesn't exist
           await _firestore.collection('Translations').add(
             {
-              'usercode': translation.usercode,
+              'groupcode': translation.groupcode,
               'translations': {
                 'en': translation.translations['en'],
                 'ar': translation.translations['ar'],
               },
             },
           );
-          print('Translations added: ${translation.usercode}');
+          print('Translations added: ${translation.groupcode}');
         }
       } catch (e) {
         print('Error updating Firestore Translations: $e');
@@ -257,7 +257,7 @@ bool dataEqualsTranslations(
     Map<String, dynamic> existingData, Translations newTranslation) {
   // Compare fields and return true if they are equal, otherwise return false
   // Add conditions for each field you want to compare
-  return existingData['usercode'] == newTranslation.usercode &&
+  return existingData['groupcode'] == newTranslation.groupcode &&
       existingData['translations']['en'] == newTranslation.translations['en'] &&
       existingData['translations']['ar'] == newTranslation.translations['ar'];
   // Add additional conditions as needed

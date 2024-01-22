@@ -191,7 +191,7 @@ Future<Stream<List<TranslationsClass>>> _getUserStream() async {
         // Check if user is not null
         if (user != null) {
           offlineUsers.add(TranslationsClass(
-            usercode: user.usercode ?? 0,
+            groupcode: user.groupcode ?? 0,
             translations: {'en': user.translations['en']??'empty', 'ar': user.translations['ar']??'empty'},
           ));
         }
@@ -277,13 +277,13 @@ int _generateCompositeKey(int menucode, int groupcode) {
                             color: Colors.blue,
                             onPressed: () {
                               
-                              _toggleAssignMenuExpansion(user.usercode);
+                              _toggleAssignMenuExpansion(user.groupcode);
                             },
                           ),
                         ],
                       ),
                     ),
-                    if (expandedUsercode == user.usercode)
+                    if (expandedUsercode == user.groupcode)
                       Container(
                         padding: EdgeInsets.all(16.0),
                         child: Column(
@@ -378,7 +378,7 @@ int _generateCompositeKey(int menucode, int groupcode) {
                               children: [
                                 TextButton(
                                   onPressed: () {
-                                    _toggleAssignMenuExpansion(user.usercode);
+                                    _toggleAssignMenuExpansion(user.groupcode);
                                   },
                                   child: Text('Cancel'),
                                 ),
@@ -394,7 +394,7 @@ int _generateCompositeKey(int menucode, int groupcode) {
       connPassword: _connPasswordController.text,
       connPort: int.tryParse(_connPortController.text) ?? 0,
       typeDatabase: _typeDatabaseController.text,
-      groupcode: user.usercode,
+      groupcode: user.groupcode,
       importFromErpToMobile: importFromErpToMobile,
       importFromBackendToMobile: importFromBackendToMobile
     );
@@ -403,16 +403,16 @@ int _generateCompositeKey(int menucode, int groupcode) {
     var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
 
     // Check if the user already exists in the box
-    if (systemAdminBox.containsKey(user.usercode)) {
+    if (systemAdminBox.containsKey(user.groupcode)) {
       // Update the existing SystemAdmin object
-      systemAdminBox.put(user.usercode, updatedSystemAdmin);
+      systemAdminBox.put(user.groupcode, updatedSystemAdmin);
     } else {
       // Insert the new SystemAdmin object
-      systemAdminBox.put(user.usercode, updatedSystemAdmin);
+      systemAdminBox.put(user.groupcode, updatedSystemAdmin);
     }
 
     // Optionally, you can close the current screen or perform other actions
-    _toggleAssignMenuExpansion(user.usercode);
+    _toggleAssignMenuExpansion(user.groupcode);
   },
   child: Text('Update'),
 ),

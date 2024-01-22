@@ -11,12 +11,12 @@ import 'package:project/classes/UserClass.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsPage extends StatefulWidget {
-  final String email;
+  final String usercode;
   final String password;
     final AppNotifier appNotifier;
    
   
-  SettingsPage({required this.email,required this.password,required this.appNotifier});
+  SettingsPage({required this.usercode,required this.password,required this.appNotifier});
   @override
   _SettingsPageState createState() => _SettingsPageState();
 }
@@ -24,6 +24,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String _selectedLanguage = 'English';
   int _selectedFont = 16;
   late TextStyle _appTextStyle;
+  String email='';
 
   @override
   void initState() {
@@ -41,12 +42,12 @@ String userLanguage='';
  int userFont=0 ;
 
 var userBox = await Hive.openBox('userBox');
-       dynamic userDataDynamic = userBox.get(widget.email);
+       dynamic userDataDynamic = userBox.get(widget.usercode);
        if (userDataDynamic != null) {
       // Update the font size locally
    userLanguage  =  userDataDynamic['languages'] ?? _selectedLanguage;
   userFont=  userDataDynamic['font']?? _selectedFont;
-
+email = userDataDynamic['email'] ?? '';
        }
 
 
@@ -127,7 +128,7 @@ if(userLanguage=='Arabic') userLanguage='عربي';
                 Navigator.of(context).pop();
 if(newValue=='عربي') newValue='Arabic';
                 // Update the language in the database
-                Provider.of<AppNotifier>(context, listen: false).setUserEmail(widget.email);
+                Provider.of<AppNotifier>(context, listen: false).setUserEmail(email);
                 await Provider.of<AppNotifier>(context, listen: false).updateLang(Locale(newValue!));
 
                 // Set the user locale after updating the language
@@ -180,7 +181,7 @@ if(newValue=='عربي') newValue='Arabic';
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                Provider.of<AppNotifier>(context, listen: false).setUserEmail(widget.email);
+                Provider.of<AppNotifier>(context, listen: false).setUserEmail(email);
 
                 await Provider.of<AppNotifier>(context, listen: false)
                     .updateFontSize(_selectedFont);
@@ -205,7 +206,7 @@ if(newValue=='عربي') newValue='Arabic';
       context,
       MaterialPageRoute(
         builder: (context) => SettingsEditUserForm(
-          email: widget.email,
+          usercode: widget.usercode,
           password: widget.password,
           appNotifier: widget.appNotifier,
         ),

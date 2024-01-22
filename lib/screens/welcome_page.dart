@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:another_flushbar/flushbar.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -20,6 +21,7 @@ import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/itemsprices_hive.dart';
 import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/translations_hive.dart';
+import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/screens/admin_page.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/screens/synchronize_data_page.dart';
@@ -49,14 +51,16 @@ class _welcomePageState extends State<welcomePage> {
 Uint8List ? _image;
 String ?_image1;
  int _userGroup=0;
- String ? _username;
+ String _username='';
+  String  usercode='';
 
  String ? _userFname;
    @override
 void initState() {
   super.initState();
  
-  _loadUserGroup();
+  loadawaitusergroup();
+
     loadUserGroupHive();
 printUserMenu();
 
@@ -64,7 +68,10 @@ printUserMenu();
  
 }
 
+Future <void> loadawaitusergroup() async {
 
+ await _loadUserGroup();
+}
  
   
      Future<void> _synchronizeData() async {
@@ -78,7 +85,7 @@ printUserMenu();
     await Hive.initFlutter();
     //await insertUsers();
    // await insertUsersGroup();
-    await printUserDataTranslations();
+   // await printUserDataTranslations();
   }
 
     Future<void> printUserMenu() async {
@@ -112,11 +119,11 @@ printUserMenu();
 
     // Insert users with roles
     var userGroupsTranslations = <Translations>[
-      Translations(usercode: 1, translations: {'en': 'Admin', 'ar': 'مسؤل'}),
-      Translations(usercode: 2, translations: {'en': 'User', 'ar': 'مستخدم'}),
-      Translations(usercode: 3, translations: {'en': 'manager', 'ar': 'مدير'}),
-      Translations(usercode: 4, translations: {'en': 'representative', 'ar': 'مندوب'}),
-      Translations(usercode: 5, translations: {'en': 'hr', 'ar': 'موارد'}),
+      Translations(groupcode: 1, translations: {'en': 'Admin', 'ar': 'مسؤل'}),
+      Translations(groupcode: 2, translations: {'en': 'User', 'ar': 'مستخدم'}),
+      Translations(groupcode: 3, translations: {'en': 'manager', 'ar': 'مدير'}),
+      Translations(groupcode: 4, translations: {'en': 'representative', 'ar': 'مندوب'}),
+      Translations(groupcode: 5, translations: {'en': 'hr', 'ar': 'موارد'}),
     
     ];
 
@@ -128,15 +135,12 @@ printUserMenu();
  Future<void> insertUsersGroup() async {
 
 
-    var userGroupBox = await Hive.openBox<UserGroup>('userGroupBox');
+    var userGroupBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
 
     // Insert users with roles
-    var userGroups = <UserGroup>[
-      UserGroup(usercode: 1, username:'Admin'),
-      UserGroup(usercode: 2, username:'User'),
-      UserGroup(usercode: 3, username:'representative'),
-      UserGroup(usercode: 4,  username:'hr'),
-
+    var userGroups = <UserSalesEmployees>[
+      UserSalesEmployees(cmpCode: 'C001', userCode:'3' , seCode:'ssd',notes: 'ss'),
+  
     
     ];
 
@@ -148,21 +152,21 @@ printUserMenu();
 
 Future<void> printUserDataTranslations() async {
   // Open 'userBox' for Users
-    var usersBox = await Hive.openBox('userBox');
+    var usersBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
 
     print('Printing Users:');
     for (var user in usersBox.values) {
-      print('Username: ${user.username}');
-      print('Email: ${user.email}');
+      print('Username: ${user.cmpCode}');
+      print('CMP: ${user.userCode}');
       print('-------------------------');
     }
   
   // Open 'translationsBox' for Translations
-  var userTranslationBox = await Hive.openBox('translationsBox');
+  var userTranslationBox = await Hive.openBox<Translations>('translationsBox');
 
   print('Printing Translations:');
   for (var userTGroup in userTranslationBox.values) {
-    print('User Code: ${userTGroup.usercode}'); // Corrected to 'usercode'
+    print('User Code: ${userTGroup.groupcode}'); // Corrected to 'usercode'
     print('English Translation: ${userTGroup.translations['en']}');
     print('Arabic Translation: ${userTGroup.translations['ar']}');
     print('-------------------------');
@@ -176,34 +180,44 @@ Future<void> printUserDataTranslations() async {
 Future<void> _loadUserGroup() async {
   try {
     var userBox = await Hive.openBox('userBox');
-    
-    // Retrieve user data from Hive box
-    var user = userBox.get(widget.email) as Map<dynamic, dynamic>?;
-print(user.toString());
-print(widget.email);
+    var user;
+
+    if (usercode.isEmpty) {
+      // If usercode is empty, fetch data based on email
+      user = userBox.values.firstWhere(
+        (user) => user['email'] == widget.email,
+        orElse: () => null,
+      );
+    } else {
+      // Retrieve user data from Hive box based on usercode
+      user = userBox.get(usercode) as Map<dynamic, dynamic>?;
+    }
+
+    print(user.toString());
+    print(widget.email);
+
     if (user != null && mounted) {
       setState(() {
         _userGroup = user['usergroup'];
         _username = user['username'];
-        _userFname= user['userFname'];
-
+        _userFname = user['userFname'];
+        usercode = user['usercode'];
       });
     } else {
       print('User not found in Hive.');
       // Handle the case when the user is not found in Hive.
     }
-  
   } catch (e) {
     print('Error loading user group and username: $e');
   }
-
 }
+
 
 Future<Uint8List?> _loadProfilePicturePath() async {
   try {
     // Open the 'userBox' Hive box
     var userBox = await Hive.openBox('userBox');
-    var user = userBox.get(widget.email) as Map<dynamic, dynamic>?;
+    var user = userBox.get(usercode) as Map<dynamic, dynamic>?;
 
     if (user != null) {
       // If there is no internet, load the image from the locally stored path
@@ -343,7 +357,7 @@ void saveProfile(String localPath) async {
 
   // Save download URL in Firestore
   try {
-    await _firestore.collection('Users').where('email', isEqualTo: email).get().then(
+    await _firestore.collection('Users').where('usercode', isEqualTo: usercode).get().then(
       (QuerySnapshot<Map<String, dynamic>> querySnapshot) {
         if (querySnapshot.docs.isNotEmpty) {
           // Update the existing user in Firestore
@@ -445,99 +459,137 @@ languageUser=_username!;
           ],
         ),
       ),
-      ListTile(
-        leading: Icon(Icons.settings),
-        title: Text(AppLocalizations.of(context)!.settings, style: _appTextStyle),
-       onTap: () async {
-    // Check if the user has the required authorization
+  ListTile(
+  leading: Icon(Icons.settings),
+  title: FutureBuilder<bool>(
+    future: checkAuthorization(Menu.SETTINGS_MENU_CODE, _userGroup),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        // If still loading, you can return a loading indicator or an empty container
+        return CircularProgressIndicator();
+      } else if (snapshot.hasError || !(snapshot.data ?? false)) {
+        // If there is an error or the user doesn't have access, show grey text
+        return Text(
+          AppLocalizations.of(context)!.settings,
+          style: _appTextStyle.copyWith(color: Colors.grey),
+        );
+      } else {
+        // If the user has access, show regular text
+        return Text(
+          AppLocalizations.of(context)!.settings,
+          style: _appTextStyle,
+        );
+      }
+    },
+  ),
+  onTap: () async {
     bool hasAccess = await checkAuthorization(Menu.SETTINGS_MENU_CODE, _userGroup);
 
     if (hasAccess) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SettingsEditUserForm(
-                email: widget.email,
-                password: widget.password,
-                appNotifier: widget.appNotifier,
-              ),
-            ),
-          );
-    }else{
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.permissionAccess),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SettingsEditUserForm(
+            usercode: usercode,
+            password: widget.password,
+            appNotifier: widget.appNotifier,
+          ),
         ),
       );
+    } else {
+      Flushbar(
+        message: AppLocalizations.of(context)!.permissionAccess,
+        duration: Duration(seconds: 3),
+      )..show(context);
     }
-        },
-      ),
+  },
+),
+
   ListTile(
   leading: Icon(Icons.admin_panel_settings),
-  title: Text(AppLocalizations.of(context)!.adminPage, style: _appTextStyle),
+  title: FutureBuilder<bool>(
+    future: checkAuthorization(Menu.ADMIN_MENU_CODE, _userGroup),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        // If still loading, you can return a loading indicator or an empty container
+        return CircularProgressIndicator();
+      } else if (snapshot.hasError || !(snapshot.data ?? false)) {
+        // If there is an error or the user doesn't have access, show grey text
+        return Text(
+          AppLocalizations.of(context)!.adminPage,
+          style: _appTextStyle.copyWith(color: Colors.grey),
+        );
+      } else {
+        // If the user has access, show regular text
+        return Text(
+          AppLocalizations.of(context)!.adminPage,
+          style: _appTextStyle,
+        );
+      }
+    },
+  ),
   onTap: () async {
-    // Check if the user has the required authorization
     bool hasAccess = await checkAuthorization(Menu.ADMIN_MENU_CODE, _userGroup);
 
     if (hasAccess) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AdminPage(appNotifier: widget.appNotifier,email: widget.email,),
+          builder: (context) => AdminPage(appNotifier: widget.appNotifier, usercode: usercode),
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.permissionAccess),
-        ),
-      );
+      Flushbar(
+        message: AppLocalizations.of(context)!.permissionAccess,
+        duration: Duration(seconds: 3),
+      )..show(context);
     }
   },
 ),
 
       
-       ListTile(
-       leading: Icon(Icons.sync),
-        title: Text(AppLocalizations.of(context)!.syncronize, style: _appTextStyle),
-        onTap: () async {
-    // Check if the user has the required authorization
+   ListTile(
+  leading: Icon(Icons.sync),
+  title: FutureBuilder<bool>(
+    future: checkAuthorization(Menu.SYNCRONIZE_MENU_CODE, _userGroup),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        // If still loading, you can return a loading indicator or an empty container
+        return CircularProgressIndicator();
+      } else if (snapshot.hasError || !(snapshot.data ?? false)) {
+        // If there is an error or the user doesn't have access, show grey text
+        return Text(
+          AppLocalizations.of(context)!.syncronize,
+          style: _appTextStyle.copyWith(color: Colors.grey),
+        );
+      } else {
+        // If the user has access, show regular text
+        return Text(
+          AppLocalizations.of(context)!.syncronize,
+          style: _appTextStyle,
+        );
+      }
+    },
+  ),
+  onTap: () async {
     bool hasAccess = await checkAuthorization(Menu.SYNCRONIZE_MENU_CODE, _userGroup);
 
     if (hasAccess) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SynchronizeDataPage(appNotifier: widget.appNotifier,email: widget.email,),
+          builder: (context) => SynchronizeDataPage(appNotifier: widget.appNotifier, usercode: usercode),
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.permissionAccess),
-        ),
-      );
+      Flushbar(
+        message: AppLocalizations.of(context)!.permissionAccess,
+        duration: Duration(seconds: 3),
+      )..show(context);
     }
-  //  if (hasAccess) {
-      // bool? confirmed = await _showSyncConfirmationDialog(context);
+  },
+),
 
-    //  if (confirmed != null && confirmed) {
-     //  _synchronizeDatatoHive();
-    /*   ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.syncronized),
-        ),
-      );*/
-   // }
-   /* }else{
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.permissionAccess),
-        ),
-      );
-    }*/
-    }
-      ),
       ListTile(
         leading: Icon(Icons.logout_rounded),
         title: Text(AppLocalizations.of(context)!.logout, style: _appTextStyle),
@@ -554,39 +606,51 @@ languageUser=_username!;
   ),
   
 ),
- 
-body: Padding(
+ body: Padding(
   padding: EdgeInsets.all(8),
   child: ListView.separated(
     itemCount: data.length,
     itemBuilder: (BuildContext context, int index) {
-      return ListTile(
-        title: Text(data[index],style: _appTextStyle,),
-        leading: Icon(iconData[data[index]]),
-        onTap: () async {
-          int menuCode = menuCodes[data[index]] ?? 0; // Default to 0 if menu code not found
-
-          // Check if the user has the required authorization
-          bool hasAccess = await checkAuthorization(menuCode, _userGroup);
-
-          if (hasAccess) {
-            Widget? formWidget = formWidgets[data[index]];
-            if (formWidget != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => formWidget,
-                ),
-              );
-            } else {
-              // Handle the case where the widget is null
-              print('Form widget is null for ${data[index]}');
-            }
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.permissionAccess),
+      return FutureBuilder<bool>(
+        future: checkAuthorization(menuCodes[data[index]] ?? 0, _userGroup),
+        builder: (context, snapshot) {
+           if (snapshot.hasError || !(snapshot.data ?? false)) {
+            // If there is an error or the user doesn't have access, show grey text
+            return ListTile(
+              title: Text(
+                data[index],
+                style: _appTextStyle.copyWith(color: Colors.grey),
               ),
+              leading: Icon(iconData[data[index]]),
+              onTap: () {
+                Flushbar(
+                  message: AppLocalizations.of(context)!.permissionAccess,
+                  duration: Duration(seconds: 3),
+                )..show(context);
+              },
+            );
+          } else {
+            // If the user has access, show regular text
+            return ListTile(
+              title: Text(
+                data[index],
+                style: _appTextStyle,
+              ),
+              leading: Icon(iconData[data[index]]),
+              onTap: () {
+                Widget? formWidget = formWidgets[data[index]];
+                if (formWidget != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => formWidget,
+                    ),
+                  );
+                } else {
+                  // Handle the case where the widget is null
+                  print('Form widget is null for ${data[index]}');
+                }
+              },
             );
           }
         },
@@ -595,6 +659,7 @@ body: Padding(
     separatorBuilder: (BuildContext context, int index) => const Divider(),
   ),
 ),
+
 
       
 
