@@ -130,7 +130,7 @@ Future<Stream<List<TranslationsClass>>> _getUserStream() async {
         Translations? user = userBox.get(key);
 
         // Check if user is not null
-        if (user != null) {
+        if (user != null && user.groupcode!=1) {
           offlineUsers.add(TranslationsClass(
             groupcode: user.groupcode ?? 0,
             translations: {'en': user.translations['en']??'empty', 'ar': user.translations['ar']??'empty'},

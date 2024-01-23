@@ -401,6 +401,7 @@ Future<String?> getUsernameByCode(int groupcode) async {
                 _phonenumberController.text,
                 _imeicodeController.text,
                 _warehouseController.text,
+                _selectedLanguage,
                 _isActive,
                 _selectedFont,
     
@@ -552,6 +553,7 @@ Future<void> _updateLocalDatabase(
   String newPhoneNumber,
   String newImeiCode,
   String newWarehouse,
+  String newSelectedLanguage,
   bool newIsActive,
   int newSelectedFont
 ) async {
@@ -571,8 +573,8 @@ try {
     var userBox = await Hive.openBox('userBox');
 
     // Retrieve user data from Hive box based on email
-    String userEmail = widget.usercode;
-    var user = userBox.get(userEmail) as Map<dynamic, dynamic>?;
+    String userCode = widget.usercode;
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
 
     // If the user is found, update the fields
     if (user != null) {
@@ -584,11 +586,12 @@ try {
       user['phonenumber'] = newPhoneNumber;
       user['imeicode'] = newImeiCode;
       user['warehouse'] = newWarehouse;
+      user['languages'] = newSelectedLanguage;
       user['active'] = newIsActive;
       user['font']=newSelectedFont;
 
       // Put the updated user data back into the Hive box
-      await userBox.put(userEmail, user);
+      await userBox.put(userCode, user);
 
     }
   } catch (e) {

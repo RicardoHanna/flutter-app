@@ -1375,12 +1375,6 @@ Future<void> _synchronizeSystem(
         var newSystem = SystemAdmin(
         
              autoExport:doc['autoExport'],
-             connDatabase: doc['connDatabase'],
-              connServer: doc['connServer'],
-              connUser: doc['connUser'],
-              connPassword:doc['connPassword'],
-              connPort: doc['connPort'],
-              typeDatabase: doc['typeDatabase'],
               groupcode:doc['groupcode'],
               importFromErpToMobile: doc['importFromErpToMobile'],
               importFromBackendToMobile: doc['importFromBackendToMobile'],
@@ -1391,12 +1385,6 @@ Future<void> _synchronizeSystem(
       else {
         var updatedsystem = SystemAdmin(
              autoExport:doc['autoExport'],
-             connDatabase: doc['connDatabase'],
-              connServer: doc['connServer'],
-                connUser: doc['connUser'],
-              connPassword:doc['connPassword'],
-              connPort: doc['connPort'],
-              typeDatabase: doc['typeDatabase'],
               groupcode:doc['groupcode'],
               importFromErpToMobile: doc['importFromErpToMobile'],
               importFromBackendToMobile: doc['importFromBackendToMobile'],

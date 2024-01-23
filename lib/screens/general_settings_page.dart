@@ -125,12 +125,6 @@ void _toggleAssignMenuExpansion(int usercode) {
     if (systemAdmin != null) {
       setState(() {
         autoExport = systemAdmin.autoExport;
-        _connDatabaseController.text = systemAdmin.connDatabase;
-        _connServerController.text = systemAdmin.connServer;
-        _connPasswordController.text = systemAdmin.connPassword;
-        _connUserController.text=systemAdmin.connUser;
-        _connPortController.text = systemAdmin.connPort.toString();
-        _typeDatabaseController.text = systemAdmin.typeDatabase;
         importFromErpToMobile=systemAdmin.importFromErpToMobile;
         importFromBackendToMobile=systemAdmin.importFromBackendToMobile;
         
@@ -233,6 +227,7 @@ int _generateCompositeKey(int menucode, int groupcode) {
 
  
 
+int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Import from Backend to Mobile'
 
   @override
   Widget build(BuildContext context) {
@@ -299,80 +294,33 @@ int _generateCompositeKey(int menucode, int groupcode) {
                               },
                             ),
           SizedBox(height: 10,),   
-                             SwitchListTile(
-                              title: Text('Import from ERP to Mobile'),
-                              value: importFromErpToMobile,
-                              onChanged: (value) {
-                                setState(() {
-                                  importFromErpToMobile = value ?? false;
-                                });
-                              },
-                            ),
-                                
-                             SizedBox(height: 10,),   
+                              RadioListTile<int>(
+      title: Text('Import from ERP to Mobile'),
+      value: 1,
+      groupValue: selectedImportSource,
+      onChanged: (value) {
+        setState(() {
+          selectedImportSource = value ?? 1;
+          print(selectedImportSource);
+        });
+      },
+    ),
+    SizedBox(height: 10,),
+    RadioListTile<int>(
+      title: Text('Import from Backend to Mobile'),
+      value: 2,
+      groupValue: selectedImportSource,
+      onChanged: (value) {
+        setState(() {
+          selectedImportSource = value ?? 1;
+         print(selectedImportSource);
+        });
+      },
+    ),
+                           
+                     
+                          
 
-                              SwitchListTile(
-                              title: Text('Import from Backend to Mobile'),
-                              value: importFromBackendToMobile,
-                              onChanged: (value) {
-                                setState(() {
-                                  importFromBackendToMobile = value ?? false;
-                                });
-                              },
-                            ),
-                            TextField(
-                              decoration: InputDecoration(labelText: 'Connection Database'),
-                            controller: _connDatabaseController,
-              onChanged: (value) {
-                    _formChanged = true; 
-                  },
-                     
-                            ),
-                            TextField(
-                              decoration: InputDecoration(labelText: 'Connection Server'),
-                           controller: _connServerController,
-              onChanged: (value) {
-                    _formChanged = true; 
-                  },
-                            ),
-                             TextField(
-                              decoration: InputDecoration(labelText: 'Connection UserName'),
-                           controller: _connUserController,
-              onChanged: (value) {
-                    _formChanged = true; 
-                  },
-                     
-                            ),
-                 
-                            TextField(
-                              decoration: InputDecoration(labelText: 'Connection Password'),
-                           controller: _connPasswordController,
-              onChanged: (value) {
-                    _formChanged = true; 
-                  },
-                     
-                            ),
-                            TextField(
-                              keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly
-                ],
-            controller: _connPortController,
-              onChanged: (value) {
-                    _formChanged = true; 
-                  },
-                              decoration: InputDecoration(labelText: 'Connection Port'),
-                            
-                            ),
-                            TextField(
-                              decoration: InputDecoration(labelText: 'Type Database'),
-                             controller: _typeDatabaseController,
-              onChanged: (value) {
-                    _formChanged = true; 
-                  },
-                     
-                            ),
-                            SizedBox(height: 16.0),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
@@ -384,16 +332,11 @@ int _generateCompositeKey(int menucode, int groupcode) {
                                 ),
                                ElevatedButton(
   onPressed: () async {
-   
+   if(selectedImportSource==1) importFromErpToMobile=true; else importFromErpToMobile=false;
+   if(selectedImportSource==2) importFromBackendToMobile=true; else importFromBackendToMobile=false;
     // Create a new SystemAdmin object with the updated values
     SystemAdmin updatedSystemAdmin = SystemAdmin(
       autoExport: autoExport,
-      connDatabase: _connDatabaseController.text,
-      connServer: _connServerController.text,
-      connUser: _connUserController.text,
-      connPassword: _connPasswordController.text,
-      connPort: int.tryParse(_connPortController.text) ?? 0,
-      typeDatabase: _typeDatabaseController.text,
       groupcode: user.groupcode,
       importFromErpToMobile: importFromErpToMobile,
       importFromBackendToMobile: importFromBackendToMobile

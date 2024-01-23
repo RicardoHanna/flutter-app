@@ -328,6 +328,10 @@ Future<void> _pickImage(ImageSource source) async {
 }
 
 Future<bool> checkAuthorization(int menucode, int userGroup) async {
+  if(userGroup==1){   // if is admin 
+
+    return true;
+  }else{
   var authorizationBox = await Hive.openBox<Authorization>('authorizationBox');
 
   // Use a composite key to query for authorization
@@ -336,6 +340,7 @@ Future<bool> checkAuthorization(int menucode, int userGroup) async {
 print(compositeKey);
   // Check if the authorization exists
   return authorizationBox.containsKey(compositeKey);
+}
 }
 
 int _generateCompositeKey(int menucode, int groupcode) {

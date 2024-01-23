@@ -467,6 +467,10 @@
     "generalSettings": "General Settings",
     "@generalSettings": {
         "description": "General Settings"
+    },
+    "companiesSettings": "Companies Settings",
+    "@companiesSettings": {
+        "description": "Companies Settings"
     }
     
     

@@ -352,6 +352,8 @@ if (confirmDelete == true) {
     if (user != null) {
       // Retrieve usergroup before deleting the user
       var userGroupToDelete = user['usergroup'];
+           print(filteredUsers.length);
+
 
       if (userGroupToDelete == 1) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -359,7 +361,21 @@ if (confirmDelete == true) {
             content: Text('You cannot delete Admin'),
           ),
         );
-      } else {
+      } 
+      
+     else  if(filteredUsers.length==1){
+
+ ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('You need to have at least one User in You App!'),
+          ),
+        );
+
+      }
+      
+      
+      
+      else {
         // Check if usercode exists in UsersSalesEmployee
         var usersSalesEmployeeBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
         var salesEmployee = usersSalesEmployeeBox.values.firstWhere(

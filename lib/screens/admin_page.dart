@@ -15,6 +15,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive/hive.dart';
 import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/screens/admin_authorizations_page.dart';
+import 'package:project/screens/admin_companies_page.dart';
 import 'package:project/screens/admin_users_page.dart';
 import 'package:project/screens/admin_usersgroup_page.dart';
 import 'package:project/screens/general_settings_page.dart';
@@ -136,13 +137,14 @@ print(widget.usercode);
   Widget build(BuildContext context) {
       TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
 
-    final List<String> data = <String>[AppLocalizations.of(context)!.adminusers, AppLocalizations.of(context)!.adminusergroup,AppLocalizations.of(context)!.authorizations,AppLocalizations.of(context)!.generalSettings];
+    final List<String> data = <String>[AppLocalizations.of(context)!.adminusers, AppLocalizations.of(context)!.adminusergroup,AppLocalizations.of(context)!.authorizations,AppLocalizations.of(context)!.generalSettings,AppLocalizations.of(context)!.companiesSettings];
 
    final Map<String, IconData> iconData = {
     AppLocalizations.of(context)!.adminusers: Icons.people,
 AppLocalizations.of(context)!.adminusergroup: Icons.groups_2,
    AppLocalizations.of(context)!.authorizations : Icons.security_outlined,
-   AppLocalizations.of(context)!.generalSettings: Icons.settings_accessibility
+   AppLocalizations.of(context)!.generalSettings: Icons.settings_accessibility,
+   AppLocalizations.of(context)!.companiesSettings: Icons.business
    
   };
 
@@ -150,7 +152,8 @@ AppLocalizations.of(context)!.adminusergroup: Icons.groups_2,
     AppLocalizations.of(context)!.adminusers: AdminSubMenu.ADMIN_USERS_MENU_CODE,
 AppLocalizations.of(context)!.adminusergroup: AdminSubMenu.SETTINGS_USERSGROUP_MENU_CODE,
 AppLocalizations.of(context)!.authorizations: AdminSubMenu.AUTHORIZATIONS_MENU_CODE,
-    AppLocalizations.of(context)!.generalSettings: AdminSubMenu.GENERAL_SETTINGS_MENU_CODE
+    AppLocalizations.of(context)!.generalSettings: AdminSubMenu.GENERAL_SETTINGS_MENU_CODE,
+    AppLocalizations.of(context)!.companiesSettings: AdminSubMenu.COMPANIES_SETTINGS_MENU_CODE
 };
 
     final Map<String, Widget> formWidgets = {
@@ -158,6 +161,7 @@ AppLocalizations.of(context)!.authorizations: AdminSubMenu.AUTHORIZATIONS_MENU_C
 AppLocalizations.of(context)!.adminusergroup: AdminUsersGroupPage(appNotifier: widget.appNotifier,),
 AppLocalizations.of(context)!.authorizations: AdminAuthorizationsPage(appNotifier: widget.appNotifier,),
 AppLocalizations.of(context)!.generalSettings: GeneralSettings(appNotifier: widget.appNotifier),
+AppLocalizations.of(context)!.companiesSettings: CompaniesSettings(appNotifier: widget.appNotifier)
   };
      _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return Scaffold(
@@ -225,6 +229,9 @@ AppLocalizations.of(context)!.generalSettings: GeneralSettings(appNotifier: widg
 
   }
   Future<bool> checkAuthorization(int groupcode, int userGroup) async {
+    if(userGroup==1){
+      return true;
+    }else{
   var authorizationBox = await Hive.openBox<Authorization>('authorizationBox');
 
   // Use a composite key to query for authorization
@@ -232,6 +239,7 @@ AppLocalizations.of(context)!.generalSettings: GeneralSettings(appNotifier: widg
 
   // Check if the authorization exists
   return authorizationBox.containsKey(compositeKey);
+    }
 }
 
 int _generateCompositeKey(int menucode, int groupcode) {

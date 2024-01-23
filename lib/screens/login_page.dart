@@ -371,7 +371,8 @@ print(identifierField);
     String userLanguage = userBox.get(usercode)?['languages'];
     int userFont = userBox.get(usercode)?['font'];
     usercode = userBox.get(usercode)?['usercode'] ?? ''; // Reassign the variable
-
+    print(userLanguage);
+print('kopl');
     if (userLanguage == 'English') {
       Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('en'));
     } else {
@@ -421,8 +422,10 @@ print(identifierField);
               .where(identifierField, isEqualTo: identifier)
               .where('password', isEqualTo: password)
               .get();
-
+print(identifier);
+print(password);
           if (querySnapshot.docs.isNotEmpty) {
+            print('hisxa');
             DocumentSnapshot userDoc = querySnapshot.docs.first;
 
             var userData = {
@@ -439,9 +442,10 @@ print(identifierField);
               'languages': userDoc.get('languages'),
               'active': userDoc.get('active'),
             };
+String userkey=userDoc.get('usercode');
 String _emailkey=userDoc.get('email');
             // Add the user to the local Hive box
-            userBox.put(_emailkey, userData);
+            userBox.put(userkey, userData);
 await _synchronizeDatatoHive();
             // Proceed with login for the new user
             String userLanguage = userData['languages'];

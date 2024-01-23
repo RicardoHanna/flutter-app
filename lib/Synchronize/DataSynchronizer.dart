@@ -380,12 +380,7 @@ Future<void> _updateFirestoreSystemAdmin(List<SystemAdmin> systemAdmin) async {
             await _firestore.collection('SystemAdmin').doc(documentId).update(
               {
                 'autoExport': systemadmin.autoExport,
-                'connDatabase': systemadmin.connDatabase,
-                'connServer': systemadmin.connServer,
-                'connUser': systemadmin.connUser,
-                'connPassword': systemadmin.connPassword,
-                'connPort': systemadmin.connPort,
-                'typeDatabase': systemadmin.typeDatabase,
+
                 'groupcode': systemadmin.groupcode,
                 'importFromErpToMobile': systemadmin.importFromErpToMobile,
                 'importFromBackendToMobile': systemadmin.importFromBackendToMobile,
@@ -399,12 +394,7 @@ Future<void> _updateFirestoreSystemAdmin(List<SystemAdmin> systemAdmin) async {
           await _firestore.collection('SystemAdmin').add(
             {
               'autoExport': systemadmin.autoExport,
-              'connDatabase': systemadmin.connDatabase,
-              'connServer': systemadmin.connServer,
-              'connUser': systemadmin.connUser,
-              'connPassword': systemadmin.connPassword,
-              'connPort': systemadmin.connPort,
-              'typeDatabase': systemadmin.typeDatabase,
+              
               'groupcode': systemadmin.groupcode,
               'importFromErpToMobile': systemadmin.importFromErpToMobile,
               'importFromBackendToMobile': systemadmin.importFromBackendToMobile,
@@ -428,11 +418,6 @@ bool dataEqualsSystemAdmin(
   // Compare fields and return true if they are equal, otherwise return false
   // Add conditions for each field you want to compare
   return existingData['autoExport'] == newSystemAdmin.autoExport &&
-      existingData['connDatabase'] == newSystemAdmin.connDatabase &&
-      existingData['connServer'] == newSystemAdmin.connServer &&
-      existingData['connPassword'] == newSystemAdmin.connPassword &&
-      existingData['connPort'] == newSystemAdmin.connPort &&
-      existingData['typeDatabase'] == newSystemAdmin.typeDatabase &&
       existingData['groupcode'] == newSystemAdmin.groupcode &&
       existingData['importFromErpToMobile'] == newSystemAdmin.importFromErpToMobile &&
       existingData['importFromBackendToMobile'] == newSystemAdmin.importFromBackendToMobile;

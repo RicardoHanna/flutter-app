@@ -10,6 +10,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:project/Forms/Customers_Info_Form.dart';
+import 'package:project/Forms/Customers_Map_Screen_Form.dart';
 import 'package:project/Forms/Items_Info_Form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/DataSearch.dart';
@@ -128,7 +129,18 @@ dynamic getField(Customers customers, String fieldName) {
   }
 
   
-
+void _showCustomerMap() {
+  // Retrieve GPS coordinates from CustomerAddresses box
+  // based on the cmpCode and display the map screen
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => CustomerMapScreen(
+        customers: filteredCustomers,
+      ),
+    ),
+  );
+}
 
 Future<void> printUserDataTranslations() async {
  var custBox = await Hive.openBox<CustomerPropGroupSpecialPrice>('customerPropGroupSpecialPriceBox');
@@ -286,12 +298,28 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
 ),
 
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showSettingsDialog();
-        },
-        child: Icon(Icons.add),
-      ),
+      
+  floatingActionButton: Column(
+  mainAxisAlignment: MainAxisAlignment.end,
+  children: [
+    FloatingActionButton(
+      onPressed: () {
+        _showCustomerMap();
+      },
+      tooltip: 'Show Map',
+      child: Icon(Icons.map),
+    ),
+    SizedBox(height: 16.0),
+    FloatingActionButton(
+      onPressed: () {
+        _showSettingsDialog();
+      },
+      tooltip: 'Add Customer',
+      child: Icon(Icons.add),
+    ),
+  ],
+),
+
     
     );
     
@@ -366,6 +394,8 @@ Future<void> _showSettingsDialog() async {
 
     userPreferences.showMOFNumCustomers ? 'MOFNum' : null,
   ];
+
+
 
   // ignore: use_build_context_synchronously
   return showDialog<void>(

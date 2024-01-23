@@ -1,6 +1,7 @@
 // hive_initializer.dart
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:project/hive/companiesconnection_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/adminsubmenu_hive.dart';
@@ -119,7 +120,9 @@ Future<void> initializeHive() async {
     ..registerAdapter(CustomerPropItemsSpecialPriceAdapter())
     ..registerAdapter(CustomerPropBrandSpecialPriceAdapter())
     ..registerAdapter(CustomerPropGroupSpecialPriceAdapter())
-    ..registerAdapter(CustomerPropCategSpecialPriceAdapter());
+    ..registerAdapter(CustomerPropCategSpecialPriceAdapter())
+
+    ..registerAdapter(CompaniesConnectionAdapter());
 }
 
 Future<void> openHiveBoxes() async {
@@ -179,4 +182,7 @@ Future<void> openHiveBoxes() async {
   await Hive.openBox<CustomerPropBrandSpecialPrice>('customerPropBrandSpecialPriceBox');
   await Hive.openBox<CustomerPropGroupSpecialPrice>('customerPropGroupSpecialPriceBox');
   await Hive.openBox<CustomerPropCategSpecialPrice>('customerPropCategSpecialPriceBox');
+
+  await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
+  
 }

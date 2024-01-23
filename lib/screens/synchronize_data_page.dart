@@ -206,16 +206,20 @@ if(importSource=="Import from ERP to Mobile"){
                     // Handle the case when the user has access
                  
                   // Show the import dialog
-                  String importSource = await _showImportDialog();
-                  print('Selected Import Source: $importSource');
+                 // String importSource = await _showImportDialog();
+               //   print('Selected Import Source: $importSource');
+                   var systemAdminBox = Hive.box<SystemAdmin>('systemAdminBox');
+    SystemAdmin? systemAdmin = systemAdminBox.get(_userGroup);
+    bool importSourceFromERP=false;
+    if(systemAdmin!=null){
+     importSourceFromERP=systemAdmin!.importFromErpToMobile;
+                
+                }
 
                   // Redirect to ImportForm based on the selected import source
-                  if (importSource == 'Import from ERP to Mobile') {
+                  if (importSourceFromERP == true) {
 
-                              // int menuCode =  SynchronizeSubMenu.IMPORT_FROM_ERP_MENU_CODE ?? 0;
-bool hasAccess = await checkSystemAdmin(_userGroup,importSource);
-
-                     if(hasAccess){
+                  
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -226,19 +230,11 @@ bool hasAccess = await checkSystemAdmin(_userGroup,importSource);
                         ),
                       ),
                     );
-                     }else{
-                         ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text(AppLocalizations.of(context)!.permissionAccess),
-              ),
-            );
-                     }
-                  } else if (importSource == 'Import from Backend to Mobile') {
-                     int menuCode = SynchronizeSubMenu.IMPORT_FROM_BACKEND_MENU_CODE ?? 0;
-                                                  
-bool hasAccess = await checkSystemAdmin(_userGroup,importSource);
+                    
+                  } else if (importSourceFromERP == false) {
+               
 
-                    if(hasAccess){
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -250,13 +246,7 @@ bool hasAccess = await checkSystemAdmin(_userGroup,importSource);
                       ),
                     );
                      
-                    } else{
-                             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.permissionAccess),
-              ),
-            );
-                     }
+                   
                   }
                    
                 } else {
@@ -324,7 +314,7 @@ int _generateCompositeKey(int menucode, int groupcode) {
 
   }
 
-Future<dynamic> _showImportDialog() async {
+/*Future<dynamic> _showImportDialog() async {
      TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
   return showDialog(
     context: context,
@@ -358,7 +348,7 @@ Future<dynamic> _showImportDialog() async {
       );
     },
   );
-}
+}*/
 
 
 
