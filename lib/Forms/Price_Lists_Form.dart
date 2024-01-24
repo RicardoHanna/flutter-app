@@ -15,6 +15,7 @@ import 'package:project/classes/DataSearchPriceLists.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/pricelist_hive.dart';
+import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/utils.dart';
@@ -28,8 +29,9 @@ import 'package:project/Synchronize/DataSynchronizer.dart';
 
 class PriceLists extends StatefulWidget {
   final AppNotifier appNotifier;
+  final String usercode;
 
-  PriceLists({required this.appNotifier});
+  PriceLists({required this.appNotifier,required this.usercode});
 
   @override
   State<PriceLists> createState() => _PriceListsState();
@@ -63,7 +65,7 @@ final TextEditingController codeFilterController = TextEditingController();
 
   Future<void> initializeData() async {
   //  await insertSamplePriceLists();
-    prices=await _getPriceLists();
+    prices=await _getPriceLists(widget.usercode);
     filteredPrices = List.from(prices);
 
     priceCodeList = await getDistinctValuesFromBox('plCode', pricelistBox);
@@ -104,9 +106,9 @@ dynamic getField(PriceList item, String fieldName) {
   var priceListsBox = await Hive.openBox<PriceList>('pricelists');
 
   // Insert sample data
-  var priceList1 = PriceList('PL001', 'Price List 1', 'USD', 100.0, 1.0, true, 'Group1','');
-  var priceList2 = PriceList('PL002', 'Price List 2', 'EUR', 150.0, 1.2, false, 'Group2','');
-  var priceList3 = PriceList('PL001', 'Price List 1', 'EUR', 150.0, 1.2, false, 'Group2','');
+  var priceList1 = PriceList('PL001', 'Price List 1', 'USD', 100.0, 1.0, true, 'Group1','','A');
+  var priceList2 = PriceList('PL002', 'Price List 2', 'EUR', 150.0, 1.2, false, 'Group2','','B');
+  var priceList3 = PriceList('PL001', 'Price List 1', 'EUR', 150.0, 1.2, false, 'Group2','','A');
   await priceListsBox.put(priceList1.plCode, priceList1);
   await priceListsBox.put(priceList2.plCode, priceList2);
 
@@ -114,12 +116,30 @@ dynamic getField(PriceList item, String fieldName) {
  
 }
 
-  Future<List<PriceList>> _getPriceLists() async {
-    var priceListsBox = await Hive.openBox<PriceList>('pricelists');
-    var allPriceLists = priceListsBox.values.toList();
-   
-    return allPriceLists;
+ Future<List<PriceList>> _getPriceLists(String usercode) async {
+  // Open both boxes
+  var authBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
+  var priceListsBox = await Hive.openBox<PriceList>('pricelists');
+
+  // Retrieve authoGroup value based on usercode
+  PriceListAuthorization? authorization = authBox.values.firstWhere(
+    (auth) => auth.userCode == usercode,
+
+  );
+
+  if (authorization != null) {
+    // Use authoGroup to filter priceLists
+    var filteredPriceLists = priceListsBox.values.where(
+      (priceList) => priceList.authoGroup == authorization.authoGroup,
+    ).toList();
+
+    return filteredPriceLists;
+  } else {
+    // Handle the case where no authorization is found for the given usercode
+    return [];
   }
+}
+
 
     void _applySorting() {
     switch (selectedSortingOption) {
@@ -189,7 +209,7 @@ dynamic getField(PriceList item, String fieldName) {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: FutureBuilder<List<PriceList>>(
-          future: _getPriceLists(),
+          future: _getPriceLists(widget.usercode),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return CircularProgressIndicator();

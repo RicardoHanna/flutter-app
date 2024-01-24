@@ -32,21 +32,21 @@ class CustomersInfoForm extends StatelessWidget {
     TextStyle _appTextStyle = TextStyle(fontSize: appNotifier.fontSize.toDouble());
     TextStyle _appTextStyleAppBar = TextStyle(fontSize: appNotifier.fontSize.toDouble());
 
-     return DefaultTabController(
-      length: 5, // Number of tabs
+    return DefaultTabController(
+      length: 7,
       child: Scaffold(
         appBar: AppBar(
-          title: Expanded(
-            child: Text('Customer Details', style: _appTextStyleAppBar),
-          ),
+          title: Text('Customer Details', style: _appTextStyleAppBar),
           bottom: TabBar(
             isScrollable: true,
             tabs: [
               Tab(text: 'Customers'),
               Tab(text: 'Customers Address'),
               Tab(text: 'Customers Contacts'),
-            Tab(text: 'Customers Properties'),
-            Tab(text: 'Customers Special Price'),
+              Tab(text: 'Customers Properties'),
+              Tab(text: 'Customers Items Special Price'),
+              Tab(text: 'Customers Group Special Price'),
+              Tab(text: 'Customers Prop Special Price'),
             ],
           ),
         ),
@@ -56,12 +56,14 @@ class CustomersInfoForm extends StatelessWidget {
             _buildCustomersAddressTab(context),
             _buildCustomersContactsTab(context),
             _buildCustomersPropertiesTab(context),
-            _buildCustomersSpecialPriceTab(context),
+            _buildCustomersItemsSpecialPriceTab(context),
+            _buildCustomersGroupSpecialPriceTab(context),
+            _buildCustomersPropSpecialPriceTab(context),
           ],
         ),
         floatingActionButton: FloatingActionButton(
+          heroTag: null,
           onPressed: () {
-            // Navigate to AttachementsItemForm when the button is pressed
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -75,7 +77,6 @@ class CustomersInfoForm extends StatelessWidget {
     );
   }
 
-  // Create your tab content widgets here
   Widget _buildCustomersTab(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
@@ -83,21 +84,18 @@ class CustomersInfoForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           Row(
-                children: [
-                 
-           
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText('Customer Code', customer.custCode ?? ''),
-                      _buildTitleText('Customer Name', customer.custName ?? ''),
-                          _buildTitleText('Customer FName', customer.custFName ?? ''),
-                    ],
-                  ),
-                ],
-              ),
-
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTitleText('Customer Code', customer.custCode ?? ''),
+                    _buildTitleText('Customer Name', customer.custName ?? ''),
+                    _buildTitleText('Customer FName', customer.custFName ?? ''),
+                  ],
+                ),
+              ],
+            ),
           
             _buildTitleText('Company Code', customer.cmpCode ?? ''),
             _buildTitleText('Currency', customer.curCode ?? ''),
@@ -283,41 +281,52 @@ class CustomersInfoForm extends StatelessWidget {
   }
 
 
- Widget _buildCustomersSpecialPriceTab(BuildContext context) {
+ Widget _buildCustomersItemsSpecialPriceTab(BuildContext context) {
   
   return SingleChildScrollView(
     child: Column(
        crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-         Center(
-           child: Text('CustomerItemsSpecialPrice',style: TextStyle(
-              color: Colors.blueGrey, // Set the text color to blue
-              fontSize:appNotifier.fontSize.toDouble() ,// Set the font size
-              fontWeight: FontWeight.bold, // Set the font weight to bold
-            )),
-         ),
+       
         _buildBoxWidgetItemSpecial('customerItemsSpecialPriceBox'),
         _buildBoxWidgetBrandSpecial('customerBrandsSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetGroupSpecial('customerGroupsSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetCategSpecial('customerCategSpecialPriceBox'), // Add more boxes as needed
-        Center(
-          child: Text('CustomerGroupSpecialPrice',style: TextStyle(
-              color: Colors.blueGrey, // Set the text color to blue
-              fontSize:appNotifier.fontSize.toDouble() ,// Set the font size
-              fontWeight: FontWeight.bold, // Set the font weight to bold
-            )),
-        ),
+        
+        
+      ],
+    ),
+  );
+}
+
+Widget _buildCustomersGroupSpecialPriceTab(BuildContext context) {
+  
+  return SingleChildScrollView(
+    child: Column(
+       crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        
+
+       
         _buildBoxWidgetGroupItemSpecial('customerGroupItemsSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetGroupBrandSpecial('customerGroupBrandSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetGroupGroupSpecial('customerGroupGroupSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetGroupCategSpecial('customerGroupCategSpecialPriceBox'), // Add more boxes as needed
-  Center(
-    child: Text('CustomerPropSpecialPrice',style: TextStyle(
-              color: Colors.blueGrey, // Set the text color to blue
-              fontSize:appNotifier.fontSize.toDouble() ,// Set the font size
-              fontWeight: FontWeight.bold, // Set the font weight to bold
-            )),
-  ),
+ 
+        
+      ],
+    ),
+  );
+}
+
+Widget _buildCustomersPropSpecialPriceTab(BuildContext context) {
+  
+  return SingleChildScrollView(
+    child: Column(
+       crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+      
+  
         _buildBoxWidgetPropItemsSpecial('customerPropItemsSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetPropBrandSpecial('customerPropBrandSpecialPriceBox'), // Add more boxes as needed
         _buildBoxWidgetPropGroupSpecial('customerPropGroupSpecialPriceBox'), // Add more boxes as needed
@@ -378,6 +387,8 @@ Widget _buildBoxWidgetItemSpecial(String boxName) {
     },
   );
 }
+
+
 
 Widget _buildBoxWidgetBrandSpecial(String boxName) {
   return FutureBuilder<Box<CustomerBrandsSpecialPrice>>(

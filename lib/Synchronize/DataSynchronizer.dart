@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 import 'package:project/hive/authorization_hive.dart';
+import 'package:project/hive/companiesconnection_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/systemadmin_hive.dart';
@@ -30,6 +31,9 @@ class DataSynchronizer {
           var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
       List<SystemAdmin> systemadmin = systemAdminBox.values.toList();
 
+          var companiesConnectionBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
+      List<CompaniesConnection> companyadmin = companiesConnectionBox.values.toList();
+
       // Check for an internet connection
       if (await hasInternetConnection()) {
         // If there's an internet connection, update or add data to Firestore
@@ -38,6 +42,7 @@ class DataSynchronizer {
         await _updateFirestoreTranslations(translations);
         await _updateFirestoreAuthorization(authorization);
         await _updateFirestoreSystemAdmin(systemadmin);
+        await _updateFirestoreCompaniesConnection(companyadmin);
         // Update or add other data to Firestore if needed
 
       }
@@ -412,6 +417,72 @@ Future<void> _updateFirestoreSystemAdmin(List<SystemAdmin> systemAdmin) async {
   }
 }
 
+
+
+
+Future<void> _updateFirestoreCompaniesConnection(List<CompaniesConnection> companiesConnection) async {
+  try {
+    // Loop through each SystemAdmin and update or add to Firestore
+    for (CompaniesConnection companyConnection in companiesConnection) {
+      try {
+        // Check if the SystemAdmin already exists in Firestore
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('CompaniesConnection')
+            .where('connectionID', isEqualTo: companyConnection.connectionID)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          // SystemAdmin already exists, check for updates
+          String documentId = querySnapshot.docs[0].id;
+
+          // Fetch existing data from Firestore
+          Map<String, dynamic> existingSystemAdminData = querySnapshot.docs[0].data()!;
+
+          // Compare existing data with data from Hive
+          if (!dataEqualsCompaniesConnection(existingSystemAdminData, companyConnection)) {
+            await _firestore.collection('CompaniesConnection').doc(documentId).update(
+              {
+                'connectionID': companyConnection.connectionID,
+
+                'connDatabase': companyConnection.connDatabase,
+                'connServer': companyConnection.connServer,
+                 'connUser': companyConnection.connUser,
+                 'connPassword':companyConnection.connPassword,
+                 'connPort':companyConnection.connPort,
+                  'typeDatabase':companyConnection.typeDatabase,
+         
+                // Update other fields if needed
+              },
+            );
+            print('Companies Connection updated: ${companyConnection.connectionID}');
+          }
+        } else {
+          // Add the SystemAdmin to Firestore if it doesn't exist
+          await _firestore.collection('CompaniesConnection').add(
+            {
+               'connectionID': companyConnection.connectionID,
+
+                'connDatabase': companyConnection.connDatabase,
+                'connServer': companyConnection.connServer,
+                 'connUser': companyConnection.connUser,
+                 'connPassword':companyConnection.connPassword,
+                 'connPort':companyConnection.connPort,
+                  'typeDatabase':companyConnection.typeDatabase,
+              // Add other fields if needed
+            },
+          );
+          print('Companies Connection added: ${companyConnection.connectionID}');
+        }
+      } catch (e) {
+        print('Error updating Firestore Companies Connection: $e');
+      }
+    }
+  } catch (e) {
+    print('Error updating Firestore SystemAdmins: $e');
+  }
+}
+
+
 // Function to compare SystemAdmin data equality (customize based on your data structure)
 bool dataEqualsSystemAdmin(
     Map<String, dynamic> existingData, SystemAdmin newSystemAdmin) {
@@ -421,6 +492,19 @@ bool dataEqualsSystemAdmin(
       existingData['groupcode'] == newSystemAdmin.groupcode &&
       existingData['importFromErpToMobile'] == newSystemAdmin.importFromErpToMobile &&
       existingData['importFromBackendToMobile'] == newSystemAdmin.importFromBackendToMobile;
+  // Add additional conditions as needed
+}
+
+bool dataEqualsCompaniesConnection(
+    Map<String, dynamic> existingData, CompaniesConnection newCompanyConnection) {
+  // Compare fields and return true if they are equal, otherwise return false
+  // Add conditions for each field you want to compare
+  return existingData['connectionID'] == newCompanyConnection.connectionID &&
+      existingData['connDatabase'] == newCompanyConnection.connDatabase &&
+      existingData['connUser'] == newCompanyConnection.connUser &&
+       existingData['connPassword'] == newCompanyConnection.connPassword &&
+        existingData['connPort'] == newCompanyConnection.connPort &&
+      existingData['typeDatabase'] == newCompanyConnection.typeDatabase;
   // Add additional conditions as needed
 }
 

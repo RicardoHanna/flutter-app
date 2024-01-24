@@ -550,11 +550,11 @@ if (rowsItemUOM && rowsItemUOM.length) {
               identifierValuesPriceLists.push(identifierValue); // Store identifier values for later comparison
           
               // Update or add the document in Firestore
-              await updateFirestoreOnSqlServerUpdate('PriceLists', updatedRecord, [identifierFieldPriceLists], identifierValue);
+              await updateFirestoreOnSqlServerUpdate('PriceList', updatedRecord, [identifierFieldPriceLists], identifierValue);
             }
           
             // Fetch documents from Firestore
-            const firestoreCollectionPriceLists = admin.firestore().collection('PriceLists');
+            const firestoreCollectionPriceLists = admin.firestore().collection('PriceList');
             const firestoreQueryPriceLists = await firestoreCollectionPriceLists.get();
             const firestoreDocumentsPriceLists = firestoreQueryPriceLists.docs.map(doc => doc.data());
           
@@ -565,7 +565,7 @@ if (rowsItemUOM && rowsItemUOM.length) {
           
             // Delete Firestore documents that are not in SQL Server results
             for (const docToDelete of documentsToDeletePriceLists) {
-              await deleteFirestoreOnSqlServerDelete('PriceLists', [identifierFieldPriceLists], docToDelete[identifierFieldPriceLists]);
+              await deleteFirestoreOnSqlServerDelete('PriceList', [identifierFieldPriceLists], docToDelete[identifierFieldPriceLists]);
             }
           }
           
@@ -1954,11 +1954,11 @@ await deleteFirestoreOnSqlServerDelete('ItemUOM', [identifierFieldItemUOM], docT
           identifierValuesPriceLists.push(identifierValue); // Store identifier values for later comparison
       
           // Update or add the document in Firestore
-          await updateFirestoreOnSqlServerUpdate('PriceLists', updatedRecord, [identifierFieldPriceLists], identifierValue);
+          await updateFirestoreOnSqlServerUpdate('PriceList', updatedRecord, [identifierFieldPriceLists], identifierValue);
         }
       
         // Fetch documents from Firestore
-        const firestoreCollectionPriceLists = admin.firestore().collection('PriceLists');
+        const firestoreCollectionPriceLists = admin.firestore().collection('PriceList');
         const firestoreQueryPriceLists = await firestoreCollectionPriceLists.get();
         const firestoreDocumentsPriceLists = firestoreQueryPriceLists.docs.map(doc => doc.data());
       
@@ -1969,7 +1969,7 @@ await deleteFirestoreOnSqlServerDelete('ItemUOM', [identifierFieldItemUOM], docT
       
         // Delete Firestore documents that are not in SQL Server results
         for (const docToDelete of documentsToDeletePriceLists) {
-          await deleteFirestoreOnSqlServerDelete('PriceLists', [identifierFieldPriceLists], docToDelete[identifierFieldPriceLists]);
+          await deleteFirestoreOnSqlServerDelete('PriceList', [identifierFieldPriceLists], docToDelete[identifierFieldPriceLists]);
         }
       }
       

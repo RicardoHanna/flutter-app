@@ -310,6 +310,7 @@ child: Text('Import', style: _appTextStyle),
       TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
     await synchronizer.synchronizeDataPriceLists();
+          await synchronizer.synchronizeDataPriceListsAutho();
         ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('PriceLists synchronized successfully',style: _appTextStyle,),
@@ -348,6 +349,9 @@ child: Text('Import', style: _appTextStyle),
      await synchronizer.synchronizeSalesEmployeesItems();
 
       await synchronizer.synchronizeUserSalesEmployees();
+
+
+      await synchronizer.synchronizeDataCompaniesConnection();
       
 
         

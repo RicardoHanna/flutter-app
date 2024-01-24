@@ -9,11 +9,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:project/classes/Languages.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:project/hive/companies_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:project/hive/salesemployees_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
+import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
+  import 'package:multi_select_flutter/multi_select_flutter.dart';
 class UserForm extends StatefulWidget {
 
   final AppNotifier appNotifier;
@@ -28,7 +32,7 @@ class _UserFormState extends State<UserForm> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
-  final TextEditingController warehouseController = TextEditingController();
+  final TextEditingController salesemployeesController = TextEditingController();
   final TextEditingController fontController = TextEditingController();
   final TextEditingController languageController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
@@ -39,7 +43,7 @@ class _UserFormState extends State<UserForm> {
   List<String> userGroups = ['Admin', 'User'];
   bool isInitialized = false;
   String language='';
-  
+    List<String?> selectedSalesEmployees = [];
   TextStyle _appTextStyle=TextStyle();
 String selectedUserGroupArabic = '';
   @override
@@ -60,10 +64,13 @@ String selectedUserGroupArabic = '';
             _buildTextField(AppLocalizations.of(context)!.password, Icons.lock, passwordController, obscureText: true),
             _buildDigits(AppLocalizations.of(context)!.phoneNumber, Icons.phone, phoneNumberController),
             _buildDigits(AppLocalizations.of(context)!.imeiNumber, Icons.code, imeiCodeController),
-            _buildTextField(AppLocalizations.of(context)!.warehouse, Icons.business, warehouseController),
+    
             _buildUserGroupDropdown(),
             _buildUserGroupDropdownLanguages(),
+              SizedBox(height: 8.0),
+                    _buildTextFieldDropDownSalesEmployees(),
             SizedBox(height: 8.0),
+            
               _buildDigitsFont(AppLocalizations.of(context)!.font, Icons.font_download, fontController),
             _buildUserGroupActive(),
             SizedBox(height: 20),
@@ -253,6 +260,102 @@ Widget _buildDigitsFont(String label, IconData icon, TextEditingController contr
       ),
     );
   }
+ Widget _buildTextFieldDropDownSalesEmployees() {
+  String? selectedCmpCode;
+  String? selectedSeCode;
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: FutureBuilder(
+      future: Future.wait([
+        Hive.openBox<SalesEmployees>('salesEmployeesBox'),
+        Hive.openBox<Companies>('companiesBox'),
+      ]),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          var salesEmployeesBox = snapshot.data![0] as Box<SalesEmployees>;
+          var companyBox = snapshot.data![1] as Box<Companies>;
+
+          List<String> salesEmployeeList = salesEmployeesBox.values
+              .map((salesEmployee) {
+                Companies company = companyBox.values
+                    .firstWhere((company) => company.cmpCode == salesEmployee.cmpCode);
+                return '${salesEmployee.seName} - ${company.cmpName}';
+              })
+              .toList();
+
+          return Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: TextTheme(
+                subtitle1: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Sales Employees',
+                  style: _appTextStyle,
+                ),
+                SizedBox(height: 8.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: MultiSelectDialogField(
+                    items: salesEmployeeList
+                        .map((seName) => MultiSelectItem<String>(seName, seName))
+                        .toList(),
+                    initialValue: selectedSalesEmployees,
+                    onConfirm: (List<String?> values) {
+                      setState(() {
+                        selectedSalesEmployees = values;
+
+                        // Retrieve cmpCode and seCode based on selected values
+                        String selectedSalesEmployee = values.first!;
+                        List<String> parts = selectedSalesEmployee.split(' - ');
+
+                        // Find Company based on cmpName
+                        Companies selectedCompany = companyBox.values
+                            .firstWhere((company) => company.cmpName == parts[1]);
+
+                        // Assign cmpCode and seCode to variables
+                        selectedCmpCode = selectedCompany.cmpCode;
+                        selectedSeCode = salesEmployeesBox.values
+                            .firstWhere((se) => se.seName == parts[0])
+                            .seCode;
+                              print(selectedCmpCode);
+                              print(selectedSeCode);
+                      });
+                    },
+                    
+                  ),
+                  
+                ),
+                
+              ],
+            ),
+          );
+          
+        } else {
+          return Container(); // You can replace this with a loading indicator
+        }
+        
+      },
+      
+    ),
+    
+  );
+}
+
+
+
+
+
 
   Widget _buildUserGroupActive() {
     return Padding(
@@ -483,7 +586,7 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
   final String userFname = userFnameController.text;
   final String password = passwordController.text;
   final String username = usernameController.text;
-  final String warehouse = warehouseController.text;
+
   final int font = int.parse(fontController.text);
   final String phonenumber = phoneNumberController.text;
   final String imeicode = imeiCodeController.text;
@@ -501,6 +604,7 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
     );
     return;
   }
+
 
   try {
     int userSelectGroup = 0;
@@ -545,7 +649,6 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
       'password': password,
       'phonenumber': phonenumber,
       'imeicode': imeicode,
-      'warehouse': warehouse,
       'active': isActive,
       'usergroup': userSelectGroup,
       'languages': selectedLanguage,
@@ -671,7 +774,7 @@ Future<void> _syncChangesWithFirestore() async {
     emailController.dispose();
     passwordController.dispose();
     usernameController.dispose();
-    warehouseController.dispose();
+
     super.dispose();
   }
 }

@@ -25,7 +25,9 @@ import 'package:project/hive/customerpropgroupspecialprice_hive.dart';
 import 'package:project/hive/customers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
+import 'package:project/hive/salesemployees_hive.dart';
 import 'package:project/hive/translations_hive.dart';
+import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/utils.dart';
 import 'package:project/screens/admin_users_page.dart';
@@ -143,12 +145,12 @@ void _showCustomerMap() {
 }
 
 Future<void> printUserDataTranslations() async {
- var custBox = await Hive.openBox<CustomerPropGroupSpecialPrice>('customerPropGroupSpecialPriceBox');
+ var custBox = await Hive.openBox<SalesEmployees>('salesEmployeesBox');
 
     print('Printinggg Users:');
     for (var cust in custBox.values) {
-      print('CmpCode: ${cust.custGroupCode}');
-      print('Name: ${cust.disc}');
+      print('CmpCode: ${cust.cmpCode}');
+      print('Name: ${cust.seCode}');
 
       print('-------------------------');
     }
@@ -303,6 +305,7 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
   mainAxisAlignment: MainAxisAlignment.end,
   children: [
     FloatingActionButton(
+      heroTag: null,
       onPressed: () {
         _showCustomerMap();
       },
@@ -311,6 +314,7 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
     ),
     SizedBox(height: 16.0),
     FloatingActionButton(
+      heroTag: null,
       onPressed: () {
         _showSettingsDialog();
       },
@@ -516,7 +520,7 @@ Widget _buildDropdown(String label, String? selectedValue, Function(String?) onC
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildMultiSelectChip(AppLocalizations.of(context)!.groupcode, groupList, selectedGroups, setState),
-                  _buildMultiSelectChip('Disc Type', cmpCodeList, selectedCmpCode, setState),
+                  _buildMultiSelectChip('Company Code', cmpCodeList, selectedCmpCode, setState),
                  
                 ],
               ),

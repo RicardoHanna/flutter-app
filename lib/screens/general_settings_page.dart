@@ -76,7 +76,8 @@ String searchUsersGroup='';
     
     print('Printing Users:');
     for (var item in itemsBox.values) {
-      print('Menu Code: ${item.autoExport}');
+      print('Menu Code: ${item.importFromBackendToMobile}');
+         print('Menu Code: ${item.importFromErpToMobile}');
       print('Grp Code: ${item.groupcode}');
 
       print('-------------------------');
@@ -123,11 +124,15 @@ void _toggleAssignMenuExpansion(int usercode) {
 
     // Fill in the data if available
     if (systemAdmin != null) {
+print(systemAdmin.importFromErpToMobile);
+print(systemAdmin.importFromBackendToMobile);
       setState(() {
+
         autoExport = systemAdmin.autoExport;
         importFromErpToMobile=systemAdmin.importFromErpToMobile;
         importFromBackendToMobile=systemAdmin.importFromBackendToMobile;
-        
+           if( importFromErpToMobile=true) selectedImportSource=1; 
+   if(importFromBackendToMobile==true) selectedImportSource=2;
       });
     }
   }
@@ -334,6 +339,9 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
   onPressed: () async {
    if(selectedImportSource==1) importFromErpToMobile=true; else importFromErpToMobile=false;
    if(selectedImportSource==2) importFromBackendToMobile=true; else importFromBackendToMobile=false;
+
+   print(importFromErpToMobile);
+   print(importFromBackendToMobile);
     // Create a new SystemAdmin object with the updated values
     SystemAdmin updatedSystemAdmin = SystemAdmin(
       autoExport: autoExport,

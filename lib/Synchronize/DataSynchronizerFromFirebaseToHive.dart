@@ -4,6 +4,7 @@ import 'package:project/classes/PriceItemKey.dart';
 import 'package:project/hive/adminsubmenu_hive.dart';
 import 'package:project/hive/authorization_hive.dart';
 import 'package:project/hive/companies_hive.dart';
+import 'package:project/hive/companiesconnection_hive.dart';
 import 'package:project/hive/currencies_hive.dart';
 import 'package:project/hive/custgroups_hive.dart';
 import 'package:project/hive/customeraddresses_hive.dart';
@@ -36,6 +37,7 @@ import 'package:project/hive/itemuom_hive.dart';
 import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/paymentterms_hive.dart';
 import 'package:project/hive/pricelist_hive.dart';
+import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/regions_hive.dart';
 import 'package:project/hive/salesemployees_hive.dart';
 import 'package:project/hive/salesemployeescustomers_hive.dart';
@@ -205,7 +207,8 @@ Future<void> synchronizeDataPriceLists() async {
           doc['factor'].toDouble(),
           doc['incVAT'],
           doc['securityGroup'],
-           doc['cmpCode']
+           doc['cmpCode'],
+           doc['authoGroup']
         );
         await pricelistsBox.put(plCode, newPrice);
       }
@@ -219,7 +222,8 @@ Future<void> synchronizeDataPriceLists() async {
           doc['factor'].toDouble(),
           doc['incVAT'],
           doc['securityGroup'],
-          doc['cmpCode']
+          doc['cmpCode'],
+          doc['authoGroup']
         );
         // Update the item in Hive
         await pricelistsBox.put(plCode, updatedPrice);
@@ -2237,6 +2241,7 @@ Future<void> _synchronizeSalesEmployees(
 
       // Check if the sales employee exists in Hive
       var hiveSalesEmployee = salesEmployees.get('$cmpCode$seCode');
+      print(hiveSalesEmployee);
 
       // If the sales employee doesn't exist in Hive, add it
       if (hiveSalesEmployee == null) {
@@ -2251,6 +2256,7 @@ Future<void> _synchronizeSalesEmployees(
           reqFromWhsCode: doc['reqFromWhsCode'],
           notes: doc['notes'],
         );
+        print('hiiiii');
         await salesEmployees.put('$cmpCode$seCode', newSalesEmployee);
       }
       // If the sales employee exists in Hive, update it if needed
@@ -4246,6 +4252,173 @@ Future<void> _synchronizeCustomerPropCategSpecialPrice(
     print('Error synchronizing CustomerPropCategSpecialPrice from Firebase to Hive: $e');
   }
 }
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
+Future<void> synchronizeDataPriceListsAutho() async {
+    try {
+      // Fetch data from Firestore
+      var firestoreItems = await _firestore.collection('PriceListAuthorization').get();
+
+      // Open Hive boxes
+      var pricelistsauthoBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
+      // Open other boxes if needed
+
+      // Synchronize data
+      await _synchronizePriceListAutho(firestoreItems.docs, pricelistsauthoBox);
+      // Synchronize other data if needed
+
+      // Close Hive boxes
+      //await pricelistsBox.close();
+      // Close other boxes if needed
+    } catch (e) {
+      print('Error synchronizing data from Firebase to Hive: $e');
+    }
+  }
+
+ Future<void> _synchronizePriceListAutho(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestorePriceLists,
+  Box<PriceListAuthorization> pricelistsBox,
+) async {
+  try {
+    // Iterate over Firestore documents
+    for (var doc in firestorePriceLists) {
+      var userCode = doc['userCode'];
+      var cmpCode = doc['cmpCode'];
+      var authoGroup = doc['authoGroup'];
+      // Check if the item exists in Hive
+      var hivePrice = pricelistsBox.get('$userCode$cmpCode$authoGroup');
+
+      // If the item doesn't exist in Hive, add it
+      if (hivePrice == null) {
+        var newPrice = PriceListAuthorization(
+             userCode : doc['userCode'],
+             cmpCode : doc['cmpCode'],
+            authoGroup: doc['authoGroup'],
+        );
+        await pricelistsBox.put('$userCode$cmpCode$authoGroup', newPrice);
+      }
+      // If the item exists in Hive, update it if needed
+      else {
+        var updatedPrice = PriceListAuthorization(
+        userCode : doc['userCode'],
+             cmpCode : doc['cmpCode'],
+            authoGroup: doc['authoGroup'],
+        );
+        // Update the item in Hive
+        await pricelistsBox.put('$userCode$cmpCode$authoGroup', updatedPrice);
+      }
+    }
+
+    // Check for items in Hive that don't exist in Firestore and delete them
+Set<String> firestorePriceCodes = Set.from(firestorePriceLists.map((doc) => '${doc['userCode']}${doc['cmpCode']}${doc['authoGroup']}'));
+Set<String> hivePriceCodes = Set.from(pricelistsBox.keys);
+
+// Identify items in Hive that don't exist in Firestore
+Set<String> itemsToDelete = hivePriceCodes.difference(firestorePriceCodes);
+
+// Delete items in Hive that don't exist in Firestore
+itemsToDelete.forEach((hivePriceCode) {
+  pricelistsBox.delete(hivePriceCode);
+});
+
+
+  } catch (e) {
+    print('Error synchronizing PricesList Authorization from Firebase to Hive: $e');
+  }
+}
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
+Future<void> synchronizeDataCompaniesConnection() async {
+    try {
+      // Fetch data from Firestore
+      var firestoreItems = await _firestore.collection('CompaniesConnection').get();
+
+      // Open Hive boxes
+      var copmpaniesconnBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
+      // Open other boxes if needed
+
+      // Synchronize data
+      await _synchronizeCompaniesConnection(firestoreItems.docs, copmpaniesconnBox);
+      // Synchronize other data if needed
+
+      // Close Hive boxes
+      //await pricelistsBox.close();
+      // Close other boxes if needed
+    } catch (e) {
+      print('Error synchronizing data from Firebase to Hive: $e');
+    }
+  }
+
+ Future<void> _synchronizeCompaniesConnection(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreCompaniesConn,
+  Box<CompaniesConnection> compsBox,
+) async {
+  try {
+    // Iterate over Firestore documents
+    for (var doc in firestoreCompaniesConn) {
+      var connectionID = doc['connectionID'];
+ 
+      // Check if the item exists in Hive
+      var hiveComp = compsBox.get('$connectionID');
+
+      // If the item doesn't exist in Hive, add it
+      if (hiveComp == null) {
+        var newComp = CompaniesConnection(
+           connectionID: doc['connectionID'],
+           connDatabase : doc['connDatabase'],
+           connServer : doc['connServer'],
+           connUser : doc['connUser'],
+           connPassword : doc['connPassword'],
+           connPort : doc['connPort'],
+           typeDatabase : doc['typeDatabase']
+        );
+        await compsBox.put('$connectionID', newComp);
+      }
+      // If the item exists in Hive, update it if needed
+      else {
+        var updatedComp =CompaniesConnection(
+           connectionID: doc['connectionID'],
+           connDatabase : doc['connDatabase'],
+           connServer : doc['connServer'],
+           connUser : doc['connUser'],
+           connPassword : doc['connPassword'],
+           connPort : doc['connPort'],
+           typeDatabase : doc['typeDatabase']
+        );
+        // Update the item in Hive
+        await compsBox.put('$connectionID', updatedComp);
+      }
+    }
+
+    // Check for items in Hive that don't exist in Firestore and delete them
+Set<String> firestoreCompCodes= Set.from(firestoreCompaniesConn.map((doc) => doc['connectionID']));
+Set<String> hivePriceCodes = Set.from(compsBox.keys);
+
+// Identify items in Hive that don't exist in Firestore
+Set<String> itemsToDelete = hivePriceCodes.difference(firestoreCompCodes);
+
+// Delete items in Hive that don't exist in Firestore
+itemsToDelete.forEach((hivePriceCode) {
+  compsBox.delete(hivePriceCode);
+});
+
+
+  } catch (e) {
+    print('Error synchronizing PricesList Authorization from Firebase to Hive: $e');
+  }
+}
+
+
 
 }
 

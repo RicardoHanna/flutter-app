@@ -387,7 +387,7 @@ void saveProfile(String localPath) async {
   Widget build(BuildContext context) {
      final Map<String, Widget> formWidgets = {
    AppLocalizations.of(context)!.items: ItemsForm(appNotifier: widget.appNotifier,),
-    AppLocalizations.of(context)!.pricelists: PriceLists(appNotifier: widget.appNotifier,),
+    AppLocalizations.of(context)!.pricelists: PriceLists(appNotifier: widget.appNotifier,usercode: usercode),
     'Customers':CustomersForm(appNotifier:widget.appNotifier),
   };
 
