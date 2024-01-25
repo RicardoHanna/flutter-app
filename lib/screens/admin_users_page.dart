@@ -110,7 +110,6 @@ Future<List<UserClass>> _getUsers() async {
       password: userData['password'],
       phonenumber: userData['phonenumber'],
       imeicode: userData['imeicode'],
-      warehouse: userData['warehouse'],
       usergroup: userData['usergroup'],
       font: userData['font'],
       languages: userData['languages'],
@@ -210,7 +209,6 @@ Future<Stream<List<UserClass>>> _getUserStream() async {
             password: userData['password'] ?? 'DefaultPass',
             phonenumber: userData['phonenumber'] ?? 'DefaultPhone',
             imeicode: userData['imeicode'] ?? 'DefaultIMEsI',
-            warehouse: userData['warehouse'] ?? 'DefaultWarehouse',
             usergroup: userData['usergroup'] ?? 0,
             font: userData['font'] ?? 0,
             languages: userData['languages'] ?? 'DefaultLanguages',
@@ -350,6 +348,7 @@ if (confirmDelete == true) {
     var user = userBox.get(usercode) as Map<dynamic, dynamic>?;
 
     if (user != null) {
+    
       // Retrieve usergroup before deleting the user
       var userGroupToDelete = user['usergroup'];
            print(filteredUsers.length);
@@ -376,20 +375,25 @@ if (confirmDelete == true) {
       
       
       else {
+
         // Check if usercode exists in UsersSalesEmployee
         var usersSalesEmployeeBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
+      
         var salesEmployee = usersSalesEmployeeBox.values.firstWhere(
-          (salesempl) => salesempl.userCode == usercode,
-       
-        );
+  (salesempl) => salesempl.userCode == usercode,
+  orElse: () => UserSalesEmployees(cmpCode: '', userCode: '', seCode: '', notes: ''),
+);
 
-        if (salesEmployee != null) {
+print(salesEmployee.cmpCode);
+print(salesEmployee.seCode);
+        if (salesEmployee.seCode != '' && salesEmployee.cmpCode!='') {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('User is associated with a Sales Employee. Cannot delete!.'),
             ),
           );
         } else {
+          print('wdjdwokdw');
           // Continue with deletion if user is not associated with a Sales Employee
           userBox.delete(usercode);
 
@@ -486,7 +490,6 @@ languageUser=user.username;
                         password: user.password,
                         phonenumber: user.phonenumber,
                         imeicode: user.imeicode,
-                        warehouse: user.warehouse,
                         usergroup: user.usergroup,
                         font: user.font,
                         languages: user.languages,

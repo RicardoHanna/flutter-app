@@ -2,6 +2,7 @@
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:project/hive/companiesconnection_hive.dart';
+import 'package:project/hive/companiesusers_hive.dart';
 import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/hive/translations_hive.dart';
@@ -124,7 +125,8 @@ Future<void> initializeHive() async {
     ..registerAdapter(CustomerPropCategSpecialPriceAdapter())
 
     ..registerAdapter(CompaniesConnectionAdapter())
-    ..registerAdapter(PriceListAuthorizationAdapter());
+    ..registerAdapter(PriceListAuthorizationAdapter())
+    ..registerAdapter(CompaniesUsersAdapter());
 }
 
 Future<void> openHiveBoxes() async {
@@ -188,5 +190,8 @@ Future<void> openHiveBoxes() async {
   await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
 
   await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
+
+
+  await Hive.openBox<CompaniesUsers>('companiesUsersBox');
   
 }

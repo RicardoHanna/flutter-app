@@ -10,8 +10,11 @@ import 'package:flutter/services.dart';
 import 'package:project/classes/Languages.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:project/hive/companies_hive.dart';
+import 'package:project/hive/companiesusers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:project/hive/pricelist_hive.dart';
+import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/salesemployees_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
@@ -46,6 +49,17 @@ class _UserFormState extends State<UserForm> {
     List<String?> selectedSalesEmployees = [];
   TextStyle _appTextStyle=TextStyle();
 String selectedUserGroupArabic = '';
+ List<String> selectedCmpCodes = [];
+List<String> selectedSeCodes = [];
+List<String?> selectedCompanies=[];
+List<String> selectedCompanyNames=[];
+List <String>selectedCompanyCodes=[];
+List <String?>selectedPriceList=[];
+ List<String> selectedCmpCodesPriceList = [];
+ List<String> selectedAuthoGroup = [];
+    int defaultFontSize = 18;
+    int minValue = 12;
+int maxValue = 30;
   @override
   Widget build(BuildContext context) {
        _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
@@ -67,9 +81,18 @@ String selectedUserGroupArabic = '';
     
             _buildUserGroupDropdown(),
             _buildUserGroupDropdownLanguages(),
-              SizedBox(height: 8.0),
-                    _buildTextFieldDropDownSalesEmployees(),
+             SizedBox(height: 8.0),
+            _buildTextFieldDropDownSalesEmployees(),
             SizedBox(height: 8.0),
+
+            SizedBox(height: 8.0),
+            _buildTextFieldDropDownCompanies(),
+            SizedBox(height: 8.0),
+
+            SizedBox(height: 8.0),
+            _buildTextFieldDropDownPriceListAutho(),
+            SizedBox(height: 8.0),
+            
             
               _buildDigitsFont(AppLocalizations.of(context)!.font, Icons.font_download, fontController),
             _buildUserGroupActive(),
@@ -125,7 +148,7 @@ String selectedUserGroupArabic = '';
     );
   }
 Widget _buildDigitsFont(String label, IconData icon, TextEditingController controller) {
-  double defaultFontSize = 18.0;
+  int currentValue = int.tryParse(controller.text) ?? defaultFontSize;
 
   return Column(
     mainAxisSize: MainAxisSize.min,
@@ -137,19 +160,20 @@ Widget _buildDigitsFont(String label, IconData icon, TextEditingController contr
       ),
       SizedBox(height: 8.0),
       Slider(
-        value: double.tryParse(controller.text) ?? defaultFontSize,
-        min: 12.0,
-        max: 30.0,
-        divisions: 29,
+        value: currentValue.toDouble(),
+        min: minValue.toDouble(),
+        max: maxValue.toDouble(),
+        divisions: maxValue - minValue,
         onChanged: (double value) {
           setState(() {
-            controller.text = value.toInt().toString();
+            currentValue = value.toInt();
+            controller.text = currentValue.toString();
           });
         },
       ),
       Center(
         child: Text(
-          ' ${controller.text.isEmpty ? defaultFontSize.toInt().toString() : controller.text}', // Display the selected font size or default size if not changed
+          ' ${controller.text.isEmpty ? defaultFontSize.toString() : controller.text}', // Display the selected font size or default size if not changed
           style: _appTextStyle,
         ),
       ),
@@ -260,10 +284,8 @@ Widget _buildDigitsFont(String label, IconData icon, TextEditingController contr
       ),
     );
   }
- Widget _buildTextFieldDropDownSalesEmployees() {
-  String? selectedCmpCode;
-  String? selectedSeCode;
 
+Widget _buildTextFieldDropDownSalesEmployees() {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8.0),
     child: FutureBuilder(
@@ -311,49 +333,213 @@ Widget _buildDigitsFont(String label, IconData icon, TextEditingController contr
                         .map((seName) => MultiSelectItem<String>(seName, seName))
                         .toList(),
                     initialValue: selectedSalesEmployees,
-                    onConfirm: (List<String?> values) {
-                      setState(() {
-                        selectedSalesEmployees = values;
+                  onConfirm: (List<String?> values) {
+  setState(() {
+    selectedSalesEmployees = values;
 
-                        // Retrieve cmpCode and seCode based on selected values
-                        String selectedSalesEmployee = values.first!;
-                        List<String> parts = selectedSalesEmployee.split(' - ');
+    // Retrieve cmpCode and seCode based on selected values
+    selectedCmpCodes = [];
+    selectedSeCodes = [];
 
-                        // Find Company based on cmpName
-                        Companies selectedCompany = companyBox.values
-                            .firstWhere((company) => company.cmpName == parts[1]);
+    values.forEach((selectedSalesEmployee) {
+      if (selectedSalesEmployee != null) {
+        List<String> parts = selectedSalesEmployee.split(' - ');
 
-                        // Assign cmpCode and seCode to variables
-                        selectedCmpCode = selectedCompany.cmpCode;
-                        selectedSeCode = salesEmployeesBox.values
-                            .firstWhere((se) => se.seName == parts[0])
-                            .seCode;
-                              print(selectedCmpCode);
-                              print(selectedSeCode);
-                      });
-                    },
-                    
+        // Find Company based on cmpName
+        Companies selectedCompany = companyBox.values
+            .firstWhere((company) => company.cmpName == parts[1]);
+
+        // Assign cmpCode and seCode to lists
+        selectedCmpCodes.add(selectedCompany.cmpCode);
+        selectedSeCodes.add(salesEmployeesBox.values
+            .firstWhere((se) => se.seName == parts[0])
+            .seCode);
+      }
+    });
+
+    print(selectedCmpCodes);
+    print(selectedSeCodes);
+  });
+},
+
                   ),
-                  
                 ),
-                
               ],
             ),
           );
-          
         } else {
           return Container(); // You can replace this with a loading indicator
         }
-        
       },
-      
     ),
-    
   );
 }
 
 
 
+
+
+Widget _buildTextFieldDropDownCompanies() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: FutureBuilder(
+      future: Hive.openBox<Companies>('companiesBox'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          var companyBox = snapshot.data as Box<Companies>;
+
+          List<String> companyList = companyBox.values
+              .map((company) => company.cmpName)
+              .toList();
+
+          return Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: TextTheme(
+                subtitle1: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Company',
+                  style: _appTextStyle,
+                ),
+                SizedBox(height: 8.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: MultiSelectDialogField(
+                    items: companyList
+                        .map((companyName) =>
+                            MultiSelectItem<String>(companyName, companyName))
+                        .toList(),
+                    initialValue: selectedCompanies,
+                    onConfirm: (List<String?> values) {
+                      setState(() {
+                        selectedCompanies = values;
+
+                        // Retrieve company codes based on selected values
+                        selectedCompanyCodes = values
+                            .map((selectedCompanyName) {
+                              String companyName = selectedCompanyName!;
+                              Companies selectedCompany = companyBox.values
+                                  .firstWhere(
+                                      (company) => company.cmpName == companyName);
+                              return selectedCompany.cmpCode;
+                            })
+                            .toList();
+
+                        print(selectedCompanyCodes);
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Container(); // You can replace this with a loading indicator
+        }
+      },
+    ),
+  );
+}
+
+Widget _buildTextFieldDropDownPriceListAutho() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: FutureBuilder(
+      future: Future.wait([
+        Hive.openBox<PriceList>('pricelists'),
+        Hive.openBox<Companies>('companiesBox'),
+      ]),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          var priceListsBox = snapshot.data![0] as Box<PriceList>;
+          var companyBox = snapshot.data![1] as Box<Companies>;
+
+          List<String> priceList = priceListsBox.values
+              .map((pricelist) {
+                Companies company = companyBox.values
+                    .firstWhere((company) => company.cmpCode == pricelist.cmpCode);
+                return '${pricelist.authoGroup} - ${company.cmpName}';
+              })
+              .toList();
+
+          return Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: TextTheme(
+                subtitle1: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Price List Authorization',
+                  style: _appTextStyle,
+                ),
+                SizedBox(height: 8.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: MultiSelectDialogField(
+                    items: priceList
+                        .map((authoGroup) => MultiSelectItem<String>(authoGroup, authoGroup))
+                        .toList(),
+                    initialValue: selectedPriceList,
+                  onConfirm: (List<String?> values) {
+  setState(() {
+    selectedPriceList = values;
+
+    // Retrieve cmpCode and seCode based on selected values
+    selectedCmpCodesPriceList = [];
+    selectedAuthoGroup = [];
+
+    values.forEach((selectedSalesEmployee) {
+      if (selectedSalesEmployee != null) {
+        List<String> parts = selectedSalesEmployee.split(' - ');
+
+        // Find Company based on cmpName
+        Companies selectedCompany = companyBox.values
+            .firstWhere((company) => company.cmpName == parts[1]);
+
+        // Assign cmpCode and seCode to lists
+        selectedCmpCodesPriceList.add(selectedCompany.cmpCode);
+        selectedAuthoGroup.add(priceListsBox.values
+            .firstWhere((se) => se.authoGroup == parts[0])
+            .authoGroup);
+      }
+    });
+
+    print(selectedCmpCodesPriceList);
+    print(selectedAuthoGroup);
+  });
+},
+
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Container(); // You can replace this with a loading indicator
+        }
+      },
+    ),
+  );
+}
 
 
 
@@ -586,10 +772,18 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
   final String userFname = userFnameController.text;
   final String password = passwordController.text;
   final String username = usernameController.text;
-
-  final int font = int.parse(fontController.text);
   final String phonenumber = phoneNumberController.text;
   final String imeicode = imeiCodeController.text;
+
+final int font ;
+if(fontController.text!=''){
+ font = int.parse(fontController.text);
+}else{
+  font=defaultFontSize;
+}
+
+print(selectedCmpCodes);
+print(selectedSeCodes);
 
   if (!isValidEmail(email) || !isValidPassword(password)) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -637,6 +831,9 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
 
     // Open the Hive box
     final userBox = await Hive.openBox('userBox');
+    final userSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
+    final userCompaniesUsersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+    final priceListAuthorizationBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
 
     // Use the user's email as a unique identifier for the key
     final userKey = usercode; // Use lowercase to ensure consistency
@@ -654,6 +851,50 @@ Future<int> addUserGroup(String newGroupEn, String newGroupAr) async {
       'languages': selectedLanguage,
       'font': font,
     });
+    // Insert into UserSalesEmployees box
+for (int i = 0; i < selectedCmpCodes.length; i++) {
+  UserSalesEmployees userSalesEmployee = UserSalesEmployees(
+    userCode: usercode,
+    cmpCode: selectedCmpCodes[i],
+    seCode: selectedSeCodes[i],
+    notes: ''
+  );
+
+  await userSalesEmployeesBox.put(
+    '${usercode}${selectedCmpCodes[i]}${selectedSeCodes[i]}',
+    userSalesEmployee,
+  );
+}
+
+ // Insert into CompaniesUser box
+for (int i = 0; i < selectedCompanyCodes.length; i++) {
+  CompaniesUsers companiesUsers = CompaniesUsers(
+    userCode: usercode,
+    cmpCode: selectedCompanyCodes[i],
+   
+  );
+
+  await userCompaniesUsersBox.put(
+    '${usercode}${selectedCompanyCodes[i]}',
+    companiesUsers,
+  );
+}
+
+ // Insert into PriceListAuthoGroup box
+for (int i = 0; i < selectedCmpCodesPriceList.length; i++) {
+  PriceListAuthorization pricelistautho = PriceListAuthorization(
+    userCode: usercode,
+    cmpCode: selectedCmpCodesPriceList[i],
+    authoGroup: selectedAuthoGroup[i],
+   
+  );
+
+  await priceListAuthorizationBox.put(
+    '${usercode}${selectedCmpCodesPriceList[i]}${selectedAuthoGroup[i]}',
+    pricelistautho,
+  );
+}
+
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context)!.userCreated, style: _appTextStyle)),

@@ -2806,7 +2806,7 @@ Future<void> _synchronizeUserSalesEmployees(
       var cmpCode = doc['cmpCode'];
 
       // Check if the user sales employees relationship exists in Hive
-      var hiveUserSalesEmployees = userSalesEmployees.get('$cmpCode$userCode$seCode');
+      var hiveUserSalesEmployees = userSalesEmployees.get('$userCode$cmpCode$seCode');
 
       // If the relationship doesn't exist in Hive, add it
       if (hiveUserSalesEmployees == null) {
@@ -2816,7 +2816,7 @@ Future<void> _synchronizeUserSalesEmployees(
           seCode: doc['seCode'],
           notes: doc['notes'],
         );
-        await userSalesEmployees.put('$cmpCode$userCode$seCode', newUserSalesEmployees);
+        await userSalesEmployees.put('$userCode$cmpCode$seCode', newUserSalesEmployees);
       }
       // If the relationship exists in Hive, update it if needed
       else {
@@ -2827,10 +2827,10 @@ Future<void> _synchronizeUserSalesEmployees(
           notes: doc['notes'],
         );
         // Update the relationship in Hive
-        await userSalesEmployees.put('$cmpCode$userCode$seCode', updatedUserSalesEmployees);
+        await userSalesEmployees.put('$userCode$cmpCode$seCode', updatedUserSalesEmployees);
       }
     }
-    Set<String> firestoreUserSalesEmployeesKeys = Set.from(firestoreUserSalesEmployees.map((doc) => '${doc['cmpCode']}${doc['userCode']}${doc['seCode']}'));
+    Set<String> firestoreUserSalesEmployeesKeys = Set.from(firestoreUserSalesEmployees.map((doc) => '${doc['userCode']}${doc['cmpCode']}${doc['seCode']}'));
     Set<String> hiveUserSalesEmployeesKeys = Set.from(userSalesEmployees.keys);
 
     // Identify user sales employees relationships in Hive that don't exist in Firestore

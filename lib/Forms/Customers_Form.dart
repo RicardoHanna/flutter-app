@@ -25,6 +25,7 @@ import 'package:project/hive/customerpropgroupspecialprice_hive.dart';
 import 'package:project/hive/customers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
+import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/salesemployees_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/userssalesemployees_hive.dart';
@@ -145,12 +146,13 @@ void _showCustomerMap() {
 }
 
 Future<void> printUserDataTranslations() async {
- var custBox = await Hive.openBox<SalesEmployees>('salesEmployeesBox');
+ var custBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
 
     print('Printinggg Users:');
     for (var cust in custBox.values) {
       print('CmpCode: ${cust.cmpCode}');
-      print('Name: ${cust.seCode}');
+      print('Name: ${cust.authoGroup}');
+      print(cust.userCode);
 
       print('-------------------------');
     }

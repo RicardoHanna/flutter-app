@@ -2,9 +2,17 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/numeriqrangeformatters.dart';
+import 'package:project/hive/companies_hive.dart';
+import 'package:project/hive/companiesusers_hive.dart';
+import 'package:project/hive/pricelist_hive.dart';
+import 'package:project/hive/pricelistauthorization_hive.dart';
+import 'package:project/hive/salesemployees_hive.dart';
 import 'package:project/hive/translations_hive.dart';
+import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
 import 'package:validators/validators.dart';
 import 'package:project/classes/validations.dart';
@@ -18,7 +26,7 @@ class EditUserForm extends StatefulWidget {
   final String userFname;
   final String email;
   final String password;
-  final String warehouse;
+
   final int usergroup;
   final int font;
   final String languages;
@@ -35,7 +43,7 @@ class EditUserForm extends StatefulWidget {
     required this.password,
     required this.phonenumber,
     required this.imeicode,
-    required this.warehouse,
+
     required this.usergroup,
     required this.font,
     required this.languages,
@@ -64,8 +72,21 @@ class _EditUserFormState extends State<EditUserForm> {
 String _selectedLanguage = 'English';
 List<String> userGroups = [];
   bool isInitialized = false;
+  
 String username='';
       bool _formChanged = false; // Added to track changes
+      bool isDeletedSales = false;
+      bool isDeletedCust=false;
+       bool isDeletedAutho=false;
+    List<String?> selectedSalesEmployees = [];
+List<String> selectedCmpCodes = [];
+List<String> selectedSeCodes = [];
+List<String?> selectedCompanies = [];
+List<String> selectedCompanyCodes = [];
+List<String?> selectedPriceList = [];
+List<String> selectedCmpCodesPriceList = [];
+List<String> selectedAuthoGroup = [];
+
 
  TextStyle _appTextStyle=TextStyle();
 @override
@@ -79,7 +100,6 @@ void initState() {
   _passwordController.text = widget.password;
   _phonenumberController.text = widget.phonenumber;
     _imeicodeController.text = widget.imeicode;
-  _warehouseController.text = widget.warehouse;
   _selectedUserGroup = widget.usergroup.toString(); // Set the default value from widget
 
   // Parse _fontController.text to an integer and assign it to sfont
@@ -88,6 +108,9 @@ void initState() {
   _languageController.text = widget.languages;
   _isActive = widget.active;
   _selectedLanguage=widget.languages;
+  
+
+       fetchSalesEmployeesAndCompanies(widget.usercode);
    
 }
 
@@ -109,11 +132,105 @@ void initState() {
       }
       isInitialized = true;
     }
-    
+
 
   }
 
-  
+Future<void> fetchSalesEmployeesAndCompanies(String selectedUserGroup) async {
+  try {
+    // Fetch sales employees based on the selected user group
+    var userSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
+    List<String> salesEmployeeList = userSalesEmployeesBox.values
+        .where((userSalesEmployee) => userSalesEmployee.userCode == selectedUserGroup)
+        .map((userSalesEmployee) {
+          // Retrieve cmpName based on cmpCode from the Companies box
+          var companiesBox = Hive.box<Companies>('companiesBox');
+            var salesEmployeesBox = Hive.box<SalesEmployees>('salesEmployeesBox');
+          Companies company = companiesBox.values
+              .firstWhere((company) => company.cmpCode == userSalesEmployee.cmpCode,
+              orElse: () => Companies(cmpCode: userSalesEmployee.cmpCode, cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: ''));
+
+              SalesEmployees salesemployees = salesEmployeesBox.values
+              .firstWhere((salesemployees) => salesemployees.seCode == userSalesEmployee.seCode,
+              orElse: () => SalesEmployees(cmpCode: '', seCode: '', seName: '', seFName: '', mobile: '', email: '', whsCode: '', reqFromWhsCode: 0 , notes: ''));
+
+          return '${salesemployees.seName} - ${company.cmpName}';
+        })
+        .toList();
+
+    setState(() {
+      // Update the sales employees dropdown
+      selectedSalesEmployees = salesEmployeeList;
+      print(selectedSalesEmployees);
+    });
+
+    // Fetch companies based on the selected user group
+    var companiesBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+    List<String> companyList = companiesBox.values
+        .where((company) => company.userCode == selectedUserGroup)
+         .map((company) {
+          // Retrieve cmpName based on cmpCode from the Companies box
+          var companiesBox = Hive.box<Companies>('companiesBox');
+   
+          Companies company = companiesBox.values
+              .firstWhere((company) => company.cmpCode == company.cmpCode,
+              orElse: () => Companies(cmpCode:'', cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: ''));
+
+          return '${company.cmpName}';
+        })
+        .toList();
+    setState(() {
+      // Update the companies dropdown
+      selectedCompanies = companyList;
+      print(selectedCompanies);
+    });
+
+    // Fetch price list based on the selected user group
+    var priceListBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
+    List<String> priceList = priceListBox.values
+        .where((pricelist) => pricelist.userCode == selectedUserGroup)
+        .map((pricelist) {
+          // Retrieve cmpName based on cmpCode from the Companies box
+          var companiesBox = Hive.box<Companies>('companiesBox');
+          Companies company = companiesBox.values
+              .firstWhere((company) => company.cmpCode == pricelist.cmpCode,
+            orElse: () => Companies(cmpCode: pricelist.cmpCode, cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: ''));
+
+
+          return '${pricelist.authoGroup} - ${company.cmpName}';
+        })
+        .toList();
+
+    setState(() {
+      // Update the price list dropdown
+      selectedPriceList = priceList.map((authoGroup) => '$authoGroup').toList();
+    });
+  } catch (e) {
+    print('Error fetching sales employees and companies: $e');
+  }
+}
+
+  // Existing code...
+
+String getCompanyName(String companyCode) {
+  // Fetch company name based on the company code (you need to implement this)
+  // For example, if you have a box of companies:
+  var companyBox = Hive.box<Companies>('companiesBox');
+  Companies company = companyBox.values.firstWhere(
+    (c) => c.cmpCode == companyCode,
+   
+  );
+  return company.cmpName;
+}
+
+String getSalesName(String companyCode) {
+  // Fetch company name based on the company code (you need to implement this)
+  // For example, if you have a box of companies:
+  var companyBox = Hive.box<Companies>('companiesBox');
+  Companies company = companyBox.values.firstWhere((c) => c.cmpCode == companyCode);
+  return company.cmpName;
+}
+
 
 Future<void> fetchUserGroups() async {
   try {
@@ -162,6 +279,7 @@ Future<String?> getUsernameByCode(int groupcode) async {
     return null; // or throw an exception if appropriate
   }
 }
+
 
 
   @override
@@ -259,14 +377,7 @@ Future<String?> getUsernameByCode(int groupcode) async {
             decoration: InputDecoration(labelText: AppLocalizations.of(context)!.imeiNumber),
           ),
           SizedBox(height: 12),
-          TextField(
-            style: _appTextStyle,
-            controller: _warehouseController,
-             onChanged: (value) {
-                    _formChanged = true; 
-                  },
-            decoration: InputDecoration(labelText:AppLocalizations.of(context)!.warehouse),
-          ),
+          
           SizedBox(height: 12),
            Theme(
           data: Theme.of(context).copyWith(
@@ -286,7 +397,9 @@ Future<String?> getUsernameByCode(int groupcode) async {
           _formChanged=true;
           print(username);
             });
+            
           },
+          
           items: [
                       ...userGroups.map((String userGroup) {
                         return DropdownMenuItem<String>(
@@ -303,36 +416,7 @@ Future<String?> getUsernameByCode(int groupcode) async {
         ),
         ),
     
-          SizedBox(height: 16),
-        Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-      Text(
-        AppLocalizations.of(context)!.font,
-        style: _appTextStyle,
-      ),
-      SizedBox(height: 8.0),
-      Slider(
-        value: _fontController.text.isEmpty ? 1.0 : double.parse(_fontController.text),
-        min: 12.0,
-        max: 30.0,
-        divisions: 29,
-        onChanged: (double value) {
-          setState(() {
-            _fontController.text = value.toInt().toString();
-            _formChanged=true;
-          });
-        },
-      ),
-      SizedBox(height: 8.0),
-     Center(
-        child: Text(
-          _fontController.text, // Display the selected font size
-          style: _appTextStyle,
-        ),
-     ),
-      ],
-    ),
+     
     
           SizedBox(height: 16),
               Theme(
@@ -375,6 +459,46 @@ Future<String?> getUsernameByCode(int groupcode) async {
         ),
                       ),
               ),
+                   SizedBox(height: 16),
+
+                 _buildTextFieldDropDownSalesEmployees(),
+                      SizedBox(height: 16),
+                    _buildTextFieldDropDownCompanies(),
+                      SizedBox(height: 16),
+                  _buildTextFieldDropDownPriceListAutho(),
+
+
+
+        Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+      Text(
+        AppLocalizations.of(context)!.font,
+        style: _appTextStyle,
+      ),
+      SizedBox(height: 8.0),
+      
+      Slider(
+        value: _fontController.text.isEmpty ? 1.0 : double.parse(_fontController.text),
+        min: 12.0,
+        max: 30.0,
+        divisions: 29,
+        onChanged: (double value) {
+          setState(() {
+            _fontController.text = value.toInt().toString();
+            _formChanged=true;
+          });
+        },
+      ),
+      SizedBox(height: 8.0),
+     Center(
+        child: Text(
+          _fontController.text, // Display the selected font size
+          style: _appTextStyle,
+        ),
+     ),
+      ],
+    ),
         Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -422,6 +546,266 @@ Future<String?> getUsernameByCode(int groupcode) async {
       ),
     );
   }
+
+
+Widget _buildTextFieldDropDownSalesEmployees() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: FutureBuilder(
+      future: Future.wait([
+        Hive.openBox<SalesEmployees>('salesEmployeesBox'),
+        Hive.openBox<Companies>('companiesBox'),
+      ]),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          var salesEmployeesBox = snapshot.data![0] as Box<SalesEmployees>;
+          var companyBox = snapshot.data![1] as Box<Companies>;
+
+          List<String> salesEmployeeList = salesEmployeesBox.values
+              .map((salesEmployee) {
+                Companies company = companyBox.values
+                    .firstWhere((company) => company.cmpCode == salesEmployee.cmpCode);
+                return '${salesEmployee.seName} - ${company.cmpName}';
+              })
+              .toList();
+
+          return Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: TextTheme(
+                subtitle1: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Sales Employees',
+                  style: _appTextStyle,
+                ),
+                SizedBox(height: 8.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: MultiSelectDialogField(
+                    items: salesEmployeeList
+                        .map((seName) => MultiSelectItem<String>(seName, seName))
+                        .toList(),
+                    initialValue: selectedSalesEmployees, // Set the initial values here
+                    onConfirm: (List<String?> values) {
+                      setState(() {
+                        selectedSalesEmployees = values;
+                           _formChanged=true;
+                           isDeletedSales=true;
+                        // Retrieve cmpCode and seCode based on selected values
+                        selectedCmpCodes = [];
+                        selectedSeCodes = [];
+
+                        values.forEach((selectedSalesEmployee) {
+                          if (selectedSalesEmployee != null) {
+                            List<String> parts = selectedSalesEmployee.split(' - ');
+
+                            // Find Company based on cmpName
+                            Companies selectedCompany = companyBox.values
+                                .firstWhere((company) => company.cmpName == parts[1]);
+
+                            // Assign cmpCode and seCode to lists
+                            selectedCmpCodes.add(selectedCompany.cmpCode);
+                            selectedSeCodes.add(salesEmployeesBox.values
+                                .firstWhere((se) => se.seName == parts[0])
+                                .seCode);
+
+                            // Additional action: Print a message when a sales employee is selected
+                            print('Selected Sales Employee: ${parts[0]} from Company: ${parts[1]}');
+                          }
+                        });
+
+                        // Print selected cmpCodes and seCodes
+                        print(selectedCmpCodes);
+                        print(selectedSeCodes);
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Container(); // You can replace this with a loading indicator
+        }
+      },
+    ),
+  );
+}
+
+
+Widget _buildTextFieldDropDownCompanies() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: FutureBuilder(
+      future: Hive.openBox<Companies>('companiesBox'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          var companyBox = snapshot.data as Box<Companies>;
+
+          List<String> companyList = companyBox.values
+              .map((company) => company.cmpName)
+              .toList();
+
+          return Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: TextTheme(
+                subtitle1: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Company',
+                  style: _appTextStyle,
+                ),
+                SizedBox(height: 8.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: MultiSelectDialogField(
+                    items: companyList
+                        .map((companyName) =>
+                            MultiSelectItem<String>(companyName, companyName))
+                        .toList(),
+                    initialValue: selectedCompanies,
+                    onConfirm: (List<String?> values) {
+                      setState(() {
+                        selectedCompanies = values;
+                             _formChanged=true;
+                           isDeletedCust=true;
+                        // Retrieve company codes based on selected values
+                        selectedCompanyCodes = values
+                            .map((selectedCompanyName) {
+                              String companyName = selectedCompanyName!;
+                              Companies selectedCompany = companyBox.values
+                                  .firstWhere(
+                                      (company) => company.cmpName == companyName);
+                              return selectedCompany.cmpCode;
+                            })
+                            .toList();
+
+                        print(selectedCompanyCodes);
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Container(); // You can replace this with a loading indicator
+        }
+      },
+    ),
+  );
+}
+
+Widget _buildTextFieldDropDownPriceListAutho() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: FutureBuilder(
+      future: Future.wait([
+        Hive.openBox<PriceList>('pricelists'),
+        Hive.openBox<Companies>('companiesBox'),
+      ]),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          var priceListsBox = snapshot.data![0] as Box<PriceList>;
+          var companyBox = snapshot.data![1] as Box<Companies>;
+
+          List<String> priceList = priceListsBox.values
+              .map((pricelist) {
+                Companies company = companyBox.values
+                    .firstWhere((company) => company.cmpCode == pricelist.cmpCode);
+                return '${pricelist.authoGroup} - ${company.cmpName}';
+              })
+              .toList();
+
+          return Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: TextTheme(
+                subtitle1: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Price List Authorization',
+                  style: _appTextStyle,
+                ),
+                SizedBox(height: 8.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: MultiSelectDialogField(
+                    items: priceList
+                        .map((authoGroup) => MultiSelectItem<String>(authoGroup, authoGroup))
+                        .toList(),
+                    initialValue: selectedPriceList,
+                  onConfirm: (List<String?> values) {
+  setState(() {
+    selectedPriceList = values;
+_formChanged=true;
+isDeletedAutho=true;
+    // Retrieve cmpCode and seCode based on selected values
+    selectedCmpCodesPriceList = [];
+    selectedAuthoGroup = [];
+
+    values.forEach((selectedSalesEmployee) {
+      if (selectedSalesEmployee != null) {
+        List<String> parts = selectedSalesEmployee.split(' - ');
+
+        // Find Company based on cmpName
+        Companies selectedCompany = companyBox.values
+            .firstWhere((company) => company.cmpName == parts[1]);
+
+        // Assign cmpCode and seCode to lists
+        selectedCmpCodesPriceList.add(selectedCompany.cmpCode);
+        selectedAuthoGroup.add(priceListsBox.values
+            .firstWhere((se) => se.authoGroup == parts[0])
+            .authoGroup);
+      }
+    });
+
+    print(selectedCmpCodesPriceList);
+    print(selectedAuthoGroup);
+  });
+},
+
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Container(); // You can replace this with a loading indicator
+        }
+      },
+    ),
+  );
+}
 
   
 Future<bool> _showDiscardChangesDialog() async {
@@ -513,7 +897,9 @@ print(userSelectGroup);
 
     try {
     var userBox = await Hive.openBox('userBox');
-
+final userSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
+    final userCompaniesUsersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+    final priceListAuthorizationBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
     // Retrieve user data from Hive box based on email
     String userCode = widget.usercode;
     var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
@@ -538,6 +924,93 @@ print(userSelectGroup);
       
     }
 
+ // Retrieve existing sales employees, companies users, and price list authorizations
+    List<UserSalesEmployees> existingSalesEmployees = await userSalesEmployeesBox.values
+        .where((userSalesEmployee) => userSalesEmployee.userCode == widget.usercode)
+        .toList();
+
+    List<CompaniesUsers> existingCompaniesUsers = await userCompaniesUsersBox.values
+        .where((companiesUser) => companiesUser.userCode == widget.usercode)
+        .toList();
+
+    List<PriceListAuthorization> existingPriceListAuthorizations = await priceListAuthorizationBox.values
+        .where((pricelistautho) => pricelistautho.userCode == widget.usercode)
+        .toList();
+
+    // Delete unchecked sales employees
+    if(isDeletedSales){
+    for (var existingSalesEmployee in existingSalesEmployees) {
+      if (!selectedSeCodes.contains(existingSalesEmployee.seCode)) {
+        await userSalesEmployeesBox.delete('${widget.usercode}${existingSalesEmployee.cmpCode}${existingSalesEmployee.seCode}');
+      }
+    }
+    }
+print(selectedSeCodes);
+    // Delete unchecked companies users
+    if(isDeletedCust){
+    for (var existingCompaniesUser in existingCompaniesUsers) {
+      if (!selectedCompanyCodes.contains(existingCompaniesUser.cmpCode)) {
+        await userCompaniesUsersBox.delete('${widget.usercode}${existingCompaniesUser.cmpCode}');
+      }
+    }
+    }
+    print(selectedCompanyCodes);
+
+if(isDeletedAutho){
+ // Delete unchecked price list authorizations
+    for (var existingPriceListAuthorization in existingPriceListAuthorizations) {
+      if (!selectedCmpCodesPriceList.contains(existingPriceListAuthorization.cmpCode) ||
+          !selectedAuthoGroup.contains(existingPriceListAuthorization.authoGroup)) {
+        await priceListAuthorizationBox.delete('${widget.usercode}${existingPriceListAuthorization.cmpCode}${existingPriceListAuthorization.authoGroup}');
+      }
+    }
+}
+
+
+       // Insert into UserSalesEmployees box
+for (int i = 0; i < selectedCmpCodes.length; i++) {
+  UserSalesEmployees userSalesEmployee = UserSalesEmployees(
+    userCode: widget.usercode,
+    cmpCode: selectedCmpCodes[i],
+    seCode: selectedSeCodes[i],
+    notes: ''
+  );
+
+  await userSalesEmployeesBox.put(
+    '${widget.usercode}${selectedCmpCodes[i]}${selectedSeCodes[i]}',
+    userSalesEmployee,
+  );
+}
+
+ // Insert into CompaniesUser box
+for (int i = 0; i < selectedCompanyCodes.length; i++) {
+  CompaniesUsers companiesUsers = CompaniesUsers(
+    userCode: widget.usercode,
+    cmpCode: selectedCompanyCodes[i],
+   
+  );
+
+  await userCompaniesUsersBox.put(
+    '${widget.usercode}${selectedCompanyCodes[i]}',
+    companiesUsers,
+  );
+}
+
+ // Insert into PriceListAuthoGroup box
+for (int i = 0; i < selectedCmpCodesPriceList.length; i++) {
+  PriceListAuthorization pricelistautho = PriceListAuthorization(
+    userCode: widget.usercode,
+    cmpCode: selectedCmpCodesPriceList[i],
+    authoGroup: selectedAuthoGroup[i],
+   
+  );
+
+  await priceListAuthorizationBox.put(
+    '${widget.usercode}${selectedCmpCodesPriceList[i]}${selectedAuthoGroup[i]}',
+    pricelistautho,
+  );
+}
+
   } catch (e) {
     print('Error updating local database: $e');
   }
@@ -545,6 +1018,7 @@ print(userSelectGroup);
            SnackBar(content: Text(AppLocalizations.of(context)!.userUpdated,style: _appTextStyle)),
              );
       // Navigate back to the admin page after updating
+      Navigator.pop(context);
     Navigator.pushReplacement(
   context,
   MaterialPageRoute(
