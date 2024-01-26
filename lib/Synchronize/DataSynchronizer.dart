@@ -2,9 +2,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 import 'package:project/hive/authorization_hive.dart';
+import 'package:project/hive/companies_hive.dart';
 import 'package:project/hive/companiesconnection_hive.dart';
+import 'package:project/hive/companiesusers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
+import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart'; // Replace with your actual Hive user class
@@ -34,6 +37,13 @@ class DataSynchronizer {
           var companiesConnectionBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
       List<CompaniesConnection> companyadmin = companiesConnectionBox.values.toList();
 
+      var companiesusersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+      List<CompaniesUsers> companyusers = companiesusersBox.values.toList();
+
+
+      var pricelistauthoBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
+      List<PriceListAuthorization> pricelistautho = pricelistauthoBox.values.toList();
+
       // Check for an internet connection
       if (await hasInternetConnection()) {
         // If there's an internet connection, update or add data to Firestore
@@ -43,6 +53,8 @@ class DataSynchronizer {
         await _updateFirestoreAuthorization(authorization);
         await _updateFirestoreSystemAdmin(systemadmin);
         await _updateFirestoreCompaniesConnection(companyadmin);
+        await _updateFirestoreCompaniesUsers(companyusers);
+         await _updateFirestorePriceListAutho(pricelistautho);
         // Update or add other data to Firestore if needed
 
       }
@@ -483,6 +495,126 @@ Future<void> _updateFirestoreCompaniesConnection(List<CompaniesConnection> compa
 }
 
 
+
+Future<void> _updateFirestoreCompaniesUsers(List<CompaniesUsers> companiesusers) async {
+  try {
+    // Loop through each SystemAdmin and update or add to Firestore
+    for (CompaniesUsers companyuser in companiesusers) {
+      try {
+        // Check if the SystemAdmin already exists in Firestore
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('CompaniesUsers')
+            .where('cmpCode', isEqualTo: companyuser.cmpCode)
+            .where('userCode', isEqualTo: companyuser.userCode)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          // SystemAdmin already exists, check for updates
+          String documentId = querySnapshot.docs[0].id;
+
+          // Fetch existing data from Firestore
+          Map<String, dynamic> existingSystemAdminData = querySnapshot.docs[0].data()!;
+
+          // Compare existing data with data from Hive
+          if (!dataEqualsCompaniesUsers(existingSystemAdminData, companyuser)) {
+            await _firestore.collection('CompaniesConnection').doc(documentId).update(
+              {
+                 
+                 'userCode':companyuser.userCode,
+                'cmpCode':companyuser.cmpCode,
+                
+             
+         
+                // Update other fields if needed
+              },
+            );
+            print('Companies Users updated: ${companyuser.cmpCode}');
+          }
+        } else {
+          // Add the SystemAdmin to Firestore if it doesn't exist
+          await _firestore.collection('CompaniesConnection').add(
+            {
+
+              'userCode':companyuser.userCode,
+              'cmpCode':companyuser.cmpCode,
+                
+              // Add other fields if needed
+            },
+          );
+          print('Companies Users Connection added: ${companyuser.cmpCode}');
+        }
+      } catch (e) {
+        print('Error updating Firestore Companies Users: $e');
+      }
+    }
+  } catch (e) {
+    print('Error updating Firestore Companies Users: $e');
+  }
+}
+
+
+Future<void> _updateFirestorePriceListAutho(List<PriceListAuthorization> pricelistsautho) async {
+  try {
+    // Loop through each SystemAdmin and update or add to Firestore
+    for (PriceListAuthorization pricelistautho in pricelistsautho) {
+      try {
+        // Check if the SystemAdmin already exists in Firestore
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('PriceListAuthorization')
+            .where('cmpCode', isEqualTo: pricelistautho.cmpCode)
+            .where('userCode', isEqualTo: pricelistautho.userCode)
+            .where('authoGroup', isEqualTo: pricelistautho.authoGroup)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          // SystemAdmin already exists, check for updates
+          String documentId = querySnapshot.docs[0].id;
+
+          // Fetch existing data from Firestore
+          Map<String, dynamic> existingSystemAdminData = querySnapshot.docs[0].data()!;
+
+          // Compare existing data with data from Hive
+          if (!dataEqualsPriceListAutho(existingSystemAdminData, pricelistautho)) {
+            await _firestore.collection('PriceListAuthorization').doc(documentId).update(
+              {
+                 
+                 'userCode':pricelistautho.userCode,
+                'cmpCode':pricelistautho.cmpCode,
+                'authoGroup':pricelistautho.authoGroup
+                
+             
+         
+                // Update other fields if needed
+              },
+            );
+            print('Price List Users updated: ${pricelistautho.authoGroup}');
+          }
+        } else {
+          // Add the SystemAdmin to Firestore if it doesn't exist
+          await _firestore.collection('PriceListAuthorization').add(
+            {
+
+             'userCode':pricelistautho.userCode,
+                'cmpCode':pricelistautho.cmpCode,
+                'authoGroup':pricelistautho.authoGroup
+                
+             
+                
+              // Add other fields if needed
+            },
+          );
+          print('Price List Users  added: ${pricelistautho.authoGroup}');
+        }
+      } catch (e) {
+        print('Error updating Firestore Price List Users: $e');
+      }
+    }
+  } catch (e) {
+    print('Error updating Firestore Price List Users: $e');
+  }
+}
+
+
 // Function to compare SystemAdmin data equality (customize based on your data structure)
 bool dataEqualsSystemAdmin(
     Map<String, dynamic> existingData, SystemAdmin newSystemAdmin) {
@@ -505,6 +637,25 @@ bool dataEqualsCompaniesConnection(
        existingData['connPassword'] == newCompanyConnection.connPassword &&
         existingData['connPort'] == newCompanyConnection.connPort &&
       existingData['typeDatabase'] == newCompanyConnection.typeDatabase;
+  // Add additional conditions as needed
+}
+
+bool dataEqualsCompaniesUsers(
+    Map<String, dynamic> existingData, CompaniesUsers newCompanyUser) {
+  // Compare fields and return true if they are equal, otherwise return false
+  // Add conditions for each field you want to compare
+  return existingData['cmpCode'] == newCompanyUser.cmpCode &&
+      existingData['userCode'] == newCompanyUser.userCode;
+  // Add additional conditions as needed
+}
+
+bool dataEqualsPriceListAutho(
+    Map<String, dynamic> existingData, PriceListAuthorization newPriceList) {
+  // Compare fields and return true if they are equal, otherwise return false
+  // Add conditions for each field you want to compare
+  return existingData['cmpCode'] == newPriceList.cmpCode &&
+      existingData['userCode'] == newPriceList.userCode &&
+      existingData['authoGroup']== newPriceList.authoGroup;
   // Add additional conditions as needed
 }
 

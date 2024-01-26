@@ -40,7 +40,7 @@ class CustomersInfoForm extends StatelessWidget {
           bottom: TabBar(
             isScrollable: true,
             tabs: [
-              Tab(text: 'Customers'),
+              Tab(text: 'General'),
               Tab(text: 'Customers Address'),
               Tab(text: 'Customers Contacts'),
               Tab(text: 'Customers Properties'),
@@ -120,6 +120,7 @@ class CustomersInfoForm extends StatelessWidget {
             _buildTitleTextNumber('Balance', customer.balance ?? ''),
             _buildTitleTextNumber('Balance Due', customer.balanceDue ?? ''),
             _buildTitleText('Notes', customer.notes ?? ''),
+            Divider(),
           ],
           ),
         ),
@@ -161,7 +162,7 @@ class CustomersInfoForm extends StatelessWidget {
                       _buildTitleText('RegCode', address.regCode ?? 'N/A'),
                       _buildTitleText('Notes', address.notes ?? 'N/A'),
                       // Add more fields as needed
-                      SizedBox(height: 16), // Add spacing between addresses
+                     Divider(),
                     ],
                   );
                 }),
@@ -217,7 +218,7 @@ class CustomersInfoForm extends StatelessWidget {
                   _buildTitleText('Position', contacts?.position ?? 'N/A'),
                     _buildTitleText('Notes', contacts?.notes ?? 'N/A'),
                   // ... add more fields based on your 'CustomerAddresses' class
-
+Divider(),
                     ]);
       }),
               ),
@@ -265,7 +266,7 @@ class CustomersInfoForm extends StatelessWidget {
                   _buildTitleText('PropCode${index+1}', properties?.propCode ?? 'N/A'),
                 
                   _buildTitleText('Notes', properties?.notes ?? 'N/A'),
-               
+               Divider(),
                  
                 ]);
       }),
@@ -372,7 +373,8 @@ Widget _buildBoxWidgetItemSpecial(String boxName) {
                        _buildTitleTextNumber('Disc', itemspecials?.disc ?? 'N/A'),
                       _buildTitleTextNumber('Prices', itemspecials?.price ?? 'N/A'),
                         _buildTitleText('Notes', itemspecials?.notes ?? 'N/A'),
-
+                          Divider(),
+                      
                       // Add more fields as needed
                     ],
                   );
@@ -420,6 +422,7 @@ Widget _buildBoxWidgetBrandSpecial(String boxName) {
                       _buildTitleText('BrandCode', brandspecials?.brandCode ?? 'N/A'),
                       _buildTitleTextNumber('Disc', brandspecials?.disc ?? 'N/A'),
                       _buildTitleText('Notes', brandspecials?.notes ?? 'N/A'),
+                      Divider(),
                       // Add more fields as needed
                     ],
                   );
@@ -465,6 +468,7 @@ Widget _buildBoxWidgetGroupSpecial(String boxName) {
                       _buildTitleText('GroupCode', grouppecials?.groupCode ?? 'N/A'),
                       _buildTitleTextNumber('Disc', grouppecials?.disc ?? 'N/A'),
                       _buildTitleText('Notes', grouppecials?.notes ?? 'N/A'),
+                      Divider(),
                       // Add more fields as needed
                     ],
                   );
@@ -511,6 +515,7 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                       _buildTitleText('CategCode', categpecials?.categCode ?? 'N/A'),
                       _buildTitleTextNumber('Disc', categpecials?.disc ?? 'N/A'),
                       _buildTitleText('Notes', categpecials?.notes ?? 'N/A'),
+                      Divider(),
                       // Add more fields as needed
                     ],
                   );
@@ -562,6 +567,7 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                     _buildTitleTextNumber('Disc', categpecials?.disc ?? 'N/A'),
                     _buildTitleTextNumber('Price', categpecials?.price ?? 'N/A'),
                      _buildTitleTextNumber('Notes', categpecials?.notes ?? 'N/A'),
+                     Divider(),
                       // Add more fields as needed
                     ],
                   );
@@ -608,6 +614,7 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                       _buildTitleText('BrandCode', brandpecials?.brandCode ?? 'N/A'),
                     _buildTitleTextNumber('Disc', brandpecials?.disc ?? 'N/A'),
                      _buildTitleTextNumber('Notes', brandpecials?.notes ?? 'N/A'),
+                     Divider(),
                       // Add more fields as needed
                     ],
                   );
@@ -654,6 +661,7 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                       _buildTitleText('GroupCode', brandpecials?.custGroupCode ?? 'N/A'),
                     _buildTitleTextNumber('Disc', brandpecials?.disc ?? 'N/A'),
                      _buildTitleTextNumber('Notes', brandpecials?.notes ?? 'N/A'),
+                     Divider(),
                       // Add more fields as needed
                     ],
                   );
@@ -699,6 +707,7 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                       _buildTitleText('CategCode', categpecials?.categCode ?? 'N/A'),
                     _buildTitleTextNumber('Disc', categpecials?.disc ?? 'N/A'),
                      _buildTitleTextNumber('Notes', categpecials?.notes ?? 'N/A'),
+                     Divider(),
                       // Add more fields as needed
                     ],
                   );
@@ -767,6 +776,7 @@ String getKey1FromCustomerProperties() {
                              _buildTitleTextNumber('Auto', propitemspecialss?.auto ?? 'N/A'),
                                 _buildTitleTextNumber('Disc', propitemspecialss?.disc ?? 'N/A'),
                            _buildTitleTextNumber('Notes', propitemspecialss?.auto ?? 'N/A'),
+                           Divider(),
 
                       // Add more fields as needed
                     ],
@@ -814,6 +824,7 @@ String getKey1FromCustomerProperties() {
                     _buildTitleTextNumber('BrandCode', propitemspecialss?.brandCode ?? 'N/A'),
                      _buildTitleTextNumber('Disc', propitemspecialss?.disc ?? 'N/A'),
                       _buildTitleTextNumber('Notes', propitemspecialss?.notes ?? 'N/A'),
+                      Divider(),
                           
 
                       // Add more fields as needed
@@ -862,6 +873,7 @@ String getKey1FromCustomerProperties() {
                     _buildTitleTextNumber('GroupCode', propitemspecialss?.custGroupCode ?? 'N/A'),
                      _buildTitleTextNumber('Disc', propitemspecialss?.disc ?? 'N/A'),
                       _buildTitleTextNumber('Notes', propitemspecialss?.notes ?? 'N/A'),
+                      Divider(),
                           
 
                       // Add more fields as needed
@@ -910,6 +922,7 @@ String getKey1FromCustomerProperties() {
                     _buildTitleTextNumber('CategCode', propitemspecialss?.categCode ?? 'N/A'),
                      _buildTitleTextNumber('Disc', propitemspecialss?.disc ?? 'N/A'),
                       _buildTitleTextNumber('Notes', propitemspecialss?.notes ?? 'N/A'),
+                      Divider(),
                           
 
                       // Add more fields as needed

@@ -101,7 +101,6 @@ Future<void> loadCheckboxPreferences() async {
     filteredCustomers = List.from(customers);
 
     groupList = await getDistinctValuesFromBox('groupCode', customerBox);
-   cmpList = await getDistinctValuesFromBox('cmpCode', customerBox);
    cmpCodeList= await getDistinctValuesFromBox('cmpCode', customerBox);
    
   }
@@ -591,7 +590,7 @@ Widget _buildDropdown(String label, String? selectedValue, Function(String?) onC
     filteredCustomers = customers.where((customer) {
       var codeMatch = customer.custCode.contains(codeFilterController.text);
       var groupMatch = selectedGroups.isEmpty || selectedGroups.contains(customer.groupCode);
-      var cmpCodeMatch = selectedCmpCode.isEmpty || selectedCmpCode.contains(customer.discType);
+      var cmpCodeMatch = selectedCmpCode.isEmpty || selectedCmpCode.contains(customer.cmpCode);
    
 
       return codeMatch  && groupMatch && cmpCodeMatch;

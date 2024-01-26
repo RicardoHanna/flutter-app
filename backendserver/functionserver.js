@@ -11,11 +11,11 @@ admin.initializeApp({
   databaseURL: 'https://sales-bab47.firebaseio.com', // Update with your actual database URL
 });
 
-async function importDataToFirestore(userGroupCode, itemTable, priceListsTable, selectAllTables,customersTable,systemTables) {
+async function importDataToFirestore(connectionID, itemTable, priceListsTable, selectAllTables,customersTable,systemTables) {
   try {
     // Fetch user configuration from Firestore based on user's group code
-    const configSnapshot = await admin.firestore().collection('SystemAdmin').where('groupcode', '==', userGroupCode).get();
-    console.log('Firestore Query:', `groupcode == ${userGroupCode?.toString()}`);
+    const configSnapshot = await admin.firestore().collection('CompaniesConnection').where('connectionID', '==', connectionID).get();
+    console.log('Firestore Query:', `connectionID == ${connectionID?.toString()}`);
     console.log('Config Snapshot:', configSnapshot.docs.map(doc => doc.data()));
     console.log('Firestore Query:', `itemtable == ${itemTable?.toString()}`);
     console.log('Firestore Query:', `selectAllTables == ${selectAllTables?.toString()}`);
@@ -23,13 +23,13 @@ async function importDataToFirestore(userGroupCode, itemTable, priceListsTable, 
     console.log('Firestore Query:', `customerSTable == ${customersTable?.toString()}`);
     console.log('Firestore Query:', `systemTable == ${systemTables?.toString()}`);
     if (configSnapshot.empty) {
-      console.error('User configuration not found for group code:', userGroupCode);
+      console.error('User configuration not found for connection code:', connectionID);
       return;
     }
 
     const firstConfigDocument = configSnapshot.docs[0];
     if (!firstConfigDocument.exists) {
-      console.error('Document found, but user configuration not found for group code:', userGroupCode);
+      console.error('Document found, but user configuration not found for connection code:', connectionID);
       return;
     }
 
@@ -69,74 +69,500 @@ let queryCustomerGroupItemsSpecialPrice='';let queryCustomerGroupBrandSpecialPri
 let queryCustomerGroupCategSpecialPrice='';let queryCustomerPropItemsSpecialPrice='';let queryCustomerPropBrandSpecialPrice='';
 let queryCustomerPropGroupSpecialPrice='';let queryCustomerPropCategSpecialPrice='';
 
-    if (selectAllTables === 'selectall') {
-      queryItems='SELECT * FROM Items';
-      queryItemBrand='SELECT * From ItemBrand';
-      queryItemGroup='SELECT * From ItemGroup';
-      queryItemCateg='SELECT * From ItemCateg';
-      queryItemAttach='SELECT * FROM ItemAttach';
-      queryPriceList='SELECT * FROM PriceList';
-      queryItemUOM='SELECT * FROM ItemUOM';
-      queryItemsPrices='SELECT * FROM ItemsPrices';
-    } else {
-      // Construct the query based on the selected tables
-      if (itemTable === 'Items') {
-        queryItems='SELECT * FROM Items';
-        queryItemBrand='SELECT * From ItemBrand';
-        queryItemGroup='SELECT * From ItemGroup';
-        queryItemCateg='SELECT * From ItemCateg';
-        queryItemAttach='SELECT * FROM ItemAttach';
-        queryItemUOM='SELECT * FROM ItemUOM';
-        queryItemsPrices='SELECT * FROM ItemsPrices';     
+ if (itemTable === 'Items' || selectAllTables === 'selectall') {
+        queryItems = `
+        SELECT 
+          LTRIM(RTRIM(itemCode)) AS itemCode,
+          LTRIM(RTRIM(itemName)) AS itemName,
+          LTRIM(RTRIM(itemPrName)) AS itemPrName,
+          LTRIM(RTRIM(itemFName)) AS itemFName,
+          LTRIM(RTRIM(itemPrFName)) AS itemPrFName,
+          LTRIM(RTRIM(groupCode)) AS groupCode,
+          LTRIM(RTRIM(categCode)) AS categCode,
+          LTRIM(RTRIM(brandCode)) AS brandCode,
+          LTRIM(RTRIM(itemType)) AS itemType,
+          LTRIM(RTRIM(barCode)) AS barCode,
+          LTRIM(RTRIM(uom)) AS uom,
+          LTRIM(RTRIM(picture)) AS picture,
+          LTRIM(RTRIM(remark)) AS remark,
+          LTRIM(RTRIM(brand)) AS brand,
+          LTRIM(RTRIM(manageBy)) AS manageBy,
+          LTRIM(RTRIM(vatRate)) AS vatRate,
+          LTRIM(RTRIM(active)) AS active,
+          LTRIM(RTRIM(weight)) AS weight,
+          LTRIM(RTRIM(charect1)) AS charect1,
+          LTRIM(RTRIM(charact2)) AS charact2,
+          LTRIM(RTRIM(cmpCode)) AS cmpCode
+        FROM Items`;
+    
+    queryItemBrand = `
+    SELECT 
+      LTRIM(RTRIM(brandCode)) AS brandCode,
+      LTRIM(RTRIM(brandName)) AS brandName,
+      LTRIM(RTRIM(brandFName)) AS brandFName,
+      LTRIM(RTRIM(cmpCode)) AS cmpCode
+    FROM ItemBrand`;
+    
+    queryItemGroup = `
+        SELECT 
+          LTRIM(RTRIM(groupCode)) AS groupCode,
+          LTRIM(RTRIM(groupName)) AS groupName,
+          LTRIM(RTRIM(groupFName)) AS groupFName,
+          LTRIM(RTRIM(cmpCode)) AS cmpCode
+        FROM ItemGroup`;
+    
+        queryItemCateg = `
+        SELECT 
+          LTRIM(RTRIM(categCode)) AS categCode,
+          LTRIM(RTRIM(categName)) AS categName,
+          LTRIM(RTRIM(categFName)) AS categFName,
+          LTRIM(RTRIM(cmpCode)) AS cmpCode
+        FROM ItemCateg`;
+    
+       queryItemAttach = `
+        SELECT 
+          LTRIM(RTRIM(itemCode)) AS itemCode,
+          LTRIM(RTRIM(attachmentType)) AS attachmentType,
+          LTRIM(RTRIM(attachmentPath)) AS attachmentPath,
+          LTRIM(RTRIM(note)) AS note,
+          LTRIM(RTRIM(cmpCode)) AS cmpCode
+        FROM ItemAttach`;
+     
+        queryItemUOM = `
+        SELECT 
+          LTRIM(RTRIM(itemCode)) AS itemCode,
+          LTRIM(RTRIM(uom)) AS uom,
+          LTRIM(RTRIM(qtyperUOM)) AS qtyperUOM,
+          LTRIM(RTRIM(barCode)) AS barCode,
+          LTRIM(RTRIM(cmpCode)) AS cmpCode
+        FROM ItemUOM`;
+    
+        
+        queryItemsPrices = `
+        SELECT 
+          LTRIM(RTRIM(plCode)) AS plCode,
+          LTRIM(RTRIM(itemCode)) AS itemCode,
+          LTRIM(RTRIM(uom)) AS uom,
+          LTRIM(RTRIM(basePrice)) AS basePrice,
+          LTRIM(RTRIM(currency)) AS currency,
+          LTRIM(RTRIM(auto)) AS auto,
+          LTRIM(RTRIM(disc)) AS disc,
+          LTRIM(RTRIM(price)) AS price,
+          LTRIM(RTRIM(cmpCode)) AS cmpCode
+        FROM ItemsPrices`;
        }
 
-      if (priceListsTable === 'PriceList') {
-        queryPriceList='SELECT * FROM PriceList';
+       if (priceListsTable === 'PriceList' || selectAllTables === 'selectall') {
+        queryPriceList = `
+          SELECT 
+            LTRIM(RTRIM(plCode)) AS plCode,
+            LTRIM(RTRIM(plName)) AS plName,
+            LTRIM(RTRIM(currency)) AS currency,
+            LTRIM(RTRIM(basePL)) AS basePL,
+            factor,
+            incVAT,
+            LTRIM(RTRIM(securityGroup)) AS securityGroup,
+            LTRIM(RTRIM(cmpCode)) AS cmpCode
+          FROM PriceList`;
+      
+       }
+
+      if(customersTable==='Customers' || selectAllTables === 'selectall'){
+        queryCustomers = `
+        SELECT 
+          LTRIM(RTRIM(cmpCode)) AS cmpCode,
+          LTRIM(RTRIM(custCode)) AS custCode,
+          LTRIM(RTRIM(custName)) AS custName,
+          LTRIM(RTRIM(custFName)) AS custFName,
+          LTRIM(RTRIM(groupCode)) AS groupCode,
+          LTRIM(RTRIM(mofNum)) AS mofNum,
+          LTRIM(RTRIM(barcode)) AS barcode,
+          LTRIM(RTRIM(phone)) AS phone,
+          LTRIM(RTRIM(mobile)) AS mobile,
+          LTRIM(RTRIM(fax)) AS fax,
+          LTRIM(RTRIM(website)) AS website,
+          LTRIM(RTRIM(email)) AS email,
+          LTRIM(RTRIM(active)) AS active,
+          LTRIM(RTRIM(printLayout)) AS printLayout,
+          LTRIM(RTRIM(dfltAddressID)) AS dfltAddressID,
+          LTRIM(RTRIM(dfltContactID)) AS dfltContactID,
+          LTRIM(RTRIM(curCode)) AS curCode,
+          LTRIM(RTRIM(cashClient)) AS cashClient,
+          LTRIM(RTRIM(discType)) AS discType,
+          LTRIM(RTRIM(vatCode)) AS vatCode,
+          LTRIM(RTRIM(prListCode)) AS prListCode,
+          LTRIM(RTRIM(payTermsCode)) AS payTermsCode,
+          LTRIM(RTRIM(discount)) AS discount,
+          LTRIM(RTRIM(creditLimit)) AS creditLimit,
+          LTRIM(RTRIM(balance)) AS balance,
+          LTRIM(RTRIM(balanceDue)) AS balanceDue,
+          LTRIM(RTRIM(notes)) AS notes
+        FROM Customers`;
+    
+        queryCustomerAddresses = `
+        SELECT 
+          LTRIM(RTRIM(cmpCode)) AS cmpCode,
+          LTRIM(RTRIM(custCode)) AS custCode,
+          LTRIM(RTRIM(addressID)) AS addressID,
+          LTRIM(RTRIM(address)) AS address,
+          LTRIM(RTRIM(fAddress)) AS fAddress,
+          LTRIM(RTRIM(regCode)) AS regCode,
+          LTRIM(RTRIM(gpslat)) AS gpslat,
+          LTRIM(RTRIM(gpslong)) AS gpslong,
+          LTRIM(RTRIM(notes)) AS notes
+        FROM CustomerAddresses`;
+        
+        queryCustomerContacts = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custCode)) AS custCode,
+      LTRIM(RTRIM(contactID)) AS contactID,
+      LTRIM(RTRIM(contactName)) AS contactName,
+      LTRIM(RTRIM(contactFName)) AS contactFName,
+      LTRIM(RTRIM(phone)) AS phone,
+      LTRIM(RTRIM(mobile)) AS mobile,
+      LTRIM(RTRIM(email)) AS email,
+      LTRIM(RTRIM(position)) AS position,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerContacts`;
+
+
+     queryCustomerProperties = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custCode)) AS custCode,
+      LTRIM(RTRIM(propCode)) AS propCode,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerProperties`;
+
+
+          queryCustomerAttachments = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custCode)) AS custCode,
+      LTRIM(RTRIM(attach)) AS attach,
+      LTRIM(RTRIM(notes)) AS notes,
+      LTRIM(RTRIM(attachType)) AS attachType
+    FROM CustomerAttachments`;
+
+
+      queryCustomerItemsSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custCode)) AS custCode,
+      LTRIM(RTRIM(itemCode)) AS itemCode,
+      LTRIM(RTRIM(uom)) AS uom,
+      basePrice,
+      LTRIM(RTRIM(currency)) AS currency,
+      auto,
+      disc,
+      price,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerItemsSpecialPrice`;
+
+        queryCustomerBrandSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custCode)) AS custCode,
+      LTRIM(RTRIM(brandCode)) AS brandCode,
+      disc,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerBrandSpecialPrice`;
+
+      queryCustomerGroupSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custCode)) AS custCode,
+      LTRIM(RTRIM(groupCode)) AS groupCode,
+      disc,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerGroupSpecialPrice`;
+
+    queryCustomerCategSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custCode)) AS custCode,
+      LTRIM(RTRIM(categCode)) AS categCode,
+      disc,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerCategSpecialPrice`;
+
+ queryCustomerGroupItemsSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custGroupCode)) AS custGroupCode,
+      LTRIM(RTRIM(itemCode)) AS itemCode,
+      LTRIM(RTRIM(uom)) AS uom,
+      basePrice,
+      LTRIM(RTRIM(currency)) AS currency,
+      auto,
+      disc,
+      price,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerGroupItemsSpecialPrice`;
+
+    
+    queryCustomerGroupBrandSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custGroupCode)) AS custGroupCode,
+      LTRIM(RTRIM(brandCode)) AS brandCode,
+      disc,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerGroupBrandSpecialPrice`;
+
+
+  queryCustomerGroupGroupSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custGroupCode)) AS custGroupCode,
+      LTRIM(RTRIM(groupCode)) AS groupCode,
+      disc,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerGroupGroupSpecialPrice`;
+
+
+      queryCustomerGroupCategSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custGroupCode)) AS custGroupCode,
+      LTRIM(RTRIM(categCode)) AS categCode,
+      disc,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerGroupCategSpecialPrice`;
+
+
+  queryCustomerPropItemsSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custPropCode)) AS custPropCode,
+      LTRIM(RTRIM(itemCode)) AS itemCode,
+      LTRIM(RTRIM(uom)) AS uom,
+      basePrice,
+      LTRIM(RTRIM(currency)) AS currency,
+      auto,
+      disc,
+      price,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerPropItemsSpecialPrice`;
+
+
+       queryCustomerPropBrandSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custPropCode)) AS custPropCode,
+      LTRIM(RTRIM(brandCode)) AS brandCode,
+      disc,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerPropBrandSpecialPrice`;
+
+         queryCustomerPropGroupSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custGroupCode)) AS custGroupCode,
+      LTRIM(RTRIM(propCode)) AS propCode,
+      disc,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerPropGroupSpecialPrice`;
+
+  queryCustomerPropCategSpecialPrice = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(custPropCode)) AS custPropCode,
+      LTRIM(RTRIM(categCode)) AS categCode,
+      disc,
+      LTRIM(RTRIM(notes)) AS notes
+    FROM CustomerPropCategSpecialPrice`;
       }
 
-      if(customersTable==='Customers'){
-        queryCustomers='SELECT * FROM Customers';
-        queryCustomerAddresses='SELECT * FROM CustomerAddresses';
-        queryCustomerContacts='SELECT * FROM CustomerContacts';
-        queryCustomerProperties='SELECT * FROM CustomerProperties';
-        queryCustomerAttachments='SELECT * FROM CustomerAttachments';
-        queryCustomerItemsSpecialPrice='SELECT * FROM CustomerItemsSpecialPrice';
-        queryCustomerBrandSpecialPrice='SELECT * FROM CustomerBrandSpecialPrice';
-        queryCustomerGroupSpecialPrice='SELECT * FROM CustomerGroupSpecialPrice';
-        queryCustomerCategSpecialPrice='SELECT * FROM CustomerCategSpecialPrice';
-        queryCustomerGroupItemsSpecialPrice='SELECT * FROM CustomerGroupItemsSpecialPrice';
-        queryCustomerGroupBrandSpecialPrice='SELECT * FROM CustomerGroupBrandSpecialPrice';
-        queryCustomerGroupGroupSpecialPrice='SELECT * FROM CustomerGroupGroupSpecialPrice';
-        queryCustomerGroupCategSpecialPrice='SELECT * FROM CustomerGroupCategSpecialPrice';
-        queryCustomerPropItemsSpecialPrice='SELECT * FROM CustomerPropItemsSpecialPrice';
-        queryCustomerPropBrandSpecialPrice='SELECT * FROM CustomerPropBrandSpecialPrice';
-        queryCustomerPropGroupSpecialPrice='SELECT * FROM CustomerPropGroupSpecialPrice';
-        queryCustomerPropCategSpecialPrice='SELECT * FROM CustomerPropCategSpecialPrice';
-      }
+      if(systemTables==='System' || selectAllTables === 'selectall'){
+        queryCompanies = `
+        SELECT 
+          LTRIM(RTRIM(cmpCode)) AS cmpCode,
+          LTRIM(RTRIM(cmpName)) AS cmpName,
+          LTRIM(RTRIM(cmpFName)) AS cmpFName,
+          LTRIM(RTRIM(tel)) AS tel,
+          LTRIM(RTRIM(mobile)) AS mobile,
+          LTRIM(RTRIM(address)) AS address,
+          LTRIM(RTRIM(fAddress)) AS fAddress,
+          LTRIM(RTRIM(prHeader)) AS prHeader,
+          LTRIM(RTRIM(prFHeader)) AS prFHeader,
+          LTRIM(RTRIM(prFooter)) AS prFooter,
+          LTRIM(RTRIM(prFFooter)) AS prFFooter,
+          LTRIM(RTRIM(mainCurCode)) AS mainCurCode,
+          LTRIM(RTRIM(secCurCode)) AS secCurCode,
+          LTRIM(RTRIM(rateType)) AS rateType,
+          LTRIM(RTRIM(issueBatchMethod)) AS issueBatchMethod,
+          LTRIM(RTRIM(systemAdminID)) AS systemAdminID,
+          LTRIM(RTRIM(notes)) AS notes
+        FROM Companies`;
+        
+        queryDepartments = `
+        SELECT 
+          LTRIM(RTRIM(cmpCode)) AS cmpCode,
+          LTRIM(RTRIM(depCode)) AS depCode,
+          LTRIM(RTRIM(depName)) AS depName,
+          LTRIM(RTRIM(depFName)) AS depFName,
+          LTRIM(RTRIM(notes)) AS notes
+        FROM Departments`;
 
-      if(systemTables==='System'){
-         queryCompanies='SELECT * FROM Companies';
-         queryDepartments='SELECT * FROM Departments';
-         queryExchangeRate='SELECT * FROM ExchangeRate';
-         queryCurrencies='SELECT * FROM Currencies'; 
-         queryVATGroups='SELECT * FROM VATGroups';
-         queryCustGroups='SELECT * FROM CustGroups';
-         queryCustProperties='SELECT * FROM CustProperties';
-         queryRegions='SELECT * FROM Regions';
-         queryWarehouses='SELECT * FROM Warehouses';
-         queryPaymentTerms='SELECT * FROM PaymentTerms';
-         querySalesEmployees='SELECT * FROM SalesEmployees';
-         querySalesEmployeesCustomers='SELECT * FROM SalesEmployeesCustomers';
-         querySalesEmployeesDepartments='SELECT * FROM SalesEmployeesDepartments';
-         querySalesEmployeesItemsBrands='SELECT * FROM SalesEmployeesItemsBrands';
-         querySalesEmployeesItemsCategories='SELECT * FROM SalesEmployeesItemsCategories';
-         querySalesEmployeesItemsGroups='SELECT * FROM SalesEmployeesItemsGroups';
-         querySalesEmployeesItems='SELECT * FROM SalesEmployeesItems';
-         queryUsersSalesEmployees='SELECT * FROM UsersSalesEmployees';
+        queryExchangeRate = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(curCode)) AS curCode,
+      fDate,
+      tDate,
+      rate
+    FROM ExchangeRate`;
+
+    
+    queryCurrencies = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(curCode)) AS curCode,
+      LTRIM(RTRIM(curName)) AS curName,
+      LTRIM(RTRIM(curFName)) AS curFName,
+      notes
+    FROM Currencies`;
+
+queryVATGroups = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(vatCode)) AS vatCode,
+      LTRIM(RTRIM(vatName)) AS vatName,
+      LTRIM(RTRIM(vatRate)) AS vatRate,
+      LTRIM(RTRIM(baseCurCode)) AS baseCurCode,
+      notes
+    FROM VATGroups`;
+
+queryCustGroups = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(grpCode)) AS grpCode,
+      LTRIM(RTRIM(grpName)) AS grpName,
+      LTRIM(RTRIM(grpFName)) AS grpFName,
+      notes
+    FROM CustGroups`;
+
+    
+    queryCustProperties = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(propCode)) AS propCode,
+      LTRIM(RTRIM(propName)) AS propName,
+      LTRIM(RTRIM(propFName)) AS propFName,
+      notes
+    FROM CustProperties`;
+
+    queryRegions = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(regCode)) AS regCode,
+      LTRIM(RTRIM(regName)) AS regName,
+      LTRIM(RTRIM(regFName)) AS regFName,
+      notes
+    FROM Regions`;
+
+   queryWarehouses = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(whsCode)) AS whsCode,
+      LTRIM(RTRIM(whsName)) AS whsName,
+      LTRIM(RTRIM(whsFName)) AS whsFName,
+      notes
+    FROM Warehouses`;
+
+
+        queryPaymentTerms = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(ptCode)) AS ptCode,
+      LTRIM(RTRIM(ptName)) AS ptName,
+      LTRIM(RTRIM(ptFName)) AS ptFName,
+      startFrom,
+      nbrofDays,
+      notes
+    FROM PaymentTerms`;
+
+ querySalesEmployees = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(seCode)) AS seCode,
+      LTRIM(RTRIM(seName)) AS seName,
+      LTRIM(RTRIM(seFName)) AS seFName,
+      LTRIM(RTRIM(mobile)) AS mobile,
+      LTRIM(RTRIM(email)) AS email,
+      LTRIM(RTRIM(whsCode)) AS whsCode,
+      LTRIM(RTRIM(reqFromWhsCode)) AS reqFromWhsCode,
+      notes
+    FROM SalesEmployees`;
+
+        querySalesEmployeesCustomers = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(seCode)) AS seCode,
+      LTRIM(RTRIM(custCode)) AS custCode,
+      notes
+    FROM SalesEmployeesCustomers`;
+
+           querySalesEmployeesDepartments = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(seCode)) AS seCode,
+      LTRIM(RTRIM(deptCode)) AS deptCode,
+      LTRIM(RTRIM(reqFromWhsCode)) AS reqFromWhsCode,
+      notes
+    FROM SalesEmployeesDepartments`;
+
+
+       querySalesEmployeesItemsBrands = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(seCode)) AS seCode,
+      LTRIM(RTRIM(brandCode)) AS brandCode,
+      LTRIM(RTRIM(reqFromWhsCode)) AS reqFromWhsCode,
+      notes
+    FROM SalesEmployeesItemsBrands`;
+
+
+        querySalesEmployeesItemsCategories = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(seCode)) AS seCode,
+      LTRIM(RTRIM(categCode)) AS categCode,
+      LTRIM(RTRIM(reqFromWhsCode)) AS reqFromWhsCode,
+      notes
+    FROM SalesEmployeesItemsCategories`;
+
+         querySalesEmployeesItemsGroups = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(seCode)) AS seCode,
+      LTRIM(RTRIM(groupCode)) AS groupCode,
+      LTRIM(RTRIM(reqFromWhsCode)) AS reqFromWhsCode,
+      notes
+    FROM SalesEmployeesItemsGroups`;
+
+      querySalesEmployeesItems = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(seCode)) AS seCode,
+      LTRIM(RTRIM(itemCode)) AS itemCode,
+      LTRIM(RTRIM(reqFromWhsCode)) AS reqFromWhsCode,
+      notes
+    FROM SalesEmployeesItems`;
+
+ queryUsersSalesEmployees = `
+    SELECT 
+      LTRIM(RTRIM(cmpCode)) AS cmpCode,
+      LTRIM(RTRIM(userCode)) AS userCode,
+      LTRIM(RTRIM(seCode)) AS seCode,
+      notes
+    FROM UsersSalesEmployees`;
       }
 
       // Add other tables as needed
-    }
+    
 
     // Execute the SQL query
    // Execute the SQL queries
@@ -1128,7 +1554,7 @@ if (rowsItemUOM && rowsItemUOM.length) {
             console.log(`Document added to Customers collection with IDs: ${docRefCustomers?.id}, ${docRefCustomerAddresses?.id}, ${docRefCustomerContacts?.id}, ${docRefCustomerProperties?.id}, ${docRefCustomerAttachments?.id}, ${docRefCustomerItemsSpecialPrice?.id}, ${docRefCustomerBrandSpecialPrice?.id}, ${docRefCustomerGroupSpecialPrice?.id}, ${docRefCustomerCategSpecialPrice?.id}, ${docRefCustomerGroupItemsSpecialPrice?.id}, ${docRefCustomerGroupBrandSpecialPrice?.id}, ${docRefCustomerGroupGroupSpecialPrice?.id}, ${docRefCustomerGroupCategSpecialPrice?.id}, ${docRefCustomerPropItemsSpecialPrice?.id}, ${docRefCustomerPropBrandSpecialPrice?.id}, ${docRefCustomerPropGroupSpecialPrice?.id}, ${docRefCustomerPropCategSpecialPrice?.id}`);
           }
         
-        if(systemTables === 'System'){
+        if(systemTables === 'System' ){
           if (rowsCompanies && rowsCompanies.length) {
             const identifierFieldCompanies = 'cmpCode'; // Change this to the correct identifier field for 'Companies'
             let identifierValuesCompanies = [];
@@ -1320,7 +1746,7 @@ if (rowsItemUOM && rowsItemUOM.length) {
             let identifierValuesCustProperties = [];
           
             // Update or add documents in Firestore
-            for (let i = 0; I < rowsCustProperties.length; i++) {
+            for (let i = 0; i < rowsCustProperties.length; i++) {
               const updatedRecord = rowsCustProperties[i];
               const identifierValue = updatedRecord[identifierFieldCustProperties]; // Assuming 'propCode' is the identifier value for 'CustProperties'
           
@@ -1351,7 +1777,7 @@ if (rowsItemUOM && rowsItemUOM.length) {
             let identifierValuesRegions = [];
           
             // Update or add documents in Firestore
-            for (let i = 0; I < rowsRegions.length; i++) {
+            for (let i = 0; i < rowsRegions.length; i++) {
               const updatedRecord = rowsRegions[i];
               const identifierValue = updatedRecord[identifierFieldRegions]; // Assuming 'regCode' is the identifier value for 'Regions'
           
@@ -1573,7 +1999,7 @@ if (rowsSalesEmployeesItemsCategories && rowsSalesEmployeesItemsCategories.lengt
   let identifierValuesSalesEmployeesItemsCategories = [];
 
   // Update or add documents in Firestore
-  for (let i = 0; I < rowsSalesEmployeesItemsCategories.length; i++) {
+  for (let i = 0; i < rowsSalesEmployeesItemsCategories.length; i++) {
     const updatedRecord = rowsSalesEmployeesItemsCategories[i];
     const identifierValue = [updatedRecord.cmpCode , updatedRecord.seCode , updatedRecord.categCode];
 
@@ -1607,7 +2033,7 @@ if (rowsSalesEmployeesItemsGroups && rowsSalesEmployeesItemsGroups.length) {
   let identifierValuesSalesEmployeesItemsGroups = [];
 
   // Update or add documents in Firestore
-  for (let i = 0; I < rowsSalesEmployeesItemsGroups.length; i++) {
+  for (let i = 0; i < rowsSalesEmployeesItemsGroups.length; i++) {
     const updatedRecord = rowsSalesEmployeesItemsGroups[i];
     const identifierValue = [updatedRecord.cmpCode , updatedRecord.seCode , updatedRecord.groupCode];
 
@@ -1641,7 +2067,7 @@ if (rowsSalesEmployeesItems && rowsSalesEmployeesItems.length) {
   let identifierValuesSalesEmployeesItems = [];
 
   // Update or add documents in Firestore
-  for (let i = 0; I < rowsSalesEmployeesItems.length; i++) {
+  for (let i = 0; i < rowsSalesEmployeesItems.length; i++) {
     const updatedRecord = rowsSalesEmployeesItems[i];
     const identifierValue = [updatedRecord.cmpCode , updatedRecord.seCode , updatedRecord.itemCode];
 
@@ -2723,7 +3149,7 @@ await deleteFirestoreOnSqlServerDelete('ItemUOM', [identifierFieldItemUOM], docT
         let identifierValuesCustProperties = [];
       
         // Update or add documents in Firestore
-        for (let i = 0; I < rowsCustProperties.length; i++) {
+        for (let i = 0; i < rowsCustProperties.length; i++) {
           const updatedRecord = rowsCustProperties[i];
           const identifierValue = updatedRecord[identifierFieldCustProperties]; // Assuming 'propCode' is the identifier value for 'CustProperties'
       
@@ -2754,7 +3180,7 @@ await deleteFirestoreOnSqlServerDelete('ItemUOM', [identifierFieldItemUOM], docT
         let identifierValuesRegions = [];
       
         // Update or add documents in Firestore
-        for (let i = 0; I < rowsRegions.length; i++) {
+        for (let i = 0; i < rowsRegions.length; i++) {
           const updatedRecord = rowsRegions[i];
           const identifierValue = updatedRecord[identifierFieldRegions]; // Assuming 'regCode' is the identifier value for 'Regions'
       
@@ -2976,7 +3402,7 @@ const identifierFieldsSalesEmployeesItemsCategories = ['cmpCode', 'seCode', 'cat
 let identifierValuesSalesEmployeesItemsCategories = [];
 
 // Update or add documents in Firestore
-for (let i = 0; I < rowsSalesEmployeesItemsCategories.length; i++) {
+for (let i = 0; i < rowsSalesEmployeesItemsCategories.length; i++) {
 const updatedRecord = rowsSalesEmployeesItemsCategories[i];
 const identifierValue = [updatedRecord.cmpCode , updatedRecord.seCode , updatedRecord.categCode];
 
@@ -3010,7 +3436,7 @@ const identifierFieldsSalesEmployeesItemsGroups = ['cmpCode', 'seCode', 'groupCo
 let identifierValuesSalesEmployeesItemsGroups = [];
 
 // Update or add documents in Firestore
-for (let i = 0; I < rowsSalesEmployeesItemsGroups.length; i++) {
+for (let i = 0; i < rowsSalesEmployeesItemsGroups.length; i++) {
 const updatedRecord = rowsSalesEmployeesItemsGroups[i];
 const identifierValue = [updatedRecord.cmpCode , updatedRecord.seCode , updatedRecord.groupCode];
 
@@ -3044,7 +3470,7 @@ const identifierFieldsSalesEmployeesItems = ['cmpCode', 'seCode', 'itemCode']; /
 let identifierValuesSalesEmployeesItems = [];
 
 // Update or add documents in Firestore
-for (let i = 0; I < rowsSalesEmployeesItems.length; i++) {
+for (let i = 0; i < rowsSalesEmployeesItems.length; i++) {
 const updatedRecord = rowsSalesEmployeesItems[i];
 const identifierValue = [updatedRecord.cmpCode , updatedRecord.seCode , updatedRecord.itemCode];
 

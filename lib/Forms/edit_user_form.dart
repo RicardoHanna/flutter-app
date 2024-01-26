@@ -435,6 +435,7 @@ Future<String?> getUsernameByCode(int groupcode) async {
       setState(() {
         _selectedLanguage = newValue!;
         _formChanged=true;
+        print(_selectedLanguage);
       });
       },
       items: Language.languageList().map<DropdownMenuItem<String>>((lang) {
@@ -893,7 +894,11 @@ print(userSelectGroup);
 
       }
 
+      print(newLanguages);
+
+if(AppLocalizations.of(context)!.language !='English'){
       if(newLanguages=='إنجليزي') newLanguages='English'; else newLanguages='Arabic';
+}
 
     try {
     var userBox = await Hive.openBox('userBox');

@@ -24,19 +24,18 @@ class UserAdapter extends TypeAdapter<User> {
       fields[4] as String,
       fields[5] as String,
       fields[6] as String,
-      fields[7] as String,
-      fields[8] as bool,
-      fields[9] as String,
-      fields[10] as int,
-      fields[11] as String,
-      fields[12] as int,
+      fields[7] as bool,
+      fields[8] as String,
+      fields[9] as int,
+      fields[10] as String,
+      fields[11] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.usercode)
       ..writeByte(1)
@@ -52,16 +51,14 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(6)
       ..write(obj.imeicode)
       ..writeByte(7)
-      ..write(obj.warehouse)
-      ..writeByte(8)
       ..write(obj.active)
-      ..writeByte(9)
+      ..writeByte(8)
       ..write(obj.imageLink)
-      ..writeByte(10)
+      ..writeByte(9)
       ..write(obj.usergroup)
-      ..writeByte(11)
+      ..writeByte(10)
       ..write(obj.languages)
-      ..writeByte(12)
+      ..writeByte(11)
       ..write(obj.font);
   }
 

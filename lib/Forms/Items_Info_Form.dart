@@ -64,7 +64,15 @@ class ItemsInfoForm extends StatelessWidget {
               // Display item picture, item code, and item name in a row
               Row(
                 children: [
-                  Container(
+                Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildTitleText(AppLocalizations.of(context)!.itemcode, item.itemCode ?? ''),
+                      _buildTitleText(AppLocalizations.of(context)!.itemname, item.itemName ?? ''),
+                    ],
+                  ),
+                  SizedBox(width: 16.0), // Add spacing between picture and text
+                Container(
                     height: 80, // Adjust the height as needed
                     width: 80, // Adjust the width as needed
                     decoration: BoxDecoration(
@@ -74,14 +82,6 @@ class ItemsInfoForm extends StatelessWidget {
                         image: NetworkImage(item.picture ?? ''), // Use the item's picture URL
                       ),
                     ),
-                  ),
-                  SizedBox(width: 16.0), // Add spacing between picture and text
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText(AppLocalizations.of(context)!.itemcode, item.itemCode ?? ''),
-                      _buildTitleText(AppLocalizations.of(context)!.itemname, item.itemName ?? ''),
-                    ],
                   ),
                 ],
               ),
@@ -143,7 +143,7 @@ class ItemsInfoForm extends StatelessWidget {
                  
                   
                       // Add more fields as needed
-                      SizedBox(height: 16), // Add spacing between addresses
+                     Divider(),
                     ],
                   );
                 }),

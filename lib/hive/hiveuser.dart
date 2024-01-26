@@ -26,21 +26,18 @@ class User extends HiveObject {
   late String imeicode;
 
   @HiveField(7)
-  late String warehouse;
-
-  @HiveField(8)
   late bool active;
 
-  @HiveField(9)
+  @HiveField(8)
   late String imageLink;
  
-  @HiveField(10)
+  @HiveField(9)
   late int usergroup;
 
-  @HiveField(11)
+  @HiveField(10)
   late String languages;
 
-  @HiveField(12)
+  @HiveField(11)
   late int font;
 
   User(
@@ -51,7 +48,6 @@ class User extends HiveObject {
     this.password,
     this.phonenumber,
     this.imeicode,
-    this.warehouse,
     this.active,
     this.imageLink,
     this.usergroup,

@@ -132,7 +132,7 @@ void _fillFormDataForUser(String cmpCode) {
 
  var companiesConnectionBox = Hive.box<CompaniesConnection>('companiesConnectionBox');
 
-CompaniesConnection? companyConnection = companiesConnectionBox.get(company?.cmpCode);
+CompaniesConnection? companyConnection = companiesConnectionBox.get(company?.systemAdminID);
 
 
     // Add debug prints

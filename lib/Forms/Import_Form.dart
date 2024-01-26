@@ -13,6 +13,8 @@ import 'package:project/Forms/edit_user_form.dart';
 import 'package:project/Forms/user_form.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:project/hive/authorization_hive.dart';
+import 'package:project/hive/companies_hive.dart';
+import 'package:project/hive/companiesusers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive/hive.dart';
@@ -37,18 +39,68 @@ class ImportForm extends StatefulWidget {
 
 class _ImportFormState extends State<ImportForm> {
   // Track the selected checkboxes
+  String companyCode='';
+  String connectionID='';
+
+@override
+void initState() {
+  super.initState();
+  waitingGetCmpCode();
+
+}
+
+Future <void> waitingGetCmpCode() async{
+await getCompaniesConnectionId(widget.usercode);
+print(connectionID);
+}
   
 
 
 
-final String serverUrl = 'https://webappapi-8xaa.onrender.com';
-final int userGroupCode = 1;
+Future<String?> getCompaniesConnectionId(String usercode) async {
+  try {
+    var companiesUsersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+
+    // Look for a translation with the specified usercode
+    var companyUser = companiesUsersBox.values.firstWhere(
+      (t) => t.userCode == usercode,
+      orElse: () => CompaniesUsers(userCode: '', cmpCode: ''), // Default translation when not found
+    );
+
+
+
+    if (companyUser.cmpCode.isNotEmpty) {
+      // If cmpCode is not empty, open the companies box and retrieve connectionID
+      var companiesBox = await Hive.openBox<Companies>('companiesBox');
+
+      // Look for a company with the specified cmpCode
+      var company = companiesBox.values.firstWhere(
+        (c) => c.cmpCode == companyUser.cmpCode,
+        orElse: () => Companies(cmpCode: '', cmpFName: '', tel: '', mobile: '', fAddress: '', mainCurCode: '', prFooter: '', prFFooter: '', prHeader: '', notes: '', cmpName: '', address: '', prFHeader: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: ''), // Default company when not found
+      );
+
+   
+
+      // Retrieve the connectionID from the company
+      return connectionID=company.systemAdminID;
+    } else {
+      return null;
+    }
+  } catch (e) {
+    print('Error retrieving connectionID: $e');
+    return null; // or throw an exception if appropriate
+  }
+}
+
+
+final String serverUrl = 'https://b740-185-76-176-20.ngrok-free.app';
+
 Future<void> importData() async {
   TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
   
   // Create a Map to hold the data you want to send in the body
   Map<String, dynamic> requestBody = {
-    'userGroupCode': userGroupCode,
+    'connectionID': connectionID,
     'itemTable': itemTable,
     'priceListsTable': priceListsTable,
     'selectAllTables': selectAllTables,
@@ -352,6 +404,7 @@ child: Text('Import', style: _appTextStyle),
 
 
       await synchronizer.synchronizeDataCompaniesConnection();
+      await synchronizer.synchronizeDataCompaniesUsers();
       
 
         
@@ -407,42 +460,9 @@ Future<void> _synchronizeDatatoHive() async {
     DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
 
     // Run the synchronization process
-    await synchronizer.synchronizeData();
-    await synchronizer.synchronizeDataPriceLists();
-    await synchronizer.synchronizeDataItemPrice();
-    await synchronizer.synchronizeDataItemAttach();
-    await synchronizer.synchronizeDataItemBrand();
-    await synchronizer.synchronizeDataItemCateg();
-    await synchronizer.synchronizeDataItemUOM();
-    await synchronizer.synchronizeDataItemGroup();
-    await synchronizer.synchronizeDataUserPL();
-    await synchronizer.synchronizeDataUser();
-    await synchronizer.synchronizeDataMenu();
-    await synchronizer.synchronizeDataAuthorization();
-    await synchronizer.synchronizeDataUserGroup();
-    await synchronizer.synchronizeDataUserGroupTranslations();
-
-      await synchronizer.synchronizeDataGeneralSettings();
-    await synchronizer.synchronizeDepartements();
-    await synchronizer.synchronizeExchangeRates();
-    await synchronizer.synchronizeCurrencies();
-     await synchronizer.synchronizeVATGroups();
-      await synchronizer.synchronizeCustGroups();
-
-    await synchronizer.synchronizeCustProperties();
-    await synchronizer.synchronizeRegions();
-    await synchronizer.synchronizeWarehouses();
-    await synchronizer.synchronizePaymentTerms();
-     await synchronizer.synchronizeSalesEmployees();
-      await synchronizer.synchronizeSalesEmployeesCustomers();
-
-          await synchronizer.synchronizeSalesEmployeesDepartements();
-    await synchronizer.synchronizeSalesEmployeesItemsBrands();
-    await synchronizer.synchronizeSalesEmployeesItemsCategories();
-    await synchronizer.synchronizeSalesEmployeesItemsGroups();
-     await synchronizer.synchronizeSalesEmployeesItems();
-
-      await synchronizer.synchronizeUserSalesEmployees();
+  await _synchronizeSystem();
+  await _synchronizeItems();
+  await _synchronizePriceLists();
 
 await _synchronizeCustomers();
     // Simulate a delay for demonstration purposes (remove in production)
