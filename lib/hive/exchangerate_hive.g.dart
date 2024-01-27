@@ -21,7 +21,7 @@ class ExchangeRateAdapter extends TypeAdapter<ExchangeRate> {
       curCode: fields[1] as String,
       fDate: fields[2] as DateTime,
       tDate: fields[3] as DateTime,
-      rate: fields[4] as int,
+      rate: fields[4] as dynamic,
     );
   }
 

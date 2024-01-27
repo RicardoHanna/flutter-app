@@ -14,7 +14,7 @@ class PriceList extends HiveObject {
   late String currency;
 
   @HiveField(3)
-  late double basePL;
+  late dynamic basePL;
 
   @HiveField(4)
   late double factor;

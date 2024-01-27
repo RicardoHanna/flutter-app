@@ -14,7 +14,7 @@ class CustomerGroupCategSpecialPrice extends HiveObject {
   late String categCode;
 
   @HiveField(3)
-  late int disc;
+  late dynamic disc;
 
   @HiveField(4)
   late String notes;

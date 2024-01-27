@@ -20,11 +20,11 @@ class ItemsPricesAdapter extends TypeAdapter<ItemsPrices> {
       fields[0] as String,
       fields[1] as String,
       fields[2] as String,
-      fields[3] as double,
+      fields[3] as dynamic,
       fields[4] as String,
       fields[5] as bool,
-      fields[6] as double,
-      fields[7] as double,
+      fields[6] as dynamic,
+      fields[7] as dynamic,
       fields[8] as String,
     );
   }

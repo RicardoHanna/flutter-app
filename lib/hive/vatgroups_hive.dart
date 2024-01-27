@@ -14,7 +14,7 @@ class VATGroups extends HiveObject {
   late String vatName;
 
   @HiveField(3)
-  late int vatRate;
+  late dynamic vatRate;
 
   @HiveField(4)
   late String baseCurCode;

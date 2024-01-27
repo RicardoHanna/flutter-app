@@ -19,7 +19,7 @@ class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
     return ItemUOM(
       fields[0] as String,
       fields[1] as String,
-      fields[2] as double,
+      fields[2] as dynamic,
       fields[3] as String,
       fields[4] as String,
     );

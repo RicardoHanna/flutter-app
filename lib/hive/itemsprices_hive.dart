@@ -14,7 +14,7 @@ class ItemsPrices extends HiveObject {
   late String uom;
 
   @HiveField(3)
-  late double basePrice;
+  late dynamic basePrice;
 
   @HiveField(4)
   late String currency;
@@ -23,10 +23,10 @@ class ItemsPrices extends HiveObject {
   late bool auto;
 
   @HiveField(6)
-  late double disc;
+  late dynamic disc;
 
   @HiveField(7)
-  late double price;
+  late dynamic price;
 
   @HiveField(8)
   late String cmpCode;

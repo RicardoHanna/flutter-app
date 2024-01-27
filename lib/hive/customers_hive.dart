@@ -56,7 +56,7 @@ class Customers extends HiveObject {
   late String curCode;
 
   @HiveField(17)
-  late String cashClient;
+  late dynamic cashClient;
 
   @HiveField(18)
   late String discType;
@@ -71,16 +71,16 @@ class Customers extends HiveObject {
   late String payTermsCode;
 
   @HiveField(22)
-  late int discount;
+  late dynamic discount;
 
   @HiveField(23)
-  late int creditLimit;
+  late dynamic creditLimit;
 
   @HiveField(24)
-  late int balance;
+  late dynamic balance;
 
   @HiveField(25)
-  late int balanceDue;
+  late dynamic balanceDue;
 
   @HiveField(26)
   late String notes;

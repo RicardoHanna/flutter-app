@@ -17,7 +17,7 @@ class ExchangeRate extends HiveObject {
   late DateTime tDate;
 
   @HiveField(4)
-  late int rate;
+  late dynamic rate;
 
 
   ExchangeRate({

@@ -20,7 +20,7 @@ class PriceListAdapter extends TypeAdapter<PriceList> {
       fields[0] as String,
       fields[1] as String,
       fields[2] as String,
-      fields[3] as double,
+      fields[3] as dynamic,
       fields[4] as double,
       fields[5] as bool,
       fields[6] as String,

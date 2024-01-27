@@ -20,7 +20,7 @@ class VATGroupsAdapter extends TypeAdapter<VATGroups> {
       cmpCode: fields[0] as String,
       vatCode: fields[1] as String,
       vatName: fields[2] as String,
-      vatRate: fields[3] as int,
+      vatRate: fields[3] as dynamic,
       baseCurCode: fields[4] as String,
       notes: fields[5] as String,
     );

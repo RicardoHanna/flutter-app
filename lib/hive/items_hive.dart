@@ -50,13 +50,13 @@ class Items extends HiveObject {
   late String manageBy;
 
   @HiveField(15)
-  late double vatRate;
+  late dynamic vatRate;
 
   @HiveField(16)
   late bool active;
 
   @HiveField(17)
-  late double weight;
+  late dynamic weight;
 
   @HiveField(18)
   late String charect1;
