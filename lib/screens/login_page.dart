@@ -436,7 +436,6 @@ print(password);
               'password': userDoc.get('password'),
               'phonenumber': userDoc.get('phonenumber'),
               'imeicode': userDoc.get('imeicode'),
-              'warehouse': userDoc.get('warehouse'),
               'usergroup': userDoc.get('usergroup'),
               'font': userDoc.get('font'),
               'languages': userDoc.get('languages'),

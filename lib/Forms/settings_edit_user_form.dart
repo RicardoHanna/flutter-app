@@ -34,7 +34,7 @@ class _SettingsEditUserFormState extends State<SettingsEditUserForm> {
    TextEditingController _userFnameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
-  TextEditingController _warehouseController = TextEditingController();
+
   TextEditingController _phonenumberController=TextEditingController();
   TextEditingController _imeicodeController=TextEditingController();
   bool _isActive = false; // Assuming default value is false
@@ -101,7 +101,6 @@ var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
   String? password = user?['password'];
  String? phoneNumber = user?['phonenumber'];
   String? imeiCode = user?['imeicode'];
-  String? warehouse = user?['warehouse'];
   int? userGroup = user?['usergroup'];
    bool? active = user?['active'];
    String? email =user?['email'];
@@ -118,7 +117,6 @@ var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
           _passwordController.text = password ?? '';
           _phonenumberController.text = phoneNumber ?? '';
           _imeicodeController.text = imeiCode ?? '';
-          _warehouseController.text = warehouse ?? '';
           _selectedUserGroup = userGroup.toString();
           _isActive = active ?? false;
         });
@@ -309,15 +307,8 @@ Future<String?> getUsernameByCode(int groupcode) async {
                   },
             decoration: InputDecoration(labelText: AppLocalizations.of(context)!.imeiNumber),
           ),
-          SizedBox(height: 12),
-          TextField(
-            style: _appTextStyle,
-            controller: _warehouseController,
-               onChanged: (value) {
-                    _formChanged = true; 
-                  },
-            decoration: InputDecoration(labelText:AppLocalizations.of(context)!.warehouse),
-          ),
+      
+         
           SizedBox(height: 12),
        Theme(
       data: Theme.of(context).copyWith(
@@ -400,7 +391,6 @@ Future<String?> getUsernameByCode(int groupcode) async {
                 _passwordController.text,
                 _phonenumberController.text,
                 _imeicodeController.text,
-                _warehouseController.text,
                 _selectedLanguage,
                 _isActive,
                 _selectedFont,
@@ -509,7 +499,6 @@ Future<void> _updateLocalDatabase(
   String newPassword,
   String newPhoneNumber,
   String newImeiCode,
-  String newWarehouse,
   bool newIsActive,
   int newSelectedFont
 ) async {
@@ -528,7 +517,6 @@ Future<void> _updateLocalDatabase(
       user['password'] = newPassword;
       user['phonenumber'] = newPhoneNumber;
       user['imeicode'] = newImeiCode;
-      user['warehouse'] = newWarehouse;
       user['active'] = newIsActive;
       user['font']=newSelectedFont;
 
@@ -552,7 +540,6 @@ Future<void> _updateLocalDatabase(
   String newPassword,
   String newPhoneNumber,
   String newImeiCode,
-  String newWarehouse,
   String newSelectedLanguage,
   bool newIsActive,
   int newSelectedFont
@@ -585,7 +572,6 @@ try {
       user['password'] = newPassword;
       user['phonenumber'] = newPhoneNumber;
       user['imeicode'] = newImeiCode;
-      user['warehouse'] = newWarehouse;
       user['languages'] = newSelectedLanguage;
       user['active'] = newIsActive;
       user['font']=newSelectedFont;
@@ -664,7 +650,7 @@ Future<void> _syncChangesWithFirestore() async {
       String? newPassword = userBox.get('password');
       String? newPhoneNumber = userBox.get('phonenumber');
       String? newImeiCode = userBox.get('imeicode');
-      String? newWarehouse = userBox.get('warehouse');
+
       bool? newIsActive = userBox.get('active');
 
       print('Local Changes:');
@@ -673,7 +659,7 @@ Future<void> _syncChangesWithFirestore() async {
       print('Password: $newPassword');
       print('Phone Number: $newPhoneNumber');
       print('IMEI Code: $newImeiCode');
-      print('Warehouse: $newWarehouse');
+
       print('Is Active: $newIsActive');
 
       // Update Firestore with the changes based on email and password
@@ -695,7 +681,6 @@ Future<void> _syncChangesWithFirestore() async {
           'password': newPassword,
           'phonenumber': newPhoneNumber,
           'imeicode': newImeiCode,
-          'warehouse': newWarehouse,
           'active': newIsActive,
         });
 

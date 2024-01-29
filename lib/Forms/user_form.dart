@@ -472,6 +472,9 @@ Widget _buildTextFieldDropDownPriceListAutho() {
               })
               .toList();
 
+              print(priceList.toList());
+           
+
           return Theme(
             data: Theme.of(context).copyWith(
               textTheme: TextTheme(

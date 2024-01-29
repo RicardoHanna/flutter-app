@@ -31,4 +31,16 @@ List<String> getSelectedFieldsCust() {
     return selectedFields;
   }
 
+
+  bool showAddressIdCustMap=false;
+   bool showAddressCustMap=false;
+     bool showregCodeCustMap=false;
+   
+List<String> getSelectedFieldsCustMap() {
+    List<String> selectedFields = [];
+    if (showAddressIdCustMap) selectedFields.add('AddressId');
+    if (showAddressCustMap) selectedFields.add('Address');
+    if (showregCodeCustMap) selectedFields.add('RegCode');
+    return selectedFields;
+  }
 }

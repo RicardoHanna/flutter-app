@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +54,7 @@ class CustomersForm extends StatefulWidget {
 class _customersFormState extends State<CustomersForm> {
   UserPreferences userPreferences = UserPreferences();
 
-
+bool _showSubMenu = false;
  bool? active;
  late List<Customers> customers;
   late List<Customers> filteredCustomers=[];
@@ -92,6 +92,11 @@ Future<void> loadCheckboxPreferences() async {
     userPreferences.showDiscTypeCustomers = prefs.getBool('showItemType') ?? false;
    // userPreferences.showItemName = prefs.getBool('showItemName') ?? false;
     userPreferences.showMOFNumCustomers = prefs.getBool('showMOFNum') ?? false;
+
+    userPreferences.showAddressIdCustMap= prefs.getBool('showAddressId') ?? false;
+    userPreferences.showAddressCustMap= prefs.getBool('showAddress') ?? false;
+      userPreferences.showregCodeCustMap= prefs.getBool('showregCode') ?? false;
+
   });
 }
 
@@ -134,11 +139,14 @@ dynamic getField(Customers customers, String fieldName) {
 void _showCustomerMap() {
   // Retrieve GPS coordinates from CustomerAddresses box
   // based on the cmpCode and display the map screen
+  List<String> selectedFields = userPreferences.getSelectedFieldsCustMap();
   Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => CustomerMapScreen(
         customers: filteredCustomers,
+        selectedFields: selectedFields,
+      
       ),
     ),
   );
@@ -156,7 +164,11 @@ Future<void> printUserDataTranslations() async {
       print('-------------------------');
     }
   // Open 'translationsBox' for Translations
-
+  List<String> selectedFields = userPreferences.getSelectedFieldsCustMap();
+print(selectedFields);
+  for(var field in selectedFields){
+print(field);
+  }
   print('Printed all data');
 
 
@@ -186,6 +198,62 @@ Future<List<Customers>> _getCustomers() async {
   
 }
 
+ Widget _getFAB() {
+    return SpeedDial(
+      animatedIcon: AnimatedIcons.menu_close,
+      animatedIconTheme: IconThemeData(size: 22),
+      backgroundColor: Color(0xFF2196F3),
+      visible: true,
+      curve: Curves.bounceIn,
+      children: [
+        // Main button
+        SpeedDialChild(
+          child: Icon(Icons.map),
+          backgroundColor: Color(0xFF2196F3),
+          onTap: () {
+            _showCustomerMap();
+          },
+          label: 'Map',
+          labelStyle: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontSize: 16.0,
+          ),
+          labelBackgroundColor: Color(0xFF2196F3),
+        ),
+        // Sub button 1
+        SpeedDialChild(
+          child: Icon(Icons.add),
+          backgroundColor: Color(0xFF2196F3),
+          onTap: () {
+          _showSettingsDialogMaps();
+          },
+          label: 'Add Fields Map',
+          labelStyle: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontSize: 16.0,
+          ),
+          labelBackgroundColor: Color(0xFF2196F3),
+        ),
+        // Sub button 2
+        SpeedDialChild(
+          child: Icon(Icons.add),
+          backgroundColor: Color(0xFF2196F3),
+          onTap: () {
+         _showSettingsDialog();
+          },
+          label: 'Add Fields Customers',
+          labelStyle: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontSize: 16.0,
+          ),
+          labelBackgroundColor: Color(0xFF2196F3),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +262,7 @@ Future<List<Customers>> _getCustomers() async {
 _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.items,style: _appTextStyleLead,),
+        title: Text('Customers',style: _appTextStyleLead,),
         actions: [
           IconButton(
             icon: Icon(Icons.search),
@@ -302,29 +370,13 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
 
       ),
       
-  floatingActionButton: Column(
+  
+floatingActionButton: Column(
   mainAxisAlignment: MainAxisAlignment.end,
   children: [
-    FloatingActionButton(
-      heroTag: null,
-      onPressed: () {
-        _showCustomerMap();
-      },
-      tooltip: 'Show Map',
-      child: Icon(Icons.map),
-    ),
-    SizedBox(height: 16.0),
-    FloatingActionButton(
-      heroTag: null,
-      onPressed: () {
-        _showSettingsDialog();
-      },
-      tooltip: 'Add Customer',
-      child: Icon(Icons.add),
-    ),
+_getFAB(),
   ],
 ),
-
     
     );
     
@@ -389,6 +441,102 @@ List<Widget> _buildSeparatedWidgets(List<Widget> widgets) {
 
   return separatedWidgets;
 }
+
+  Future<void> _showSettingsDialogMaps() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  List<String?> selectedOptions = [
+    userPreferences.showAddressIdCustMap ? 'AddressId' : null,
+    userPreferences.showAddressCustMap ? 'Address' : null,
+  userPreferences.showregCodeCustMap ? 'RegCode' : null,
+  ];
+
+
+  // ignore: use_build_context_synchronously
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            title: Text(AppLocalizations.of(context)!.choosefields,style: _appTextStyleNormal,),
+            content: Column(
+              children: <Widget>[
+                
+                for (int i = 0; i < 3; i++)
+                  _buildDropdownMaps(
+                    AppLocalizations.of(context)!.field+'${i + 1}',
+                    selectedOptions[i],
+                    (String? newValue) {
+                      setState(() {
+                        selectedOptions[i] = newValue;
+                      });
+                    },
+                    
+                  ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text(AppLocalizations.of(context)!.save,style: _appTextStyleNormal,),
+                onPressed: () async {
+                  userPreferences.showAddressIdCustMap = selectedOptions.contains('AddressId');
+                  userPreferences.showAddressCustMap = selectedOptions.contains('Address');
+                  userPreferences.showregCodeCustMap = selectedOptions.contains('RegCode');
+             
+
+                  // Save dropdown preferences to shared preferences
+                  await prefs.setBool('showAddressId', userPreferences.showAddressIdCustMap);
+                  await prefs.setBool('showAddress', userPreferences.showAddressCustMap);
+                  await prefs.setBool('showregCode', userPreferences.showregCodeCustMap);
+
+
+                  _applySorting(); // Call the method to update items
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+Widget _buildDropdownMaps(String label, String? selectedValue, Function(String?) onChanged) {
+  return Row(
+    children: [             
+      Text(label),
+      SizedBox(width: 10),
+      DropdownButton<String>(
+        value: selectedValue,
+        onChanged: onChanged,
+        items: [
+          DropdownMenuItem<String>(
+            value: 'AddressId',
+            child: Text('Address Id'),
+          ),
+          DropdownMenuItem<String>(
+            value: 'Address',
+            child: Text('Address'),
+          ),
+          DropdownMenuItem<String>(
+            value: 'RegCode',
+            child: Text('Region Code'),
+          ),
+       
+           DropdownMenuItem<String>(
+            value: '',
+            child: Text(''),
+          ),
+          // Add other options as needed
+        ],
+      ),
+    ],
+  );
+}
+
+
 Future<void> _showSettingsDialog() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -399,6 +547,7 @@ Future<void> _showSettingsDialog() async {
 
     userPreferences.showMOFNumCustomers ? 'MOFNum' : null,
   ];
+
 
 
 

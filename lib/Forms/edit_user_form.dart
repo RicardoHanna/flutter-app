@@ -62,7 +62,7 @@ class _EditUserFormState extends State<EditUserForm> {
   TextEditingController _usernameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
-  TextEditingController _warehouseController = TextEditingController();
+
   String _selectedUserGroup = '0';
   TextEditingController _fontController = TextEditingController();
   TextEditingController _languageController = TextEditingController();
@@ -529,7 +529,6 @@ Future<String?> getUsernameByCode(int groupcode) async {
                 _passwordController.text,
                 _phonenumberController.text,
                 _imeicodeController.text,
-                _warehouseController.text,
                 int.parse(_selectedUserGroup),
                 int.parse(_fontController.text),
                 _selectedLanguage,
@@ -849,7 +848,6 @@ Future<bool> _showDiscardChangesDialog() async {
     String newPassword,
     String newPhoneNumber,
      String newImeiCode,
-    String newWarehouse,
     int newUserGroup,
     int newFont,
     String newLanguages,
@@ -918,7 +916,6 @@ final userSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesE
       user['password'] = newPassword;
       user['phonenumber'] = newPhoneNumber;
       user['imeicode'] = newImeiCode;
-      user['warehouse'] = newWarehouse;
       user['usergroup'] = userSelectGroup;
       user['font'] = newFont;
       user['languages'] = newLanguages;

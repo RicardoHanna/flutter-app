@@ -93,7 +93,7 @@ Future<String?> getCompaniesConnectionId(String usercode) async {
 }
 
 
-final String serverUrl = 'https://b740-185-76-176-20.ngrok-free.app';
+final String serverUrl = 'https://hicd.onrender.com';
 
 Future<void> importData() async {
   TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());

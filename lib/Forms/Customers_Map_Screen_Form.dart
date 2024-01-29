@@ -5,16 +5,16 @@ import 'package:project/hive/customers_hive.dart';
 
 class CustomerMapScreen extends StatelessWidget {
   final List<Customers> customers;
+  final List<String> selectedFields;
 
-  CustomerMapScreen({required this.customers});
+
+  CustomerMapScreen({required this.customers,required this.selectedFields});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Customer Map'),
-      ),
-      body: MapSample(), // Include the MapSample widget here
+      
+      body: MapSample(selectedFields: selectedFields,filteredCustomers: customers,), // Include the MapSample widget here
     );
   }
 }
