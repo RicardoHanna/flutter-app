@@ -64,7 +64,7 @@ Future<String?> getCompaniesConnectionId(String usercode) async {
     // Look for a translation with the specified usercode
     var companyUser = companiesUsersBox.values.firstWhere(
       (t) => t.userCode == usercode,
-      orElse: () => CompaniesUsers(userCode: '', cmpCode: ''), // Default translation when not found
+      orElse: () => CompaniesUsers(userCode: '', cmpCode: '',defaultcmpCode: ''), // Default translation when not found
     );
 
 

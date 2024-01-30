@@ -72,7 +72,7 @@ class _EditUserFormState extends State<EditUserForm> {
 String _selectedLanguage = 'English';
 List<String> userGroups = [];
   bool isInitialized = false;
-  
+  String defaultCompanyCode='';
 String username='';
       bool _formChanged = false; // Added to track changes
       bool isDeletedSales = false;
@@ -175,13 +175,14 @@ Future<void> fetchSalesEmployeesAndCompanies(String selectedUserGroup) async {
           Companies company = companiesBox.values
               .firstWhere((company) => company.cmpCode == company.cmpCode,
               orElse: () => Companies(cmpCode:'', cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: ''));
-
+defaultCompanyCode=company.cmpCode;
           return '${company.cmpName}';
         })
         .toList();
     setState(() {
       // Update the companies dropdown
       selectedCompanies = companyList;
+      defaultCompanyCode=defaultCompanyCode;
       print(selectedCompanies);
     });
 
@@ -989,6 +990,7 @@ for (int i = 0; i < selectedCompanyCodes.length; i++) {
   CompaniesUsers companiesUsers = CompaniesUsers(
     userCode: widget.usercode,
     cmpCode: selectedCompanyCodes[i],
+    defaultcmpCode:defaultCompanyCode 
    
   );
 

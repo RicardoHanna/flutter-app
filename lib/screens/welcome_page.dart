@@ -16,6 +16,8 @@ import 'package:project/Forms/settings_edit_user_form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/Synchronize/DataSynchronizerFromFirebaseToHive.dart';
 import 'package:project/hive/authorization_hive.dart';
+import 'package:project/hive/companies_hive.dart';
+import 'package:project/hive/companiesusers_hive.dart';
 import 'package:project/hive/customers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/itemsprices_hive.dart';
@@ -53,13 +55,16 @@ String ?_image1;
  int _userGroup=0;
  String _username='';
   String  usercode='';
+  List<Companies> companies = []; 
+  String? selectedCompany;
+  String? selectedCompanyCode; // Variable to hold the selected company code
 
  String ? _userFname;
    @override
 void initState() {
   super.initState();
  
-  loadawaitusergroup();
+  loadawait();
 
     loadUserGroupHive();
 printUserMenu();
@@ -68,9 +73,11 @@ printUserMenu();
  
 }
 
-Future <void> loadawaitusergroup() async {
+Future <void> loadawait() async {
 
  await _loadUserGroup();
+ await _loadCompanies();
+ await _loadDefaultCompanyCode();
 }
  
   
@@ -85,7 +92,7 @@ Future <void> loadawaitusergroup() async {
     await Hive.initFlutter();
     //await insertUsers();
    // await insertUsersGroup();
-   // await printUserDataTranslations();
+    await printUserDataTranslations();
   }
 
     Future<void> printUserMenu() async {
@@ -152,12 +159,12 @@ Future <void> loadawaitusergroup() async {
 
 Future<void> printUserDataTranslations() async {
   // Open 'userBox' for Users
-    var usersBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
+    var usersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
 
-    print('Printing Users:');
+    print('Printing Users Companiesss:');
     for (var user in usersBox.values) {
-      print('Username: ${user.cmpCode}');
-      print('CMP: ${user.userCode}');
+      print('Username: ${user.defaultcmpCode}');
+      print('CMP: ${user.cmpCode}');
       print('-------------------------');
     }
   
@@ -176,6 +183,37 @@ Future<void> printUserDataTranslations() async {
 }
 
 
+
+ Future<void> _loadCompanies() async {
+    try {
+      var companiesBox = await Hive.openBox<Companies>('companiesBox');
+      // Retrieve all companies from the box
+      List<Companies> allCompanies = companiesBox.values.toList();
+      setState(() {
+        // Update the companies list with the retrieved companies
+        companies = allCompanies;
+      });
+    } catch (error) {
+      print('Error loading companies: $error');
+    }
+  }
+
+Future<void> _loadDefaultCompanyCode() async {
+    try {
+      var companiesUsersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+
+      var companiesUser = companiesUsersBox.values.firstWhere((element) => element.userCode==usercode);
+      if (companiesUser != null) {
+        setState(() {
+          // Set the selected company and its code based on the default company code
+          selectedCompanyCode = companiesUser.defaultcmpCode;
+          selectedCompany = companies.firstWhere((company) => company.cmpCode == selectedCompanyCode).cmpName;
+        });
+      }
+    } catch (error) {
+      print('Error loading default company code: $error');
+    }
+  }
 
 Future<void> _loadUserGroup() async {
   try {
@@ -386,9 +424,9 @@ void saveProfile(String localPath) async {
   @override
   Widget build(BuildContext context) {
      final Map<String, Widget> formWidgets = {
-   AppLocalizations.of(context)!.items: ItemsForm(appNotifier: widget.appNotifier,),
+   AppLocalizations.of(context)!.items: ItemsForm(appNotifier: widget.appNotifier,userCode: usercode,),
     AppLocalizations.of(context)!.pricelists: PriceLists(appNotifier: widget.appNotifier,usercode: usercode),
-    'Customers':CustomersForm(appNotifier:widget.appNotifier),
+    'Customers':CustomersForm(appNotifier:widget.appNotifier, userCode: usercode,),
   };
 
   final Map<String, int> menuCodes = {
@@ -595,6 +633,16 @@ languageUser=_username!;
   },
 ),
 
+  ListTile(
+            leading: Icon(Icons.business),
+            title: Text('Company',style: _appTextStyle,),
+            subtitle: selectedCompany != null ? Text(selectedCompany!) : null,
+            onTap: () {
+              _showCompanySelectionDialog(context);
+            },
+          ),
+    
+
       ListTile(
         leading: Icon(Icons.logout_rounded),
         title: Text(AppLocalizations.of(context)!.logout, style: _appTextStyle),
@@ -670,6 +718,54 @@ languageUser=_username!;
 
   );
 }
+
+ void _showCompanySelectionDialog(BuildContext context) {
+    TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Company'),
+          content: DropdownButtonFormField<String>(
+            value: selectedCompany,
+            items: companies.map((company) {
+              return DropdownMenuItem<String>(
+                value: company.cmpName,
+                child: Text(company.cmpName,style: _appTextStyle,),
+              );
+            }).toList(),
+          onChanged: (value) {
+              setState(() {
+                selectedCompany = value;
+                // Get the selected company code based on the selected company name
+                selectedCompanyCode = companies.firstWhere((company) => company.cmpName == value).cmpCode;
+                // Update the default company code in CompaniesUsers box
+                _updateDefaultCompanyCode(selectedCompanyCode!);
+              });
+              Navigator.pop(context); // Close the dialog
+            },
+          ),
+        );
+      },
+    );
+  }
+ Future<void> _updateDefaultCompanyCode(String companyCode) async {
+  String companyNameEachRecordToUpdate='';
+    try {
+      var companiesUsersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+      var userCode = usercode;// Get the user code here
+      var companiesUser  = companiesUsersBox.values.where((element) => element.userCode==usercode);
+      for(var companyUser in companiesUser){
+        companyUser.defaultcmpCode = companyCode;
+        companyNameEachRecordToUpdate=companyUser.cmpCode;
+        companiesUsersBox.put('$userCode$companyNameEachRecordToUpdate', companyUser);
+      
+    }
+    } catch (error) {
+      print('Error updating default company code: $error');
+    }
+  }
+
 
 Future<bool?> _showSyncConfirmationDialog(BuildContext context) async {
     TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());

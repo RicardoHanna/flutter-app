@@ -16,7 +16,9 @@ import 'package:project/classes/UserPreferences.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/itemuom_hive.dart';
+import 'package:project/hive/salesemployeesitems_hive.dart';
 import 'package:project/hive/translations_hive.dart';
+import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/utils.dart';
 import 'package:project/screens/admin_users_page.dart';
@@ -34,7 +36,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ItemsForm extends StatefulWidget {
  
   final AppNotifier appNotifier;
-  ItemsForm({required this.appNotifier});
+  final String userCode;
+  ItemsForm({required this.appNotifier,required this.userCode});
   @override
   State<ItemsForm> createState() => _itemsFormState();
 }
@@ -197,30 +200,52 @@ Future<void> printUserDataTranslations() async {
 
 
 }
-
 Future<List<Items>> _getItems() async {
-  // Retrieve changes from the local database
+  var usersSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
+  var salesEmployeesItemsBox = await Hive.openBox<SalesEmployeesItems>('salesEmployeesItemsBox');
   var itemsBox = await Hive.openBox<Items>('items');
-  
-  // Assuming 'Items' class has properties itemCode, itemName, and active
-  var allItems = itemsBox.values.toList();
-  
-  for (var item in allItems) {
-    // Access properties of each item
-    var itemCode = item.itemCode;
-    var itemName = item.itemName;
-    var active = item.active;
 
-    // Now you can use itemCode, itemName, and active as needed
-    print('Item Code: $itemCode, Item Name: $itemName, Active: $active');
+  try {
+    // Find the UserSalesEmployees objects with matching userCode
+    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode);
+
+    List<Items> allItems = [];
+
+    // Iterate through each userSalesEmployee object
+    for (var userSalesEmployee in userSalesEmployees) {
+      var cmpCode = userSalesEmployee.cmpCode;
+      var seCode = userSalesEmployee.seCode;
+
+      // Find all SalesEmployeesItems with matching cmpCode and seCode
+      var salesEmployeeItems = salesEmployeesItemsBox.values.where((salesEmployeeItem) => 
+        salesEmployeeItem.cmpCode == cmpCode && salesEmployeeItem.seCode == seCode);
+
+      // Iterate through each SalesEmployeesItem for the current userSalesEmployee
+      for (var salesEmployeeItem in salesEmployeeItems) {
+        var itemCode = salesEmployeeItem.itemCode;
+
+        // Retrieve items from the items box based on itemCode and cmpCode
+        var items = itemsBox.values.where((item) => item.cmpCode == cmpCode && item.itemCode == itemCode).toList();
+        
+        // Add the retrieved items to the list
+        allItems.addAll(items);
+      }
+    }
+
+
+
+    return allItems;
+  } catch (e) {
+    print("Error: $e");
+
+    // Close the boxes if an error occurs
     
-    // Perform your synchronization with Firestore or any other logic here
-  }
 
-  // Close the box when done
-  return allItems;
-  
+    return []; // Return an empty list if an error occurs
+  }
 }
+
+
 
 
   @override

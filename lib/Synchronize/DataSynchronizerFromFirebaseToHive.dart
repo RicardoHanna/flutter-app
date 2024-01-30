@@ -4474,7 +4474,8 @@ Future<void> synchronizeDataCompaniesUsers() async {
       if (hiveComp == null) {
         var newComp = CompaniesUsers(
         userCode: doc['userCode'],
-        cmpCode: doc['cmpCode']
+        cmpCode: doc['cmpCode'],
+        defaultcmpCode: doc['defaultcmpCode']
         );
         await compsBox.put('$userCode$cmpCode', newComp);
       }
@@ -4482,7 +4483,8 @@ Future<void> synchronizeDataCompaniesUsers() async {
       else {
         var updatedComp =CompaniesUsers(
            userCode: doc['userCode'],
-        cmpCode: doc['cmpCode']
+        cmpCode: doc['cmpCode'],
+        defaultcmpCode: doc['defaultcmpCode']
         );
         // Update the item in Hive
         await compsBox.put('$userCode$cmpCode', updatedComp);

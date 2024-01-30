@@ -19,17 +19,20 @@ class CompaniesUsersAdapter extends TypeAdapter<CompaniesUsers> {
     return CompaniesUsers(
       userCode: fields[0] as String,
       cmpCode: fields[1] as String,
+      defaultcmpCode: fields[2] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, CompaniesUsers obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.userCode)
       ..writeByte(1)
-      ..write(obj.cmpCode);
+      ..write(obj.cmpCode)
+      ..writeByte(2)
+      ..write(obj.defaultcmpCode);
   }
 
   @override

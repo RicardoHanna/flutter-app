@@ -874,6 +874,7 @@ for (int i = 0; i < selectedCompanyCodes.length; i++) {
   CompaniesUsers companiesUsers = CompaniesUsers(
     userCode: usercode,
     cmpCode: selectedCompanyCodes[i],
+    defaultcmpCode: ''
    
   );
 

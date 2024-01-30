@@ -10,9 +10,13 @@ class CompaniesUsers extends HiveObject {
   @HiveField(1)
   late String cmpCode;
  
+  @HiveField(2)
+  late String defaultcmpCode;
+
   CompaniesUsers({
    required  this.userCode,
    required this.cmpCode,
+   required this.defaultcmpCode
 
   }
   );

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:project/classes/UserPreferences.dart';
@@ -9,8 +10,9 @@ import 'package:project/hive/customers_hive.dart';
 class MapSample extends StatefulWidget {
     final List<String> selectedFields; // Add selectedFields parameter
       final List<Customers> filteredCustomers;
+     final Position?  userPosition;
 
-  const MapSample({Key? key, required this.selectedFields,required this.filteredCustomers}) : super(key: key);
+  const MapSample({Key? key, required this.selectedFields,required this.filteredCustomers,required this.userPosition}) : super(key: key);
 
   @override
   _MapSampleState createState() => _MapSampleState();
@@ -118,63 +120,77 @@ void _saveAdditionalInfo(String custCode, String additionalInfo) {
 }
 
 
-
 Set<Marker> _getMarkers() {
-  return customerAddresses.map((address) {
+  Set<Marker> markers = {};
+
+  // Add markers for customer addresses
+  markers.addAll(customerAddresses.map((address) {
     double gpsLat = double.tryParse(address.gpslat) ?? 0.0;
     double gpsLong = double.tryParse(address.gpslong) ?? 0.0;
     String custName = custNames[address.custCode] ?? ''; // Get custName from the custNames map
     return Marker(
       markerId: MarkerId(address.custCode),
       position: LatLng(gpsLat, gpsLong),
-     infoWindow: InfoWindow(
-  title: '${address.custCode} - $custName',
-  snippet: () {
-    String snippet = '${address.notes}' ?? 'Tap to edit additional info'; // Include notes in the snippet
-    // Check if selectedFields is not null and contains fields
-    if (widget.selectedFields != null && widget.selectedFields.isNotEmpty) {
-      // Include selected fields next to custCode
-      String fieldsSnippet = widget.selectedFields.map((field) {
-        switch (field) {
-          case 'AddressId':
-            return '${address.addressID}';
-          case 'Address':
-            return '${address.address}';
-             case 'RegCode':
-            return '${address.regCode}';
-      
-          default:
-            return ''; // Handle unknown fields
-        }
-      }).where((fieldValue) => fieldValue.isNotEmpty).join(', '); // Join non-empty field values with a comma
-      if (fieldsSnippet.isNotEmpty) {
-        snippet += ' - $fieldsSnippet'; // Concatenate selected fields to the snippet
-      }
-    }
-    return snippet; // Return the final snippet
-  }(),
-  onTap: () {
-    _showEditDialog(address.custCode,address.notes);
-  },
-),
-
-
+      infoWindow: InfoWindow(
+        title: '${address.custCode} - $custName',
+        snippet: () {
+          String snippet = '${address.notes}' ?? 'Tap to edit additional info'; // Include notes in the snippet
+          // Check if selectedFields is not null and contains fields
+          if (widget.selectedFields != null && widget.selectedFields.isNotEmpty) {
+            // Include selected fields next to custCode
+            String fieldsSnippet = widget.selectedFields.map((field) {
+              switch (field) {
+                case 'AddressId':
+                  return '${address.addressID}';
+                case 'Address':
+                  return '${address.address}';
+                case 'RegCode':
+                  return '${address.regCode}';
+                default:
+                  return ''; // Handle unknown fields
+              }
+            }).where((fieldValue) => fieldValue.isNotEmpty).join(', '); // Join non-empty field values with a comma
+            if (fieldsSnippet.isNotEmpty) {
+              snippet += ' - $fieldsSnippet'; // Concatenate selected fields to the snippet
+            }
+          }
+          return snippet; // Return the final snippet
+        }(),
+        onTap: () {
+          _showEditDialog(address.custCode, address.notes);
+        },
+      ),
     );
-  }).toSet();
+  }));
+
+  // Add marker for user's position
+  if (widget.userPosition != null) {
+    markers.add(
+      Marker(
+        markerId: MarkerId('userPosition'),
+        position: LatLng(widget.userPosition!.latitude, widget.userPosition!.longitude),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan), // Change marker color to cyan
+      ),
+    );
+  }
+
+  return markers;
 }
+
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: GoogleMap(
-        mapType: MapType.hybrid,
-        initialCameraPosition: _kGooglePlex,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-        markers: _getMarkers(),
-      ),
+  mapType: MapType.hybrid,
+  initialCameraPosition: _kGooglePlex,
+  onMapCreated: (GoogleMapController controller) {
+    _controller.complete(controller);
+  },
+  markers: _getMarkers(), // Pass user's position to the _getMarkers function
+),
+
     );
   }
 }

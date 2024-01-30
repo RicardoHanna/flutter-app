@@ -522,6 +522,7 @@ Future<void> _updateFirestoreCompaniesUsers(List<CompaniesUsers> companiesusers)
                  
                  'userCode':companyuser.userCode,
                 'cmpCode':companyuser.cmpCode,
+                'defaultcmpCode':companyuser.defaultcmpCode
                 
              
          
@@ -537,6 +538,7 @@ Future<void> _updateFirestoreCompaniesUsers(List<CompaniesUsers> companiesusers)
 
               'userCode':companyuser.userCode,
               'cmpCode':companyuser.cmpCode,
+              'defaultcmpCode':companyuser.defaultcmpCode,
                 
               // Add other fields if needed
             },

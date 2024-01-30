@@ -27,6 +27,7 @@ import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/salesemployees_hive.dart';
+import 'package:project/hive/salesemployeescustomers_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/screens/login_page.dart';
@@ -41,12 +42,14 @@ import 'package:project/Synchronize/DataSynchronizer.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 
 
 class CustomersForm extends StatefulWidget {
  
   final AppNotifier appNotifier;
-  CustomersForm({required this.appNotifier});
+  final String userCode;
+  CustomersForm({required this.appNotifier,required this.userCode});
   @override
   State<CustomersForm> createState() => _customersFormState();
 }
@@ -72,15 +75,24 @@ final TextEditingController codeFilterController = TextEditingController();
   final TextEditingController categoryFilterController = TextEditingController();
  TextEditingController searchController = TextEditingController();
     TextStyle   _appTextStyleNormal = TextStyle();
+    late Position _currentPosition;
+     Position? userPosition;
+
+late Box<CustomerAddresses> customerAddressesBox;
+late List<Customers> allCustomers = [];
   @override
 @override
 void initState() {
   super.initState();
   // Call async method within initState
   customerBox = Hive.box<Customers>('customersBox');
+    customerAddressesBox = Hive.box<CustomerAddresses>('customerAddressesBox');
+
   initializeData();
   loadCheckboxPreferences();
   printUserDataTranslations();
+    _getCurrentLocation();
+
 }
 
 Future<void> loadCheckboxPreferences() async {
@@ -104,11 +116,30 @@ Future<void> loadCheckboxPreferences() async {
  Future<void> initializeData() async {
     customers = await _getCustomers();
     filteredCustomers = List.from(customers);
+  allCustomers = customerBox.values.toList();
 
     groupList = await getDistinctValuesFromBox('groupCode', customerBox);
    cmpCodeList= await getDistinctValuesFromBox('cmpCode', customerBox);
    
   }
+
+  Future<double> calculateDistance(String cmpCode,String addressId,String custCode, Position userPosition) async {
+
+  var address = customerAddressesBox.get('$cmpCode$addressId$custCode');
+  print(address?.custCode);
+  if (address != null) {
+    // Retrieve GPS coordinates for customer
+    double gpsLat = double.tryParse(address.gpslat ?? '') ?? 0.0;
+    double gpsLong = double.tryParse(address.gpslong ?? '') ?? 0.0;
+    // Calculate distance between customer and user's location
+    double distance = Geolocator.distanceBetween(
+        userPosition.latitude, userPosition.longitude, gpsLat, gpsLong);
+    return distance;
+  } else {
+    return double.infinity; // Indicate that GPS coordinates are not available
+  }
+}
+
 
   Future<List<String>> getDistinctValuesFromBox(String fieldName, Box<Customers> box) async {
     var distinctValues = <String>[];
@@ -146,10 +177,51 @@ void _showCustomerMap() {
       builder: (context) => CustomerMapScreen(
         customers: filteredCustomers,
         selectedFields: selectedFields,
+        userPosition: userPosition,
       
       ),
     ),
   );
+}
+Future<void> _getCurrentLocation() async {
+  try {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled, throw error
+      throw Exception('Location services are disabled.');
+    }
+
+    // Check location permission
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      // Request location permission
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Location permission denied, throw error
+        throw Exception('Location permissions are denied.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Location permissions are permanently denied, throw error
+      throw Exception('Location permissions are permanently denied.');
+    }
+
+    // Location permissions are granted, get current position
+    Position position = await Geolocator.getCurrentPosition();
+    
+    setState(() {
+      userPosition = position; // Assign user's position
+      print('ric');
+      print(userPosition);
+    });
+  } catch (e) {
+    print("Error: $e");
+  }
 }
 
 Future<void> printUserDataTranslations() async {
@@ -177,25 +249,46 @@ print(field);
 Future<List<Customers>> _getCustomers() async {
   // Retrieve changes from the local database
   var customersBox = await Hive.openBox<Customers>('customersBox');
-  
-  // Assuming 'Items' class has properties itemCode, itemName, and active
-  var allCustomers = customersBox.values.toList();
-  
-  for (var customer in allCustomers) {
-    // Access properties of each item
-    var cmpCode = customer.cmpCode;
-    var custName = customer.custCode;
-    var custCode = customer.custCode;
+  var usersSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
+  var salesEmployeesCustomersBox = await Hive.openBox<SalesEmployeesCustomers>('salesEmployeesCustomersBox');
 
-    // Now you can use itemCode, itemName, and active as needed
-    print('Cust Code: $custCode, Cust Name: $custName, CmpCode: $cmpCode');
-    
-    // Perform your synchronization with Firestore or any other logic here
+  try {
+    // Find the UserSalesEmployees objects with matching userCode
+    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode);
+
+    List<Customers> allCustomers = [];
+
+    // Iterate through each userSalesEmployee object
+    for (var userSalesEmployee in userSalesEmployees) {
+      var cmpCode = userSalesEmployee.cmpCode;
+      var seCode = userSalesEmployee.seCode;
+
+      // Find all SalesEmployeesItems with matching cmpCode and seCode
+      var salesEmployeeCustomers = salesEmployeesCustomersBox.values.where((salesEmployeeCustomer) => 
+        salesEmployeeCustomer.cmpCode == cmpCode && salesEmployeeCustomer.seCode == seCode);
+
+      // Iterate through each SalesEmployeesItem for the current userSalesEmployee
+      for (var salesEmployeeCustomer in salesEmployeeCustomers) {
+        var custCode = salesEmployeeCustomer.custCode;
+
+        // Retrieve items from the items box based on itemCode and cmpCode
+        var customers = customersBox.values.where((customer) => customer.cmpCode == cmpCode && customer.custCode == custCode).toList();
+        
+        // Add the retrieved items to the list
+        allCustomers.addAll(customers);
+      }
+    }
+
+
+
+    return allCustomers;
+  } catch (e) {
+    print("Error: $e");
+
+ 
+
+    return []; // Return an empty list if an error occurs
   }
-
-  // Close the box when done
-  return allCustomers;
-  
 }
 
  Widget _getFAB() {
@@ -286,6 +379,10 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
                 value: 'Alphabetic',
                 child: Text(AppLocalizations.of(context)!.sortalphabetic,style: _appTextStyleLead,),
               ),
+               PopupMenuItem<String>(
+                value: 'GPS',
+                child: Text('Sort By GPS',style: _appTextStyleLead,),
+              ),
             ],
           ),
       
@@ -318,7 +415,7 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
                   // Display a message indicating that the scanned item was not found
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Scanned item not found'),
+                      content: Text('Scanned Customer not found'),
                     ),
                   );
                 }
@@ -337,7 +434,7 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
     } else if (snapshot.hasError) {
       return Text('Error: ${snapshot.error}');
     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-      return Text('No items found');
+      return Text('No Customers found');
     } else {
       return ListView.builder(
         itemCount: filteredCustomers.length, // Use filteredItems.length
@@ -642,14 +739,20 @@ Widget _buildDropdown(String label, String? selectedValue, Function(String?) onC
   );
 }
 
-
-   void _applySorting() {
-    switch (selectedSortingOption) {
-      case 'GroupCode':
-        filteredCustomers.sort((a, b) => a.groupCode!.compareTo(b.groupCode!));
-        break;
-      case 'Alphabetic':
-        filteredCustomers.sort((a, b) => a.custName!.compareTo(b.custName!));
+void _applySorting() async {
+  switch (selectedSortingOption) {
+    case 'GroupCode':
+      filteredCustomers.sort((a, b) => a.groupCode!.compareTo(b.groupCode!));
+      break;
+    case 'Alphabetic':
+      filteredCustomers.sort((a, b) => a.custName!.compareTo(b.custName!));
+      break;
+   case 'GPS':
+        // Check if userPosition is not null before calling _sortByGPS
+        print(userPosition);
+        if (userPosition != null) {
+          await _sortByGPS(userPosition!);
+        }
         break;
     }
 
@@ -657,6 +760,28 @@ Widget _buildDropdown(String label, String? selectedValue, Function(String?) onC
       // Update the UI with the sorted items
     });
   }
+
+
+Future<void> _sortByGPS(Position userPosition) async {
+  // Create a map to store customer codes and their distances
+  Map<String, double> distances = {};
+
+  // Calculate distance for each customer
+  for (var customer in filteredCustomers) {
+    double distance = await calculateDistance(customer.cmpCode!,customer.dfltAddressID!,customer.custCode!, userPosition);
+    distances[customer.custCode!] = distance;
+  }
+
+  // Sort customers based on distances
+  filteredCustomers.sort((a, b) {
+    double distanceToA = distances[a.custCode!]!;
+    double distanceToB = distances[b.custCode!]!;
+    print(distanceToA);
+    print(distanceToB);
+    return distanceToA.compareTo(distanceToB);
+  });
+}
+
 
    void _showFilterDialog(BuildContext context) {
     showDialog(
