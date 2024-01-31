@@ -67,14 +67,14 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
     // Fetch documents from Firestore
     QuerySnapshot<Map<String, dynamic>> firestoreUsers =
         await _firestore.collection('Users').get();
-
+print('joo');
     // Get a list of user emails in Firestore
     List<String> firestoreUserEmails =
         firestoreUsers.docs.map((doc) => doc['usercode'] as String).toList();
 
     // Identify users that need to be added or updated in Firestore
     List<String> usersToAddOrUpdate =
-        users.where((userEmail) => !firestoreUserEmails.contains(userEmail)).toList();
+        users.where((userEmail) => firestoreUserEmails.contains(userEmail)).toList();
 
     // Identify users in Firestore that need to be deleted
     List<String> usersToDelete =
@@ -92,7 +92,7 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
         print('User deleted: $userCodeToDelete');
       }
     }
-
+print('mmmn');
     // Loop through each user to update or add to Firestore
     for (String userCodeToAddOrUpdate in usersToAddOrUpdate) {
       var userDataDynamic = userBox.get(userCodeToAddOrUpdate);
@@ -105,8 +105,9 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
             .collection('Users')
             .where('usercode', isEqualTo: userData?['usercode'])
             .get();
-
+print('ric');
         if (querySnapshot.docs.isNotEmpty) {
+          print('ricoo');
           // Update the existing user in Firestore
           String documentId = querySnapshot.docs[0].id;
           await _firestore.collection('Users').doc(documentId).update(
@@ -118,7 +119,6 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
               'password': userData?['password'],
               'phonenumber': userData?['phonenumber'],
               'imeicode': userData?['imeicode'],
-              'warehouse': userData?['warehouse'],
               'active': userData?['active'],
               'imageLink': userData?['imageLink'],
               'usergroup': userData?['usergroup'],
@@ -138,7 +138,6 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
               'password': userData?['password'],
               'phonenumber': userData?['phonenumber'],
               'imeicode': userData?['imeicode'],
-              'warehouse': userData?['warehouse'],
               'active': userData?['active'],
               'imageLink': userData?['imageLink'],
               'usergroup': userData?['usergroup'],
@@ -158,47 +157,76 @@ Future<void> _updateFirestoreUsers(List<String> users) async {
 }
 
 
- Future<void> _updateFirestoreUserGroup(List<UserGroup> usersGroup) async {
+Future<void> _updateFirestoreUserGroup(List<UserGroup> userGroups) async {
   try {
+    // Get all UserGroup documents from Firestore
+    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
+        await _firestore.collection('usergroup').get();
+
+    // Create a list to keep track of documents to delete
+    List<DocumentReference> docsToDelete = [];
+
     // Loop through each UserGroup object and update or add to Firestore
-    for (UserGroup usergroup in usersGroup) {
+    for (UserGroup userGroup in userGroups) {
       try {
-        // Check if the usergroup already exists in Firestore
+        // Check if the user group already exists in Firestore
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
             .collection('usergroup')
-            .where('groupcode', isEqualTo: usergroup.groupcode)
+            .where('groupcode', isEqualTo: userGroup.groupcode)
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
-          // UserGroup already exists, check for updates
+          // UserGroup already exists
           String documentId = querySnapshot.docs[0].id;
+          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
 
-          // Fetch existing data from Firestore
-          Map<String, dynamic> existingUserGroupData = querySnapshot.docs[0].data()!;
-
-          // Compare existing data with data from Hive
-          if (!dataEqualsUserGroup(existingUserGroupData, usergroup)) {
+          if (!dataEqualsUserGroup(existingData, userGroup)) {
+            // Update existing data in Firestore
             await _firestore.collection('usergroup').doc(documentId).update(
               {
-                'groupcode': usergroup.groupcode,
-                'groupname': usergroup.groupname,
+                'groupcode': userGroup.groupcode,
+                'groupname': userGroup.groupname,
+                // Update other fields if needed
               },
             );
-            print('UserGroup updated: ${usergroup.groupcode}');
+            print('UserGroup updated: ${userGroup.groupcode}');
           }
         } else {
-          // Add the UserGroup to Firestore if it doesn't exist
+          // UserGroup doesn't exist, add it to Firestore
           await _firestore.collection('usergroup').add(
             {
-              'groupcode': usergroup.groupcode,
-              'groupname': usergroup.groupname,
+              'groupcode': userGroup.groupcode,
+              'groupname': userGroup.groupname,
+              // Add other fields if needed
             },
           );
-          print('UserGroup added: ${usergroup.groupcode}');
+          print('UserGroup added: ${userGroup.groupcode}');
         }
       } catch (e) {
         print('Error updating Firestore UserGroup: $e');
       }
+    }
+
+    // Check for deletions
+    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
+      // Extract data from the document
+      Map<String, dynamic> firestoreData = docSnapshot.data()!;
+      String groupcode = firestoreData['groupcode'];
+
+      // Check if the document exists in the local list of UserGroup objects
+      bool existsLocally = userGroups.any((localUserGroup) => localUserGroup.groupcode == groupcode);
+
+      // If the document doesn't exist locally, add it to the list of documents to delete
+      if (!existsLocally) {
+        docsToDelete.add(docSnapshot.reference);
+        print('UserGroup to delete: $groupcode');
+      }
+    }
+
+    // Delete documents
+    for (DocumentReference docRef in docsToDelete) {
+      await docRef.delete();
+      print('UserGroup deleted');
     }
   } catch (e) {
     print('Error updating Firestore UserGroup: $e');
@@ -215,9 +243,15 @@ bool dataEqualsUserGroup(
   // Add additional conditions as needed
 }
 
-
 Future<void> _updateFirestoreTranslations(List<Translations> translations) async {
   try {
+    // Get all Translations documents from Firestore
+    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
+        await _firestore.collection('Translations').get();
+
+    // Create a list to keep track of documents to delete
+    List<DocumentReference> docsToDelete = [];
+
     // Loop through each Translations object and update or add to Firestore
     for (Translations translation in translations) {
       try {
@@ -228,14 +262,12 @@ Future<void> _updateFirestoreTranslations(List<Translations> translations) async
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
-          // Translation already exists, check for updates
+          // Translation already exists
           String documentId = querySnapshot.docs[0].id;
+          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
 
-          // Fetch existing data from Firestore
-          Map<String, dynamic> existingTranslationData = querySnapshot.docs[0].data()!;
-
-          // Compare existing data with data from Hive
-          if (!dataEqualsTranslations(existingTranslationData, translation)) {
+          if (!dataEqualsTranslations(existingData, translation)) {
+            // Update existing data in Firestore
             await _firestore.collection('Translations').doc(documentId).update(
               {
                 'groupcode': translation.groupcode,
@@ -243,12 +275,13 @@ Future<void> _updateFirestoreTranslations(List<Translations> translations) async
                   'en': translation.translations['en'],
                   'ar': translation.translations['ar'],
                 },
+                // Update other fields if needed
               },
             );
             print('Translations updated: ${translation.groupcode}');
           }
         } else {
-          // Add the Translation to Firestore if it doesn't exist
+          // Translation doesn't exist, add it to Firestore
           await _firestore.collection('Translations').add(
             {
               'groupcode': translation.groupcode,
@@ -256,6 +289,7 @@ Future<void> _updateFirestoreTranslations(List<Translations> translations) async
                 'en': translation.translations['en'],
                 'ar': translation.translations['ar'],
               },
+              // Add other fields if needed
             },
           );
           print('Translations added: ${translation.groupcode}');
@@ -264,10 +298,33 @@ Future<void> _updateFirestoreTranslations(List<Translations> translations) async
         print('Error updating Firestore Translations: $e');
       }
     }
+
+    // Check for deletions
+    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
+      // Extract data from the document
+      Map<String, dynamic> firestoreData = docSnapshot.data()!;
+      String groupcode = firestoreData['groupcode'];
+
+      // Check if the document exists in the local list of Translations objects
+      bool existsLocally = translations.any((localTranslation) => localTranslation.groupcode == groupcode);
+
+      // If the document doesn't exist locally, add it to the list of documents to delete
+      if (!existsLocally) {
+        docsToDelete.add(docSnapshot.reference);
+        print('Translation to delete: $groupcode');
+      }
+    }
+
+    // Delete documents
+    for (DocumentReference docRef in docsToDelete) {
+      await docRef.delete();
+      print('Translation deleted');
+    }
   } catch (e) {
     print('Error updating Firestore Translations: $e');
   }
 }
+
 
 // Function to compare Translations data equality (customize based on your data structure)
 bool dataEqualsTranslations(
@@ -498,10 +555,17 @@ Future<void> _updateFirestoreCompaniesConnection(List<CompaniesConnection> compa
 
 Future<void> _updateFirestoreCompaniesUsers(List<CompaniesUsers> companiesusers) async {
   try {
-    // Loop through each SystemAdmin and update or add to Firestore
+    // Get all CompaniesUsers documents from Firestore
+    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
+        await _firestore.collection('CompaniesUsers').get();
+
+    // Create a list to keep track of documents to delete
+    List<DocumentReference> docsToDelete = [];
+
+    // Loop through each CompaniesUsers and update or add to Firestore
     for (CompaniesUsers companyuser in companiesusers) {
       try {
-        // Check if the SystemAdmin already exists in Firestore
+        // Check if the CompaniesUsers already exists in Firestore
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
             .collection('CompaniesUsers')
             .where('cmpCode', isEqualTo: companyuser.cmpCode)
@@ -509,58 +573,80 @@ Future<void> _updateFirestoreCompaniesUsers(List<CompaniesUsers> companiesusers)
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
-          // SystemAdmin already exists, check for updates
+          // CompaniesUsers already exists
           String documentId = querySnapshot.docs[0].id;
+          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
 
-          // Fetch existing data from Firestore
-          Map<String, dynamic> existingSystemAdminData = querySnapshot.docs[0].data()!;
-
-          // Compare existing data with data from Hive
-          if (!dataEqualsCompaniesUsers(existingSystemAdminData, companyuser)) {
-            await _firestore.collection('CompaniesConnection').doc(documentId).update(
+          if (!dataEqualsCompaniesUsers(existingData, companyuser)) {
+            // Update existing data in Firestore
+            await _firestore.collection('CompaniesUsers').doc(documentId).update(
               {
-                 
-                 'userCode':companyuser.userCode,
-                'cmpCode':companyuser.cmpCode,
-                'defaultcmpCode':companyuser.defaultcmpCode
-                
-             
-         
+                'userCode': companyuser.userCode,
+                'cmpCode': companyuser.cmpCode,
+                'defaultcmpCode': companyuser.defaultcmpCode
                 // Update other fields if needed
               },
             );
             print('Companies Users updated: ${companyuser.cmpCode}');
           }
         } else {
-          // Add the SystemAdmin to Firestore if it doesn't exist
-          await _firestore.collection('CompaniesConnection').add(
+          // CompaniesUsers doesn't exist, add it to Firestore
+          await _firestore.collection('CompaniesUsers').add(
             {
-
-              'userCode':companyuser.userCode,
-              'cmpCode':companyuser.cmpCode,
-              'defaultcmpCode':companyuser.defaultcmpCode,
-                
+              'userCode': companyuser.userCode,
+              'cmpCode': companyuser.cmpCode,
+              'defaultcmpCode': companyuser.defaultcmpCode
               // Add other fields if needed
             },
           );
-          print('Companies Users Connection added: ${companyuser.cmpCode}');
+          print('Companies Users added: ${companyuser.cmpCode}');
         }
       } catch (e) {
         print('Error updating Firestore Companies Users: $e');
       }
+    }
+
+    // Check for deletions
+    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
+      // Extract data from the document
+      Map<String, dynamic> firestoreData = docSnapshot.data()!;
+      String cmpCode = firestoreData['cmpCode'];
+      String userCode = firestoreData['userCode'];
+
+      // Check if the document exists in the local list of CompaniesUsers objects
+      bool existsLocally = companiesusers.any((localCompanyUser) =>
+          localCompanyUser.cmpCode == cmpCode && localCompanyUser.userCode == userCode);
+
+      // If the document doesn't exist locally, add it to the list of documents to delete
+      if (!existsLocally) {
+        docsToDelete.add(docSnapshot.reference);
+        print('Companies Users to delete: $cmpCode');
+      }
+    }
+
+    // Delete documents
+    for (DocumentReference docRef in docsToDelete) {
+      await docRef.delete();
+      print('Companies Users deleted');
     }
   } catch (e) {
     print('Error updating Firestore Companies Users: $e');
   }
 }
 
-
 Future<void> _updateFirestorePriceListAutho(List<PriceListAuthorization> pricelistsautho) async {
   try {
-    // Loop through each SystemAdmin and update or add to Firestore
+    // Get all PriceListAuthorization documents from Firestore
+    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
+        await _firestore.collection('PriceListAuthorization').get();
+
+    // Create a list to keep track of documents to delete
+    List<DocumentReference> docsToDelete = [];
+
+    // Loop through each PriceListAuthorization and update or add to Firestore
     for (PriceListAuthorization pricelistautho in pricelistsautho) {
       try {
-        // Check if the SystemAdmin already exists in Firestore
+        // Check if the PriceListAuthorization already exists in Firestore
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
             .collection('PriceListAuthorization')
             .where('cmpCode', isEqualTo: pricelistautho.cmpCode)
@@ -569,47 +655,64 @@ Future<void> _updateFirestorePriceListAutho(List<PriceListAuthorization> priceli
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
-          // SystemAdmin already exists, check for updates
+          // PriceListAuthorization already exists
           String documentId = querySnapshot.docs[0].id;
+          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
 
-          // Fetch existing data from Firestore
-          Map<String, dynamic> existingSystemAdminData = querySnapshot.docs[0].data()!;
-
-          // Compare existing data with data from Hive
-          if (!dataEqualsPriceListAutho(existingSystemAdminData, pricelistautho)) {
+          if (!dataEqualsPriceListAutho(existingData, pricelistautho)) {
+            // Update existing data in Firestore
             await _firestore.collection('PriceListAuthorization').doc(documentId).update(
               {
-                 
-                 'userCode':pricelistautho.userCode,
-                'cmpCode':pricelistautho.cmpCode,
-                'authoGroup':pricelistautho.authoGroup
-                
-             
-         
+                'userCode': pricelistautho.userCode,
+                'cmpCode': pricelistautho.cmpCode,
+                'authoGroup': pricelistautho.authoGroup
                 // Update other fields if needed
               },
             );
             print('Price List Users updated: ${pricelistautho.authoGroup}');
           }
         } else {
-          // Add the SystemAdmin to Firestore if it doesn't exist
+          // PriceListAuthorization doesn't exist, add it to Firestore
           await _firestore.collection('PriceListAuthorization').add(
             {
-
-             'userCode':pricelistautho.userCode,
-                'cmpCode':pricelistautho.cmpCode,
-                'authoGroup':pricelistautho.authoGroup
-                
-             
-                
+              'userCode': pricelistautho.userCode,
+              'cmpCode': pricelistautho.cmpCode,
+              'authoGroup': pricelistautho.authoGroup
               // Add other fields if needed
             },
           );
-          print('Price List Users  added: ${pricelistautho.authoGroup}');
+          print('Price List Users added: ${pricelistautho.authoGroup}');
         }
       } catch (e) {
         print('Error updating Firestore Price List Users: $e');
       }
+    }
+
+    // Check for deletions
+    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
+      // Extract data from the document
+      Map<String, dynamic> firestoreData = docSnapshot.data()!;
+      String cmpCode = firestoreData['cmpCode'];
+      String userCode = firestoreData['userCode'];
+      String authoGroup = firestoreData['authoGroup'];
+
+      // Check if the document exists in the local list of PriceListAuthorization objects
+      bool existsLocally = pricelistsautho.any((localPriceListAutho) =>
+          localPriceListAutho.cmpCode == cmpCode &&
+          localPriceListAutho.userCode == userCode &&
+          localPriceListAutho.authoGroup == authoGroup);
+
+      // If the document doesn't exist locally, add it to the list of documents to delete
+      if (!existsLocally) {
+        docsToDelete.add(docSnapshot.reference);
+        print('Price List Users to delete: $authoGroup');
+      }
+    }
+
+    // Delete documents
+    for (DocumentReference docRef in docsToDelete) {
+      await docRef.delete();
+      print('Price List Users deleted');
     }
   } catch (e) {
     print('Error updating Firestore Price List Users: $e');
@@ -638,7 +741,9 @@ bool dataEqualsCompaniesConnection(
       existingData['connUser'] == newCompanyConnection.connUser &&
        existingData['connPassword'] == newCompanyConnection.connPassword &&
         existingData['connPort'] == newCompanyConnection.connPort &&
-      existingData['typeDatabase'] == newCompanyConnection.typeDatabase;
+      existingData['typeDatabase'] == newCompanyConnection.typeDatabase &&
+        existingData['connServer'] == newCompanyConnection.connServer;
+
   // Add additional conditions as needed
 }
 
@@ -647,7 +752,8 @@ bool dataEqualsCompaniesUsers(
   // Compare fields and return true if they are equal, otherwise return false
   // Add conditions for each field you want to compare
   return existingData['cmpCode'] == newCompanyUser.cmpCode &&
-      existingData['userCode'] == newCompanyUser.userCode;
+      existingData['userCode'] == newCompanyUser.userCode &&
+        existingData['defaultcmpCode'] == newCompanyUser.defaultcmpCode ;
   // Add additional conditions as needed
 }
 

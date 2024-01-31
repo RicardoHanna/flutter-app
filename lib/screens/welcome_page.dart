@@ -56,8 +56,9 @@ String ?_image1;
  String _username='';
   String  usercode='';
   List<Companies> companies = []; 
+  String companyCodeDefltPassedToPages='';
   String? selectedCompany;
-  String? selectedCompanyCode; // Variable to hold the selected company code
+  String selectedCompanyCode=''; // Variable to hold the selected company code
 
  String ? _userFname;
    @override
@@ -207,6 +208,7 @@ Future<void> _loadDefaultCompanyCode() async {
         setState(() {
           // Set the selected company and its code based on the default company code
           selectedCompanyCode = companiesUser.defaultcmpCode;
+          companyCodeDefltPassedToPages=selectedCompanyCode;
           selectedCompany = companies.firstWhere((company) => company.cmpCode == selectedCompanyCode).cmpName;
         });
       }
@@ -424,9 +426,9 @@ void saveProfile(String localPath) async {
   @override
   Widget build(BuildContext context) {
      final Map<String, Widget> formWidgets = {
-   AppLocalizations.of(context)!.items: ItemsForm(appNotifier: widget.appNotifier,userCode: usercode,),
+   AppLocalizations.of(context)!.items: ItemsForm(appNotifier: widget.appNotifier,userCode: usercode,defltCompanyCode:companyCodeDefltPassedToPages),
     AppLocalizations.of(context)!.pricelists: PriceLists(appNotifier: widget.appNotifier,usercode: usercode),
-    'Customers':CustomersForm(appNotifier:widget.appNotifier, userCode: usercode,),
+    'Customers':CustomersForm(appNotifier:widget.appNotifier, userCode: usercode,defltCompanyCode: companyCodeDefltPassedToPages,),
   };
 
   final Map<String, int> menuCodes = {
@@ -795,34 +797,4 @@ Future<bool?> _showSyncConfirmationDialog(BuildContext context) async {
 }
 
 
- void _synchronizeDatatoHive() async {
-    try {
-      // Show loading indicator or other UI feedback
-      // You can use a package like `modal_progress_hud` for a loading spinner
-
-      // Create an instance of your synchronizer class
-      DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
-
-      // Run the synchronization process
-      await synchronizer.synchronizeData();
-      await synchronizer.synchronizeDataPriceLists();
-      await synchronizer.synchronizeDataItemPrice();
-      await synchronizer.synchronizeDataItemAttach();
-      await synchronizer.synchronizeDataItemBrand();
-      await synchronizer.synchronizeDataItemCateg();
-      await synchronizer.synchronizeDataItemUOM();
-      await synchronizer.synchronizeDataItemGroup();
-      await synchronizer.synchronizeDataUserPL();
-      await synchronizer.synchronizeDataUser();
-      await synchronizer.synchronizeDataMenu();
-      await synchronizer.synchronizeDataAuthorization();
-      // Display a success message or update UI as needed
-
-    } catch (e) {
-      // Handle errors and display an error message or update UI accordingly
-      print('Error synchronizing data: $e');
-    } finally {
-      // Hide loading indicator or perform any cleanup
-    }
-  }
 }

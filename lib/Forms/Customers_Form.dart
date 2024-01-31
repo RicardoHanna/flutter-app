@@ -16,6 +16,7 @@ import 'package:project/app_notifier.dart';
 import 'package:project/classes/DataSearch.dart';
 import 'package:project/classes/DataSearchCustomers.dart';
 import 'package:project/classes/UserPreferences.dart';
+import 'package:project/hive/companiesusers_hive.dart';
 import 'package:project/hive/customeraddresses_hive.dart';
 import 'package:project/hive/customerbrandsspecialprice_hive.dart';
 import 'package:project/hive/customercontacts_hive.dart';
@@ -49,7 +50,8 @@ class CustomersForm extends StatefulWidget {
  
   final AppNotifier appNotifier;
   final String userCode;
-  CustomersForm({required this.appNotifier,required this.userCode});
+  final String defltCompanyCode;
+  CustomersForm({required this.appNotifier,required this.userCode,required this.defltCompanyCode});
   @override
   State<CustomersForm> createState() => _customersFormState();
 }
@@ -225,12 +227,12 @@ Future<void> _getCurrentLocation() async {
 }
 
 Future<void> printUserDataTranslations() async {
- var custBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
+ var custBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
 
     print('Printinggg Users:');
     for (var cust in custBox.values) {
       print('CmpCode: ${cust.cmpCode}');
-      print('Name: ${cust.authoGroup}');
+      print('Name: ${cust.defaultcmpCode}');
       print(cust.userCode);
 
       print('-------------------------');
@@ -252,9 +254,11 @@ Future<List<Customers>> _getCustomers() async {
   var usersSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
   var salesEmployeesCustomersBox = await Hive.openBox<SalesEmployeesCustomers>('salesEmployeesCustomersBox');
 
+
   try {
+
     // Find the UserSalesEmployees objects with matching userCode
-    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode);
+    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode && userSalesEmployee.cmpCode==widget.defltCompanyCode);
 
     List<Customers> allCustomers = [];
 

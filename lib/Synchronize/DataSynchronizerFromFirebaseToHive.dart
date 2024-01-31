@@ -59,10 +59,46 @@ import 'package:project/hive/warehouses_hive.dart';
 class DataSynchronizerFromFirebaseToHive {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> synchronizeData() async {
+ Future<List<String>> retrieveSeCodes(String usercode) async {
+    List<String> seCodes = [];
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+          .collection('UsersSalesEmployees')
+          .where('userCode', isEqualTo: usercode)
+          .get();
+
+      querySnapshot.docs.forEach((doc) {
+        seCodes.add(doc['seCode']);
+      });
+    } catch (e) {
+      print('Error retrieving seCodes: $e');
+    }
+    return seCodes;
+  }
+  
+  Future<List<String>> retrieveItemCodes(List<String> seCodes) async {
+    List<String> itemCodes = [];
+    try {
+      for (String seCode in seCodes) {
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('SalesEmployeesItems')
+            .where('seCode', isEqualTo: seCode)
+            .get();
+
+        querySnapshot.docs.forEach((doc) {
+          itemCodes.add(doc['itemCode']);
+        });
+      }
+    } catch (e) {
+      print('Error retrieving itemCodes: $e');
+    }
+    return itemCodes;
+  }
+
+  Future<void> synchronizeData(List<String> itemCodes) async {
     try {
       // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('Items').get();
+    var firestoreItems = await _firestore.collection('Items').where('itemCode', whereIn: itemCodes).get();
 
       // Open Hive boxes
       var itemsBox = await Hive.openBox<Items>('items');
@@ -166,11 +202,12 @@ class DataSynchronizerFromFirebaseToHive {
 //-------------------------------------------------------------------------------------------------
 
 
+
 Future<void> synchronizeDataPriceLists() async {
     try {
       // Fetch data from Firestore
       var firestoreItems = await _firestore.collection('PriceList').get();
-
+ 
       // Open Hive boxes
       var pricelistsBox = await Hive.openBox<PriceList>('pricelists');
       // Open other boxes if needed
@@ -255,10 +292,10 @@ itemsToDelete.forEach((hivePriceCode) {
 
 
 
-Future<void> synchronizeDataItemPrice() async {
+Future<void> synchronizeDataItemPrice(List<String>itemCodes) async {
     try {
       // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('ItemsPrices').get();
+      var firestoreItems = await _firestore.collection('ItemsPrices').where('itemCode', whereIn: itemCodes).get();
 
       // Open Hive boxes
 var itempriceBox = await Hive.openBox<ItemsPrices>('itemprices');
@@ -353,10 +390,10 @@ Set<String> firestorePriceItemKeys =
 
 
 
-Future<void> synchronizeDataItemAttach() async {
+Future<void> synchronizeDataItemAttach(List<String>itemCodes) async {
     try {
       // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('ItemAttach').get();
+      var firestoreItems = await _firestore.collection('ItemAttach').where('itemCode', whereIn: itemCodes).get();
 
       // Open Hive boxes
       var itemattachBox = await Hive.openBox<ItemAttach>('itemattach');
@@ -435,12 +472,29 @@ Future<void> synchronizeDataItemAttach() async {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+  Future<List<String>> retrieveItemGroupCodes(List<String> seCodes) async {
+    List<String> itemGroupCodes= [];
+    try {
+      for (String seCode in seCodes) {
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('SalesEmployeesItemsGroups')
+            .where('seCode', isEqualTo: seCode)
+            .get();
 
+        querySnapshot.docs.forEach((doc) {
+          itemGroupCodes.add(doc['groupCode']);
+        });
+      }
+    } catch (e) {
+      print('Error retrieving itemGroupCodes: $e');
+    }
+    return itemGroupCodes;
+  }
 
-Future<void> synchronizeDataItemGroup() async {
+Future<void> synchronizeDataItemGroup(List<String>itemGroupCodes) async {
     try {
       // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('ItemGroup').get();
+      var firestoreItems = await _firestore.collection('ItemGroup').where('groupCode', whereIn: itemGroupCodes).get();
 
       // Open Hive boxes
       var itemgroupBox = await Hive.openBox<ItemGroup>('itemgroup');
@@ -466,8 +520,9 @@ Future<void> synchronizeDataItemGroup() async {
     // Iterate over Firestore documents
     for (var doc in firestoreItemGroup) {
       var groupCode = doc['groupCode'];
+      var cmpCode = doc['cmpCode'];
       // Check if the item exists in Hive
-      var hiveGroupItem = itemgroupBox.get(groupCode);
+      var hiveGroupItem = itemgroupBox.get('$groupCode$cmpCode');
 
       // If the item doesn't exist in Hive, add it
       if (hiveGroupItem == null) {
@@ -479,7 +534,7 @@ Future<void> synchronizeDataItemGroup() async {
         
           
         );
-        await itemgroupBox.put(groupCode, newGroupItem);
+        await itemgroupBox.put('$groupCode$cmpCode', newGroupItem);
       }
       // If the item exists in Hive, update it if needed
       else {
@@ -490,13 +545,13 @@ Future<void> synchronizeDataItemGroup() async {
           doc['cmpCode']
         );
         // Update the item in Hive
-        await itemgroupBox.put(groupCode, updatedGroupItem);
+        await itemgroupBox.put('$groupCode$cmpCode', updatedGroupItem);
       }
     }
 
 // Check for items in Hive that don't exist in Firestore and delete them
     Set<String> firestoreItemGroupCodes =
-        Set.from(firestoreItemGroup.map((doc) => doc['groupCode']));
+        Set.from(firestoreItemGroup.map((doc) => '${doc['groupCode']}${doc['cmpCode']}'));
     Set<String> hiveItemGroupCodes = Set.from(itemgroupBox.keys);
 
     // Identify items in Hive that don't exist in Firestore
@@ -519,12 +574,31 @@ Future<void> synchronizeDataItemGroup() async {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+Future<List<String>> retrieveItemCateg(List<String> seCodes) async {
+    List<String> itemCateg= [];
+    try {
+      for (String seCode in seCodes) {
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('SalesEmployeesItemsCategories')
+            .where('seCode', isEqualTo: seCode)
+            .get();
+
+        querySnapshot.docs.forEach((doc) {
+          itemCateg.add(doc['categCode']);
+        });
+      }
+    } catch (e) {
+      print('Error retrieving itemCategCodes: $e');
+    }
+    return itemCateg;
+  }
 
 
-Future<void> synchronizeDataItemCateg() async {
+Future<void> synchronizeDataItemCateg(List<String> itemCateg) async {
     try {
       // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('ItemCateg').get();
+      var firestoreItems = await _firestore.collection('ItemCateg').where('categCode', whereIn: itemCateg).get();
+
 
       // Open Hive boxes
       var itemcategBox = await Hive.openBox<ItemCateg>('itemcateg');
@@ -550,8 +624,9 @@ Future<void> synchronizeDataItemCateg() async {
     // Iterate over Firestore documents
     for (var doc in firestoreItemCateg) {
       var categCode = doc['categCode'];
+      var cmpCode = doc['cmpCode'];
       // Check if the item exists in Hive
-      var hiveCategItem = itemcategBox.get(categCode);
+      var hiveCategItem = itemcategBox.get('$categCode$cmpCode');
 
       // If the item doesn't exist in Hive, add it
       if (hiveCategItem == null) {
@@ -563,7 +638,7 @@ Future<void> synchronizeDataItemCateg() async {
         
           
         );
-        await itemcategBox.put(categCode, newCategItem);
+        await itemcategBox.put('$categCode$cmpCode', newCategItem);
       }
       // If the item exists in Hive, update it if needed
       else {
@@ -574,13 +649,13 @@ Future<void> synchronizeDataItemCateg() async {
           doc['cmpCode']
         );
         // Update the item in Hive
-        await itemcategBox.put(categCode, updatedCategItem);
+        await itemcategBox.put('$categCode$cmpCode', updatedCategItem);
       }
     }
 
     // Check for items in Hive that don't exist in Firestore and delete them
     Set<String> firestoreItemCategCodes =
-        Set.from(firestoreItemCateg.map((doc) => doc['categCode']));
+        Set.from(firestoreItemCateg.map((doc) => '${doc['categCode']}${doc['cmpCode']}'));
     Set<String> hiveItemCategCodes = Set.from(itemcategBox.keys);
 
     // Identify items in Hive that don't exist in Firestore
@@ -601,12 +676,32 @@ Future<void> synchronizeDataItemCateg() async {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+Future<List<String>> retrieveItemBrand(List<String> seCodes) async {
+    List<String> itemBrand= [];
+    try {
+      for (String seCode in seCodes) {
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('SalesEmployeesItemsBrands')
+            .where('seCode', isEqualTo: seCode)
+            .get();
+
+        querySnapshot.docs.forEach((doc) {
+          itemBrand.add(doc['brandCode']);
+        });
+      }
+    } catch (e) {
+      print('Error retrieving itemBrandCodes: $e');
+    }
+    return itemBrand;
+  }
 
 
-Future<void> synchronizeDataItemBrand() async {
+
+Future<void> synchronizeDataItemBrand(List<String> itemBrand) async {
     try {
       // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('ItemBrand').get();
+      var firestoreItems = await _firestore.collection('ItemBrand').where('brandCode', whereIn: itemBrand).get();
+ 
 
       // Open Hive boxes
       var itembrandBox = await Hive.openBox<ItemBrand>('itembrand');
@@ -632,8 +727,9 @@ Future<void> synchronizeDataItemBrand() async {
     // Iterate over Firestore documents
     for (var doc in firestoreItemBrand) {
       var brandCode = doc['brandCode'];
+      var cmpCode = doc['brandCode'];
       // Check if the item exists in Hive
-      var hiveBrandItem = itembrandBox.get(brandCode);
+      var hiveBrandItem = itembrandBox.get('$brandCode$cmpCode');
 
       // If the item doesn't exist in Hive, add it
       if (hiveBrandItem == null) {
@@ -645,7 +741,7 @@ Future<void> synchronizeDataItemBrand() async {
         
           
         );
-        await itembrandBox.put(brandCode, newBrandItem);
+        await itembrandBox.put('$brandCode$cmpCode', newBrandItem);
       }
       // If the item exists in Hive, update it if needed
       else {
@@ -657,13 +753,13 @@ Future<void> synchronizeDataItemBrand() async {
         
         );
         // Update the item in Hive
-        await itembrandBox.put(brandCode, updatedBrandItem);
+        await itembrandBox.put('$brandCode$cmpCode', updatedBrandItem);
       }
     }
 
     // Check for items in Hive that don't exist in Firestore and delete them
 Set<String> firestoreItemBrandCodes =
-        Set.from(firestoreItemBrand.map((doc) => doc['brandCode']));
+        Set.from(firestoreItemBrand.map((doc) => '${doc['brandCode']}${doc['cmpCode']}'));
     Set<String> hiveItemBrandCodes = Set.from(itembrandBox.keys);
 
     // Identify items in Hive that don't exist in Firestore
@@ -687,10 +783,10 @@ Set<String> firestoreItemBrandCodes =
 
 
 
-Future<void> synchronizeDataItemUOM() async {
+Future<void> synchronizeDataItemUOM(List<String>itemCodes) async {
     try {
       // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('ItemUOM').get();
+      var firestoreItems = await _firestore.collection('ItemUOM').where('itemCode', whereIn: itemCodes).get();
 
       // Open Hive boxes
       var itemuomBox = await Hive.openBox<ItemUOM>('itemuom');
@@ -716,8 +812,10 @@ Future<void> synchronizeDataItemUOM() async {
     // Iterate over Firestore documents
     for (var doc in firestoreItemUOM) {
       var uom = doc['uom'];
+      var itemCode=doc['itemCode'];
+      var cmpCode=doc['cmpCode'];
       // Check if the item exists in Hive
-      var hiveuomItem = itemuomBox.get(uom);
+      var hiveuomItem = itemuomBox.get('$uom$itemCode$cmpCode');
 
       // If the item doesn't exist in Hive, add it
       if (hiveuomItem == null) {
@@ -730,7 +828,7 @@ Future<void> synchronizeDataItemUOM() async {
         
           
         );
-        await itemuomBox.put(uom, newUOMItem);
+        await itemuomBox.put('$uom$itemCode$cmpCode', newUOMItem);
       }
       // If the item exists in Hive, update it if needed
       else {
@@ -742,13 +840,13 @@ Future<void> synchronizeDataItemUOM() async {
          doc['cmpCode']
         );
         // Update the item in Hive
-        await itemuomBox.put(uom, updatedUOMItem);
+        await itemuomBox.put('$uom$itemCode$cmpCode', updatedUOMItem);
       }
     }
 
 // Check for items in Hive that don't exist in Firestore and delete them
     Set<String> firestoreItemUOMCodes =
-        Set.from(firestoreItemUOM.map((doc) => doc['uom']));
+        Set.from(firestoreItemUOM.map((doc) => '${doc['uom']}${doc['itemCode']}${doc['cmpCode']}}'));
     Set<String> hiveItemUOMCodes = Set.from(itemuomBox.keys);
 
     // Identify items in Hive that don't exist in Firestore
@@ -1524,6 +1622,7 @@ companiesToDelete.forEach((hiveCompanyCode) {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+
 Future<void> synchronizeDepartements() async {
   try {
     // Fetch data from Firestore
@@ -2217,10 +2316,10 @@ paymentTermsToDelete.forEach((hivePaymentTermKey) {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeSalesEmployees() async {
+Future<void> synchronizeSalesEmployees(List<String>seCodes) async {
   try {
     // Fetch data from Firestore
-    var firestoreSalesEmployees = await FirebaseFirestore.instance.collection('SalesEmployees').get();
+    var firestoreSalesEmployees = await FirebaseFirestore.instance.collection('SalesEmployees').where('seCode', whereIn: seCodes).get();
 
     // Open Hive box
     var salesEmployeesBox = await Hive.openBox<SalesEmployees>('salesEmployeesBox');
@@ -2302,11 +2401,11 @@ salesEmployeesToDelete.forEach((hiveSalesEmployeeKey) {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeSalesEmployeesCustomers() async {
+Future<void> synchronizeSalesEmployeesCustomers(List<String>seCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreSalesEmployeesCustomers =
-        await FirebaseFirestore.instance.collection('SalesEmployeesCustomers').get();
+        await FirebaseFirestore.instance.collection('SalesEmployeesCustomers').where('seCode', whereIn: seCodes).get();
 
     // Open Hive box
     var salesEmployeesCustomersBox =
@@ -2380,11 +2479,11 @@ salesEmployeesCustomersToDelete.forEach((hiveSalesEmployeesCustomersKey) {
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeSalesEmployeesDepartements() async {
+Future<void> synchronizeSalesEmployeesDepartements(List<String>seCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreSalesEmployeesDepartements =
-        await FirebaseFirestore.instance.collection('SalesEmployeesDepartments').get();
+        await FirebaseFirestore.instance.collection('SalesEmployeesDepartments').where('itemCode', whereIn: seCodes).get();
 
     // Open Hive box
     var salesEmployeesDepartementsBox =
@@ -2459,11 +2558,11 @@ salesEmployeesDepartmentsToDelete.forEach((hiveSalesEmployeesDepartmentsKey) {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeSalesEmployeesItemsBrands() async {
+Future<void> synchronizeSalesEmployeesItemsBrands(List<String>seCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreSalesEmployeesItemsBrands =
-        await FirebaseFirestore.instance.collection('SalesEmployeesItemsBrands').get();
+        await FirebaseFirestore.instance.collection('SalesEmployeesItemsBrands').where('seCode', whereIn: seCodes).get();
 
     // Open Hive box
     var salesEmployeesItemsBrandsBox =
@@ -2539,11 +2638,11 @@ salesEmployeesItemsBrandsToDelete.forEach((hiveSalesEmployeesItemsBrandsKey) {
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeSalesEmployeesItemsCategories() async {
+Future<void> synchronizeSalesEmployeesItemsCategories(List<String>seCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreSalesEmployeesItemsCategories =
-        await FirebaseFirestore.instance.collection('SalesEmployeesItemsCategories').get();
+        await FirebaseFirestore.instance.collection('SalesEmployeesItemsCategories').where('seCode', whereIn: seCodes).get();
 
     // Open Hive box
     var salesEmployeesItemsCategoriesBox =
@@ -2619,11 +2718,11 @@ salesEmployeesItemsCategoriesToDelete.forEach((hiveSalesEmployeesItemsCategories
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeSalesEmployeesItemsGroups() async {
+Future<void> synchronizeSalesEmployeesItemsGroups(List<String>seCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreSalesEmployeesItemsGroups =
-        await FirebaseFirestore.instance.collection('SalesEmployeesItemsGroups').get();
+        await FirebaseFirestore.instance.collection('SalesEmployeesItemsGroups').where('seCode', whereIn: seCodes).get();
 
     // Open Hive box
     var salesEmployeesItemsGroupsBox =
@@ -2700,11 +2799,11 @@ salesEmployeesItemsGroupsToDelete.forEach((hiveSalesEmployeesItemsGroupsKey) {
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeSalesEmployeesItems() async {
+Future<void> synchronizeSalesEmployeesItems(List<String>seCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreSalesEmployeesItems =
-        await FirebaseFirestore.instance.collection('SalesEmployeesItems').get();
+        await FirebaseFirestore.instance.collection('SalesEmployeesItems').where('seCode', whereIn: seCodes).get();
 
     // Open Hive box
     var salesEmployeesItemsBox =
@@ -2855,10 +2954,29 @@ Future<void> _synchronizeUserSalesEmployees(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomers() async {
+  Future<List<String>> retrieveCustCodes(List<String> seCodes) async {
+    List<String> custCodes = [];
+    try {
+      for (String seCode in seCodes) {
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('SalesEmployeesItems')
+            .where('seCode', isEqualTo: seCode)
+            .get();
+
+        querySnapshot.docs.forEach((doc) {
+          custCodes.add(doc['custCode']);
+        });
+      }
+    } catch (e) {
+      print('Error retrieving itemCodes: $e');
+    }
+    return custCodes;
+  }
+
+Future<void> synchronizeCustomers(List<String>custCodes) async {
   try {
     // Fetch data from Firestore
-    var firestoreCustomers = await FirebaseFirestore.instance.collection('Customers').get();
+    var firestoreCustomers = await FirebaseFirestore.instance.collection('Customers').where('custCode', whereIn: custCodes).get();
 
     // Open Hive box
     var customersBox = await Hive.openBox<Customers>('customersBox');
@@ -2973,10 +3091,10 @@ print('kkkkkkkkk');
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerAddresses() async {
+Future<void> synchronizeCustomerAddresses(List<String>custCodes) async {
   try {
     // Fetch data from Firestore
-    var firestoreAddresses = await FirebaseFirestore.instance.collection('CustomerAddresses').get();
+    var firestoreAddresses = await FirebaseFirestore.instance.collection('CustomerAddresses').where('custCode', whereIn: custCodes).get();
 
     // Open Hive box
     var addressesBox = await Hive.openBox<CustomerAddresses>('customerAddressesBox');
@@ -3057,10 +3175,10 @@ Future<void> _synchronizeCustomerAddresses(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerContacts() async {
+Future<void> synchronizeCustomerContacts(List<String>custCodes) async {
   try {
     // Fetch data from Firestore
-    var firestoreContacts = await FirebaseFirestore.instance.collection('CustomerContacts').get();
+    var firestoreContacts = await FirebaseFirestore.instance.collection('CustomerContacts').where('custCode', whereIn: custCodes).get();
 
     // Open Hive box
     var contactsBox = await Hive.openBox<CustomerContacts>('customerContactsBox');
@@ -3143,10 +3261,10 @@ Future<void> _synchronizeCustomerContacts(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerProperties() async {
+Future<void> synchronizeCustomerProperties(List<String>custCodes) async {
   try {
     // Fetch data from Firestore
-    var firestoreProperties = await FirebaseFirestore.instance.collection('CustomerProperties').get();
+    var firestoreProperties = await FirebaseFirestore.instance.collection('CustomerProperties').where('custCode', whereIn: custCodes).get();
 
     // Open Hive box
     var propertiesBox = await Hive.openBox<CustomerProperties>('customerPropertiesBox');
@@ -3216,11 +3334,11 @@ Future<void> _synchronizeCustomerProperties(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerAttachments() async {
+Future<void> synchronizeCustomerAttachments(List<String>custCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreAttachments =
-        await FirebaseFirestore.instance.collection('CustomerAttachments').get();
+        await FirebaseFirestore.instance.collection('CustomerAttachments').where('custCode', whereIn: custCodes).get();
 
     // Open Hive box
     var attachmentsBox = await Hive.openBox<CustomerAttachments>('customerAttachmentsBox');
@@ -3290,11 +3408,11 @@ Future<void> _synchronizeCustomerAttachments(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerItemsSpecialPrice() async {
+Future<void> synchronizeCustomerItemsSpecialPrice(List<String>custCodes,List<String>itemCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerItemsSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerItemsSpecialPrice').where('custCode', whereIn: custCodes).where('itemCode', whereIn: itemCodes).get();
 
     // Open Hive box
     var specialPriceBox =
@@ -3380,12 +3498,12 @@ Future<void> _synchronizeCustomerItemsSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerBrandsSpecialPrice() async {
+Future<void> synchronizeCustomerBrandsSpecialPrice(List<String>custCodes,List<String>brandCodes) async {
   try {
     print('hiiiiii');
     // Fetch data from Firestore
     var firestoreBrandsSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerBrandsSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerBrandsSpecialPrice').where('custCode', whereIn: custCodes).where('brandCode', whereIn: brandCodes).get();
 
     // Open Hive box
     var brandsSpecialPriceBox =
@@ -3461,11 +3579,11 @@ print(doc.data());
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeCustomerGroupsSpecialPrice() async {
+Future<void> synchronizeCustomerGroupsSpecialPrice(List<String>custCodes,List<String>brandCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreGroupsSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerGroupsSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerGroupsSpecialPrice').where('custCode', whereIn: custCodes).where('brandCode', whereIn: brandCodes).get();
 
     // Open Hive box
     var groupsSpecialPriceBox =
@@ -3538,11 +3656,11 @@ Future<void> _synchronizeCustomerGroupsSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeCustomerCategSpecialPrice() async {
+Future<void> synchronizeCustomerCategSpecialPrice(List<String>custCodes,List<String>brandCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreCategSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerCategSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerCategSpecialPrice').where('custCode', whereIn: custCodes).where('brandCode', whereIn: brandCodes).get();
 
     // Open Hive box
     var categSpecialPriceBox =
@@ -3615,11 +3733,12 @@ Future<void> _synchronizeCustomerCategSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeCustomerGroupItemsSpecialPrice() async {
+
+Future<void> synchronizeCustomerGroupItemsSpecialPrice(List<String>itemCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreGroupItemsSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerGroupItemsSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerGroupItemsSpecialPrice').where('itemCode', whereIn: itemCodes).get();
 
     // Open Hive box
     var groupItemsSpecialPriceBox =
@@ -3703,11 +3822,11 @@ print(doc.data());
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerGroupBrandSpecialPrice() async {
+Future<void> synchronizeCustomerGroupBrandSpecialPrice(List<String>brandCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreGroupBrandSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerGroupBrandSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerGroupBrandSpecialPrice').where('brandCode', whereIn: brandCodes).get();
 
     // Open Hive box
     var groupBrandSpecialPriceBox =
@@ -3781,11 +3900,11 @@ Future<void> _synchronizeCustomerGroupBrandSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeCustomerGroupGroupSpecialPrice() async {
+Future<void> synchronizeCustomerGroupGroupSpecialPrice(List<String>groupCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreGroupGroupSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerGroupGroupSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerGroupGroupSpecialPrice').where('groupCode', whereIn: groupCodes).get();
 
     // Open Hive box
     var groupGroupSpecialPriceBox =
@@ -3857,11 +3976,11 @@ Future<void> _synchronizeCustomerGroupGroupSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerGroupCategSpecialPrice() async {
+Future<void> synchronizeCustomerGroupCategSpecialPrice(List<String>categCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreGroupCategSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerGroupCategSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerGroupCategSpecialPrice').where('categCode', whereIn: categCodes).get();
 
     // Open Hive box
     var groupCategSpecialPriceBox =
@@ -3936,12 +4055,31 @@ Future<void> _synchronizeCustomerGroupCategSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+Future<List<String>> retrievePropCodes(List<String> custCodes) async {
+    List<String> propCodes = [];
+    try {
+      for (String custCode in custCodes) {
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('CustomerProperties')
+            .where('custCode', isEqualTo: custCodes)
+            .get();
 
-Future<void> synchronizeCustomerPropItemsSpecialPrice() async {
+        querySnapshot.docs.forEach((doc) {
+          propCodes.add(doc['propCode']);
+        });
+      }
+    } catch (e) {
+      print('Error retrieving propCodes: $e');
+    }
+    return propCodes;
+  }
+
+Future<void> synchronizeCustomerPropItemsSpecialPrice(List<String>itemCodes,List<String>custCodes) async {
+List<String>propCodes=await retrieveCustCodes(custCodes);
   try {
     // Fetch data from Firestore
     var firestorePropItemsSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerPropItemsSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerPropItemsSpecialPrice').where('itemCode', whereIn: itemCodes).where('custPropCode', whereIn: propCodes).get();
 
     // Open Hive box
     var propItemsSpecialPriceBox =
@@ -4028,11 +4166,12 @@ Future<void> _synchronizeCustomerPropItemsSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeCustomerPropBrandSpecialPrice() async {
+Future<void> synchronizeCustomerPropBrandSpecialPrice(List<String>brandCodes,List<String>custCodes) async {
+  List<String>propCodes=await retrieveCustCodes(custCodes);
   try {
     // Fetch data from Firestore
     var firestorePropBrandSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerPropBrandSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerPropBrandSpecialPrice').where('brandCode', whereIn: brandCodes).where('custPropCode', whereIn: propCodes).get();
 
     // Open Hive box
     var propBrandSpecialPriceBox =
@@ -4108,11 +4247,14 @@ Future<void> _synchronizeCustomerPropBrandSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeCustomerPropGroupSpecialPrice() async {
+
+
+Future<void> synchronizeCustomerPropGroupSpecialPrice(List<String>custCodes) async {
+    List<String>propCodes=await retrieveCustCodes(custCodes);
   try {
     // Fetch data from Firestore
     var firestorePropGroupSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerPropGroupSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerPropGroupSpecialPrice').where('propCode', whereIn: propCodes).get();
 
     // Open Hive box
     var propGroupSpecialPriceBox =
@@ -4189,11 +4331,12 @@ Future<void> _synchronizeCustomerPropGroupSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeCustomerPropCategSpecialPrice() async {
+Future<void> synchronizeCustomerPropCategSpecialPrice(List<String>categCodes,List<String>custCodes) async {
+    List<String>propCodes=await retrieveCustCodes(custCodes);
   try {
     // Fetch data from Firestore
     var firestorePropCategSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerPropCategSpecialPrice').get();
+        await FirebaseFirestore.instance.collection('CustomerPropCategSpecialPrice').where('categCode', whereIn: categCodes).where('custPropCode', whereIn: propCodes).get();
 
     // Open Hive box
     var propCategSpecialPriceBox =

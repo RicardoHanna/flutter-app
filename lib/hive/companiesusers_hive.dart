@@ -11,7 +11,7 @@ class CompaniesUsers extends HiveObject {
   late String cmpCode;
  
   @HiveField(2)
-  late String defaultcmpCode;
+  late dynamic defaultcmpCode;
 
   CompaniesUsers({
    required  this.userCode,

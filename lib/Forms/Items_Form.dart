@@ -37,7 +37,8 @@ class ItemsForm extends StatefulWidget {
  
   final AppNotifier appNotifier;
   final String userCode;
-  ItemsForm({required this.appNotifier,required this.userCode});
+  final String defltCompanyCode;
+  ItemsForm({required this.appNotifier,required this.userCode,required this.defltCompanyCode});
   @override
   State<ItemsForm> createState() => _itemsFormState();
 }
@@ -185,13 +186,13 @@ Future<void> insertSampleData() async {
 }
 
 Future<void> printUserDataTranslations() async {
- var itemsBox = await Hive.openBox<ItemUOM>('itemuom');
-    
+ var itemsBox = await Hive.openBox<Items>('items');
+
     print('Printing Users:');
     for (var item in itemsBox.values) {
       print('Username: ${item.itemCode}');
       print('Email: ${item.uom}');
-      print('Email: ${item.qtyperUOM}');
+      print('Email: ${item.brandCode}');
       print('-------------------------');
     }
   // Open 'translationsBox' for Translations
@@ -207,7 +208,7 @@ Future<List<Items>> _getItems() async {
 
   try {
     // Find the UserSalesEmployees objects with matching userCode
-    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode);
+    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode && userSalesEmployee.cmpCode == widget.defltCompanyCode);
 
     List<Items> allItems = [];
 

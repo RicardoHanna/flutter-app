@@ -50,7 +50,7 @@ String searchUsersGroup='';
  bool importFromErpToMobile=false;
  bool importFromBackendToMobile=false;
 
-
+String connectionId='';
    TextEditingController _connDatabaseController = TextEditingController();
   TextEditingController _connServerController = TextEditingController();
    TextEditingController _connPasswordController = TextEditingController();
@@ -77,7 +77,7 @@ String searchUsersGroup='';
 
   Future<void> printUserDataTranslations() async {
  var itemsBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
-    
+
     print('Printing Users:');
     for (var item in itemsBox.values) {
       print('Menu Code: ${item.connectionID}');
@@ -117,10 +117,9 @@ void _toggleAssignMenuExpansion(String cmpCode) {
       _fillFormDataForUser(expandedUsercode);
     }
   });
-
+print(connectionId);
   print('After Toggle: expandedUsercode=$expandedUsercode, cmpCode=$cmpCode');
 }
-
 void _fillFormDataForUser(String cmpCode) {
   // Retrieve the SystemAdmin data from the systemAdminBox
   var companiesBox = Hive.box<Companies>('companiesBox');
@@ -130,10 +129,14 @@ void _fillFormDataForUser(String cmpCode) {
     // Make sure systemAdminID is stored as String
     String systemAdminID = company.systemAdminID ?? '';
 
- var companiesConnectionBox = Hive.box<CompaniesConnection>('companiesConnectionBox');
+    var companiesConnectionBox = Hive.box<CompaniesConnection>('companiesConnectionBox');
 
-CompaniesConnection? companyConnection = companiesConnectionBox.get(company?.systemAdminID);
+    CompaniesConnection? companyConnection = companiesConnectionBox.get(company?.systemAdminID);
 
+    print(cmpCode);
+    // Update connectionId outside of setState
+    connectionId = systemAdminID;
+    print(connectionId);
 
     // Add debug prints
     print('systemAdminID: $systemAdminID');
@@ -141,7 +144,7 @@ CompaniesConnection? companyConnection = companiesConnectionBox.get(company?.sys
     print('companyConnection: $companyConnection');
 
     // Fill in the data if available
-    if (companyConnection != null) {
+    if (companyConnection != null && connectionId.isNotEmpty) {
       setState(() {
         _connDatabaseController.text = companyConnection.connDatabase;
         _connServerController.text = companyConnection.connServer;
@@ -151,13 +154,24 @@ CompaniesConnection? companyConnection = companiesConnectionBox.get(company?.sys
         _typeDatabaseController.text = companyConnection.typeDatabase;
       });
     } else {
+      _clearFormData();
       // Print a message if companyConnection is null
       print('No CompaniesConnection found for systemAdminID: $systemAdminID');
     }
   }
 }
 
+void _clearFormData() {
+  setState(() {
 
+    _connDatabaseController.text = ''; // Clear text controllers
+    _connServerController.text = '';
+    _connPasswordController.text = '';
+    _connUserController.text = '';
+    _connPortController.text = '';
+    _typeDatabaseController.text = '';
+  });
+}
 
    Future<void> _initUserStream() async {
     Stream<List<CompaniesClass>>? userStream = await _getUserStream();
@@ -388,27 +402,41 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                                 ),
                         ElevatedButton(
   onPressed: () async {
-    // Create a new SystemAdmin object with the updated values
-    CompaniesConnection updatedCompaniesConnection = CompaniesConnection(
-      connectionID: _generateConnectionID(),
-      connDatabase: _connDatabaseController.text,
-      connServer: _connServerController.text,
-      connUser: _connUserController.text,
-      connPassword: _connPasswordController.text,
-      connPort: int.tryParse(_connPortController.text) ?? 0,
-      typeDatabase: _typeDatabaseController.text,
-    );
 
+ CompaniesConnection updatedCompaniesConnection;
+
+if (connectionId == '') {
+  // Create a new SystemAdmin object with the updated values
+  updatedCompaniesConnection = CompaniesConnection(
+    connectionID: _generateConnectionID(),
+    connDatabase: _connDatabaseController.text,
+    connServer: _connServerController.text,
+    connUser: _connUserController.text,
+    connPassword: _connPasswordController.text,
+    connPort: int.tryParse(_connPortController.text) ?? 0,
+    typeDatabase: _typeDatabaseController.text,
+  );
+} else {
+  updatedCompaniesConnection = CompaniesConnection(
+    connectionID: connectionId,
+    connDatabase: _connDatabaseController.text,
+    connServer: _connServerController.text,
+    connUser: _connUserController.text,
+    connPassword: _connPasswordController.text,
+    connPort: int.tryParse(_connPortController.text) ?? 0,
+    typeDatabase: _typeDatabaseController.text,
+  );
+}
     // Open the systemAdminBox
     var systemAdminBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
 
     // Check if the user already exists in the box
-    if (systemAdminBox.containsKey(user.cmpCode)) {
+    if (systemAdminBox.containsKey(user.systemAdminID)) {
       // Update the existing SystemAdmin object
-      systemAdminBox.put(user.cmpCode, updatedCompaniesConnection);
+      systemAdminBox.put(user.systemAdminID, updatedCompaniesConnection);
     } else {
       // Insert the new SystemAdmin object
-      systemAdminBox.put(user.cmpCode, updatedCompaniesConnection);
+      systemAdminBox.put(user.systemAdminID, updatedCompaniesConnection);
     }
 
     // Retrieve the connectionID

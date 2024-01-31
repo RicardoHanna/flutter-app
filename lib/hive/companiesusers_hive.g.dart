@@ -19,7 +19,7 @@ class CompaniesUsersAdapter extends TypeAdapter<CompaniesUsers> {
     return CompaniesUsers(
       userCode: fields[0] as String,
       cmpCode: fields[1] as String,
-      defaultcmpCode: fields[2] as String,
+      defaultcmpCode: fields[2] as dynamic,
     );
   }
 
