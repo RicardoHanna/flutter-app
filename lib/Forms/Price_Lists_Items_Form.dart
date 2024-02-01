@@ -64,12 +64,12 @@ late List<String> itemCodeList = [];
   }
 
 Future<void> printUserDataTranslations() async {
- var itemsBox = await Hive.openBox<ItemsPrices>('itemprices');
+ var itemsBox = await Hive.openBox<PriceList>('pricelists');
     
     print('Printing Users:');
     for (var item in itemsBox.values) {
       print('Username: ${item.plCode}');
-      print('Email: ${item.price}');
+      print('Email: ${item.cmpCode}');
       
       print('-------------------------');
     }

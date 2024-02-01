@@ -13,6 +13,7 @@ import 'package:project/Forms/Items_Info_Form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/DataSearch.dart';
 import 'package:project/classes/UserPreferences.dart';
+import 'package:project/hive/adminsubmenu_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/itemuom_hive.dart';
@@ -186,13 +187,13 @@ Future<void> insertSampleData() async {
 }
 
 Future<void> printUserDataTranslations() async {
- var itemsBox = await Hive.openBox<Items>('items');
+ var itemsBox = await Hive.openBox<AdminSubMenu>('adminSubMenuBox');
 
     print('Printing Users:');
     for (var item in itemsBox.values) {
-      print('Username: ${item.itemCode}');
-      print('Email: ${item.uom}');
-      print('Email: ${item.brandCode}');
+      print('Username: ${item.groupcode}');
+      print('Email: ${item.groupname}');
+      print('Email: ${item.grouparname}');
       print('-------------------------');
     }
   // Open 'translationsBox' for Translations

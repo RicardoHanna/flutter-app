@@ -149,41 +149,92 @@ Future<void> importData() async {
   bool _selectAll = false;
 bool _loading = false; // Track loading state
  @override
-  Widget build(BuildContext context) {
-    TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: ListView.builder(
-          itemCount: _buildSwitchList().length + 1,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return SwitchListTile(
-                title: Text('Select All', style: _appTextStyle),
-                value: _selectAll,
-                onChanged: (value) {
-                  setState(() {
-                    _selectAll = value ?? false;
-                    _importItems = _selectAll;
-                    _importPriceLists = _selectAll;
-                    _importSystem = _selectAll;
-                    _importCustomers=_selectAll;
-                    if(_selectAll==true) selectAllTables='selectall'; else selectAllTables='';
-                  });
-                },
-              );
-            } else {
-              return _buildSwitchList()[index - 1];
-            }
-          },
+ Widget build(BuildContext context) {
+  TextStyle _appTextStyle =
+      TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(widget.title),
+    ),
+    body: Column(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: ListView.builder(
+              itemCount: _buildSwitchList().length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return SwitchListTile(
+                    title: Text('Select All', style: _appTextStyle),
+                    value: _selectAll,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectAll = value ?? false;
+                        _importItems = _selectAll;
+                        _importPriceLists = _selectAll;
+                        _importSystem = _selectAll;
+                        _importCustomers = _selectAll;
+                        if (_selectAll == true)
+                          selectAllTables = 'selectall';
+                        else
+                          selectAllTables = '';
+                      });
+                    },
+                  );
+                } else {
+                  return _buildSwitchList()[index - 1];
+                }
+              },
+            ),
+          ),
         ),
-      ),
-    );
-  }
+        SizedBox(height: 10),
+        Column(
 
+            children: [
+              _buildImportButton(),
+            ],
+          ),
+        
+      ],
+    ),
+  );
+}
+
+Widget _buildImportButton() {
+  TextStyle _appTextStyle =
+      TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  if (widget.title == 'Import from ERP To Mobile') {
+    return ElevatedButton(
+      onPressed: () async {
+        LoadingHelper.configureLoading();
+        LoadingHelper.showLoading(); // Show loading indicator
+        await importData();
+        LoadingHelper.dismissLoading(); // Dismiss loading indicator
+      },
+       style: ButtonStyle(
+       fixedSize: MaterialStateProperty.all(Size(280, 10)), // Set the width and height
+  ),
+      child: Text('Import', style: _appTextStyle),
+    );
+  } else if (widget.title == 'Import from Backend to Mobile') {
+    return ElevatedButton(
+      onPressed: () async {
+        LoadingHelper.configureLoading();
+        LoadingHelper.showLoading(); // Show loading indicator
+        await _synchronizeAll();
+        LoadingHelper.dismissLoading(); // Dismiss loading indicator
+      },
+      style: ButtonStyle(
+    fixedSize: MaterialStateProperty.all(Size(280, 10)), // Set the width and height
+  ),
+      child: Text('Import', style: _appTextStyle),
+    );
+  } else {
+    return Container(); // Placeholder for other scenarios
+  }
+}
   List<Widget> _buildSwitchList() {
   TextStyle _appTextStyle =
       TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
@@ -234,9 +285,9 @@ bool _loading = false; // Track loading state
           });
         },
       ),
-      SizedBox(height: 10),
-      Center(
-          child: Stack(
+       SizedBox(height:200),
+      Column(
+         crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ElevatedButton(
                onPressed: () async {
@@ -249,7 +300,7 @@ child: Text('Import', style: _appTextStyle),
 
               ),
             ],
-          ),
+          
         ),
       
     ];
@@ -292,9 +343,9 @@ child: Text('Import', style: _appTextStyle),
           });
         },
       ),
-      SizedBox(height:10),
-           Center(
-          child: Stack(
+      SizedBox(height:200),
+         Column(
+         crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ElevatedButton(
                 onPressed: () async {
@@ -307,7 +358,7 @@ child: Text('Import', style: _appTextStyle),
 
               ),
             ],
-          ),
+          
         ),
 
     ];
@@ -374,7 +425,14 @@ child: Text('Import', style: _appTextStyle),
   Future<void> _synchronizePriceLists() async {
       TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
-    await synchronizer.synchronizeDataPriceLists();
+      List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
+  
+  // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
+  List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
+  print(itemCodes.toList());
+    List<String> priceListsCodes = await synchronizer.retrievePriceList(itemCodes);
+    print(priceListsCodes.toList());
+    await synchronizer.synchronizeDataPriceLists(priceListsCodes);
           await synchronizer.synchronizeDataPriceListsAutho();
         ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -449,23 +507,28 @@ child: Text('Import', style: _appTextStyle),
      List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
       List<String> custCode = await synchronizer.retrieveCustCodes(seCodes);
  List<String> itemCode = await synchronizer.retrieveItemCodes(seCodes);
+  List<String> custGroupCodes = await synchronizer.retrieveItemCodes(custCode);
+
+  
     await synchronizer.synchronizeCustomers(custCode);
     await synchronizer.synchronizeCustomerAddresses(custCode);
     await synchronizer.synchronizeCustomerContacts(custCode);
     await synchronizer.synchronizeCustomerProperties(custCode);
     await synchronizer.synchronizeCustomerAttachments(custCode);
+
     await synchronizer.synchronizeCustomerItemsSpecialPrice(custCode,itemCode);
     await synchronizer.synchronizeCustomerBrandsSpecialPrice(custCode,brandCode);
     await synchronizer.synchronizeCustomerGroupsSpecialPrice(custCode,groupCode);
     await synchronizer.synchronizeCustomerCategSpecialPrice(custCode,categCode);
-    await synchronizer.synchronizeCustomerGroupItemsSpecialPrice(custCode);
-    await synchronizer.synchronizeCustomerGroupBrandSpecialPrice(custCode);
-    await synchronizer.synchronizeCustomerGroupGroupSpecialPrice(custCode);
 
-    await synchronizer.synchronizeCustomerGroupCategSpecialPrice(custCode);
+    await synchronizer.synchronizeCustomerGroupItemsSpecialPrice(itemCode,custGroupCodes);
+    await synchronizer.synchronizeCustomerGroupBrandSpecialPrice(brandCode,custGroupCodes);
+    await synchronizer.synchronizeCustomerGroupGroupSpecialPrice(groupCode,custGroupCodes);
+    await synchronizer.synchronizeCustomerGroupCategSpecialPrice(categCode,custGroupCodes);
+
     await synchronizer.synchronizeCustomerPropItemsSpecialPrice(itemCode,custCode);
     await synchronizer.synchronizeCustomerPropBrandSpecialPrice(brandCode,custCode);
-    await synchronizer.synchronizeCustomerPropGroupSpecialPrice(custCode);
+    await synchronizer.synchronizeCustomerPropGroupSpecialPrice(custGroupCodes,custCode);
      await synchronizer.synchronizeCustomerPropCategSpecialPrice(categCode,custCode);
 
 

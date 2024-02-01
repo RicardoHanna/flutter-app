@@ -19,6 +19,8 @@ static const int SYNCRONIZE_MENU_CODE = 3;
 static const int ITEMS_MENU_CODE = 4;
 static const int PRICELISTS_MENU_CODE = 5;
 static const int CUSTOMERS_MENU_CODE=6;
+static const int REPORT_MENU_CODE=7;
+
   Menu({
   required  this.menucode,
    required this.menuname,

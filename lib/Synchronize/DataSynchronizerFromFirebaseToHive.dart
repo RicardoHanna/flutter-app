@@ -201,12 +201,31 @@ class DataSynchronizerFromFirebaseToHive {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+Future<List<String>> retrievePriceList(List<String> itemCodes) async {
+    List<String> priceLists = [];
+    try {
+      for (String itemCode in itemCodes) {
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('ItemsPrices')
+            .where('itemCode', isEqualTo: itemCode)
+            .get();
+
+        querySnapshot.docs.forEach((doc) {
+          priceLists.add(doc['plCode']);
+        });
+      }
+    } catch (e) {
+      print('Error retrieving price list Codes: $e');
+    }
+    return priceLists;
+  }
 
 
-Future<void> synchronizeDataPriceLists() async {
+Future<void> synchronizeDataPriceLists(List<String>priceLists) async {
     try {
       // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('PriceList').get();
+      var firestoreItems = await _firestore.collection('PriceList').where('plCode', whereIn: priceLists)
+        .get();
  
       // Open Hive boxes
       var pricelistsBox = await Hive.openBox<PriceList>('pricelists');
@@ -1285,6 +1304,7 @@ Future<void> _synchronizeSubMenu(int menucode, CollectionReference usergroupsCol
     }
     print('Admin Sub Menu');
 
+/*
 // Create sets of usergroup codes from Firestore and Hive
 Set<dynamic> firestoreUserGroupCodes = Set.from(firestoreUserGroups.docs.map((doc) => doc['groupcode']));
 Set<dynamic> hiveUserGroupCodes = Set.from(userGroupBox.keys);
@@ -1295,7 +1315,7 @@ Set<dynamic> itemsToDelete = hiveUserGroupCodes.difference(firestoreUserGroupCod
 // Delete items in Hive that don't exist in Firestore
 itemsToDelete.forEach((hiveUserGroupCode) {
   userGroupBox.delete(hiveUserGroupCode);
-});
+});*/
 
   
     print('All data in adminSubMenuBox: ${userGroupBox.values.toList()}');
@@ -2959,7 +2979,7 @@ Future<void> _synchronizeUserSalesEmployees(
     try {
       for (String seCode in seCodes) {
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('SalesEmployeesItems')
+            .collection('SalesEmployeesCustomers')
             .where('seCode', isEqualTo: seCode)
             .get();
 
@@ -3408,11 +3428,18 @@ Future<void> _synchronizeCustomerAttachments(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerItemsSpecialPrice(List<String>custCodes,List<String>itemCodes) async {
+Future<void> synchronizeCustomerItemsSpecialPrice(List<String> custCodes, List<String> itemCodes) async {
   try {
-    // Fetch data from Firestore
-    var firestoreSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerItemsSpecialPrice').where('custCode', whereIn: custCodes).where('itemCode', whereIn: itemCodes).get();
+    // Fetch data from Firestore without using whereIn for itemCode
+    var firestoreSpecialPrice = await FirebaseFirestore.instance
+        .collection('CustomerItemsSpecialPrice')
+        .where('custCode', whereIn: custCodes)
+        .get();
+
+    // Filter the results based on itemCodes in Dart code
+    var filteredSpecialPrice = firestoreSpecialPrice.docs
+        .where((doc) => itemCodes.contains(doc['itemCode']))
+        .toList();
 
     // Open Hive box
     var specialPriceBox =
@@ -3420,13 +3447,17 @@ Future<void> synchronizeCustomerItemsSpecialPrice(List<String>custCodes,List<Str
 
     // Synchronize data
     await _synchronizeCustomerItemsSpecialPrice(
-        firestoreSpecialPrice.docs, specialPriceBox);
+        filteredSpecialPrice, specialPriceBox);
 
-
+    // Close Hive box if needed
+    // await specialPriceBox.close();
   } catch (e) {
     print('Error synchronizing data from Firebase to Hive for CustomerItemsSpecialPrice: $e');
   }
 }
+
+
+
 
 Future<void> _synchronizeCustomerItemsSpecialPrice(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreSpecialPrice,
@@ -3497,13 +3528,19 @@ Future<void> _synchronizeCustomerItemsSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-
-Future<void> synchronizeCustomerBrandsSpecialPrice(List<String>custCodes,List<String>brandCodes) async {
+Future<void> synchronizeCustomerBrandsSpecialPrice(List<String> custCodes, List<String> brandCodes) async {
   try {
     print('hiiiiii');
-    // Fetch data from Firestore
-    var firestoreBrandsSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerBrandsSpecialPrice').where('custCode', whereIn: custCodes).where('brandCode', whereIn: brandCodes).get();
+    // Fetch data from Firestore without using whereIn for brandCode
+    var firestoreBrandsSpecialPrice = await FirebaseFirestore.instance
+        .collection('CustomerBrandsSpecialPrice')
+        .where('custCode', whereIn: custCodes)
+        .get();
+
+    // Filter the results based on brandCodes in Dart code
+    var filteredBrandsSpecialPrice = firestoreBrandsSpecialPrice.docs
+        .where((doc) => brandCodes.contains(doc['brandCode']))
+        .toList();
 
     // Open Hive box
     var brandsSpecialPriceBox =
@@ -3511,13 +3548,16 @@ Future<void> synchronizeCustomerBrandsSpecialPrice(List<String>custCodes,List<St
 
     // Synchronize data
     await _synchronizeCustomerBrandsSpecialPrice(
-        firestoreBrandsSpecialPrice.docs, brandsSpecialPriceBox);
+        filteredBrandsSpecialPrice, brandsSpecialPriceBox);
 
-
+    // Close Hive box if needed
+    // await brandsSpecialPriceBox.close();
   } catch (e) {
     print('Error synchronizing data from Firebase to Hive for CustomerBrandsSpecialPrice: $e');
   }
 }
+
+
 
 Future<void> _synchronizeCustomerBrandsSpecialPrice(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreBrandsSpecialPrice,
@@ -3578,12 +3618,18 @@ print(doc.data());
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-
-Future<void> synchronizeCustomerGroupsSpecialPrice(List<String>custCodes,List<String>brandCodes) async {
+Future<void> synchronizeCustomerGroupsSpecialPrice(List<String> custCodes, List<String> itemGroupCodes) async {
   try {
-    // Fetch data from Firestore
-    var firestoreGroupsSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerGroupsSpecialPrice').where('custCode', whereIn: custCodes).where('brandCode', whereIn: brandCodes).get();
+    // Fetch data from Firestore without using whereIn for groupCode
+    var firestoreGroupsSpecialPrice = await FirebaseFirestore.instance
+        .collection('CustomerGroupsSpecialPrice')
+        .where('custCode', whereIn: custCodes)
+        .get();
+
+    // Filter the results based on itemGroupCodes in Dart code
+    var filteredGroupsSpecialPrice = firestoreGroupsSpecialPrice.docs
+        .where((doc) => itemGroupCodes.contains(doc['groupCode']))
+        .toList();
 
     // Open Hive box
     var groupsSpecialPriceBox =
@@ -3591,12 +3637,17 @@ Future<void> synchronizeCustomerGroupsSpecialPrice(List<String>custCodes,List<St
 
     // Synchronize data
     await _synchronizeCustomerGroupsSpecialPrice(
-        firestoreGroupsSpecialPrice.docs, groupsSpecialPriceBox);
+        filteredGroupsSpecialPrice, groupsSpecialPriceBox);
 
+    // Close Hive box if needed
+    // await groupsSpecialPriceBox.close();
   } catch (e) {
     print('Error synchronizing data from Firebase to Hive for CustomerGroupsSpecialPrice: $e');
   }
 }
+
+
+
 
 Future<void> _synchronizeCustomerGroupsSpecialPrice(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreGroupsSpecialPrice,
@@ -3655,12 +3706,18 @@ Future<void> _synchronizeCustomerGroupsSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-
-Future<void> synchronizeCustomerCategSpecialPrice(List<String>custCodes,List<String>brandCodes) async {
+Future<void> synchronizeCustomerCategSpecialPrice(List<String> custCodes, List<String> categCodes) async {
   try {
-    // Fetch data from Firestore
-    var firestoreCategSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerCategSpecialPrice').where('custCode', whereIn: custCodes).where('brandCode', whereIn: brandCodes).get();
+    // Fetch data from Firestore without using whereIn for categCode
+    var firestoreCategSpecialPrice = await FirebaseFirestore.instance
+        .collection('CustomerCategSpecialPrice')
+        .where('custCode', whereIn: custCodes)
+        .get();
+
+    // Filter the results based on categCodes in Dart code
+    var filteredCategSpecialPrice = firestoreCategSpecialPrice.docs
+        .where((doc) => categCodes.contains(doc['categCode']))
+        .toList();
 
     // Open Hive box
     var categSpecialPriceBox =
@@ -3668,12 +3725,16 @@ Future<void> synchronizeCustomerCategSpecialPrice(List<String>custCodes,List<Str
 
     // Synchronize data
     await _synchronizeCustomerCategSpecialPrice(
-        firestoreCategSpecialPrice.docs, categSpecialPriceBox);
+        filteredCategSpecialPrice, categSpecialPriceBox);
 
+    // Close Hive box if needed
+    // await categSpecialPriceBox.close();
   } catch (e) {
     print('Error synchronizing data from Firebase to Hive for CustomerCategSpecialPrice: $e');
   }
 }
+
+
 
 Future<void> _synchronizeCustomerCategSpecialPrice(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreCategSpecialPrice,
@@ -3732,13 +3793,35 @@ Future<void> _synchronizeCustomerCategSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+Future<List<String>> retrieveCustGroupCode(List<String> custCodes) async {
+    List<String> custGroupCodes = [];
+    try {
+      for (String custCode in custCodes) {
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('Customers')
+            .where('custCode', isEqualTo: custCode)
+            .get();
+
+        querySnapshot.docs.forEach((doc) {
+          custGroupCodes.add(doc['groupCode']);
+        });
+      }
+    } catch (e) {
+      print('Error retrieving custGroupCodes: $e');
+    }
+    return custGroupCodes;
+  }
 
 
-Future<void> synchronizeCustomerGroupItemsSpecialPrice(List<String>itemCodes) async {
+Future<void> synchronizeCustomerGroupItemsSpecialPrice(List<String>itemCodes,List<String>custGroupCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreGroupItemsSpecialPrice =
         await FirebaseFirestore.instance.collection('CustomerGroupItemsSpecialPrice').where('itemCode', whereIn: itemCodes).get();
+
+var filteredGroupSpecialPrice = firestoreGroupItemsSpecialPrice.docs
+        .where((doc) => custGroupCodes.contains(doc['custGroupCode']))
+        .toList();
 
     // Open Hive box
     var groupItemsSpecialPriceBox =
@@ -3746,7 +3829,7 @@ Future<void> synchronizeCustomerGroupItemsSpecialPrice(List<String>itemCodes) as
 
     // Synchronize data
     await _synchronizeCustomerGroupItemsSpecialPrice(
-        firestoreGroupItemsSpecialPrice.docs, groupItemsSpecialPriceBox);
+        filteredGroupSpecialPrice, groupItemsSpecialPriceBox);
 
     
   } catch (e) {
@@ -3822,11 +3905,15 @@ print(doc.data());
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerGroupBrandSpecialPrice(List<String>brandCodes) async {
+Future<void> synchronizeCustomerGroupBrandSpecialPrice(List<String>brandCodes,List<String>custGroupCodes)async {
   try {
     // Fetch data from Firestore
     var firestoreGroupBrandSpecialPrice =
         await FirebaseFirestore.instance.collection('CustomerGroupBrandSpecialPrice').where('brandCode', whereIn: brandCodes).get();
+
+var filteredGroupSpecialPrice = firestoreGroupBrandSpecialPrice.docs
+        .where((doc) => custGroupCodes.contains(doc['custGroupCode']))
+        .toList();
 
     // Open Hive box
     var groupBrandSpecialPriceBox =
@@ -3834,7 +3921,7 @@ Future<void> synchronizeCustomerGroupBrandSpecialPrice(List<String>brandCodes) a
 
     // Synchronize data
     await _synchronizeCustomerGroupBrandSpecialPrice(
-        firestoreGroupBrandSpecialPrice.docs, groupBrandSpecialPriceBox);
+       filteredGroupSpecialPrice, groupBrandSpecialPriceBox);
 
 
   } catch (e) {
@@ -3900,11 +3987,15 @@ Future<void> _synchronizeCustomerGroupBrandSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 
 
-Future<void> synchronizeCustomerGroupGroupSpecialPrice(List<String>groupCodes) async {
+Future<void> synchronizeCustomerGroupGroupSpecialPrice(List<String>groupCodes,List<String>custGroupCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreGroupGroupSpecialPrice =
         await FirebaseFirestore.instance.collection('CustomerGroupGroupSpecialPrice').where('groupCode', whereIn: groupCodes).get();
+
+         var filteredGroupSpecialPrice = firestoreGroupGroupSpecialPrice.docs
+        .where((doc) => custGroupCodes.contains(doc['custGroupCode']))
+        .toList();
 
     // Open Hive box
     var groupGroupSpecialPriceBox =
@@ -3912,7 +4003,7 @@ Future<void> synchronizeCustomerGroupGroupSpecialPrice(List<String>groupCodes) a
 
     // Synchronize data
     await _synchronizeCustomerGroupGroupSpecialPrice(
-        firestoreGroupGroupSpecialPrice.docs, groupGroupSpecialPriceBox);
+      filteredGroupSpecialPrice, groupGroupSpecialPriceBox);
 
   } catch (e) {
     print(
@@ -3976,19 +4067,23 @@ Future<void> _synchronizeCustomerGroupGroupSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<void> synchronizeCustomerGroupCategSpecialPrice(List<String>categCodes) async {
+Future<void> synchronizeCustomerGroupCategSpecialPrice(List<String>categCodes,List<String>custGroupCodes) async {
   try {
     // Fetch data from Firestore
     var firestoreGroupCategSpecialPrice =
         await FirebaseFirestore.instance.collection('CustomerGroupCategSpecialPrice').where('categCode', whereIn: categCodes).get();
 
+  var filteredGroupSpecialPrice = firestoreGroupCategSpecialPrice.docs
+        .where((doc) => custGroupCodes.contains(doc['custGroupCode']))
+        .toList();
+   
     // Open Hive box
     var groupCategSpecialPriceBox =
         await Hive.openBox<CustomerGroupCategSpecialPrice>('customerGroupCategSpecialPriceBox');
 
     // Synchronize data
     await _synchronizeCustomerGroupCategSpecialPrice(
-        firestoreGroupCategSpecialPrice.docs, groupCategSpecialPriceBox);
+        filteredGroupSpecialPrice, groupCategSpecialPriceBox);
 
 
   } catch (e) {
@@ -4061,7 +4156,7 @@ Future<List<String>> retrievePropCodes(List<String> custCodes) async {
       for (String custCode in custCodes) {
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
             .collection('CustomerProperties')
-            .where('custCode', isEqualTo: custCodes)
+            .where('custCode', isEqualTo: custCode)
             .get();
 
         querySnapshot.docs.forEach((doc) {
@@ -4074,12 +4169,20 @@ Future<List<String>> retrievePropCodes(List<String> custCodes) async {
     return propCodes;
   }
 
-Future<void> synchronizeCustomerPropItemsSpecialPrice(List<String>itemCodes,List<String>custCodes) async {
-List<String>propCodes=await retrieveCustCodes(custCodes);
+Future<void> synchronizeCustomerPropItemsSpecialPrice(List<String> itemCodes, List<String> custCodes) async {
+  List<String> propCodes = await retrievePropCodes(custCodes);
+
   try {
-    // Fetch data from Firestore
-    var firestorePropItemsSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerPropItemsSpecialPrice').where('itemCode', whereIn: itemCodes).where('custPropCode', whereIn: propCodes).get();
+    // Fetch data from Firestore without using whereIn for custPropCode
+    var firestorePropItemsSpecialPrice = await FirebaseFirestore.instance
+        .collection('CustomerPropItemsSpecialPrice')
+        .where('itemCode', whereIn: itemCodes)
+        .get();
+
+    // Filter the results based on propCodes in Dart code
+    var filteredPropItemsSpecialPrice = firestorePropItemsSpecialPrice.docs
+        .where((doc) => propCodes.contains(doc['custPropCode']))
+        .toList();
 
     // Open Hive box
     var propItemsSpecialPriceBox =
@@ -4087,14 +4190,16 @@ List<String>propCodes=await retrieveCustCodes(custCodes);
 
     // Synchronize data
     await _synchronizeCustomerPropItemsSpecialPrice(
-        firestorePropItemsSpecialPrice.docs, propItemsSpecialPriceBox);
+        filteredPropItemsSpecialPrice, propItemsSpecialPriceBox);
 
-
+    // Close Hive box if needed
+    // await propItemsSpecialPriceBox.close();
   } catch (e) {
-    print(
-        'Error synchronizing data from Firebase to Hive for CustomerPropItemsSpecialPrice: $e');
+    print('Error synchronizing data from Firebase to Hive for CustomerPropItemsSpecialPrice: $e');
   }
 }
+
+
 
 Future<void> _synchronizeCustomerPropItemsSpecialPrice(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> firestorePropItemsSpecialPrice,
@@ -4165,13 +4270,20 @@ Future<void> _synchronizeCustomerPropItemsSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+Future<void> synchronizeCustomerPropBrandSpecialPrice(List<String> brandCodes, List<String> custCodes) async {
+  List<String> propCodes = await retrievePropCodes(custCodes);
 
-Future<void> synchronizeCustomerPropBrandSpecialPrice(List<String>brandCodes,List<String>custCodes) async {
-  List<String>propCodes=await retrieveCustCodes(custCodes);
   try {
-    // Fetch data from Firestore
-    var firestorePropBrandSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerPropBrandSpecialPrice').where('brandCode', whereIn: brandCodes).where('custPropCode', whereIn: propCodes).get();
+    // Fetch data from Firestore without using whereIn for custPropCode
+    var firestorePropBrandSpecialPrice = await FirebaseFirestore.instance
+        .collection('CustomerPropBrandSpecialPrice')
+        .where('brandCode', whereIn: brandCodes)
+        .get();
+
+    // Filter the results based on propCodes in Dart code
+    var filteredPropBrandSpecialPrice = firestorePropBrandSpecialPrice.docs
+        .where((doc) => propCodes.contains(doc['custPropCode']))
+        .toList();
 
     // Open Hive box
     var propBrandSpecialPriceBox =
@@ -4179,14 +4291,17 @@ Future<void> synchronizeCustomerPropBrandSpecialPrice(List<String>brandCodes,Lis
 
     // Synchronize data
     await _synchronizeCustomerPropBrandSpecialPrice(
-        firestorePropBrandSpecialPrice.docs, propBrandSpecialPriceBox);
+        filteredPropBrandSpecialPrice, propBrandSpecialPriceBox);
 
-
+    // Close Hive box if needed
+    // await propBrandSpecialPriceBox.close();
   } catch (e) {
-    print(
-        'Error synchronizing data from Firebase to Hive for CustomerPropBrandSpecialPrice: $e');
+    print('Error synchronizing data from Firebase to Hive for CustomerPropBrandSpecialPrice: $e');
   }
 }
+
+
+
 
 Future<void> _synchronizeCustomerPropBrandSpecialPrice(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> firestorePropBrandSpecialPrice,
@@ -4248,13 +4363,20 @@ Future<void> _synchronizeCustomerPropBrandSpecialPrice(
 
 
 
+Future<void> synchronizeCustomerPropGroupSpecialPrice(List<String> custGroupCodes, List<String> custCodes) async {
+  List<String> propCodes = await retrievePropCodes(custCodes);
 
-Future<void> synchronizeCustomerPropGroupSpecialPrice(List<String>custCodes) async {
-    List<String>propCodes=await retrieveCustCodes(custCodes);
   try {
-    // Fetch data from Firestore
-    var firestorePropGroupSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerPropGroupSpecialPrice').where('propCode', whereIn: propCodes).get();
+    // Fetch data from Firestore without using whereIn for custPropCode
+    var firestorePropGroupSpecialPrice = await FirebaseFirestore.instance
+        .collection('CustomerPropGroupSpecialPrice')
+        .where('propCode', whereIn: propCodes)
+        .get();
+
+    // Filter the results based on custGroupCodes in Dart code
+    var filteredPropGroupSpecialPrice = firestorePropGroupSpecialPrice.docs
+        .where((doc) => custGroupCodes.contains(doc['custGroupCode']))
+        .toList();
 
     // Open Hive box
     var propGroupSpecialPriceBox =
@@ -4262,14 +4384,16 @@ Future<void> synchronizeCustomerPropGroupSpecialPrice(List<String>custCodes) asy
 
     // Synchronize data
     await _synchronizeCustomerPropGroupSpecialPrice(
-        firestorePropGroupSpecialPrice.docs, propGroupSpecialPriceBox);
+        filteredPropGroupSpecialPrice, propGroupSpecialPriceBox);
 
-
+    // Close Hive box if needed
+    // await propGroupSpecialPriceBox.close();
   } catch (e) {
-    print(
-        'Error synchronizing data from Firebase to Hive for CustomerPropGroupSpecialPrice: $e');
+    print('Error synchronizing data from Firebase to Hive for CustomerPropGroupSpecialPrice: $e');
   }
 }
+
+
 
 Future<void> _synchronizeCustomerPropGroupSpecialPrice(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> firestorePropGroupSpecialPrice,
@@ -4330,13 +4454,20 @@ Future<void> _synchronizeCustomerPropGroupSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+Future<void> synchronizeCustomerPropCategSpecialPrice(List<String> categCodes, List<String> custCodes) async {
+  List<String> propCodes = await retrievePropCodes(custCodes);
 
-Future<void> synchronizeCustomerPropCategSpecialPrice(List<String>categCodes,List<String>custCodes) async {
-    List<String>propCodes=await retrieveCustCodes(custCodes);
   try {
-    // Fetch data from Firestore
-    var firestorePropCategSpecialPrice =
-        await FirebaseFirestore.instance.collection('CustomerPropCategSpecialPrice').where('categCode', whereIn: categCodes).where('custPropCode', whereIn: propCodes).get();
+    // Fetch data from Firestore without using whereIn for custPropCode
+    var firestorePropCategSpecialPrice = await FirebaseFirestore.instance
+        .collection('CustomerPropCategSpecialPrice')
+        .where('categCode', whereIn: categCodes)
+        .get();
+
+    // Filter the results based on propCodes in Dart code
+    var filteredPropCategSpecialPrice = firestorePropCategSpecialPrice.docs
+        .where((doc) => propCodes.contains(doc['custPropCode']))
+        .toList();
 
     // Open Hive box
     var propCategSpecialPriceBox =
@@ -4344,14 +4475,17 @@ Future<void> synchronizeCustomerPropCategSpecialPrice(List<String>categCodes,Lis
 
     // Synchronize data
     await _synchronizeCustomerPropCategSpecialPrice(
-        firestorePropCategSpecialPrice.docs, propCategSpecialPriceBox);
+        filteredPropCategSpecialPrice, propCategSpecialPriceBox);
 
-   
+    // Close Hive box if needed
+    // await propCategSpecialPriceBox.close();
   } catch (e) {
-    print(
-        'Error synchronizing data from Firebase to Hive for CustomerPropCategSpecialPrice: $e');
+    print('Error synchronizing data from Firebase to Hive for CustomerPropCategSpecialPrice: $e');
   }
 }
+
+
+
 
 Future<void> _synchronizeCustomerPropCategSpecialPrice(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> firestorePropCategSpecialPrice,

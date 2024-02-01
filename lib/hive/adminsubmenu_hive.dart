@@ -18,7 +18,7 @@ static const int SETTINGS_USERSGROUP_MENU_CODE = 102;
 static const int AUTHORIZATIONS_MENU_CODE = 103;
 static const int GENERAL_SETTINGS_MENU_CODE = 104;
 static const int COMPANIES_SETTINGS_MENU_CODE = 105;
-static const int MAP_SETTINGS_MENU_CODE = 106;
+
 
   AdminSubMenu({
   required  this.groupcode,
