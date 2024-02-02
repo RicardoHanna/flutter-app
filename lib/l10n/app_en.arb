@@ -475,7 +475,328 @@
     "mapSettings": "Map Settings",
     "@mapSettings": {
         "description": "Map Settings"
+    },
+    "customers": "Customers",
+    "@customer": {
+        "description": "Customers"
+    },
+    "report": "Report",
+    "@report": {
+        "description": "report"
+    },
+    "dashboard": "Dashboard",
+    "@dashboard": {
+        "description": "Dashboard"
+    },
+    "company": "Company",
+    "@company": {
+        "description": "Company"
+    },
+    "general": "General",
+    "@general": {
+        "description": "General"
+    },
+    "itemuom": "Item UOM",
+    "@itemuom": {
+        "description": "Item UOM"
+    },
+    "cmpCode": "Company Code",
+    "@cmpCode": {
+        "description": "Company Code"
+    },
+    "qtyperUOM": "Quantity Per UOM",
+    "@qtyperUOM": {
+        "description": "Quantity Per UOM"
+    },
+    "customerDetails": "Customer Details",
+    "@customerDetails": {
+        "description": "Customer Details"
+    },
+    "customerAddresses": "Addresses",
+    "@customerAddresses": {
+        "description": "Addresses"
+    },
+    "customerContacts": "Contacts",
+    "@customerContacts": {
+        "description": "Contacts"
+    },
+    "customerProperties": "Properties",
+    "@customerProperties": {
+        "description": "Properties"
+    },
+    "customerItemsSpecialPrice": "Items Special Price",
+    "@customerItemsSpecialPrice": {
+        "description": "Items Special Price"
+    },
+    "customerGroupSpecialPrice": "Group Special Price",
+    "@customerGroupSpecialPrice": {
+        "description": "Group Special Price"
+    },
+    "customerPropSpecialPrice": "Prop Special Price",
+    "@customerPropSpecialPrice": {
+        "description": "Prop Special Price"
+    },
+    "customerCode": "Customer Code",
+    "@customerCode": {
+        "description": "Customer Code"
+    },
+    "customerName": "Customer Name",
+    "@customerName": {
+        "description": "Customer Name"
+    },
+    "customerFName": "Customer Foreign Name",
+    "@customerFName": {
+        "description": "Customer Foreign Name"
+    },
+    "mofNum": "Mof Num",
+    "@mofNum": {
+        "description": "Mof Num"
+    },
+    "mobile": "Mobile",
+    "@mobile": {
+        "description": "Mobile"
+    },
+    "fax": "Fax",
+    "@fax": {
+        "description": "Fax"
+    },
+    "website": "Wesbite",
+    "@website": {
+        "description": "Website"
+    },
+    "printLayout": "Print Layout",
+    "@printLayout": {
+        "description": "Print Layout"
+    },
+    "defaultAddressID": "Default Address ID",
+    "@defaultAddressID": {
+        "description": "Default Address ID"
+    },
+    "cashClient": "Cash Client",
+    "@cashClient": {
+        "description": "Cash Client"
+    },
+    "discountType": "Discount Type",
+    "@discountType": {
+        "description": "Discount Type"
+    },
+    "vatCode": "Vat Code",
+    "@vatCode": {
+        "description": "Vat Code"
+    },
+    "prListCode": "PrList Code",
+    "@prListCode": {
+        "description": "PrList Code"
+    },
+    "payTermsCode": "Pay Terms Code",
+    "@payTermsCode": {
+        "description": "Pay Terms Code"
+    },
+    "discount": "Discount",
+    "@discount": {
+        "description": "Discount"
+    },
+    "creditLimit": "Credit Limit",
+    "@creditLimit": {
+        "description": "Credit Limit"
+    },
+    "balance": "Balance",
+    "@balance": {
+        "description": "Balance"
+    },
+    "balanceDue": "Balance Due",
+    "@balanceDue": {
+        "description": "Balance Due"
+    },
+    "contactId": "Contact Id",
+    "@contactId": {
+        "description": "Contact Id"
+    },
+    "contactName": "Contact Name",
+    "@contactName": {
+        "description": "Contact Name"
+    },
+    "contactFName": "Contact Foreign Name",
+    "@contactFName": {
+        "description": "Contact Foreign Name"
+    },
+    "position": "Position",
+    "@position": {
+        "description": "Position"
+    },
+    "address": "Address",
+    "@address": {
+        "description": "Address"
+    },
+    "addressId": "Address Id",
+    "@addressId": {
+        "description": "Address Id"
+    },
+    "gpslong": "gps long",
+    "@gpslong": {
+        "description": "gps long"
+    },
+    "gpslat": "gps lat",
+    "@gpslat": {
+        "description": "gps lat"
+    },
+    "regCode": "Region Code",
+    "@regCode": {
+        "description": "Region Code"
+    },
+    "propCode": "Prop Code",
+    "@propCode": {
+        "description": "Prop Code"
+    },
+    "fAddress": "Foreign Address",
+    "@fAddress": {
+        "description": "Foreign CodAddresse"
+    },
+    "sortbygroupcode": "Sort By Group Code",
+    "@sortbygroupcode": {
+        "description": "Sort By Group Code"
+    },
+    "sortbygps": "Sort By GPS",
+    "@sortbygps": {
+        "description": "sORT By GPS"
+    },
+    "filtersByCustomers": "Filters By Customers",
+    "@filtersByCustomers": {
+        "description": "Filters By Customers"
+    },
+    "map": "Map",
+    "@map": {
+        "description": "Map"
+    },
+    "addFieldsMap": "Add Fields Map",
+    "@addFieldsMap": {
+        "description": "Add Fields Map"
+    },
+    "addFieldsCustomers": "Add Fields Customers",
+    "@addFieldsCustomers": {
+        "description": "Add Fields Customers"
+    },
+    "curCode": "Currency Code",
+    "@curCode": {
+        "description": "Currency Code"
+    },
+    "selectCompany": "Select Your Company",
+    "@selectCompany": {
+        "description": "Select Your Company"
+    },
+    "searchByName": "Search By Name",
+    "@searchByName": {
+        "description": "Search By Name"
+    },
+    "connectionDatabase": "Connection Database",
+    "@connectionDatabase": {
+        "description": "Connection Database"
+    },
+    "connectionServer": "Connection Server",
+    "@connectionServer": {
+        "description": "Connection Server"
+    },
+    "connectionUserName": "Connection UserName",
+    "@connectionUserName": {
+        "description": "Connection UserName"
+    },
+    "connectionPassword": "Connection Password",
+    "@connectionPassword": {
+        "description": "Connection Password"
+    },
+    "connectionPort": "Connection Port",
+    "@connectionPort": {
+        "description": "Connection Port"
+    },
+    "typeDatabase": "Type Database",
+    "@typeDatabase": {
+        "description": "Type Database"
+    },
+    "autoExport": "Automatically Export",
+    "@autoExport": {
+        "description": "Automatically Export"
+    },
+    "importFromErpToMobile": "Import From ERP to Mobile",
+    "@importFromErpToMobile": {
+        "description": "Import From ERP to Mobile"
+    },
+    "importFromBackendToMobile": "Import From Backend to Mobile",
+    "@importFromBackendToMobile": {
+        "description": "Import From Backend to Mobile"
+    },
+    "import": "Import",
+    "@import": {
+        "description": "Import"
+    },
+    "export": "Export",
+    "@export": {
+        "description": "Export"
+    },
+    "dataisexported": "Data is Exported",
+    "@dataisexported": {
+        "description": "Data is Exported"
+    },
+    "areyousuretowanttoexportalldate": "Are you sure to want to export all data?",
+    "@areyousuretowanttoexportalldate": {
+        "description": "Are you sure to want to export all data?"
+    },
+    "dataissynchronized": "Data is synchronized",
+    "@dataissynchronized": {
+        "description": "Data is synchronized"
+    },
+    "nointernetconnectionDatawillbesynchronizedwhenonline": "No internet connection. Data will be synchronized when online.",
+    "@nointernetconnectionDatawillbesynchronizedwhenonline": {
+        "description": "No internet connection. Data will be synchronized when online."
+    },
+    "itemssynchronizedsuccessfully": "Items synchronized successfully",
+    "@itemssynchronizedsuccessfully": {
+        "description": "Items synchronized successfully"
+    },
+    "systemsynchronizedsuccessfully": "System synchronized successfully",
+    "@systemsynchronizedsuccessfully": {
+        "description": "System synchronized successfully"
+    },
+    "pricelistsynchronizedsuccessfully": "PriceLists synchronized successfully",
+    "@pricelistsynchronizedsuccessfully": {
+        "description": "PriceLists synchronized successfully"
+    },
+    "customerssynchronizedsuccessfully": "Customers synchronized successfully",
+    "@customerssynchronizedsuccessfully": {
+        "description": "Customers synchronized successfully"
+    },
+    "selectSalesEmployees": "Select Sales Employees",
+    "@selectSalesEmployees": {
+        "description": "Select Sales Employees"
+    },
+    "selectCompany": "Select Company",
+    "@selectCompany": {
+        "description": "Select Company"
+    },
+    "selectPriceListAuthorization": "Select Price List Authorization",
+    "@selectPriceListAuthorization": {
+        "description": "Select Price List Authorizations"
+    },
+    "select": "Select",
+    "@select": {
+        "description": "Select"
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
     
     
     

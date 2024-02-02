@@ -422,7 +422,7 @@ int _generateCompositeKey(int menucode, int groupcode) {
               style: _appTextStyle,
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: AppLocalizations.of(context)!.serchName,
+                hintText: AppLocalizations.of(context)!.searchByName,
                 prefixIcon: Icon(Icons.search,),
               ),
               onChanged: (value) {

@@ -205,7 +205,7 @@ bool _loading = false; // Track loading state
 Widget _buildImportButton() {
   TextStyle _appTextStyle =
       TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-  if (widget.title == 'Import from ERP To Mobile') {
+  if (widget.title == AppLocalizations.of(context)!.importFromErpToMobile) {
     return ElevatedButton(
       onPressed: () async {
         LoadingHelper.configureLoading();
@@ -216,9 +216,9 @@ Widget _buildImportButton() {
        style: ButtonStyle(
        fixedSize: MaterialStateProperty.all(Size(280, 10)), // Set the width and height
   ),
-      child: Text('Import', style: _appTextStyle),
+      child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
     );
-  } else if (widget.title == 'Import from Backend to Mobile') {
+  } else if (widget.title == AppLocalizations.of(context)!.importFromBackendToMobile) {
     return ElevatedButton(
       onPressed: () async {
         LoadingHelper.configureLoading();
@@ -229,7 +229,7 @@ Widget _buildImportButton() {
       style: ButtonStyle(
     fixedSize: MaterialStateProperty.all(Size(280, 10)), // Set the width and height
   ),
-      child: Text('Import', style: _appTextStyle),
+      child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
     );
   } else {
     return Container(); // Placeholder for other scenarios
@@ -238,7 +238,7 @@ Widget _buildImportButton() {
   List<Widget> _buildSwitchList() {
   TextStyle _appTextStyle =
       TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-  if (widget.title == 'Import from ERP To Mobile') {
+  if (widget.title == AppLocalizations.of(context)!.importFromErpToMobile) {
     return [
       SwitchListTile(
         title: Text('System', style: _appTextStyle),
@@ -296,7 +296,7 @@ Widget _buildImportButton() {
   await importData();
   LoadingHelper.dismissLoading(); // Dismiss loading indicator
 },
-child: Text('Import', style: _appTextStyle),
+child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
 
               ),
             ],
@@ -304,7 +304,7 @@ child: Text('Import', style: _appTextStyle),
         ),
       
     ];
-  } else if (widget.title == 'Import from Backend to Mobile') {
+  } else if (widget.title == AppLocalizations.of(context)!.importFromBackendToMobile) {
     return [
          SwitchListTile(
         title: Text('System', style: _appTextStyle),
@@ -354,7 +354,7 @@ child: Text('Import', style: _appTextStyle),
   await _synchronizeAll();
   LoadingHelper.dismissLoading(); // Dismiss loading indicator
 },
-child: Text('Import', style: _appTextStyle),
+child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
 
               ),
             ],
@@ -415,7 +415,7 @@ child: Text('Import', style: _appTextStyle),
     await synchronizer.synchronizeDataItemUOM(itemCodes);
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text('Items synchronized successfully', style: _appTextStyle,),
+      content: Text(AppLocalizations.of(context)!.itemssynchronizedsuccessfully, style: _appTextStyle,),
     ),
   );
   print('Items synchronized successfully');
@@ -436,7 +436,7 @@ child: Text('Import', style: _appTextStyle),
           await synchronizer.synchronizeDataPriceListsAutho();
         ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('PriceLists synchronized successfully',style: _appTextStyle,),
+        content: Text(AppLocalizations.of(context)!.pricelistsynchronizedsuccessfully,style: _appTextStyle,),
       ),
     );
     print('PriceLists synchronized successfully');
@@ -489,7 +489,7 @@ child: Text('Import', style: _appTextStyle),
         
         ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('System synchronized successfully',style: _appTextStyle,),
+        content: Text(AppLocalizations.of(context)!.systemsynchronizedsuccessfully,style: _appTextStyle,),
       ),
     );
     print('System synchronized successfully');
@@ -535,7 +535,7 @@ child: Text('Import', style: _appTextStyle),
       
         ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Customers synchronized successfully',style: _appTextStyle,),
+        content: Text(AppLocalizations.of(context)!.customerssynchronizedsuccessfully,style: _appTextStyle,),
       ),
     );
     print('Customers synchronized successfully');
@@ -564,7 +564,7 @@ await _synchronizeCustomers();
     // Display a success message or update UI as needed
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Data synchronized successfully',style: _appTextStyle,),
+        content: Text(AppLocalizations.of(context)!.dataissynchronized,style: _appTextStyle,),
       ),
     );
   } catch (e) {

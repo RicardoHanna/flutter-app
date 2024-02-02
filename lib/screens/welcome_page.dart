@@ -429,24 +429,24 @@ void saveProfile(String localPath) async {
      final Map<String, Widget> formWidgets = {
    AppLocalizations.of(context)!.items: ItemsForm(appNotifier: widget.appNotifier,userCode: usercode,defltCompanyCode:companyCodeDefltPassedToPages),
     AppLocalizations.of(context)!.pricelists: PriceLists(appNotifier: widget.appNotifier,usercode: usercode),
-    'Customers':CustomersForm(appNotifier:widget.appNotifier, userCode: usercode,defltCompanyCode: companyCodeDefltPassedToPages,),
-    'Report':ReportForm(appNotifier:widget.appNotifier, usercode: usercode),
+    AppLocalizations.of(context)!.customers:CustomersForm(appNotifier:widget.appNotifier, userCode: usercode,defltCompanyCode: companyCodeDefltPassedToPages,),
+       AppLocalizations.of(context)!.report:ReportForm(appNotifier:widget.appNotifier, usercode: usercode),
   };
 
   final Map<String, int> menuCodes = {
   AppLocalizations.of(context)!.items: Menu.ITEMS_MENU_CODE,
   AppLocalizations.of(context)!.pricelists: Menu.PRICELISTS_MENU_CODE,
-  'Customers':Menu.CUSTOMERS_MENU_CODE,
-  'Report':Menu.REPORT_MENU_CODE
+     AppLocalizations.of(context)!.customers:Menu.CUSTOMERS_MENU_CODE,
+     AppLocalizations.of(context)!.report:Menu.REPORT_MENU_CODE
   // Add other menu items and their menu codes
 };
-final List<String> data = <String>[AppLocalizations.of(context)!.items, AppLocalizations.of(context)!.pricelists,'Customers','Report'];
+final List<String> data = <String>[AppLocalizations.of(context)!.items, AppLocalizations.of(context)!.pricelists,AppLocalizations.of(context)!.customers,AppLocalizations.of(context)!.report];
 
    final Map<String, IconData> iconData = {
     AppLocalizations.of(context)!.items: Icons.shopping_cart,
     AppLocalizations.of(context)!.pricelists: Icons.attach_money,
-    'Customers':Icons.people_outline_outlined,
-    'Report':Icons.report
+       AppLocalizations.of(context)!.customers:Icons.people_outline_outlined,
+       AppLocalizations.of(context)!.report:Icons.report
   };
 
   String languageUser='';
@@ -461,7 +461,7 @@ languageUser=_username!;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: Text(AppLocalizations.of(context)!.welcome,style: _appTextStyleAppBar,),
+        title: Text(AppLocalizations.of(context)!.dashboard,style: _appTextStyleAppBar,),
       ),
      drawer:Drawer(
   child: ListView(
@@ -508,6 +508,14 @@ languageUser=_username!;
           ],
         ),
       ),
+        ListTile(
+            leading: Icon(Icons.business),
+            title: Text(AppLocalizations.of(context)!.company,style: _appTextStyle,),
+            subtitle: selectedCompany != null ? Text(selectedCompany!) : null,
+            onTap: () {
+              _showCompanySelectionDialog(context);
+            },
+          ),
   ListTile(
   leading: Icon(Icons.settings),
   title: FutureBuilder<bool>(
@@ -639,14 +647,7 @@ languageUser=_username!;
   },
 ),
 
-  ListTile(
-            leading: Icon(Icons.business),
-            title: Text('Company',style: _appTextStyle,),
-            subtitle: selectedCompany != null ? Text(selectedCompany!) : null,
-            onTap: () {
-              _showCompanySelectionDialog(context);
-            },
-          ),
+
     
 
       ListTile(
@@ -731,7 +732,7 @@ languageUser=_username!;
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Company'),
+          title: Text(AppLocalizations.of(context)!.selectCompany),
           content: DropdownButtonFormField<String>(
             value: selectedCompany,
             items: companies.map((company) {

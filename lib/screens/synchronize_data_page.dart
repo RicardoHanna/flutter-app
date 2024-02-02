@@ -84,14 +84,14 @@ if (hasAccess) {
       await _synchronizeData();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Data is synchronized!', style: _appTextStyle),
+          content: Text(AppLocalizations.of(context)!.dataissynchronized, style: _appTextStyle),
         ),
       );
     } else {
       // No internet connection
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No internet connection. Data will be synchronized when online.', style: _appTextStyle),
+          content: Text(AppLocalizations.of(context)!.nointernetconnectionDatawillbesynchronizedwhenonline, style: _appTextStyle),
         ),
       );
     }
@@ -138,14 +138,14 @@ Future<bool> checkSystemAdmin(int userGroup,String importSource) async {
       // Retrieve the SystemAdmin object for the specified userGroup
       SystemAdmin? systemAdmin = systemAdminBox.get(userGroup);
 
-if(importSource=="Import from ERP to Mobile"){
+if(importSource==AppLocalizations.of(context)!.importFromErpToMobile){
       // Check if the importFromErpToMobile field is true
       if (systemAdmin?.importFromErpToMobile == true) {
         // User has access
         return true;
       }
     }
-    if(importSource=="Import from Backend to Mobile"){
+    if(importSource==AppLocalizations.of(context)!.importFromBackendToMobile){
      
       // Check if the importFromErpToMobile field is true
       if (systemAdmin?.importFromBackendToMobile == true) {
@@ -171,18 +171,20 @@ if(importSource=="Import from ERP to Mobile"){
   Widget build(BuildContext context) {
       TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
 
-    final List<String> data = <String>['Import','Export'];
+    final List<String> data = <String>[AppLocalizations.of(context)!.import,AppLocalizations.of(context)!.export];
   
 
    final Map<String, IconData> iconData = {
-    'Import': Icons.import_export,
-   'Export': Icons.sync,
+    
+    AppLocalizations.of(context)!.import: Icons.import_export,
+   
+    AppLocalizations.of(context)!.export: Icons.sync,
  
   };
 
     final Map<String, int> menuCodes = {
 
-    'Export': SynchronizeSubMenu.EXPORT_MENU_CODE,
+    AppLocalizations.of(context)!.export: SynchronizeSubMenu.EXPORT_MENU_CODE,
 
  
 };
@@ -190,7 +192,7 @@ if(importSource=="Import from ERP to Mobile"){
      _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
-        title: Text('Synchronize Data',style: _appTextStyle),
+        title: Text(AppLocalizations.of(context)!.syncronizedata,style: _appTextStyle),
       ),
     body: Padding(
         padding: EdgeInsets.all(8),
@@ -201,7 +203,7 @@ if(importSource=="Import from ERP to Mobile"){
               title: Text(data[index], style: _appTextStyle),
               leading: Icon(iconData[data[index]]),
               onTap: () async {
-                if (data[index] == 'Import') {
+                if (data[index] == AppLocalizations.of(context)!.import) {
     
                     // Handle the case when the user has access
                  
@@ -226,7 +228,7 @@ if(importSource=="Import from ERP to Mobile"){
                         builder: (context) => ImportForm(
                           appNotifier: widget.appNotifier,
                           usercode: widget.usercode,
-                          title: 'Import from ERP To Mobile',
+                          title: AppLocalizations.of(context)!.importFromErpToMobile,
                         ),
                       ),
                     );
@@ -241,7 +243,7 @@ if(importSource=="Import from ERP to Mobile"){
                         builder: (context) => ImportForm(
                           appNotifier: widget.appNotifier,
                           usercode: widget.usercode,
-                          title: 'Import from Backend to Mobile',
+                          title: AppLocalizations.of(context)!.importFromBackendToMobile,
                         ),
                       ),
                     );
@@ -257,7 +259,7 @@ if(importSource=="Import from ERP to Mobile"){
                  if (!hasAccess) {
                   // Handle other actions as before
               String exportSource = await _showExportDialog();
-              if(exportSource=='Yes'){
+              if(exportSource==AppLocalizations.of(context)!.yes){
                  LoadingHelper.configureLoading();
   LoadingHelper.showLoading(); // Show loading indicator
   await _synchronizeData();
@@ -267,7 +269,7 @@ if(importSource=="Import from ERP to Mobile"){
   EasyLoading.dismiss();
       ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Data is Exported!',style: _appTextStyle,),
+                content: Text(AppLocalizations.of(context)!.dataisexported,style: _appTextStyle,),
               ),
             );
               }else{
@@ -358,7 +360,7 @@ Future<dynamic> _showExportDialog() async {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Are you sure to want to export all data?'),
+          title: Text(AppLocalizations.of(context)!.areyousuretowanttoexportalldate),
           content: Padding(
             padding: EdgeInsets.only(left: 15,right: 15),
             child: Row(
@@ -366,17 +368,17 @@ Future<dynamic> _showExportDialog() async {
               children: [
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context, 'Yes');
+                    Navigator.pop(context, AppLocalizations.of(context)!.yes);
                   },
-                  child: Text('Yes',style: _appTextStyle,),
+                  child: Text(AppLocalizations.of(context)!.yes,style: _appTextStyle,),
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: 20),
                   child: TextButton(
                     onPressed: () {
-                      Navigator.pop(context, 'No');
+                      Navigator.pop(context, AppLocalizations.of(context)!.no);
                     },
-                    child: Text('No',style: _appTextStyle,),
+                    child: Text(AppLocalizations.of(context)!.no,style: _appTextStyle,),
                   ),
                 ),
               ],

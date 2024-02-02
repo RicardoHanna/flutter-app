@@ -20,13 +20,13 @@ class ItemsInfoForm extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Expanded(
-            child: Text('Item Details', style: _appTextStyleAppBar),
+            child: Text(AppLocalizations.of(context)!.itemdetails, style: _appTextStyleAppBar),
           ),
           bottom: TabBar(
             isScrollable: true,
             tabs: [
-              Tab(text: 'General'),
-              Tab(text: 'Item UOM'),
+              Tab(text: AppLocalizations.of(context)!.general),
+              Tab(text: AppLocalizations.of(context)!.itemuom),
            
             ],
           ),
@@ -71,7 +71,7 @@ class ItemsInfoForm extends StatelessWidget {
                       _buildTitleText(AppLocalizations.of(context)!.itemname, item.itemName ?? ''),
                     ],
                   ),
-                  SizedBox(width: 16.0), // Add spacing between picture and text
+
                 Container(
                     height: 80, // Adjust the height as needed
                     width: 80, // Adjust the width as needed
@@ -86,8 +86,7 @@ class ItemsInfoForm extends StatelessWidget {
                 ],
               ),
 
-            // Display item details below the picture and item code
-            SizedBox(height: 16.0), // Add spacing between top and details
+      
             _buildTitleText(AppLocalizations.of(context)!.itemprname, item.itemPrFName ?? ''),
             _buildTitleText(AppLocalizations.of(context)!.itemfname, item.itemFName ?? ''),
             _buildTitleText(AppLocalizations.of(context)!.groupcode, item.groupCode ?? ''),
@@ -118,13 +117,15 @@ class ItemsInfoForm extends StatelessWidget {
           return Text('Error: ${snapshot.error}');
         } else {
           Box<ItemUOM> itemUOMBox = snapshot.data!;
-          String key = item.cmpCode;
+          String key = item.uom;
           String key1 = item.itemCode;
-
+          String key2=item.cmpCode;
+print(key+key1+key2);
+print(itemUOMBox.values.toList());
           List<ItemUOM> itemuom = itemUOMBox.values
-              .where((itemuom) => itemuom.cmpCode == key && itemuom.itemCode == key1)
+              .where((itemuom) => itemuom.uom == key && itemuom.itemCode == key1 && itemuom.cmpCode == key2)
               .toList();
-
+print(itemuom.toList());
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -135,11 +136,11 @@ class ItemsInfoForm extends StatelessWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                        _buildTitleText('UOM${index+1}', itemuoms.uom ?? 'N/A'),
-                      _buildTitleText('Cmp Code', itemuoms.cmpCode ?? 'N/A'),
-                      _buildTitleText('Item Code', itemuoms.itemCode ?? 'N/A'),
-                      _buildTitleTextNumber('QTY Per UOM', itemuoms.qtyperUOM ?? 'N/A'),
-                      _buildTitleText('BarCode', itemuoms.barCode ?? 'N/A'),
+                        _buildTitleText(AppLocalizations.of(context)!.uom+'${index+1}', itemuoms.uom ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.cmpCode, itemuoms.cmpCode ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.itemcode, itemuoms.itemCode ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.qtyperUOM, itemuoms.qtyperUOM ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.barcode, itemuoms.barCode ?? 'N/A'),
                  
                   
                       // Add more fields as needed

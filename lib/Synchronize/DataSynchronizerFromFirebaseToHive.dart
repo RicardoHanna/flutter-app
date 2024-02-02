@@ -865,16 +865,20 @@ Future<void> synchronizeDataItemUOM(List<String>itemCodes) async {
 
 // Check for items in Hive that don't exist in Firestore and delete them
     Set<String> firestoreItemUOMCodes =
-        Set.from(firestoreItemUOM.map((doc) => '${doc['uom']}${doc['itemCode']}${doc['cmpCode']}}'));
+        Set.from(firestoreItemUOM.map((doc) => '${doc['uom']}${doc['itemCode']}${doc['cmpCode']}'));
+        
     Set<String> hiveItemUOMCodes = Set.from(itemuomBox.keys);
-
+print(hiveItemUOMCodes);
+print(firestoreItemUOMCodes);
     // Identify items in Hive that don't exist in Firestore
     Set<String> itemsToDelete = hiveItemUOMCodes.difference(firestoreItemUOMCodes);
-
+print(itemsToDelete);
     // Delete items in Hive that don't exist in Firestore
     itemsToDelete.forEach((hiveItemUOMCode) {
       itemuomBox.delete(hiveItemUOMCode);
     });
+
+    
 
 
   } catch (e) {

@@ -36,17 +36,17 @@ class CustomersInfoForm extends StatelessWidget {
       length: 7,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Customer Details', style: _appTextStyleAppBar),
+          title: Text(AppLocalizations.of(context)!.customerDetails, style: _appTextStyleAppBar),
           bottom: TabBar(
             isScrollable: true,
             tabs: [
-              Tab(text: 'General'),
-              Tab(text: 'Customers Address'),
-              Tab(text: 'Customers Contacts'),
-              Tab(text: 'Customers Properties'),
-              Tab(text: 'Customers Items Special Price'),
-              Tab(text: 'Customers Group Special Price'),
-              Tab(text: 'Customers Prop Special Price'),
+              Tab(text: AppLocalizations.of(context)!.general),
+              Tab(text: AppLocalizations.of(context)!.customerAddresses),
+              Tab(text: AppLocalizations.of(context)!.customerContacts),
+              Tab(text: AppLocalizations.of(context)!.customerProperties),
+              Tab(text: AppLocalizations.of(context)!.customerItemsSpecialPrice),
+              Tab(text: AppLocalizations.of(context)!.customerGroupSpecialPrice),
+              Tab(text: AppLocalizations.of(context)!.customerPropSpecialPrice),
             ],
           ),
         ),
@@ -89,37 +89,37 @@ class CustomersInfoForm extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTitleText('Customer Code', customer.custCode ?? ''),
-                    _buildTitleText('Customer Name', customer.custName ?? ''),
-                    _buildTitleText('Customer FName', customer.custFName ?? ''),
+                    _buildTitleText(AppLocalizations.of(context)!.customerCode, customer.custCode ?? ''),
+                    _buildTitleText(AppLocalizations.of(context)!.customerName, customer.custName ?? ''),
+                    _buildTitleText(AppLocalizations.of(context)!.customerFName, customer.custFName ?? ''),
                   ],
                 ),
               ],
             ),
           
-            _buildTitleText('Company Code', customer.cmpCode ?? ''),
-            _buildTitleText('Currency', customer.curCode ?? ''),
-            _buildTitleText('Group', customer.groupCode ?? ''),
-            _buildTitleText('MOFNum', customer.mofNum ?? ''),
-            _buildTitleText('BarCode', customer.barcode ?? ''),
-            _buildTitleText('Phone', customer.phone ?? ''),
-            _buildTitleText('Mobile', customer.mobile ?? ''),
-            _buildTitleText('Fax', customer.fax ?? ''),
-            _buildTitleText('Website', customer.website ?? ''),
-            _buildTitleText('Email', customer.email ?? ''),
-            _buildTitleTextNumber('Active', customer.active),
-          _buildTitleText('Print Layout', customer.printLayout ?? ''),
-          _buildTitleText('Default AddressID', customer.dfltAddressID ?? ''),
-            _buildTitleText('Cash Client', customer.cashClient ?? ''),
-             _buildTitleText('Discount Type', customer.discType ?? ''),
-             _buildTitleText('VAT Code', customer.vatCode ?? ''),
-            _buildTitleText('PRList Code', customer.prListCode ?? ''),
-             _buildTitleText('PayTerms Code', customer.payTermsCode ?? ''),
-            _buildTitleTextNumber('Discount', customer.discount ?? ''),
-            _buildTitleTextNumber('Credit Limit', customer.creditLimit ?? ''),
-            _buildTitleTextNumber('Balance', customer.balance ?? ''),
-            _buildTitleTextNumber('Balance Due', customer.balanceDue ?? ''),
-            _buildTitleText('Notes', customer.notes ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.cmpCode, customer.cmpCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.currency, customer.curCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.groupcode, customer.groupCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.mofNum, customer.mofNum ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.barcode, customer.barcode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.phoneNumber, customer.phone ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.mobile, customer.mobile ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.fax, customer.fax ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.website, customer.website ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.email, customer.email ?? ''),
+            _buildTitleTextNumber(AppLocalizations.of(context)!.active, customer.active),
+          _buildTitleText(AppLocalizations.of(context)!.printLayout, customer.printLayout ?? ''),
+          _buildTitleText(AppLocalizations.of(context)!.defaultAddressID, customer.dfltAddressID ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.cashClient, customer.cashClient ?? ''),
+             _buildTitleText(AppLocalizations.of(context)!.discountType, customer.discType ?? ''),
+             _buildTitleText(AppLocalizations.of(context)!.vatCode, customer.vatCode ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.prListCode, customer.prListCode ?? ''),
+             _buildTitleText(AppLocalizations.of(context)!.payTermsCode, customer.payTermsCode ?? ''),
+            _buildTitleTextNumber(AppLocalizations.of(context)!.discount, customer.discount ?? ''),
+            _buildTitleTextNumber(AppLocalizations.of(context)!.creditLimit, customer.creditLimit ?? ''),
+            _buildTitleTextNumber(AppLocalizations.of(context)!.balance, customer.balance ?? ''),
+            _buildTitleTextNumber(AppLocalizations.of(context)!.balanceDue, customer.balanceDue ?? ''),
+            _buildTitleText(AppLocalizations.of(context)!.note, customer.notes ?? ''),
             Divider(),
           ],
           ),
@@ -154,13 +154,13 @@ class CustomersInfoForm extends StatelessWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('Address${index + 1}', address.address ?? 'N/A'),
-                      _buildTitleText('AddressId', address.addressID ?? 'N/A'),
-                      _buildTitleText('fAddress', address.fAddress ?? 'N/A'),
-                      _buildTitleText('gpslat', address.gpslat ?? 'N/A'),
-                      _buildTitleText('gpslong', address.gpslong ?? 'N/A'),
-                      _buildTitleText('RegCode', address.regCode ?? 'N/A'),
-                      _buildTitleText('Notes', address.notes ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.address+'${index + 1}', address.address ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.addressId,address.addressID ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.fAddress,address.fAddress ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.gpslat, address.gpslat ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.gpslong, address.gpslong ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.regCode, address.regCode ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.note, address.notes ?? 'N/A'),
                       // Add more fields as needed
                      Divider(),
                     ],
@@ -208,15 +208,15 @@ class CustomersInfoForm extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                   // Display fetched data with null-aware operator
-                  _buildTitleText('ContactId${index + 1}', contacts?.contactID ?? 'N/A'),
+                  _buildTitleText(AppLocalizations.of(context)!.contactId+'${index + 1}', contacts?.contactID ?? 'N/A'),
                 
-                  _buildTitleText('Contact Name', contacts?.contactName ?? 'N/A'),
-                  _buildTitleText('Contact FName', contacts?.contactFName ?? 'N/A'),
-                  _buildTitleText('Phone', contacts?.phone ?? 'N/A'),
-                  _buildTitleText('Mobile', contacts?.mobile ?? 'N/A'),
-                   _buildTitleText('Email', contacts?.email ?? 'N/A'),
-                  _buildTitleText('Position', contacts?.position ?? 'N/A'),
-                    _buildTitleText('Notes', contacts?.notes ?? 'N/A'),
+                  _buildTitleText(AppLocalizations.of(context)!.contactName, contacts?.contactName ?? 'N/A'),
+                  _buildTitleText(AppLocalizations.of(context)!.contactFName, contacts?.contactFName ?? 'N/A'),
+                  _buildTitleText(AppLocalizations.of(context)!.fAddress, contacts?.phone ?? 'N/A'),
+                  _buildTitleText(AppLocalizations.of(context)!.mobile, contacts?.mobile ?? 'N/A'),
+                   _buildTitleText(AppLocalizations.of(context)!.email, contacts?.email ?? 'N/A'),
+                  _buildTitleText(AppLocalizations.of(context)!.position, contacts?.position ?? 'N/A'),
+                    _buildTitleText(AppLocalizations.of(context)!.note, contacts?.notes ?? 'N/A'),
                   // ... add more fields based on your 'CustomerAddresses' class
 Divider(),
                     ]);
@@ -263,9 +263,9 @@ Divider(),
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                   // Display fetched data with null-aware operator
-                  _buildTitleText('PropCode${index+1}', properties?.propCode ?? 'N/A'),
+                  _buildTitleText(AppLocalizations.of(context)!.propCode+'${index+1}', properties?.propCode ?? 'N/A'),
                 
-                  _buildTitleText('Notes', properties?.notes ?? 'N/A'),
+                  _buildTitleText(AppLocalizations.of(context)!.note, properties?.notes ?? 'N/A'),
                Divider(),
                  
                 ]);
@@ -365,14 +365,14 @@ Widget _buildBoxWidgetItemSpecial(String boxName) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('ItemCode', itemspecials?.itemCode ?? 'N/A'),
-                      _buildTitleText('UOM', itemspecials?.uom ?? 'N/A'),
-                      _buildTitleTextNumber('BasePrice', itemspecials?.basePrice ?? 'N/A'),
-                      _buildTitleTextNumber('Currency', itemspecials?.currency ?? 'N/A'),
-                      _buildTitleTextNumber('Auto', itemspecials?.auto ?? 'N/A'),
-                       _buildTitleTextNumber('Disc', itemspecials?.disc ?? 'N/A'),
-                      _buildTitleTextNumber('Prices', itemspecials?.price ?? 'N/A'),
-                        _buildTitleText('Notes', itemspecials?.notes ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.itemcode, itemspecials?.itemCode ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.uom, itemspecials?.uom ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.baseprice, itemspecials?.basePrice ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.currency, itemspecials?.currency ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.auto, itemspecials?.auto ?? 'N/A'),
+                       _buildTitleTextNumber(AppLocalizations.of(context)!.disc, itemspecials?.disc ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.price, itemspecials?.price ?? 'N/A'),
+                        _buildTitleText(AppLocalizations.of(context)!.note, itemspecials?.notes ?? 'N/A'),
                           Divider(),
                       
                       // Add more fields as needed
@@ -419,9 +419,9 @@ Widget _buildBoxWidgetBrandSpecial(String boxName) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('BrandCode', brandspecials?.brandCode ?? 'N/A'),
-                      _buildTitleTextNumber('Disc', brandspecials?.disc ?? 'N/A'),
-                      _buildTitleText('Notes', brandspecials?.notes ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.brandcode, brandspecials?.brandCode ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.disc, brandspecials?.disc ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.note, brandspecials?.notes ?? 'N/A'),
                       Divider(),
                       // Add more fields as needed
                     ],
@@ -465,9 +465,9 @@ Widget _buildBoxWidgetGroupSpecial(String boxName) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('GroupCode', grouppecials?.groupCode ?? 'N/A'),
-                      _buildTitleTextNumber('Disc', grouppecials?.disc ?? 'N/A'),
-                      _buildTitleText('Notes', grouppecials?.notes ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.fAddress, grouppecials?.groupCode ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.disc, grouppecials?.disc ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.note, grouppecials?.notes ?? 'N/A'),
                       Divider(),
                       // Add more fields as needed
                     ],
@@ -512,9 +512,9 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('CategCode', categpecials?.categCode ?? 'N/A'),
-                      _buildTitleTextNumber('Disc', categpecials?.disc ?? 'N/A'),
-                      _buildTitleText('Notes', categpecials?.notes ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.categcode, categpecials?.categCode ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.disc, categpecials?.disc ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.note, categpecials?.notes ?? 'N/A'),
                       Divider(),
                       // Add more fields as needed
                     ],
@@ -559,14 +559,14 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('GroupCode', categpecials?.custGroupCode ?? 'N/A'),
-                      _buildTitleText('ItemCode', categpecials?.itemCode ?? 'N/A'),
-                      _buildTitleText('UOM', categpecials?.uom ?? 'N/A'),
-                      _buildTitleTextNumber('BasePrice', categpecials?.basePrice ?? 'N/A'),
-                    _buildTitleTextNumber('Auto', categpecials?.auto ?? 'N/A'),
-                    _buildTitleTextNumber('Disc', categpecials?.disc ?? 'N/A'),
-                    _buildTitleTextNumber('Price', categpecials?.price ?? 'N/A'),
-                     _buildTitleTextNumber('Notes', categpecials?.notes ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.groupcode, categpecials?.custGroupCode ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.itemcode, categpecials?.itemCode ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.uom, categpecials?.uom ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.baseprice, categpecials?.basePrice ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.auto, categpecials?.auto ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.disc, categpecials?.disc ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.price, categpecials?.price ?? 'N/A'),
+                     _buildTitleTextNumber(AppLocalizations.of(context)!.note, categpecials?.notes ?? 'N/A'),
                      Divider(),
                       // Add more fields as needed
                     ],
@@ -611,9 +611,9 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                     
-                      _buildTitleText('BrandCode', brandpecials?.brandCode ?? 'N/A'),
-                    _buildTitleTextNumber('Disc', brandpecials?.disc ?? 'N/A'),
-                     _buildTitleTextNumber('Notes', brandpecials?.notes ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.brandcode, brandpecials?.brandCode ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.disc, brandpecials?.disc ?? 'N/A'),
+                     _buildTitleTextNumber(AppLocalizations.of(context)!.note, brandpecials?.notes ?? 'N/A'),
                      Divider(),
                       // Add more fields as needed
                     ],
@@ -658,9 +658,9 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('GroupCode', brandpecials?.custGroupCode ?? 'N/A'),
-                    _buildTitleTextNumber('Disc', brandpecials?.disc ?? 'N/A'),
-                     _buildTitleTextNumber('Notes', brandpecials?.notes ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.groupcode, brandpecials?.custGroupCode ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.disc, brandpecials?.disc ?? 'N/A'),
+                     _buildTitleTextNumber(AppLocalizations.of(context)!.note, brandpecials?.notes ?? 'N/A'),
                      Divider(),
                       // Add more fields as needed
                     ],
@@ -704,9 +704,9 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('CategCode', categpecials?.categCode ?? 'N/A'),
-                    _buildTitleTextNumber('Disc', categpecials?.disc ?? 'N/A'),
-                     _buildTitleTextNumber('Notes', categpecials?.notes ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.categcode, categpecials?.categCode ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.disc, categpecials?.disc ?? 'N/A'),
+                     _buildTitleTextNumber(AppLocalizations.of(context)!.note, categpecials?.notes ?? 'N/A'),
                      Divider(),
                       // Add more fields as needed
                     ],
@@ -769,13 +769,13 @@ String getKey1FromCustomerProperties() {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitleText('PropCode', propitemspecialss?.custPropCode ?? 'N/A'),
-                    _buildTitleTextNumber('ItemCode', propitemspecialss?.itemCode ?? 'N/A'),
-                     _buildTitleTextNumber('BasePrice', propitemspecialss?.basePrice ?? 'N/A'),
-                      _buildTitleTextNumber('Currency', propitemspecialss?.currency ?? 'N/A'),
-                             _buildTitleTextNumber('Auto', propitemspecialss?.auto ?? 'N/A'),
-                                _buildTitleTextNumber('Disc', propitemspecialss?.disc ?? 'N/A'),
-                           _buildTitleTextNumber('Notes', propitemspecialss?.auto ?? 'N/A'),
+                      _buildTitleText(AppLocalizations.of(context)!.propCode, propitemspecialss?.custPropCode ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.itemcode, propitemspecialss?.itemCode ?? 'N/A'),
+                     _buildTitleTextNumber(AppLocalizations.of(context)!.baseprice, propitemspecialss?.basePrice ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.currency, propitemspecialss?.currency ?? 'N/A'),
+                             _buildTitleTextNumber(AppLocalizations.of(context)!.auto, propitemspecialss?.auto ?? 'N/A'),
+                                _buildTitleTextNumber(AppLocalizations.of(context)!.disc, propitemspecialss?.disc ?? 'N/A'),
+                           _buildTitleTextNumber(AppLocalizations.of(context)!.note, propitemspecialss?.auto ?? 'N/A'),
                            Divider(),
 
                       // Add more fields as needed
@@ -821,9 +821,9 @@ String getKey1FromCustomerProperties() {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                 
-                    _buildTitleTextNumber('BrandCode', propitemspecialss?.brandCode ?? 'N/A'),
-                     _buildTitleTextNumber('Disc', propitemspecialss?.disc ?? 'N/A'),
-                      _buildTitleTextNumber('Notes', propitemspecialss?.notes ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.brandcode, propitemspecialss?.brandCode ?? 'N/A'),
+                     _buildTitleTextNumber(AppLocalizations.of(context)!.disc, propitemspecialss?.disc ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.note, propitemspecialss?.notes ?? 'N/A'),
                       Divider(),
                           
 
@@ -870,9 +870,9 @@ String getKey1FromCustomerProperties() {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                 
-                    _buildTitleTextNumber('GroupCode', propitemspecialss?.custGroupCode ?? 'N/A'),
-                     _buildTitleTextNumber('Disc', propitemspecialss?.disc ?? 'N/A'),
-                      _buildTitleTextNumber('Notes', propitemspecialss?.notes ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.groupcode, propitemspecialss?.custGroupCode ?? 'N/A'),
+                     _buildTitleTextNumber(AppLocalizations.of(context)!.disc, propitemspecialss?.disc ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.note, propitemspecialss?.notes ?? 'N/A'),
                       Divider(),
                           
 
@@ -919,9 +919,9 @@ String getKey1FromCustomerProperties() {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                 
-                    _buildTitleTextNumber('CategCode', propitemspecialss?.categCode ?? 'N/A'),
-                     _buildTitleTextNumber('Disc', propitemspecialss?.disc ?? 'N/A'),
-                      _buildTitleTextNumber('Notes', propitemspecialss?.notes ?? 'N/A'),
+                    _buildTitleTextNumber(AppLocalizations.of(context)!.categcode, propitemspecialss?.categCode ?? 'N/A'),
+                     _buildTitleTextNumber(AppLocalizations.of(context)!.disc, propitemspecialss?.disc ?? 'N/A'),
+                      _buildTitleTextNumber(AppLocalizations.of(context)!.note, propitemspecialss?.notes ?? 'N/A'),
                       Divider(),
                           
 

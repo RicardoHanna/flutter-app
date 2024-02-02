@@ -583,7 +583,7 @@ Widget _buildTextFieldDropDownSalesEmployees() {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Select Sales Employees',
+                  AppLocalizations.of(context)!.selectCompany,
                   style: _appTextStyle,
                 ),
                 SizedBox(height: 8.0),
@@ -670,7 +670,7 @@ Widget _buildTextFieldDropDownCompanies() {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Select Company',
+                  AppLocalizations.of(context)!.selectCompany,
                   style: _appTextStyle,
                 ),
                 SizedBox(height: 8.0),
@@ -751,7 +751,7 @@ Widget _buildTextFieldDropDownPriceListAutho() {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Select Price List Authorization',
+                  AppLocalizations.of(context)!.selectPriceListAuthorization,
                   style: _appTextStyle,
                 ),
                 SizedBox(height: 8.0),

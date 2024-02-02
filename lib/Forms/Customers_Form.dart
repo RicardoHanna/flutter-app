@@ -310,7 +310,7 @@ Future<List<Customers>> _getCustomers() async {
           onTap: () {
             _showCustomerMap();
           },
-          label: 'Map',
+          label: AppLocalizations.of(context)!.map,
           labelStyle: TextStyle(
             fontWeight: FontWeight.w500,
             color: Colors.white,
@@ -325,7 +325,7 @@ Future<List<Customers>> _getCustomers() async {
           onTap: () {
           _showSettingsDialogMaps();
           },
-          label: 'Add Fields Map',
+          label: AppLocalizations.of(context)!.addFieldsMap,
           labelStyle: TextStyle(
             fontWeight: FontWeight.w500,
             color: Colors.white,
@@ -340,7 +340,7 @@ Future<List<Customers>> _getCustomers() async {
           onTap: () {
          _showSettingsDialog();
           },
-          label: 'Add Fields Customers',
+          label: AppLocalizations.of(context)!.addFieldsCustomers,
           labelStyle: TextStyle(
             fontWeight: FontWeight.w500,
             color: Colors.white,
@@ -353,135 +353,129 @@ Future<List<Customers>> _getCustomers() async {
   }
 
   @override
-  Widget build(BuildContext context) {
-      TextStyle   _appTextStyleLead = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble()-2);
-           TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble()-6);
-_appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Customers',style: _appTextStyleLead,),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              showSearch(context: context, delegate: DataSearchCustomers(customersList: customers,appNotifier: widget.appNotifier));
-            },
-          ),
-           PopupMenuButton<String>(
-            onSelected: (String value) {
-              setState(() {
-                selectedSortingOption = value;
-                _applySorting();
-              });
-            },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'GroupCode',
-                child: Text('Sort By Group Code',style: _appTextStyleLead,),
-              ),
-              PopupMenuItem<String>(
-                value: 'Alphabetic',
-                child: Text(AppLocalizations.of(context)!.sortalphabetic,style: _appTextStyleLead,),
-              ),
-               PopupMenuItem<String>(
-                value: 'GPS',
-                child: Text('Sort By GPS',style: _appTextStyleLead,),
-              ),
-            ],
-          ),
-      
-          IconButton(
-            icon: Icon(Icons.filter_list),
-            onPressed: () {
-              _showFilterDialog(context);
-            },
-          ),
-          // Add the barcode scan icon here
-          IconButton(
-            icon: Icon(Icons.camera),
-            onPressed: () async {
-              String barcode = await scanBarcode();
-              if (barcode.isNotEmpty) {
-                // Perform logic to check if the scanned barcode exists in the items
-                // and display the corresponding item details.
-                // You can use a method similar to how you display items in the list.
-                // For example:
-                var scannedCust = customers.firstWhere((customer) => customer.barcode == barcode, orElse: null);
-                if (scannedCust != null) {
-                  // Show item details for the scanned item
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CustomersInfoForm(customer: scannedCust,appNotifier: widget.appNotifier,),
-                    ),
-                  );
-                } else {
-                  // Display a message indicating that the scanned item was not found
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Scanned Customer not found'),
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-        ],
-      ),
-  body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: FutureBuilder<List<Customers>>(
-  future: _getCustomers(),
-  builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return CircularProgressIndicator();
-    } else if (snapshot.hasError) {
-      return Text('Error: ${snapshot.error}');
-    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-      return Text('No Customers found');
-    } else {
-      return ListView.builder(
-        itemCount: filteredCustomers.length, // Use filteredItems.length
-        itemBuilder: (context, index) {
-          var customer = filteredCustomers[index]; // Use filteredItems[index] instead of snapshot.data![index]
-          return Card(
-            child: ListTile(
-              leading: Text(customer.custCode ?? '',style: _appTextStyleLead,),
-                    subtitle: buildTrailingWidget(customer),
-    title:Text(customer.custName ?? '',style:_appTextStyle,),
-              
+Widget build(BuildContext context) {
+  TextStyle _appTextStyleLead = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble() - 2);
+  TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble() - 6);
 
-              onTap: () {
-                // Navigate to the ItemsInfoForm page and pass the selected item
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(AppLocalizations.of(context)!.customers, style: _appTextStyleLead),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.search),
+          onPressed: () {
+            showSearch(context: context, delegate: DataSearchCustomers(customersList: customers, appNotifier: widget.appNotifier));
+          },
+        ),
+        PopupMenuButton<String>(
+          onSelected: (String value) {
+            setState(() {
+              selectedSortingOption = value;
+              _applySorting();
+            });
+          },
+          itemBuilder: (BuildContext context) => [
+            PopupMenuItem<String>(
+              value: 'GroupCode',
+              child: Text(AppLocalizations.of(context)!.sortbygroupcode, style: _appTextStyleLead),
+            ),
+            PopupMenuItem<String>(
+              value: 'Alphabetic',
+              child: Text(AppLocalizations.of(context)!.sortalphabetic, style: _appTextStyleLead),
+            ),
+            PopupMenuItem<String>(
+              value: 'GPS',
+              child: Text(AppLocalizations.of(context)!.sortbygps, style: _appTextStyleLead),
+            ),
+          ],
+        ),
+        IconButton(
+          icon: Icon(Icons.filter_list),
+          onPressed: () {
+            _showFilterDialog(context);
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.camera),
+          onPressed: () async {
+            String barcode = await scanBarcode();
+            if (barcode.isNotEmpty) {
+              var scannedCust = customers.firstWhere((customer) => customer.barcode == barcode, orElse: null);
+              if (scannedCust != null) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CustomersInfoForm(customer: customer,appNotifier: widget.appNotifier,),
+                    builder: (context) => CustomersInfoForm(customer: scannedCust, appNotifier: widget.appNotifier),
                   ),
                 );
-              },
-            ),
-          );
-        },
-      );
-    }
-  },
-
-),
-
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Scanned Customer not found'),
+                  ),
+                );
+              }
+            }
+          },
+        ),
+      ], // Closing parenthesis for actions
+    ), // Closing parenthesis for AppBar
+    body: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: FutureBuilder<List<Customers>>(
+          future: _getCustomers(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Text('No Customers found');
+            } else {
+              return ListView.builder(
+                itemCount: filteredCustomers.length,
+                itemBuilder: (context, index) {
+                  var customer = filteredCustomers[index];
+                  return Card(
+                    child: ListTile(
+                      leading: Text(customer.custCode ?? '', style: _appTextStyleLead),
+                      subtitle: buildTrailingWidget(customer),
+                      title: Text(customer.custName ?? '', style: _appTextStyle),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CustomersInfoForm(customer: customer, appNotifier: widget.appNotifier),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              );
+            }
+          },
+        ),
       ),
-      
-  
-floatingActionButton: Column(
-  mainAxisAlignment: MainAxisAlignment.end,
-  children: [
-_getFAB(),
-  ],
+    ),
+    floatingActionButton: Align(
+  alignment: Directionality.of(context) == TextDirection.rtl
+      ? Alignment.bottomRight
+      : Alignment.bottomRight,
+  child: Padding(
+    padding: EdgeInsets.only(
+      right: Directionality.of(context) == TextDirection.rtl ? 23.0 : 0.0,
+      left: Directionality.of(context) == TextDirection.ltr ? 23.0 : 0.0,
+    ),
+    child: _getFAB(),
+  ),
 ),
-    
-    );
-    
-  }
+
+  );
+}
+
+
 
  Widget _buildCheckbox(String label, bool value, Function(bool?) onChanged) {
   return CheckboxListTile(
@@ -615,15 +609,15 @@ Widget _buildDropdownMaps(String label, String? selectedValue, Function(String?)
         items: [
           DropdownMenuItem<String>(
             value: 'AddressId',
-            child: Text('Address Id'),
+            child: Text(AppLocalizations.of(context)!.addressId),
           ),
           DropdownMenuItem<String>(
             value: 'Address',
-            child: Text('Address'),
+            child: Text(AppLocalizations.of(context)!.address),
           ),
           DropdownMenuItem<String>(
             value: 'RegCode',
-            child: Text('Region Code'),
+            child: Text(AppLocalizations.of(context)!.regCode),
           ),
        
            DropdownMenuItem<String>(
@@ -637,32 +631,25 @@ Widget _buildDropdownMaps(String label, String? selectedValue, Function(String?)
   );
 }
 
-
 Future<void> _showSettingsDialog() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
 
   List<String?> selectedOptions = [
     userPreferences.showActiveCustomers ? 'Active' : null,
     userPreferences.showCurCodeCustomers ? 'CurCode' : null,
-  userPreferences.showDiscTypeCustomers ? 'DiscType' : null,
-
+    userPreferences.showDiscTypeCustomers ? 'DiscType' : null,
     userPreferences.showMOFNumCustomers ? 'MOFNum' : null,
   ];
 
-
-
-
-  // ignore: use_build_context_synchronously
   return showDialog<void>(
     context: context,
     builder: (BuildContext context) {
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
-            title: Text(AppLocalizations.of(context)!.choosefields,style: _appTextStyleNormal,),
+            title: Text(AppLocalizations.of(context)!.choosefields, style: _appTextStyleNormal,),
             content: Column(
               children: <Widget>[
-                
                 for (int i = 0; i < 4; i++)
                   _buildDropdown(
                     AppLocalizations.of(context)!.field+'${i + 1}',
@@ -672,13 +659,12 @@ Future<void> _showSettingsDialog() async {
                         selectedOptions[i] = newValue;
                       });
                     },
-                    
                   ),
               ],
             ),
             actions: <Widget>[
               TextButton(
-                child: Text(AppLocalizations.of(context)!.save,style: _appTextStyleNormal,),
+                child: Text(AppLocalizations.of(context)!.save, style: _appTextStyleNormal,),
                 onPressed: () async {
                   userPreferences.showActiveCustomers = selectedOptions.contains('Active');
                   userPreferences.showCurCodeCustomers = selectedOptions.contains('CurCode');
@@ -706,42 +692,44 @@ Future<void> _showSettingsDialog() async {
 Widget _buildDropdown(String label, String? selectedValue, Function(String?) onChanged) {
   return Row(
     children: [             
-      Text(label),
+      Flexible(
+        child: Text(label),
+      ),
       SizedBox(width: 10),
-      DropdownButton<String>(
-        value: selectedValue,
-        onChanged: onChanged,
-        items: [
-          DropdownMenuItem<String>(
-            value: 'Active',
-            child: Text(AppLocalizations.of(context)!.active),
-          ),
-          DropdownMenuItem<String>(
-            value: 'CurCode',
-            child: Text('CurCode'),
-          ),
-          DropdownMenuItem<String>(
-            value: 'DiscType',
-            child: Text('DiscType'),
-          ),
-          /*  DropdownMenuItem<String>(
-            value: 'ItemName',
-            child: Text(AppLocalizations.of(context)!.itemname),
-          ),*/
-           DropdownMenuItem<String>(
-            value: 'MOFNum',
-            child: Text('MofNum'),
-          ),
-           DropdownMenuItem<String>(
-            value: '',
-            child: Text(''),
-          ),
-          // Add other options as needed
-        ],
+      Flexible(
+        flex: 4, // Adjust the flex factor as needed
+        child: DropdownButton<String>(
+          value: selectedValue,
+          onChanged: onChanged,
+          items: [
+            DropdownMenuItem<String>(
+              value: 'Active',
+              child: Text(AppLocalizations.of(context)!.active),
+            ),
+            DropdownMenuItem<String>(
+              value: 'CurCode',
+              child: Text(AppLocalizations.of(context)!.curCode),
+            ),
+            DropdownMenuItem<String>(
+              value: 'DiscType',
+              child: Text(AppLocalizations.of(context)!.discountType),
+            ),
+            DropdownMenuItem<String>(
+              value: 'MOFNum',
+              child: Text(AppLocalizations.of(context)!.mofNum),
+            ),
+            DropdownMenuItem<String>(
+              value: '',
+              child: Text(''),
+            ),
+            // Add other options as needed
+          ],
+        ),
       ),
     ],
   );
 }
+
 
 void _applySorting() async {
   switch (selectedSortingOption) {
@@ -794,12 +782,12 @@ Future<void> _sortByGPS(Position userPosition) async {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Filter Customers',style: _appTextStyleNormal,),
+              title: Text(AppLocalizations.of(context)!.filtersByCustomers,style: _appTextStyleNormal,),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildMultiSelectChip(AppLocalizations.of(context)!.groupcode, groupList, selectedGroups, setState),
-                  _buildMultiSelectChip('Company Code', cmpCodeList, selectedCmpCode, setState),
+                  _buildMultiSelectChip(AppLocalizations.of(context)!.cmpCode, cmpCodeList, selectedCmpCode, setState),
                  
                 ],
               ),

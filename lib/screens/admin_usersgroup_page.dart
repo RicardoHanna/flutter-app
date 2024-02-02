@@ -460,7 +460,7 @@ void _deleteUser(int groupcode, String username) async {
               style: _appTextStyle,
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: AppLocalizations.of(context)!.serchName,
+                hintText: AppLocalizations.of(context)!.searchByName,
                 prefixIcon: Icon(Icons.search,),
               ),
               onChanged: (value) {
@@ -520,10 +520,13 @@ languageUser=user.translations['en']!;
 ),
 
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               _addNewUserGroup(context);
             },
+            style: ButtonStyle(
+       fixedSize: MaterialStateProperty.all(Size(280, 10)), // Set the width and height
+  ),
             child: Text(AppLocalizations.of(context)!.add,style: _appTextStyle),
           ),
         ],

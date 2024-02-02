@@ -288,7 +288,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
     _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
-        title: Text('Companies Settings', style: _appTextStyle),
+        title: Text(AppLocalizations.of(context)!.companiesSettings, style: _appTextStyle),
       ),
       body: Column(
         children: [
@@ -298,7 +298,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
               style: _appTextStyle,
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: AppLocalizations.of(context)!.serchName,
+                hintText: AppLocalizations.of(context)!.searchByName,
                 prefixIcon: Icon(Icons.search,),
               ),
               onChanged: (value) {
@@ -339,7 +339,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                           children: [
                            
                             TextField(
-                              decoration: InputDecoration(labelText: 'Connection Database'),
+                              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.connectionDatabase),
                             controller: _connDatabaseController,
               onChanged: (value) {
                     _formChanged = true; 
@@ -347,14 +347,14 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                      
                             ),
                             TextField(
-                              decoration: InputDecoration(labelText: 'Connection Server'),
+                              decoration: InputDecoration(labelText:  AppLocalizations.of(context)!.connectionServer),
                            controller: _connServerController,
               onChanged: (value) {
                     _formChanged = true; 
                   },
                             ),
                              TextField(
-                              decoration: InputDecoration(labelText: 'Connection UserName'),
+                              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.connectionUserName),
                            controller: _connUserController,
               onChanged: (value) {
                     _formChanged = true; 
@@ -363,7 +363,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                             ),
                  
                             TextField(
-                              decoration: InputDecoration(labelText: 'Connection Password'),
+                              decoration: InputDecoration(labelText:AppLocalizations.of(context)!.connectionPassword),
                            controller: _connPasswordController,
               onChanged: (value) {
                     _formChanged = true; 
@@ -379,11 +379,11 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
               onChanged: (value) {
                     _formChanged = true; 
                   },
-                              decoration: InputDecoration(labelText: 'Connection Port'),
+                              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.connectionPort),
                             
                             ),
                             TextField(
-                              decoration: InputDecoration(labelText: 'Type Database'),
+                              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.typeDatabase),
                              controller: _typeDatabaseController,
               onChanged: (value) {
                     _formChanged = true; 
@@ -398,7 +398,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                                   onPressed: () {
                                     _toggleAssignMenuExpansion(user.cmpCode);
                                   },
-                                  child: Text('Cancel'),
+                                  child: Text(AppLocalizations.of(context)!.cancel),
                                 ),
                         ElevatedButton(
   onPressed: () async {
@@ -460,7 +460,7 @@ if (connectionId == '') {
     // Optionally, you can close the current screen or perform other actions
     _toggleAssignMenuExpansion(user.cmpCode);
   },
-  child: Text('Update'),
+  child: Text(AppLocalizations.of(context)!.update),
 ),
 
 

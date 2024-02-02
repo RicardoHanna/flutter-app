@@ -24,7 +24,7 @@ class PriceItemsInfo extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildTitleText(AppLocalizations.of(context)!.plcode, itemsPrices.plCode ?? ''),
             _buildTitleText(AppLocalizations.of(context)!.itemcode,itemsPrices.itemCode ?? ''),
@@ -53,41 +53,54 @@ class PriceItemsInfo extends StatelessWidget {
     );
   }
 
-  Widget _buildTitleText(String title, String value) {
-        TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble()-4);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: Colors.blue, // Set the text color to blue
-            fontSize: appNotifier.fontSize.toDouble(), // Set the font size
-            fontWeight: FontWeight.bold, // Set the font weight to bold
-          ),
-        ),
-        Text(value,style: _appTextStyle,),
-      ],
-    );
-  }
+Widget _buildTitleText(String title, String value) {
+  TextStyle _appTextStyle = TextStyle(fontSize: appNotifier.fontSize.toDouble() - 4);
 
-  Widget _buildTitleNumber(String title, Object value) {
-       TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble()-4);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: Colors.blue, // Set the text color to blue
-            fontSize: appNotifier.fontSize.toDouble(), // Set the font size
-            fontWeight: FontWeight.bold, // Set the font weight to bold
-          ),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        title,
+        style: TextStyle(
+          color: Colors.blue,
+          fontSize: appNotifier.fontSize.toDouble(),
+          fontWeight: FontWeight.bold,
         ),
-        Text(value.toString(),style: _appTextStyle,),
-      ],
-    );
-  }
+        textDirection: TextDirection.rtl, // Set text direction to RTL
+      ),
+      Text(
+        value,
+        style: _appTextStyle,
+        textDirection: TextDirection.rtl, // Set text direction to RTL
+      ),
+    ],
+  );
+}
+
+Widget _buildTitleNumber(String title, Object value) {
+  TextStyle _appTextStyle = TextStyle(fontSize: appNotifier.fontSize.toDouble() - 4);
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        title,
+        style: TextStyle(
+          color: Colors.blue,
+          fontSize: appNotifier.fontSize.toDouble(),
+          fontWeight: FontWeight.bold,
+        ),
+        textDirection: TextDirection.rtl, // Set text direction to RTL
+      ),
+      Text(
+        value.toString(),
+        style: _appTextStyle,
+        textDirection: TextDirection.rtl, // Set text direction to RTL
+      ),
+    ],
+  );
+}
+
 
   Widget _buildText(String title, String value) {
     return Text('$title $value');

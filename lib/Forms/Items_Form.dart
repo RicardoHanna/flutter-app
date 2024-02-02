@@ -187,13 +187,13 @@ Future<void> insertSampleData() async {
 }
 
 Future<void> printUserDataTranslations() async {
- var itemsBox = await Hive.openBox<AdminSubMenu>('adminSubMenuBox');
+ var itemsBox = await Hive.openBox<ItemUOM>('itemuom');
 
     print('Printing Users:');
     for (var item in itemsBox.values) {
-      print('Username: ${item.groupcode}');
-      print('Email: ${item.groupname}');
-      print('Email: ${item.grouparname}');
+      print('Username: ${item.itemCode}');
+      print('Email: ${item.uom}');
+      print('Email: ${item.cmpCode}');
       print('-------------------------');
     }
   // Open 'translationsBox' for Translations

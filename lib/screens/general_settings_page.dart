@@ -249,7 +249,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
               style: _appTextStyle,
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: AppLocalizations.of(context)!.serchName,
+                hintText: AppLocalizations.of(context)!.searchByName,
                 prefixIcon: Icon(Icons.search,),
               ),
               onChanged: (value) {
@@ -290,7 +290,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                           children: [
                            
                             SwitchListTile(
-                              title: Text('Automatically Export'),
+                              title: Text(AppLocalizations.of(context)!.autoExport),
                               value: autoExport,
                               onChanged: (value) {
                                 setState(() {
@@ -300,7 +300,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                             ),
           SizedBox(height: 10,),   
                               RadioListTile<int>(
-      title: Text('Import from ERP to Mobile'),
+      title: Text(AppLocalizations.of(context)!.importFromErpToMobile),
       value: 1,
       groupValue: selectedImportSource,
       onChanged: (value) {
@@ -312,7 +312,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
     ),
     SizedBox(height: 10,),
     RadioListTile<int>(
-      title: Text('Import from Backend to Mobile'),
+      title: Text(AppLocalizations.of(context)!.importFromBackendToMobile),
       value: 2,
       groupValue: selectedImportSource,
       onChanged: (value) {
@@ -333,7 +333,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                                   onPressed: () {
                                     _toggleAssignMenuExpansion(user.groupcode);
                                   },
-                                  child: Text('Cancel'),
+                                  child: Text(AppLocalizations.of(context)!.cancel),
                                 ),
                                ElevatedButton(
   onPressed: () async {
@@ -365,7 +365,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
     // Optionally, you can close the current screen or perform other actions
     _toggleAssignMenuExpansion(user.groupcode);
   },
-  child: Text('Update'),
+  child: Text(AppLocalizations.of(context)!.update),
 ),
 
                               ],

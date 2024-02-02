@@ -516,13 +516,16 @@ languageUser=user.username;
 ),
 
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => UserForm(appNotifier:widget.appNotifier)),
               );
             },
+            style: ButtonStyle(
+       fixedSize: MaterialStateProperty.all(Size(280, 10)), // Set the width and height
+  ),
             child: Text(AppLocalizations.of(context)!.add,style: _appTextStyle),
           ),
         ],
