@@ -670,7 +670,7 @@ Widget _buildTextFieldDropDownCompanies() {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.selectCompany,
+                  AppLocalizations.of(context)!.selectSalesEmployees,
                   style: _appTextStyle,
                 ),
                 SizedBox(height: 8.0),

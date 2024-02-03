@@ -159,11 +159,11 @@ let queryCustomerPropGroupSpecialPrice='';let queryCustomerPropCategSpecialPrice
             LTRIM(RTRIM(plName)) AS plName,
             LTRIM(RTRIM(currency)) AS currency,
             LTRIM(RTRIM(basePL)) AS basePL,
-            factor,
+            factor123 as factor,
             incVAT,
             LTRIM(RTRIM(securityGroup)) AS securityGroup,
             LTRIM(RTRIM(cmpCode)) AS cmpCode
-          FROM PriceList`;
+          FROM SWV_PRICELIST`;
       
        }
 
