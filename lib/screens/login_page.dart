@@ -259,7 +259,7 @@ Future<void> _loginLocalDatabaseWithFingerprint(String identifier) async {
       Provider.of<AppNotifier>(context, listen: false).updateFontSize(userFont);
 
       print('Login with fingerprint successful');
-        if (userBox.containsKey(usercode) &&
+        if (userBox.containsKey(usercode) && 
       userBox.get(usercode)?['active'] == true) {
       Navigator.push(
         context,

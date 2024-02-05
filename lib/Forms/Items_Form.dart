@@ -334,7 +334,7 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
     if (snapshot.connectionState == ConnectionState.waiting) {
       return CircularProgressIndicator();
     } else if (snapshot.hasError) {
-      return Text('Error: ${snapshot.error}');
+      return Text('No data found');
     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
       return Text('No items found');
     } else {

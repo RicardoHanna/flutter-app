@@ -100,7 +100,7 @@ if(userLanguage=='Arabic') userLanguage='عربي';
               SettingsTile(
                 title: Text(AppLocalizations.of(context)!.account, style: _appTextStyle),
                 leading: Icon(Icons.account_box),
-                onPressed: (context) => _showAccountSettings(context),
+                //onPressed: (context) => _showAccountSettings(context),
               ),
               
             ],
@@ -201,7 +201,7 @@ if(newValue=='عربي') newValue='Arabic';
    
 
 
-  void _showAccountSettings(BuildContext context) {
+ /* void _showAccountSettings(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -212,5 +212,5 @@ if(newValue=='عربي') newValue='Arabic';
         ),
       ),
     );
-  }
+  }*/
 }

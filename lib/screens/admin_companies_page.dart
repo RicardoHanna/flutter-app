@@ -25,6 +25,7 @@ import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CompaniesSettings extends StatefulWidget {
     final AppNotifier appNotifier;
@@ -41,6 +42,7 @@ TextStyle _appTextStyle=TextStyle();
  // late Stream<List<UserClass>> _usersStream;
   late List<CompaniesClass> users = [];
   late List<CompaniesClass> filteredUsers = [];
+List<CompaniesClass> additionalCompanies = []; // Define additionalCompanies
 
   late StreamController<List<CompaniesClass>> _userStreamController;
   Stream<List<CompaniesClass>> get _usersStream => _userStreamController.stream;
@@ -67,6 +69,7 @@ String connectionId='';
     _userStreamController = StreamController<List<CompaniesClass>>.broadcast();
     _initUserStream();
     Hive.openBox<CompaniesConnection>('companiesConnectionBox');
+    _loadAdditionalCompanies();
   }
  @override
   void didChangeDependencies() {
@@ -92,19 +95,15 @@ String connectionId='';
 
 }
 
+
 Future<void> _updateOfflineUsers() async {
   Stream<List<CompaniesClass>>? userStream = await _getUserStream();
   List<CompaniesClass> updatedUsers = await userStream?.first ?? [];
 
   setState(() {
     offlineUsers = updatedUsers;
-    // Ensure that filteredUsers is initialized with offlineUsers
-    filteredUsers = updatedUsers;
-
-    // Automatically fill in data for the first user if available
-    
+    filteredUsers = updatedUsers + additionalCompanies; // Combine existing companies and additional companies
   });
- 
 }
 
 void _toggleAssignMenuExpansion(String cmpCode) {
@@ -120,6 +119,7 @@ void _toggleAssignMenuExpansion(String cmpCode) {
 print(connectionId);
   print('After Toggle: expandedUsercode=$expandedUsercode, cmpCode=$cmpCode');
 }
+
 void _fillFormDataForUser(String cmpCode) {
   // Retrieve the SystemAdmin data from the systemAdminBox
   var companiesBox = Hive.box<Companies>('companiesBox');
@@ -180,20 +180,20 @@ void _clearFormData() {
 void _searchUsers(String query) {
   setState(() {
     if (query.isEmpty) {
-      // If the query is empty, show all users
-      filteredUsers = offlineUsers; // for offline mode
+      // If the query is empty, show all users including the additional companies
+      filteredUsers = offlineUsers + additionalCompanies; // Combine existing companies and additional companies
     } else {
-       var userName;
-      // If there is a query, filter offlineUsers based on the search query
-      filteredUsers = offlineUsers.where((user) {
-         if(AppLocalizations.of(context)!.language=='English'){
- userName = user.cmpName?.toLowerCase();
- searchUsersGroup=user.cmpName;
-         }else{
- searchUsersGroup=user.cmpFName;
-    userName = user.cmpFName?.toLowerCase();
-         }
-      
+      var userName;
+      // If there is a query, filter offlineUsers and additionalCompanies based on the search query
+      filteredUsers = (offlineUsers + additionalCompanies).where((user) {
+        if (AppLocalizations.of(context)!.language == 'English') {
+          userName = user.cmpName?.toLowerCase();
+          searchUsersGroup = user.cmpName;
+        } else {
+          searchUsersGroup = user.cmpFName;
+          userName = user.cmpFName?.toLowerCase();
+        }
+
         final input = query.toLowerCase();
         return userName!.contains(input);
       }).toList();
@@ -273,6 +273,162 @@ int _generateCompositeKey(int menucode, int groupcode) {
   // Use any logic that ensures uniqueness for your composite key
   return int.parse('$menucode$groupcode');
 }
+
+void _showAddDialog() {
+    String name = '';
+    String company = '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add Company'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: InputDecoration(labelText: 'Name of the company'),
+                onChanged: (value) {
+                  name = value;
+                },
+              ),
+            
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Validate name and company
+                if (name.isNotEmpty) {
+                  // Add the new user to the list
+                  _addUserToList(name);
+                  Navigator.of(context).pop(); // Close the dialog
+                } else {
+                  // Show an error message or handle validation as needed
+                }
+              },
+              child: Text(AppLocalizations.of(context)!.submit),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+void _addUserToList(String name) {
+  setState(() {
+    CompaniesClass newCompany = CompaniesClass(
+      cmpCode: '', // Add your logic to generate a code
+      cmpName: name,
+      cmpFName: '',
+      tel: '',
+      mobile: '',
+      address: '',
+      fAddress: '',
+      prHeader: '',
+      prFHeader: '',
+      prFFooter: '',
+      mainCurCode: '',
+      secCurCode: '',
+      issueBatchMethod: '',
+      systemAdminID: '',
+      notes: '',
+      // Add other fields as needed
+    );
+
+    // Update additionalCompanies
+    additionalCompanies = List.from(additionalCompanies)..add(newCompany);
+
+    // Update filteredUsers by combining offlineUsers and additionalCompanies
+    filteredUsers = List.from(offlineUsers)..addAll(additionalCompanies);
+  });
+
+  // Save the data to Hive immediately
+  _saveDataToHive(name);
+}
+
+
+// Save generated ID and name to SharedPreferences
+Future<void> _saveToSharedPreferences(String id, String name) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('generatedId', id);
+  prefs.setString('generatedName', name);
+}
+
+// Load generated ID and name from SharedPreferences
+Future<Map<String, String>> _loadFromSharedPreferences() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? generatedId = prefs.getString('generatedId');
+  String? generatedName = prefs.getString('generatedName');
+  print(generatedName);
+  print(generatedId);
+  return {'generatedId': generatedId ?? '', 'generatedName': generatedName ?? ''};
+}
+
+Future<void> _saveDataToHive(String name) async {
+  try {
+    // Save companiesConnection data to Hive
+    var companiesConnectionBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
+
+    // Retrieve connection details from the UI controllers
+    String connectionID = _generateConnectionID(); // You may need to adjust this based on your logic
+    String connDatabase = _connDatabaseController.text;
+    String connServer = _connServerController.text;
+    String connUser = _connUserController.text;
+    String connPassword = _connPasswordController.text;
+    int connPort = int.tryParse(_connPortController.text) ?? 0;
+    String typeDatabase = _typeDatabaseController.text;
+
+    // Create a new CompaniesConnection object
+    CompaniesConnection updatedCompaniesConnection = CompaniesConnection(
+      connectionID: connectionID,
+      connDatabase: connDatabase,
+      connServer: connServer,
+      connUser: connUser,
+      connPassword: connPassword,
+      connPort: connPort,
+      typeDatabase: typeDatabase,
+    );
+
+    // Save the updated connection details to Hive
+    companiesConnectionBox.put(connectionID, updatedCompaniesConnection);
+
+    // Save generated ID and name to SharedPreferences
+    _saveToSharedPreferences(connectionID, name);
+
+  } catch (e) {
+    // Handle errors appropriately
+    print('Error saving data to Hive and SharedPreferences: $e');
+  }
+}
+
+// Example usage in _loadAdditionalCompanies:
+Future<void> _loadAdditionalCompanies() async {
+  Map<String, String> generatedData = await _loadFromSharedPreferences();
+  String generatedId = generatedData['generatedId'] ?? '';
+  String generatedName = generatedData['generatedName'] ?? '';
+
+// Example: Add the loaded data to additionalCompanies
+  additionalCompanies = [
+    CompaniesClass(
+      cmpCode: generatedId,
+      cmpName: generatedName, cmpFName: '', tel: '', mobile: '', address: '',
+       fAddress: '', prHeader: '', prFHeader: '', prFFooter: '', mainCurCode: '', secCurCode: '', 
+       issueBatchMethod: '', systemAdminID: '', notes: '',
+      // ... other fields
+    ),
+  ];
+
+  // Update filteredUsers with offlineUsers and additionalCompanies
+  _updateOfflineUsers();
+}
+
 
   bool isAssignMenuExpanded = false; // New variable to control expansion
 
@@ -473,6 +629,15 @@ if (connectionId == '') {
                 );
               },
             ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _showAddDialog();
+            },
+            style: ButtonStyle(
+       fixedSize: MaterialStateProperty.all(Size(280, 10)), // Set the width and height
+  ),
+            child: Text(AppLocalizations.of(context)!.add,style: _appTextStyle),
           ),
         ],
       ),

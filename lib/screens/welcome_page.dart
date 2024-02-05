@@ -419,10 +419,67 @@ void saveProfile(String localPath) async {
   }
 }
 
+Future<String> fetchUsername(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['username'] ?? '';
+}
 
+Future<String> fetchUserFname(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['userFname'] ?? '';
+}
 
+Future<String> fetchEmail(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['email'] ?? '';
+}
+
+Future<String> fetchPassword(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['password'] ?? '';
+}
+
+Future<String> fetchPhoneNumber(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['phonenumber'] ?? '';
+}
+
+Future<String> fetchImeiCode(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['imeicode'] ?? '';
+}
  
+ Future<bool> fetchIsActive(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['active'] ?? '';
+}
+ 
+ Future<String> fetchSelectedLanguage(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['languages'] ?? '';
+}
+ 
+ Future<int> fetchSelectedFont(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['font'] ?? '';
+}
 
+ Future<String> fetchSelectedUserGroup(String userCode) async {
+  var userBox = await Hive.openBox('userBox');
+  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+  return user?['usergroup'].toString() ?? '';
+}
+ 
+ 
   
   @override
   Widget build(BuildContext context) {
@@ -461,7 +518,7 @@ languageUser=_username!;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: Text(AppLocalizations.of(context)!.dashboard,style: _appTextStyleAppBar,),
+        title: Text(selectedCompany!,style: _appTextStyleAppBar,),
       ),
      drawer:Drawer(
   child: ListView(
@@ -517,6 +574,7 @@ languageUser=_username!;
             },
           ),
   ListTile(
+    
   leading: Icon(Icons.settings),
   title: FutureBuilder<bool>(
     future: checkAuthorization(Menu.SETTINGS_MENU_CODE, _userGroup),
@@ -540,19 +598,38 @@ languageUser=_username!;
     },
   ),
   onTap: () async {
+    String initialUsername = await fetchUsername(usercode); // Replace with your actual data fetching logic
+      String initialUserFname = await fetchUserFname(usercode);
+      String initialEmail = await fetchEmail(usercode);
+      String initialPassword = await fetchPassword(usercode);
+      String initialPhoneNumber = await fetchPhoneNumber(usercode);
+      String initialImeiCode = await fetchImeiCode(usercode);
+      bool initialIsActive = await fetchIsActive(usercode);
+      String initialSelectedUserGroup= await fetchSelectedUserGroup(usercode);
+      
     bool hasAccess = await checkAuthorization(Menu.SETTINGS_MENU_CODE, _userGroup);
 
     if (hasAccess) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SettingsEditUserForm(
-            usercode: usercode,
-            password: widget.password,
-            appNotifier: widget.appNotifier,
-          ),
-        ),
-      );
+    Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => SettingsEditUserForm(
+      usercode: usercode,
+      password: widget.password,
+      appNotifier: widget.appNotifier,
+      initialUsername: initialUsername,
+      initialUserFname: initialUserFname,
+      initialEmail: initialEmail,
+      initialPassword: initialPassword,
+      initialPhoneNumber: initialPhoneNumber,
+      initialImeiCode: initialImeiCode,
+      initialUserGroup: initialSelectedUserGroup,
+      initialIsActive: initialIsActive,
+
+    ),
+  ),
+);
+
     } else {
       Flushbar(
         message: AppLocalizations.of(context)!.permissionAccess,

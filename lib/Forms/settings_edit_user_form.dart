@@ -17,12 +17,30 @@ class SettingsEditUserForm extends StatefulWidget {
   final String usercode;
   final String password;
   final AppNotifier appNotifier;
-
-
+  final String initialUsername;
+  final String initialUserFname;
+  final String initialEmail;
+  final String initialPassword;
+  final String initialPhoneNumber;
+  final String initialImeiCode;
+  final String initialUserGroup;
+  final bool initialIsActive;
+ 
   SettingsEditUserForm({
     required this.usercode,
-    required this.password, required this.appNotifier,
+    required this.password,
+    required this.appNotifier,
+    required this.initialUsername,
+    required this.initialUserFname,
+    required this.initialEmail,
+    required this.initialPassword,
+    required this.initialPhoneNumber,
+    required this.initialImeiCode,
+    required this.initialUserGroup,
+    required this.initialIsActive,
+
   });
+
 
   @override
   _SettingsEditUserFormState createState() => _SettingsEditUserFormState();
@@ -50,7 +68,15 @@ class _SettingsEditUserFormState extends State<SettingsEditUserForm> {
 void initState() {
   super.initState();
       _appTextStyle = TextStyle(fontSize: _selectedFont.toDouble());
-
+     _usercodeController.text=widget.usercode ?? '';
+          _userFnameController.text = widget.initialUserFname ?? '';
+          _usernameController.text = widget.initialUsername ?? '';
+          _emailController.text = widget.initialEmail ?? '';
+          _passwordController.text = widget.initialPassword ?? '';
+          _phonenumberController.text = widget.initialPhoneNumber ?? '';
+          _imeicodeController.text = widget.initialImeiCode ?? '';
+          _isActive = widget.initialIsActive ?? false;
+          _selectedUserGroup=widget.initialUserGroup.toString()??'';
 }
 
   
@@ -60,7 +86,7 @@ void didChangeDependencies() async {
   super.didChangeDependencies();
  if(_selectedLanguage=='Arabic') _selectedLanguage='عربي';
   await Future.delayed(Duration.zero, () async {
-    await _loadUserPreferences();
+     //_loadUserPreferences();
     await fetchUserGroups();
        _appTextStyle = TextStyle(fontSize: _selectedFont.toDouble());
 await _loadUserLangFontPreferences();
@@ -86,7 +112,7 @@ void _initializeConnectivity() {
 
 
 
-  Future<void> _loadUserPreferences() async {
+  void _loadUserPreferences() async {
   try {
     var userBox = await Hive.openBox('userBox');
 String? userCode = widget.usercode;
