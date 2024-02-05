@@ -22,11 +22,10 @@ import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
-
 class SynchronizeDataPage extends StatefulWidget {
-    final AppNotifier appNotifier;
-    final String usercode;
-   SynchronizeDataPage({required this.appNotifier,required this.usercode});
+  final AppNotifier appNotifier;
+  final String usercode;
+  SynchronizeDataPage({required this.appNotifier, required this.usercode});
 
   @override
   _SynchronizeDataPageState createState() => _SynchronizeDataPageState();
@@ -34,167 +33,163 @@ class SynchronizeDataPage extends StatefulWidget {
 
 class _SynchronizeDataPageState extends State<SynchronizeDataPage> {
   @override
-   @override
-void initState() {
-  super.initState();
- 
-  _initializeApp();
-}
+  @override
+  void initState() {
+    super.initState();
 
-Future<void> _initializeApp() async {
-  await _loadUserGroup();
-  await _initApp();
-}
-   int _userGroup=0;
-Future<void> _loadUserGroup() async {
-  print(widget.usercode);
-  try {
-    var userBox = await Hive.openBox('userBox');
-    
-    // Retrieve user data from Hive box
-    var user = userBox.get(widget.usercode) as Map<dynamic, dynamic>?;
-print(user.toString());
-print(widget.usercode);
-    if (user != null && mounted) {
-      setState(() {
-        _userGroup = user['usergroup'];
-      });
-    } else {
-      print('User not found in Hive.');
-      // Handle the case when the user is not found in Hive.
-    }
-  
-  } catch (e) {
-    print('Error loading user group and username: $e');
+    _initializeApp();
   }
 
-}
+  Future<void> _initializeApp() async {
+    await _loadUserGroup();
+    await _initApp();
+  }
 
-Future<void> _initApp() async {
+  int _userGroup = 0;
+  Future<void> _loadUserGroup() async {
+    print(widget.usercode);
+    try {
+      var userBox = await Hive.openBox('userBox');
+
+      // Retrieve user data from Hive box
+      var user = userBox.get(widget.usercode) as Map<dynamic, dynamic>?;
+      print(user.toString());
+      print(widget.usercode);
+      if (user != null && mounted) {
+        setState(() {
+          _userGroup = user['usergroup'];
+        });
+      } else {
+        print('User not found in Hive.');
+        // Handle the case when the user is not found in Hive.
+      }
+    } catch (e) {
+      print('Error loading user group and username: $e');
+    }
+  }
+
+  Future<void> _initApp() async {
     // Perform any other initialization tasks here
-      TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     // Check for internet connection
     bool hasAccess = await checkSystemAdminExport(_userGroup);
 
-if (hasAccess) {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult != ConnectivityResult.none) {
-      // Internet connection is available
-      // Run your synchronization function
-      await _synchronizeData();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.dataissynchronized, style: _appTextStyle),
-        ),
-      );
-    } else {
-      // No internet connection
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.nointernetconnectionDatawillbesynchronizedwhenonline, style: _appTextStyle),
-        ),
-      );
-    }
-}
-  }
-
-Future<bool> checkSystemAdminExport(int userGroup) async {
-  try {
-    // Open the systemAdminBox
-    var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
-
-    // Check if the userGroup exists in the systemAdminBox
-    if (systemAdminBox.containsKey(userGroup)) {
-      // Retrieve the SystemAdmin object for the specified userGroup
-      SystemAdmin? systemAdmin = systemAdminBox.get(userGroup);
-
-
-      // Check if the importFromErpToMobile field is true
-      if (systemAdmin?.autoExport == true) {
-        // User has access
-        return true;
-      }
-   
-    }
-
-  
-
-    // User does not have access
-    return false;
-  } catch (e) {
-    // Handle any errors that might occur during the process
-    print('Error checking system admin: $e');
-    return false;
-  }
-}
-
-Future<bool> checkSystemAdmin(int userGroup,String importSource) async {
-  try {
-    // Open the systemAdminBox
-    var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
-
-    // Check if the userGroup exists in the systemAdminBox
-    if (systemAdminBox.containsKey(userGroup)) {
-      // Retrieve the SystemAdmin object for the specified userGroup
-      SystemAdmin? systemAdmin = systemAdminBox.get(userGroup);
-
-if(importSource==AppLocalizations.of(context)!.importFromErpToMobile){
-      // Check if the importFromErpToMobile field is true
-      if (systemAdmin?.importFromErpToMobile == true) {
-        // User has access
-        return true;
+    if (hasAccess) {
+      var connectivityResult = await Connectivity().checkConnectivity();
+      if (connectivityResult != ConnectivityResult.none) {
+        // Internet connection is available
+        // Run your synchronization function
+        await _synchronizeData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.dataissynchronized,
+                style: _appTextStyle),
+          ),
+        );
+      } else {
+        // No internet connection
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                AppLocalizations.of(context)!
+                    .nointernetconnectionDatawillbesynchronizedwhenonline,
+                style: _appTextStyle),
+          ),
+        );
       }
     }
-    if(importSource==AppLocalizations.of(context)!.importFromBackendToMobile){
-     
-      // Check if the importFromErpToMobile field is true
-      if (systemAdmin?.importFromBackendToMobile == true) {
-        // User has access
-        return true;
-      }
-    }
-    }
-
-  
-
-    // User does not have access
-    return false;
-  } catch (e) {
-    // Handle any errors that might occur during the process
-    print('Error checking system admin: $e');
-    return false;
   }
-}
 
+  Future<bool> checkSystemAdminExport(int userGroup) async {
+    try {
+      // Open the systemAdminBox
+      var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
 
-@override
+      // Check if the userGroup exists in the systemAdminBox
+      if (systemAdminBox.containsKey(userGroup)) {
+        // Retrieve the SystemAdmin object for the specified userGroup
+        SystemAdmin? systemAdmin = systemAdminBox.get(userGroup);
+
+        // Check if the importFromErpToMobile field is true
+        if (systemAdmin?.autoExport == true) {
+          // User has access
+          return true;
+        }
+      }
+
+      // User does not have access
+      return false;
+    } catch (e) {
+      // Handle any errors that might occur during the process
+      print('Error checking system admin: $e');
+      return false;
+    }
+  }
+
+  Future<bool> checkSystemAdmin(int userGroup, String importSource) async {
+    try {
+      // Open the systemAdminBox
+      var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
+
+      // Check if the userGroup exists in the systemAdminBox
+      if (systemAdminBox.containsKey(userGroup)) {
+        // Retrieve the SystemAdmin object for the specified userGroup
+        SystemAdmin? systemAdmin = systemAdminBox.get(userGroup);
+
+        if (importSource ==
+            AppLocalizations.of(context)!.importFromErpToMobile) {
+          // Check if the importFromErpToMobile field is true
+          if (systemAdmin?.importFromErpToMobile == true) {
+            // User has access
+            return true;
+          }
+        }
+        if (importSource ==
+            AppLocalizations.of(context)!.importFromBackendToMobile) {
+          // Check if the importFromErpToMobile field is true
+          if (systemAdmin?.importFromBackendToMobile == true) {
+            // User has access
+            return true;
+          }
+        }
+      }
+
+      // User does not have access
+      return false;
+    } catch (e) {
+      // Handle any errors that might occur during the process
+      print('Error checking system admin: $e');
+      return false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-      TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
 
-    final List<String> data = <String>[AppLocalizations.of(context)!.import,AppLocalizations.of(context)!.export];
-  
+    final List<String> data = <String>[
+      AppLocalizations.of(context)!.import,
+      AppLocalizations.of(context)!.export
+    ];
 
-   final Map<String, IconData> iconData = {
-    
-    AppLocalizations.of(context)!.import: Icons.import_export,
-   
-    AppLocalizations.of(context)!.export: Icons.sync,
- 
-  };
+    final Map<String, IconData> iconData = {
+      AppLocalizations.of(context)!.import: Icons.import_export,
+      AppLocalizations.of(context)!.export: Icons.sync,
+    };
 
     final Map<String, int> menuCodes = {
+      AppLocalizations.of(context)!.export: SynchronizeSubMenu.EXPORT_MENU_CODE,
+    };
 
-    AppLocalizations.of(context)!.export: SynchronizeSubMenu.EXPORT_MENU_CODE,
-
- 
-};
-
-     _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.syncronizedata,style: _appTextStyle),
+        title: Text(AppLocalizations.of(context)!.syncronizedata,
+            style: _appTextStyle),
       ),
-    body: Padding(
+      body: Padding(
         padding: EdgeInsets.all(8),
         child: ListView.separated(
           itemCount: data.length,
@@ -204,116 +199,107 @@ if(importSource==AppLocalizations.of(context)!.importFromErpToMobile){
               leading: Icon(iconData[data[index]]),
               onTap: () async {
                 if (data[index] == AppLocalizations.of(context)!.import) {
-    
-                    // Handle the case when the user has access
-                 
+                  // Handle the case when the user has access
+
                   // Show the import dialog
-                 // String importSource = await _showImportDialog();
-               //   print('Selected Import Source: $importSource');
-                   var systemAdminBox = Hive.box<SystemAdmin>('systemAdminBox');
-    SystemAdmin? systemAdmin = systemAdminBox.get(_userGroup);
-    bool importSourceFromERP=false;
-    if(systemAdmin!=null){
-     importSourceFromERP=systemAdmin!.importFromErpToMobile;
-                
-                }
+                  // String importSource = await _showImportDialog();
+                  //   print('Selected Import Source: $importSource');
+                  var systemAdminBox = Hive.box<SystemAdmin>('systemAdminBox');
+                  SystemAdmin? systemAdmin = systemAdminBox.get(_userGroup);
+                  bool importSourceFromERP = false;
+                  if (systemAdmin != null) {
+                    importSourceFromERP = systemAdmin!.importFromErpToMobile;
+                  }
 
                   // Redirect to ImportForm based on the selected import source
                   if (importSourceFromERP == true) {
-
-                  
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ImportForm(
                           appNotifier: widget.appNotifier,
                           usercode: widget.usercode,
-                          title: AppLocalizations.of(context)!.importFromErpToMobile,
+                          title: AppLocalizations.of(context)!
+                              .importFromErpToMobile,
                         ),
                       ),
                     );
-                    
                   } else if (importSourceFromERP == false) {
-               
-
-
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ImportForm(
                           appNotifier: widget.appNotifier,
                           usercode: widget.usercode,
-                          title: AppLocalizations.of(context)!.importFromBackendToMobile,
+                          title: AppLocalizations.of(context)!
+                              .importFromBackendToMobile,
                         ),
                       ),
                     );
-                     
-                   
                   }
-                   
                 } else {
-                   int menuCode = menuCodes[data[index]] ?? 0;
-                   print(menuCode);
-                    bool hasAccess = await checkSystemAdminExport(_userGroup);
+                  int menuCode = menuCodes[data[index]] ?? 0;
+                  print(menuCode);
+                  bool hasAccess = await checkSystemAdminExport(_userGroup);
 
-                 if (!hasAccess) {
-                  // Handle other actions as before
-              String exportSource = await _showExportDialog();
-              if(exportSource==AppLocalizations.of(context)!.yes){
-                 LoadingHelper.configureLoading();
-  LoadingHelper.showLoading(); // Show loading indicator
-  await _synchronizeData();
-  LoadingHelper.dismissLoading(); // Dismiss loading indicator
+                  if (!hasAccess) {
+                    // Handle other actions as before
+                    String exportSource = await _showExportDialog();
+                    if (exportSource == AppLocalizations.of(context)!.yes) {
+                      LoadingHelper.configureLoading();
+                      LoadingHelper.showLoading(); // Show loading indicator
+                      await _synchronizeData();
+                      LoadingHelper
+                          .dismissLoading(); // Dismiss loading indicator
 
-
-  EasyLoading.dismiss();
-      ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.dataisexported,style: _appTextStyle,),
-              ),
-            );
-              }else{
-              }
-
-              }
-              else {
+                      EasyLoading.dismiss();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            AppLocalizations.of(context)!.dataisexported,
+                            style: _appTextStyle,
+                          ),
+                        ),
+                      );
+                    } else {}
+                  } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(AppLocalizations.of(context)!.permissionAccess),
+                        content: Text(
+                            AppLocalizations.of(context)!.permissionAccess),
                       ),
                     );
                   }
                 }
-                
               },
             );
           },
-          separatorBuilder: (BuildContext context, int index) => const Divider(),
+          separatorBuilder: (BuildContext context, int index) =>
+              const Divider(),
         ),
       ),
-    
     );
   }
-Future<bool> checkAuthorization(int groupcode, int userGroup) async {
-  var authorizationBox = await Hive.openBox<Authorization>('authorizationBox');
 
-  // Use a composite key to query for authorization
-  int compositeKey = _generateCompositeKey(groupcode, userGroup);
+  Future<bool> checkAuthorization(int groupcode, int userGroup) async {
+    var authorizationBox =
+        await Hive.openBox<Authorization>('authorizationBox');
 
-  // Check if the authorization exists
-  return authorizationBox.containsKey(compositeKey);
-}
+    // Use a composite key to query for authorization
+    int compositeKey = _generateCompositeKey(groupcode, userGroup);
 
-int _generateCompositeKey(int menucode, int groupcode) {
-  // Use any logic that ensures uniqueness for your composite key
-  return int.parse('$menucode$groupcode');
-}
+    // Check if the authorization exists
+    return authorizationBox.containsKey(compositeKey);
+  }
 
- Future<void> _synchronizeData() async {
+  int _generateCompositeKey(int menucode, int groupcode) {
+    // Use any logic that ensures uniqueness for your composite key
+    return int.parse('$menucode$groupcode');
+  }
+
+  Future<void> _synchronizeData() async {
     DataSynchronizer dataSynchronizer = DataSynchronizer();
     await dataSynchronizer.synchronizeData();
-
-
   }
 
 /*Future<dynamic> _showImportDialog() async {
@@ -352,17 +338,17 @@ int _generateCompositeKey(int menucode, int groupcode) {
   );
 }*/
 
-
-
-Future<dynamic> _showExportDialog() async {
-       TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  Future<dynamic> _showExportDialog() async {
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.areyousuretowanttoexportalldate),
+          title: Text(
+              AppLocalizations.of(context)!.areyousuretowanttoexportalldate),
           content: Padding(
-            padding: EdgeInsets.only(left: 15,right: 15),
+            padding: EdgeInsets.only(left: 15, right: 15),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -370,7 +356,10 @@ Future<dynamic> _showExportDialog() async {
                   onPressed: () {
                     Navigator.pop(context, AppLocalizations.of(context)!.yes);
                   },
-                  child: Text(AppLocalizations.of(context)!.yes,style: _appTextStyle,),
+                  child: Text(
+                    AppLocalizations.of(context)!.yes,
+                    style: _appTextStyle,
+                  ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: 20),
@@ -378,7 +367,10 @@ Future<dynamic> _showExportDialog() async {
                     onPressed: () {
                       Navigator.pop(context, AppLocalizations.of(context)!.no);
                     },
-                    child: Text(AppLocalizations.of(context)!.no,style: _appTextStyle,),
+                    child: Text(
+                      AppLocalizations.of(context)!.no,
+                      style: _appTextStyle,
+                    ),
                   ),
                 ),
               ],
@@ -388,7 +380,4 @@ Future<dynamic> _showExportDialog() async {
       },
     );
   }
-
-
 }
-
