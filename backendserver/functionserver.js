@@ -246,7 +246,7 @@ let queryCustomerPropGroupSpecialPrice='';let queryCustomerPropCategSpecialPrice
     FROM CustomerAttachments`;
 
 
-      queryCustomerItemsSpecialPrice = `
+    /*   queryCustomerItemsSpecialPrice = `
     SELECT 
       LTRIM(RTRIM(cmpCode)) AS cmpCode,
       LTRIM(RTRIM(custCode)) AS custCode,
@@ -260,7 +260,7 @@ let queryCustomerPropGroupSpecialPrice='';let queryCustomerPropCategSpecialPrice
       LTRIM(RTRIM(notes)) AS notes
     FROM CustomerItemsSpecialPrice`;
 
-    /*    queryCustomerBrandSpecialPrice = `
+       queryCustomerBrandSpecialPrice = `
     SELECT 
       LTRIM(RTRIM(cmpCode)) AS cmpCode,
       LTRIM(RTRIM(custCode)) AS custCode,
