@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
+import 'package:sqflite/sqflite.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -62,14 +64,14 @@ String connectionId='';
  
       bool _formChanged = false; // Added to track changes
 
-
+bool _obscureText = true;
  @override
   void initState() {
     super.initState();
     _userStreamController = StreamController<List<CompaniesClass>>.broadcast();
     _initUserStream();
     Hive.openBox<CompaniesConnection>('companiesConnectionBox');
-    _loadAdditionalCompanies();
+    //_loadAdditionalCompanies();
   }
  @override
   void didChangeDependencies() {
@@ -102,9 +104,118 @@ Future<void> _updateOfflineUsers() async {
 
   setState(() {
     offlineUsers = updatedUsers;
-    filteredUsers = updatedUsers + additionalCompanies; // Combine existing companies and additional companies
+    filteredUsers = updatedUsers ; // Combine existing companies and additional companies
   });
 }
+
+void _testConnection(String cmpCode) async {
+
+  var companiesConnectionBox = Hive.box<CompaniesConnection>('companiesConnectionBox');
+  CompaniesConnection? companyConnection = companiesConnectionBox.get(cmpCode);
+print(companyConnection?.connServer);
+  if (companyConnection != null) {
+    // Perform the connection testing logic
+    bool connectionValid = await _performConnectionTest(companyConnection);
+
+    // Show a ScaffoldMessenger indicating the result of the connection test
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(connectionValid ? "Connection is valid" : "Connection is not valid"),
+      ),
+    );
+  } else {
+    // Show a ScaffoldMessenger indicating that the connection details are not found
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Connection details not found"),
+      ),
+    );
+  }
+}
+Future<bool> _performConnectionTest(CompaniesConnection connection) async {
+  try {
+    String server = connection.connServer;
+    int port = connection.connPort;
+    String user = connection.connUser;
+    String password = connection.connPassword;
+    String database = connection.connDatabase;
+
+    // Construct the connection string
+    String connectionString = "server=$server;port=$port;user=$user;password=$password;database=$database;";
+
+    print('Attempting to establish connection to: $server:$port');
+
+    // Attempt to establish a socket connection to the server
+    final socket = await Socket.connect(server, port, timeout: Duration(seconds: 5));
+
+    print('Socket connected successfully.');
+
+    // Close the socket connection
+    await socket.close();
+
+    // If the socket connection succeeds, attempt to execute a query to verify database connectivity
+    print('Attempting to connect to database...');
+
+    // Create a temporary connection to the database to check its connectivity
+;
+
+    // Return true indicating a successful connection
+    return true;
+  } catch (e) {
+    // Handle any errors that occur during the connection test
+    print('Error during connection test: $e');
+    return false; // Return false indicating an invalid connection
+  }
+}
+
+void _deleteSpecificCompany(String cmpCode) {
+  var companiesBox = Hive.box<Companies>('companiesBox');
+  Companies? company = companiesBox.get(cmpCode);
+   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  // Show the confirmation dialog
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Confirm Deletion"),
+        content: Text("Are you sure you want to delete this company?",style:_appTextStyle),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: Text("No",style: _appTextStyle,),
+          ),
+          TextButton(
+            onPressed: () {
+              // Check the condition before deleting the company
+              if (company?.cmpFName == '' && company?.mainCurCode == '') {
+                // Delete the company if the condition is met
+                companiesBox.delete(cmpCode);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Company deleted successfully",style: _appTextStyle,),
+                  ),
+                );
+              } else {
+                // Show a snackbar indicating that the company cannot be deleted
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("You cannot delete this company",style: _appTextStyle,),
+                  ),
+                );
+              }
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: Text("Yes",style: _appTextStyle,),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
 
 void _toggleAssignMenuExpansion(String cmpCode) {
   print('Before Toggle: expandedUsercode=$expandedUsercode, cmpCode=$cmpCode');
@@ -181,11 +292,11 @@ void _searchUsers(String query) {
   setState(() {
     if (query.isEmpty) {
       // If the query is empty, show all users including the additional companies
-      filteredUsers = offlineUsers + additionalCompanies; // Combine existing companies and additional companies
+      filteredUsers = offlineUsers ; // Combine existing companies and additional companies
     } else {
       var userName;
       // If there is a query, filter offlineUsers and additionalCompanies based on the search query
-      filteredUsers = (offlineUsers + additionalCompanies).where((user) {
+      filteredUsers = (offlineUsers ).where((user) {
         if (AppLocalizations.of(context)!.language == 'English') {
           userName = user.cmpName?.toLowerCase();
           searchUsersGroup = user.cmpName;
@@ -266,6 +377,13 @@ String _generateConnectionID() {
       Random().nextInt(1000).toString();
 }
 
+String _generateCompanyCode() {
+  // Implement your logic to generate a unique connectionID
+  // For example, you can use a combination of timestamp and a random number
+  return DateTime.now().millisecondsSinceEpoch.toString() +
+      '_' +
+      Random().nextInt(10).toString();
+}
 
 
 // Function to generate a composite key
@@ -322,6 +440,8 @@ void _showAddDialog() {
   }
 
 void _addUserToList(String name) {
+  // Add logic to add the new user to the filteredUsers list
+  // and update the additionalCompanies list
   setState(() {
     CompaniesClass newCompany = CompaniesClass(
       cmpCode: '', // Add your logic to generate a code
@@ -342,17 +462,14 @@ void _addUserToList(String name) {
       // Add other fields as needed
     );
 
-    // Update additionalCompanies
-    additionalCompanies = List.from(additionalCompanies)..add(newCompany);
-
-    // Update filteredUsers by combining offlineUsers and additionalCompanies
-    filteredUsers = List.from(offlineUsers)..addAll(additionalCompanies);
+    // Update both filteredUsers and additionalCompanies
+    filteredUsers.add(newCompany);
+    
   });
 
   // Save the data to Hive immediately
   _saveDataToHive(name);
 }
-
 
 // Save generated ID and name to SharedPreferences
 Future<void> _saveToSharedPreferences(String id, String name) async {
@@ -361,29 +478,36 @@ Future<void> _saveToSharedPreferences(String id, String name) async {
   prefs.setString('generatedName', name);
 }
 
-// Load generated ID and name from SharedPreferences
-Future<Map<String, String>> _loadFromSharedPreferences() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? generatedId = prefs.getString('generatedId');
-  String? generatedName = prefs.getString('generatedName');
-  print(generatedName);
-  print(generatedId);
-  return {'generatedId': generatedId ?? '', 'generatedName': generatedName ?? ''};
-}
+
 
 Future<void> _saveDataToHive(String name) async {
   try {
-    // Save companiesConnection data to Hive
+    // Save companiesConnec
+    //tion data to Hive
+     // Save companies data to Hive
+    var companiesBox = await Hive.openBox<Companies>('companiesBox');
+    
+String  compCode=_generateCompanyCode();
+    String connectionID = _generateConnectionID(); // You may need to adjust this based on your logic
+    Companies companies =  Companies(
+  cmpCode: compCode,
+        cmpName: name, cmpFName: '', tel: '', mobile: '', address: '', fAddress: '',
+         prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '',
+          rateType: '', issueBatchMethod: '', systemAdminID: connectionID, notes: '',
+
+    );
+
+    companiesBox.put(compCode,companies);
     var companiesConnectionBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
 
     // Retrieve connection details from the UI controllers
-    String connectionID = _generateConnectionID(); // You may need to adjust this based on your logic
-    String connDatabase = _connDatabaseController.text;
-    String connServer = _connServerController.text;
-    String connUser = _connUserController.text;
-    String connPassword = _connPasswordController.text;
-    int connPort = int.tryParse(_connPortController.text) ?? 0;
-    String typeDatabase = _typeDatabaseController.text;
+
+    String connDatabase = '';
+    String connServer = '';
+    String connUser = '';
+    String connPassword = '';
+    int connPort = 0;
+    String typeDatabase = '';
 
     // Create a new CompaniesConnection object
     CompaniesConnection updatedCompaniesConnection = CompaniesConnection(
@@ -400,7 +524,7 @@ Future<void> _saveDataToHive(String name) async {
     companiesConnectionBox.put(connectionID, updatedCompaniesConnection);
 
     // Save generated ID and name to SharedPreferences
-    _saveToSharedPreferences(connectionID, name);
+   
 
   } catch (e) {
     // Handle errors appropriately
@@ -408,26 +532,8 @@ Future<void> _saveDataToHive(String name) async {
   }
 }
 
-// Example usage in _loadAdditionalCompanies:
-Future<void> _loadAdditionalCompanies() async {
-  Map<String, String> generatedData = await _loadFromSharedPreferences();
-  String generatedId = generatedData['generatedId'] ?? '';
-  String generatedName = generatedData['generatedName'] ?? '';
 
-// Example: Add the loaded data to additionalCompanies
-  additionalCompanies = [
-    CompaniesClass(
-      cmpCode: generatedId,
-      cmpName: generatedName, cmpFName: '', tel: '', mobile: '', address: '',
-       fAddress: '', prHeader: '', prFHeader: '', prFFooter: '', mainCurCode: '', secCurCode: '', 
-       issueBatchMethod: '', systemAdminID: '', notes: '',
-      // ... other fields
-    ),
-  ];
 
-  // Update filteredUsers with offlineUsers and additionalCompanies
-  _updateOfflineUsers();
-}
 
 
   bool isAssignMenuExpanded = false; // New variable to control expansion
@@ -485,6 +591,22 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                               _toggleAssignMenuExpansion(user.cmpCode);
                             },
                           ),
+                           IconButton(
+                            icon: Icon(Icons.cast_connected_outlined),
+                            color: Colors.green,
+                            onPressed: () {
+                              
+                        _testConnection(user.systemAdminID);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            color: Colors.red,
+                            onPressed: () {
+                              
+                             _deleteSpecificCompany(user.cmpCode);
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -518,14 +640,24 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                      
                             ),
                  
-                            TextField(
-                              decoration: InputDecoration(labelText:AppLocalizations.of(context)!.connectionPassword),
+                          TextField(
                            controller: _connPasswordController,
               onChanged: (value) {
                     _formChanged = true; 
                   },
-                     
-                            ),
+      obscureText: _obscureText,
+      decoration: InputDecoration(
+        labelText:  AppLocalizations.of(context)!.connectionPassword,
+        suffixIcon: IconButton(
+          icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+          onPressed: () {
+            setState(() {
+              _obscureText = !_obscureText;
+            });
+          },
+        ),
+      ),
+                          ),
                             TextField(
                               keyboardType: TextInputType.number,
                 inputFormatters: <TextInputFormatter>[
@@ -538,14 +670,25 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                               decoration: InputDecoration(labelText: AppLocalizations.of(context)!.connectionPort),
                             
                             ),
-                            TextField(
-                              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.typeDatabase),
-                             controller: _typeDatabaseController,
-              onChanged: (value) {
-                    _formChanged = true; 
-                  },
+                             DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: AppLocalizations.of(context)!.typeDatabase,
+      ),
+      value: 'Sql Server', // Set the initial value to 'Sql Server'
+      onChanged: (newValue) {
+        setState(() {
+          _typeDatabaseController.text = newValue!;
+        });
+      },
+      items: <String>['Sql Server'].map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    ),
                      
-                            ),
+                          
                             SizedBox(height: 16.0),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,

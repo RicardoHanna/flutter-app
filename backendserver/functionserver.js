@@ -484,7 +484,7 @@ queryCustGroups = `
       notes
     FROM PaymentTerms`;
 
- querySalesEmployees = `
+ /*querySalesEmployees = `
     SELECT 
       LTRIM(RTRIM(cmpCode)) AS cmpCode,
       LTRIM(RTRIM(seCode)) AS seCode,
@@ -558,7 +558,7 @@ queryCustGroups = `
       LTRIM(RTRIM(userCode)) AS userCode,
       LTRIM(RTRIM(seCode)) AS seCode,
       notes
-    FROM UsersSalesEmployees`;
+    FROM UsersSalesEmployees`;*/
       }
 
       // Add other tables as needed

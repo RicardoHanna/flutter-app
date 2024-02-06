@@ -44,6 +44,9 @@ class DataSynchronizer {
       var pricelistauthoBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
       List<PriceListAuthorization> pricelistautho = pricelistauthoBox.values.toList();
 
+      var companiesBox = await Hive.openBox<Companies>('companiesBox');
+      List<Companies>companies = companiesBox.values.toList();
+
       // Check for an internet connection
       if (await hasInternetConnection()) {
         // If there's an internet connection, update or add data to Firestore
@@ -55,6 +58,7 @@ class DataSynchronizer {
         await _updateFirestoreCompaniesConnection(companyadmin);
         await _updateFirestoreCompaniesUsers(companyusers);
          await _updateFirestorePriceListAutho(pricelistautho);
+         await _updateFirestoreCompanies(companies);
         // Update or add other data to Firestore if needed
 
       }
@@ -720,6 +724,118 @@ Future<void> _updateFirestorePriceListAutho(List<PriceListAuthorization> priceli
 }
 
 
+Future<void> _updateFirestoreCompanies(List<Companies> companies) async {
+  try {
+    // Get all PriceListAuthorization documents from Firestore
+    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
+        await _firestore.collection('Companies').get();
+
+    // Create a list to keep track of documents to delete
+    List<DocumentReference> docsToDelete = [];
+
+    // Loop through each PriceListAuthorization and update or add to Firestore
+    for (Companies company in companies) {
+      try {
+        // Check if the PriceListAuthorization already exists in Firestore
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+            .collection('Companies')
+            .where('cmpCode', isEqualTo: company.cmpCode)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          // PriceListAuthorization already exists
+          String documentId = querySnapshot.docs[0].id;
+          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
+
+          if (!dataEqualsCompany(existingData, company)) {
+            // Update existing data in Firestore
+            await _firestore.collection('Companies').doc(documentId).update(
+              {
+          'cmpCode': company.cmpCode,
+          'cmpName': company.cmpName,
+          'cmpFName': company.cmpFName,
+          'tel': company.tel,
+          'mobile': company.mobile,
+          'address': company.address,
+          'fAddress':company.address,
+          'prHeader': company.prHeader,
+          'prFHeader': company.prFHeader,
+          'prFooter': company.prFFooter,
+          'prFFooter': company.prFFooter,
+          'mainCurCode': company.mainCurCode,
+          'secCurCode': company.secCurCode,
+          'rateType': company.rateType,
+          'issueBatchMethod': company.issueBatchMethod,
+          'systemAdminID': company.systemAdminID ,
+          'notes': company.notes,
+              },
+            );
+            print('Company updated: ${company.cmpCode}');
+          }
+        } else {
+          // PriceListAuthorization doesn't exist, add it to Firestore
+          await _firestore.collection('Companies').add(
+            {
+                'cmpCode': company.cmpCode,
+          'cmpName': company.cmpName,
+          'cmpFName': company.cmpFName,
+          'tel': company.tel,
+          'mobile': company.mobile,
+          'address': company.address,
+          'fAddress':company.address,
+          'prHeader': company.prHeader,
+          'prFHeader': company.prFHeader,
+          'prFooter': company.prFFooter,
+          'prFFooter': company.prFFooter,
+          'mainCurCode': company.mainCurCode,
+          'secCurCode': company.secCurCode,
+          'rateType': company.rateType,
+          'issueBatchMethod': company.issueBatchMethod,
+          'systemAdminID': company.systemAdminID ,
+          'notes': company.notes,
+            },
+          );
+          print('Company added: ${company.cmpCode}');
+        }
+      } catch (e) {
+        print('Error updating Firestore Company : $e');
+      }
+    }
+
+    // Check for deletions
+    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
+      // Extract data from the document
+      Map<String, dynamic> firestoreData = docSnapshot.data()!;
+      String cmpCode = firestoreData['cmpCode'];
+
+
+      // Check if the document exists in the local list of PriceListAuthorization objects
+      bool existsLocally = companies.any((localCompany) =>
+          localCompany.cmpCode == cmpCode 
+         );
+
+      // If the document doesn't exist locally, add it to the list of documents to delete
+      if (!existsLocally) {
+        docsToDelete.add(docSnapshot.reference);
+        print('Company to delete: $cmpCode');
+      }
+    }
+
+    // Delete documents
+    for (DocumentReference docRef in docsToDelete) {
+      await docRef.delete();
+      print('Company deleted');
+    }
+  } catch (e) {
+    print('Error updating Firestore Company: $e');
+  }
+}
+
+
+
+
+
+
 // Function to compare SystemAdmin data equality (customize based on your data structure)
 bool dataEqualsSystemAdmin(
     Map<String, dynamic> existingData, SystemAdmin newSystemAdmin) {
@@ -767,6 +883,15 @@ bool dataEqualsPriceListAutho(
   // Add additional conditions as needed
 }
 
+
+// Function to compare SystemAdmin data equality (customize based on your data structure)
+bool dataEqualsCompany(
+    Map<String, dynamic> existingData, Companies newCompanies) {
+  // Compare fields and return true if they are equal, otherwise return false
+  // Add conditions for each field you want to compare
+  return existingData['cmpCode'] == newCompanies.cmpCode;
+  // Add additional conditions as needed
+}
 
   Future<bool> hasInternetConnection() async {
     try {

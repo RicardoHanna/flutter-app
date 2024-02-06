@@ -75,7 +75,7 @@ Future<String?> getCompaniesConnectionId(String usercode) async {
 
       // Look for a company with the specified cmpCode
       var company = companiesBox.values.firstWhere(
-        (c) => c.cmpCode == companyUser.cmpCode,
+        (c) => c.cmpCode == companyUser.defaultcmpCode,
         orElse: () => Companies(cmpCode: '', cmpFName: '', tel: '', mobile: '', fAddress: '', mainCurCode: '', prFooter: '', prFFooter: '', prHeader: '', notes: '', cmpName: '', address: '', prFHeader: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: ''), // Default company when not found
       );
 
