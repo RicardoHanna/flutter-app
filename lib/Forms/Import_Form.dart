@@ -404,15 +404,19 @@ child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
     List<String> categCode = await synchronizer.retrieveItemCateg(seCodes);
      List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
+   List<String> priceListsCodes = await synchronizer.retrievePriceList(itemCodes);
+
   
   // Step 3: Synchronize items based on the retrieved itemCodes
   await synchronizer.synchronizeData(itemCodes);
-  await synchronizer.synchronizeDataItemAttach(itemCodes);
+    await synchronizer.synchronizeDataItemPrice(itemCodes);
+    
+  /*await synchronizer.synchronizeDataItemAttach(itemCodes);
     await synchronizer.synchronizeDataItemBrand(brandCode);
     await synchronizer.synchronizeDataItemCateg(categCode);
     await synchronizer.synchronizeDataItemGroup(groupCode);
-    await synchronizer.synchronizeDataItemPrice(itemCodes);
-    await synchronizer.synchronizeDataItemUOM(itemCodes);
+  
+    await synchronizer.synchronizeDataItemUOM(itemCodes);*/
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(AppLocalizations.of(context)!.itemssynchronizedsuccessfully, style: _appTextStyle,),

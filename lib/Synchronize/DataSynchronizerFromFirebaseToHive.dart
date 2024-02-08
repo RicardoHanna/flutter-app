@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 import 'package:project/classes/PriceItemKey.dart';
@@ -56,145 +58,177 @@ import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/hive/vatgroups_hive.dart';
 import 'package:project/hive/warehouses_hive.dart';
+import 'package:http/http.dart' as http; 
+
 class DataSynchronizerFromFirebaseToHive {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
+String apiurl='http://5.189.188.139/api/';
 
- Future<List<String>> retrieveSeCodes(String usercode) async {
-    List<String> seCodes = [];
-    try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection('UsersSalesEmployees')
-          .where('userCode', isEqualTo: usercode)
-          .get();
-
-      querySnapshot.docs.forEach((doc) {
-        seCodes.add(doc['seCode']);
-      });
-    } catch (e) {
-      print('Error retrieving seCodes: $e');
+Future<List<String>> retrieveSeCodes(String usercode) async {
+  List<String> seCodes = [];
+  try {
+    // Send HTTP GET request to fetch seCodes from the server
+    final response = await http.get(Uri.parse('${apiurl}getSeCodes?usercode=$usercode'));
+    if (response.statusCode == 200) {
+      // Parse response body and extract seCodes
+      // Adjust this part based on your server's response format
+      String seCode = response.body;
+      seCodes.add(seCode); // Wrap the single value in a list
+    } else {
+      print('Failed to retrieve seCodes: ${response.statusCode}');
     }
-    return seCodes;
+  } catch (e) {
+    print('Error retrieving seCodes: $e');
   }
+  return seCodes;
+}
+
   
-  Future<List<String>> retrieveItemCodes(List<String> seCodes) async {
-    List<String> itemCodes = [];
-    try {
-      for (String seCode in seCodes) {
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('SalesEmployeesItems')
-            .where('seCode', isEqualTo: seCode)
-            .get();
-
-        querySnapshot.docs.forEach((doc) {
-          itemCodes.add(doc['itemCode']);
-        });
+Future<List<String>> retrieveItemCodes(List<String> seCodes) async {
+  List<String> itemCodes = [];
+  try {
+    for (String seCode in seCodes) {
+      // Send HTTP GET request to fetch item codes from the server
+      final response = await http.get(Uri.parse('${apiurl}getSalesItems?seCode=$seCode'));
+      if (response.statusCode == 200) {
+        // Parse response body using jsonDecode
+        List<dynamic> responseData = jsonDecode(response.body);
+        // Extract item codes from each object
+        for (var data in responseData) {
+          itemCodes.add(data['itemCode']);
+        }
+      } else {
+        print('Failed to retrieve item codes: ${response.statusCode}');
       }
-    } catch (e) {
-      print('Error retrieving itemCodes: $e');
     }
-    return itemCodes;
+  } catch (e) {
+    print('Error retrieving item codes: $e');
   }
+  return itemCodes;
+}
 
-  Future<void> synchronizeData(List<String> itemCodes) async {
+Future<List<Map<String, dynamic>>> _fetchItemsData(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemsData = [];
+  try {
+    for (String itemCode in itemCodes) {
+      final response = await http.get(Uri.parse('${apiurl}getItems?itemCode=$itemCode'));
+      if (response.statusCode == 200) {
+        dynamic responseData = jsonDecode(response.body);
+        if (responseData is List) {
+          // If the response is a list, append each item to the itemsData list
+          for (var item in responseData) {
+            if (item is Map<String, dynamic>) {
+              itemsData.add(item);
+            }
+          }
+        } else if (responseData is Map<String, dynamic>) {
+          // If the response is a map, directly append it to the itemsData list
+          itemsData.add(responseData);
+        } else {
+          print('Invalid response format for item code $itemCode');
+        }
+      } else {
+        print('Failed to retrieve item details for item code $itemCode: ${response.statusCode}');
+      }
+    }
+  } catch (e) {
+    print('Error fetching item data: $e');
+  }
+  return itemsData;
+}
+
+
+   Future<void> synchronizeData(List<String> itemCodes) async {
     try {
-      // Fetch data from Firestore
-    var firestoreItems = await _firestore.collection('Items').where('itemCode', whereIn: itemCodes).get();
-
       // Open Hive boxes
       var itemsBox = await Hive.openBox<Items>('items');
       // Open other boxes if needed
 
+      // Fetch data from API endpoints
+      List <dynamic> itemsData = await _fetchItemsData(itemCodes);
+
       // Synchronize data
-      await _synchronizeItems(firestoreItems.docs, itemsBox);
+      await _synchronizeItems(itemsData, itemsBox);
       // Synchronize other data if needed
 
-      // Close Hive boxes
-     // await itemsBox.close();
+      
       // Close other boxes if needed
     } catch (e) {
-      print('Error synchronizing data from Firebase to Hive: $e');
+      print('Error synchronizing data from API to Hive: $e');
     }
   }
- Future<void> _synchronizeItems(
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreItems,
-  Box<Items> itemsBox,
-) async {
-  try {
-    // Iterate over Firestore documents
-    for (var doc in firestoreItems) {
-      var itemCode = doc['itemCode'];
-      // Check if the item exists in Hive
-      var hiveItem = itemsBox.get(itemCode);
 
-      // If the item doesn't exist in Hive, add it
-      if (hiveItem == null) {
-        var newItem = Items(
-          doc['itemCode'],
-          doc['itemName'],
-          doc['itemPrName'],
-          doc['itemFName'],
-          doc['itemPrFName'],
-          doc['groupCode'],
-          doc['categCode'],
-          doc['brandCode'],
-          doc['itemType'],
-          doc['barCode'],
-          doc['uom'],
-          doc['picture'],
-          doc['remark'],
-          doc['brand'],
-          doc['manageBy'],
-          doc['vatRate'].toDouble(),
-          doc['active'],
-          doc['weight'].toDouble(),
-          doc['charect1'],
-          doc['charact2'],
-          doc['cmpCode']
-        );
-        await itemsBox.put(itemCode, newItem);
-      }
-      // If the item exists in Hive, update it if needed
-      else {
-        var updatedItem = Items(
-          doc['itemCode'],
-          doc['itemName'],
-          doc['itemPrName'],
-          doc['itemFName'],
-          doc['itemPrFName'],
-          doc['groupCode'],
-          doc['categCode'],
-          doc['brandCode'],
-          doc['itemType'],
-          doc['barCode'],
-          doc['uom'],
-          doc['picture'],
-          doc['remark'],
-          doc['brand'],
-          doc['manageBy'],
-          doc['vatRate'].toDouble(),
-          doc['active'],
-          doc['weight'].toDouble(),
-          doc['charect1'],
-          doc['charact2'],
-          doc['cmpCode']
-        );
-        // Update the item in Hive
-        await itemsBox.put(itemCode, updatedItem);
-      }
-    }
+  Future<void> _synchronizeItems(List<dynamic> itemsData, Box<Items> itemsBox) async {
+    try {
+      for (var data in itemsData) {
+        var itemCode = data['itemCode'];
+        var hiveItem = itemsBox.get(itemCode);
 
-    // Check for items in Hive that don't exist in Firestore and delete them
-    itemsBox.keys.toList().forEach((hiveItemCode) {
-        if (!firestoreItems.any((doc) => doc['itemCode'] == hiveItemCode)) {
-          // Item exists in Hive but not in Firestore, so delete it from Hive
-          itemsBox.delete(hiveItemCode);
+        if (hiveItem == null) {
+          var newItem = Items(
+            data['itemCode'],
+            data['itemName'],
+            data['itemPrName'],
+            data['itemFName'],
+            data['itemPrFName'],
+            data['groupCode'],
+            data['categCode'],
+            data['brandCode'],
+            data['itemType'],
+            data['barCode'],
+            data['uom'],
+            data['picture'],
+            data['remark'],
+            data['brand'],
+            data['manageBy'],
+            data['vatRate'].toDouble(),
+            data['active']==1,
+            data['weight'].toDouble(),
+            data['charect1'],
+            data['charact2'],
+            data['cmpCode']
+          );
+          await itemsBox.put(itemCode, newItem);
+        } else {
+          var updatedItem = Items(
+            data['itemCode'],
+            data['itemName'],
+            data['itemPrName'],
+            data['itemFName'],
+            data['itemPrFName'],
+            data['groupCode'],
+            data['categCode'],
+            data['brandCode'],
+            data['itemType'],
+            data['barCode'],
+            data['uom'],
+            data['picture'],
+            data['remark'],
+            data['brand'],
+            data['manageBy'],
+            data['vatRate'].toDouble(),
+            data['active']==1,
+            data['weight'].toDouble(),
+            data['charect1'],
+            data['charact2'],
+            data['cmpCode']
+          );
+          await itemsBox.put(itemCode, updatedItem);
         }
-      });
+      }
 
-  } catch (e) {
-    print('Error synchronizing items from Firebase to Hive: $e');
+      itemsBox.keys.toList().forEach((hiveItemCode) {
+          if (!itemsData.any((data) => data['itemCode'] == hiveItemCode)) {
+            itemsBox.delete(hiveItemCode);
+          }
+        });
+
+    } catch (e) {
+      print('Error synchronizing items from API to Hive: $e');
+    }
   }
-}
+
+
 
 
 //-------------------------------------------------------------------------------------------------
@@ -202,209 +236,242 @@ class DataSynchronizerFromFirebaseToHive {
 //-------------------------------------------------------------------------------------------------
 
 Future<List<String>> retrievePriceList(List<String> itemCodes) async {
-    List<String> priceLists = [];
-    try {
-      for (String itemCode in itemCodes) {
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('ItemsPrices')
-            .where('itemCode', isEqualTo: itemCode)
-            .get();
-
-        querySnapshot.docs.forEach((doc) {
-          priceLists.add(doc['plCode']);
-        });
+  List<String> priceLists = [];
+  try {
+    for (String itemCode in itemCodes) {
+      final response = await http.get(Uri.parse('${apiurl}getItemPrice?itemCode=$itemCode'));
+      if (response.statusCode == 200) {
+        List<dynamic> responseData = jsonDecode(response.body);
+        for (var data in responseData) {
+          priceLists.add(data['plCode']);
+        }
+      } else {
+        print('Failed to retrieve price list Codes for item code $itemCode: ${response.statusCode}');
       }
-    } catch (e) {
-      print('Error retrieving price list Codes: $e');
     }
-    return priceLists;
+  } catch (e) {
+    print('Error retrieving price list Codes: $e');
   }
-
-
-Future<void> synchronizeDataPriceLists(List<String>priceLists) async {
-    try {
-      // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('PriceList').where('plCode', whereIn: priceLists)
-        .get();
- 
-      // Open Hive boxes
-      var pricelistsBox = await Hive.openBox<PriceList>('pricelists');
-      // Open other boxes if needed
-
-      // Synchronize data
-      await _synchronizePriceList(firestoreItems.docs, pricelistsBox);
-      // Synchronize other data if needed
-
-      // Close Hive boxes
-      //await pricelistsBox.close();
-      // Close other boxes if needed
-    } catch (e) {
-      print('Error synchronizing data from Firebase to Hive: $e');
+  return priceLists;
+}
+Future<List<Map<String, dynamic>>> _fetchPriceListData(List<String> priceLists) async {
+  List<Map<String, dynamic>> priceListData = [];
+  try {
+    for (String plCode in priceLists) {
+      final response = await http.get(Uri.parse('${apiurl}getPriceList?plCode=$plCode'));
+      if (response.statusCode == 200) {
+        dynamic responseData = jsonDecode(response.body);
+        if (responseData is List) {
+          // If the response is a list, append each item to the priceListData list
+          for (var item in responseData) {
+            if (item is Map<String, dynamic>) {
+              priceListData.add(item);
+            }
+          }
+        } else if (responseData is Map<String, dynamic>) {
+          // If the response is a map, directly append it to the priceListData list
+          priceListData.add(responseData);
+        } else {
+          print('Invalid response format for plCode $plCode');
+        }
+      } else {
+        print('Failed to retrieve price list data for plCode $plCode: ${response.statusCode}');
+      }
     }
+  } catch (e) {
+    print('Error fetching price list data: $e');
   }
+  return priceListData;
+}
 
- Future<void> _synchronizePriceList(
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestorePriceLists,
+
+Future<void> synchronizeDataPriceLists(List<String> priceLists) async {
+  try {
+    // Open Hive boxes
+    var pricelistsBox = await Hive.openBox<PriceList>('pricelists');
+    // Open other boxes if needed
+
+    // Fetch data from API endpoints
+    List<Map<String, dynamic>> priceListData = await _fetchPriceListData(priceLists);
+
+    // Synchronize data
+    await _synchronizePriceList(priceListData, pricelistsBox);
+    // Synchronize other data if needed
+
+    // Close Hive boxes
+    // await pricelistsBox.close();
+    // Close other boxes if needed
+  } catch (e) {
+    print('Error synchronizing data from API to Hive: $e');
+  }
+}
+
+Future<void> _synchronizePriceList(
+  List<Map<String, dynamic>> priceListData,
   Box<PriceList> pricelistsBox,
 ) async {
   try {
-    // Iterate over Firestore documents
-    for (var doc in firestorePriceLists) {
-      var plCode = doc['plCode'];
-      // Check if the item exists in Hive
+    for (var data in priceListData) {
+      var plCode = data['plCode'];
       var hivePrice = pricelistsBox.get(plCode);
 
-      // If the item doesn't exist in Hive, add it
       if (hivePrice == null) {
         var newPrice = PriceList(
-          doc['plCode'],
-          doc['plName'],
-          doc['currency'],
-          doc['basePL'],
-          doc['factor'].toDouble(),
-          doc['incVAT'],
-          doc['securityGroup'],
-           doc['cmpCode'],
-           doc['authoGroup']
+          data['plCode'],
+          data['plName'],
+          data['currency'],
+          data['basePL'],
+          data['factor'].toDouble(),
+          data['incVAT']==1,
+          data['securityGroup'],
+          data['cmpCode'],
+          data['authoGroup']
         );
         await pricelistsBox.put(plCode, newPrice);
-      }
-      // If the item exists in Hive, update it if needed
-      else {
+      } else {
         var updatedPrice = PriceList(
-         doc['plCode'],
-          doc['plName'],
-          doc['currency'],
-          doc['basePL'],
-          doc['factor'].toDouble(),
-          doc['incVAT'],
-          doc['securityGroup'],
-          doc['cmpCode'],
-          doc['authoGroup']
+          data['plCode'],
+          data['plName'],
+          data['currency'],
+          data['basePL'],
+          data['factor'].toDouble(),
+          data['incVAT']==1,
+          data['securityGroup'],
+          data['cmpCode'],
+          data['authoGroup']
         );
-        // Update the item in Hive
         await pricelistsBox.put(plCode, updatedPrice);
       }
     }
 
-    // Check for items in Hive that don't exist in Firestore and delete them
-Set<String> firestorePriceCodes = Set.from(firestorePriceLists.map((doc) => doc['plCode']));
-Set<String> hivePriceCodes = Set.from(pricelistsBox.keys);
+    // Check for price lists in Hive that don't exist in the fetched data and delete them
+    Set<String> fetchedPriceCodes = Set.from(priceListData.map((data) => data['plCode']));
+    Set<String> hivePriceCodes = Set.from(pricelistsBox.keys);
 
-// Identify items in Hive that don't exist in Firestore
-Set<String> itemsToDelete = hivePriceCodes.difference(firestorePriceCodes);
+    // Identify price lists in Hive that don't exist in the fetched data
+    Set<String> priceListsToDelete = hivePriceCodes.difference(fetchedPriceCodes);
 
-// Delete items in Hive that don't exist in Firestore
-itemsToDelete.forEach((hivePriceCode) {
-  pricelistsBox.delete(hivePriceCode);
-});
-
-
+    // Delete price lists in Hive that don't exist in the fetched data
+    priceListsToDelete.forEach((hivePriceCode) {
+      pricelistsBox.delete(hivePriceCode);
+    });
   } catch (e) {
-    print('Error synchronizing PricesList from Firebase to Hive: $e');
+    print('Error synchronizing PriceLists from API to Hive: $e');
   }
 }
 
+
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-
-
-Future<void> synchronizeDataItemPrice(List<String>itemCodes) async {
-    try {
-      // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('ItemsPrices').where('itemCode', whereIn: itemCodes).get();
-
-      // Open Hive boxes
-var itempriceBox = await Hive.openBox<ItemsPrices>('itemprices');
-
-
-      // Open other boxes if needed
-
-      // Synchronize data
-      await _synchronizeItemPrice(firestoreItems.docs, itempriceBox);
-      // Synchronize other data if needed
-
-      // Close Hive boxes
-      //await pricelistsBox.close();
-      // Close other boxes if needed
-    } catch (e) {
-      print('Error synchronizing data from Firebase to Hive: $e');
+Future<List<Map<String, dynamic>>> _fetchItemPricesData(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemPricesData = [];
+  try {
+    for (String itemCode in itemCodes) {
+      final response = await http.get(Uri.parse('${apiurl}getItemPrice?itemCode=$itemCode'));
+      if (response.statusCode == 200) {
+        dynamic responseData = jsonDecode(response.body);
+        if (responseData is List) {
+          // If the response is a list, append each item price to the itemPricesData list
+          for (var itemPrice in responseData) {
+            if (itemPrice is Map<String, dynamic>) {
+              itemPricesData.add(itemPrice);
+            }
+          }
+        } else if (responseData is Map<String, dynamic>) {
+          // If the response is a map, directly append it to the itemPricesData list
+          itemPricesData.add(responseData);
+        } else {
+          print('Invalid response format for item code $itemCode');
+        }
+      } else {
+        print('Failed to retrieve item prices for item code $itemCode: ${response.statusCode}');
+      }
     }
+  } catch (e) {
+    print('Error fetching item prices data: $e');
   }
+  return itemPricesData;
+}
+
+Future<void> synchronizeDataItemPrice(List<String> itemCodes) async {
+  try {
+    // Open Hive boxes
+    var itempriceBox = await Hive.openBox<ItemsPrices>('itemprices');
+    // Open other boxes if needed
+
+    // Fetch data from API endpoints
+    List<Map<String, dynamic>> itemPricesData = await _fetchItemPricesData(itemCodes);
+
+    // Synchronize data
+    await _synchronizeItemPrice(itemPricesData, itempriceBox);
+    // Synchronize other data if needed
+
+    // Close Hive boxes
+    // await itempriceBox.close();
+    // Close other boxes if needed
+  } catch (e) {
+    print('Error synchronizing data from API to Hive: $e');
+  }
+}
 
 Future<void> _synchronizeItemPrice(
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestoreItemPrice,
+  List<Map<String, dynamic>> itemPricesData,
   Box<ItemsPrices> itempriceBox,
 ) async {
   try {
-    // Iterate over Firestore documents
-    for (var doc in firestoreItemPrice) {
-      var plCode = doc['plCode'];
-      var itemCode = doc['itemCode'];
+    for (var data in itemPricesData) {
+      var plCode = data['plCode'];
+      var itemCode = data['itemCode'];
 
-      // Use compound key (plCode, itemCode)
-    // Use compound key (plCode_itemCode)
-var hivePriceItem = itempriceBox.get('$plCode$itemCode');
+      var hivePriceItem = itempriceBox.get('$plCode$itemCode');
 
-// If the item doesn't exist in Hive, add it
-if (hivePriceItem == null) {
-  var newPriceItem = ItemsPrices(
-    plCode,
-    itemCode,
-    doc['uom'],
-    doc['basePrice'].toDouble(),
-    doc['currency'],
-    doc['auto'],
-    doc['disc'].toDouble(),
-    doc['price'].toDouble(),
-    doc['cmpCode']
-  );
-  await itempriceBox.put('$plCode$itemCode', newPriceItem);
-
-    }
-// If the item exists in Hive, update it if needed
-else {
-  var updatedPriceItem = ItemsPrices(
-    plCode,
-    itemCode,
-    doc['uom'],
-    doc['basePrice'].toDouble(),
-    doc['currency'],
-    doc['auto'],
-    doc['disc'].toDouble(),
-    doc['price'].toDouble(),
-    doc['cmpCode']
-  );
-  // Update the item in Hive
-  await itempriceBox.put('$plCode$itemCode', updatedPriceItem);
-}
- 
+      if (hivePriceItem == null) {
+        var newPriceItem = ItemsPrices(
+          plCode,
+          itemCode,
+          data['uom'],
+          data['basePrice'].toDouble(),
+          data['currency'],
+          data['auto']==1,
+          data['disc'].toDouble(),
+          data['price'].toDouble(),
+          data['cmpCode']
+        );
+        await itempriceBox.put('$plCode$itemCode', newPriceItem);
+      } else {
+        var updatedPriceItem = ItemsPrices(
+          plCode,
+          itemCode,
+          data['uom'],
+          data['basePrice'].toDouble(),
+          data['currency'],
+          data['auto']==1,
+          data['disc'].toDouble(),
+          data['price'].toDouble(),
+          data['cmpCode']
+        );
+        await itempriceBox.put('$plCode$itemCode', updatedPriceItem);
+      }
     }
 
-Set<String> firestorePriceItemKeys =
-        Set.from(firestoreItemPrice.map((doc) => '${doc['plCode']}${doc['itemCode']}'));
+    // Check for price items in Hive that don't exist in the fetched data and delete them
+    Set<String> fetchedPriceItemKeys = Set.from(itemPricesData.map((data) => '${data['plCode']}${data['itemCode']}'));
     Set<String> hivePriceItemKeys = Set.from(itempriceBox.keys);
 
-    // Identify items in Hive that don't exist in Firestore
-    Set<String> itemsToDelete = hivePriceItemKeys.difference(firestorePriceItemKeys);
+    // Identify price items in Hive that don't exist in the fetched data
+    Set<String> priceItemsToDelete = hivePriceItemKeys.difference(fetchedPriceItemKeys);
 
-    // Delete items in Hive that don't exist in Firestore
-    itemsToDelete.forEach((hivePriceItemKey) {
+    // Delete price items in Hive that don't exist in the fetched data
+    priceItemsToDelete.forEach((hivePriceItemKey) {
       itempriceBox.delete(hivePriceItemKey);
     });
-
   } catch (e) {
-    print('Error synchronizing ItemPrices from Firebase to Hive: $e');
+    print('Error synchronizing ItemPrices from API to Hive: $e');
   }
 }
 
-
-
-//-------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
 
 
 
@@ -4550,79 +4617,92 @@ Future<void> _synchronizeCustomerPropCategSpecialPrice(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+Future<List<Map<String, dynamic>>> _fetchPriceListAuthoData() async {
+  List<Map<String, dynamic>> priceListAuthoData = [];
+  try {
+    // Make an HTTP request to fetch price list authorization data
+    final response = await http.get(Uri.parse('${apiurl}getPriceListAutho'));
+    if (response.statusCode == 200) {
+      // Parse the response body
+      List<dynamic> responseData = jsonDecode(response.body);
+      // Add each item to the priceListAuthoData list
+      for (var data in responseData) {
+        if (data is Map<String, dynamic>) {
+          priceListAuthoData.add(data);
+        }
+      }
+    } else {
+      print('Failed to retrieve price list authorization data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching price list authorization data: $e');
+  }
+  return priceListAuthoData;
+}
 
 Future<void> synchronizeDataPriceListsAutho() async {
-    try {
-      // Fetch data from Firestore
-      var firestoreItems = await _firestore.collection('PriceListAuthorization').get();
-
-      // Open Hive boxes
-      var pricelistsauthoBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
-      // Open other boxes if needed
-
-      // Synchronize data
-      await _synchronizePriceListAutho(firestoreItems.docs, pricelistsauthoBox);
-      // Synchronize other data if needed
-
-      // Close Hive boxes
-      //await pricelistsBox.close();
-      // Close other boxes if needed
-    } catch (e) {
-      print('Error synchronizing data from Firebase to Hive: $e');
-    }
-  }
-
- Future<void> _synchronizePriceListAutho(
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> firestorePriceLists,
-  Box<PriceListAuthorization> pricelistsBox,
-) async {
   try {
-    // Iterate over Firestore documents
-    for (var doc in firestorePriceLists) {
-      var userCode = doc['userCode'];
-      var cmpCode = doc['cmpCode'];
-      var authoGroup = doc['authoGroup'];
-      // Check if the item exists in Hive
-      var hivePrice = pricelistsBox.get('$userCode$cmpCode$authoGroup');
+    // Fetch data from the API endpoint
+    List<Map<String, dynamic>> priceListAuthoData = await _fetchPriceListAuthoData();
 
-      // If the item doesn't exist in Hive, add it
-      if (hivePrice == null) {
-        var newPrice = PriceListAuthorization(
-             userCode : doc['userCode'],
-             cmpCode : doc['cmpCode'],
-            authoGroup: doc['authoGroup'],
-        );
-        await pricelistsBox.put('$userCode$cmpCode$authoGroup', newPrice);
-      }
-      // If the item exists in Hive, update it if needed
-      else {
-        var updatedPrice = PriceListAuthorization(
-        userCode : doc['userCode'],
-             cmpCode : doc['cmpCode'],
-            authoGroup: doc['authoGroup'],
-        );
-        // Update the item in Hive
-        await pricelistsBox.put('$userCode$cmpCode$authoGroup', updatedPrice);
-      }
-    }
+    // Open Hive box
+    var pricelistsauthoBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
 
-    // Check for items in Hive that don't exist in Firestore and delete them
-Set<String> firestorePriceCodes = Set.from(firestorePriceLists.map((doc) => '${doc['userCode']}${doc['cmpCode']}${doc['authoGroup']}'));
-Set<String> hivePriceCodes = Set.from(pricelistsBox.keys);
+    // Synchronize data
+    await _synchronizePriceListAutho(priceListAuthoData, pricelistsauthoBox);
 
-// Identify items in Hive that don't exist in Firestore
-Set<String> itemsToDelete = hivePriceCodes.difference(firestorePriceCodes);
-
-// Delete items in Hive that don't exist in Firestore
-itemsToDelete.forEach((hivePriceCode) {
-  pricelistsBox.delete(hivePriceCode);
-});
-
-
+    // Close Hive box
+    await pricelistsauthoBox.close();
   } catch (e) {
-    print('Error synchronizing PricesList Authorization from Firebase to Hive: $e');
+    print('Error synchronizing data from API to Hive for price list authorizations: $e');
   }
 }
+Future<void> _synchronizePriceListAutho(
+  List<Map<String, dynamic>> priceListAuthoData,
+  Box<PriceListAuthorization> priceListAuthoBox,
+) async {
+  try {
+    for (var data in priceListAuthoData) {
+      var userCode = data['usercode'];
+      var cmpCode = data['cmpCode'];
+      var authoGroup = data['authoGroup'];
+      var key = '$userCode$cmpCode$authoGroup';
+
+      var hivePrice = priceListAuthoBox.get(key);
+
+      if (hivePrice == null) {
+        var newPrice = PriceListAuthorization(
+          userCode: data['userCode'],
+          cmpCode: data['cmpCode'],
+          authoGroup: data['authoGroup']
+        );
+        await priceListAuthoBox.put(key, newPrice);
+      } else {
+        var updatedPrice = PriceListAuthorization(
+          userCode: data['userCode'],
+          cmpCode: data['cmpCode'],
+          authoGroup: data['authoGroup']
+        );
+        await priceListAuthoBox.put(key, updatedPrice);
+      }
+    }
+
+    // Check for price lists in Hive that don't exist in the fetched data and delete them
+    Set<String> fetchedPriceAuthoKeys = Set.from(priceListAuthoData.map((data) => '${data['userCode']}${data['cmpCode']}${data['authoGroup']}'));
+    Set<String> hivePriceAuthoKeys = Set.from(priceListAuthoBox.keys);
+
+    // Identify price lists in Hive that don't exist in the fetched data
+    Set<String> priceAuthoToDelete = hivePriceAuthoKeys.difference(fetchedPriceAuthoKeys);
+
+    // Delete price lists in Hive that don't exist in the fetched data
+    priceAuthoToDelete.forEach((key) {
+      priceListAuthoBox.delete(key);
+    });
+  } catch (e) {
+    print('Error synchronizing PriceListAuthorization data from API to Hive: $e');
+  }
+}
+
 
 
 //-------------------------------------------------------------------------------------------------

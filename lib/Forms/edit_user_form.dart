@@ -192,6 +192,14 @@ defaultCompanyCode=company.cmpCode;
 
     // Fetch price list based on the selected user group
     var priceListBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
+    var khara=priceListBox.values.toList();
+    print('koooooo');
+    for(var l in khara){
+      print(l.cmpCode);
+      print(l.userCode);
+      print(l.authoGroup);
+    }
+    print('ehoecojcw');
     List<String> priceList = priceListBox.values
         .where((pricelist) => pricelist.userCode == selectedUserGroup)
         .map((pricelist) {
@@ -209,6 +217,9 @@ defaultCompanyCode=company.cmpCode;
     setState(() {
       // Update the price list dropdown
       selectedPriceList = priceList.map((authoGroup) => '$authoGroup').toList();
+      print(selectedPriceList);
+      print('hiiiiiiii');
+      print(priceList.toList());
     });
   } catch (e) {
     print('Error fetching sales employees and companies: $e');
