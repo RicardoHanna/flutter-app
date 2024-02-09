@@ -166,16 +166,18 @@ Future<void> fetchSalesEmployeesAndCompanies(String selectedUserGroup) async {
 
     // Fetch companies based on the selected user group
     var companiesBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+
     List<String> companyList = companiesBox.values
-        .where((company) => company.userCode == selectedUserGroup)
-         .map((company) {
+        .where((companyuser) => companyuser.userCode == selectedUserGroup)
+         .map((companyuser) {
           // Retrieve cmpName based on cmpCode from the Companies box
           var companiesBox = Hive.box<Companies>('companiesBox');
    
           Companies company = companiesBox.values
-              .firstWhere((company) => company.cmpCode == company.cmpCode,
+              .firstWhere((company) => company.cmpCode == companyuser.cmpCode,
               orElse: () => Companies(cmpCode:'', cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: ''));
 defaultCompanyCode=company.cmpCode;
+
           return '${company.cmpName}';
         })
         .toList();
@@ -183,11 +185,21 @@ defaultCompanyCode=company.cmpCode;
       // Update the companies dropdown
       selectedCompanies = companyList;
       defaultCompanyCode=defaultCompanyCode;
+    
       print(selectedCompanies);
+      print(defaultCompanyCode);
     });
 
     // Fetch price list based on the selected user group
     var priceListBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
+    var khara=priceListBox.values.toList();
+    print('koooooo');
+    for(var l in khara){
+      print(l.cmpCode);
+      print(l.userCode);
+      print(l.authoGroup);
+    }
+    print('ehoecojcw');
     List<String> priceList = priceListBox.values
         .where((pricelist) => pricelist.userCode == selectedUserGroup)
         .map((pricelist) {
@@ -205,6 +217,9 @@ defaultCompanyCode=company.cmpCode;
     setState(() {
       // Update the price list dropdown
       selectedPriceList = priceList.map((authoGroup) => '$authoGroup').toList();
+      print(selectedPriceList);
+      print('hiiiiiiii');
+      print(priceList.toList());
     });
   } catch (e) {
     print('Error fetching sales employees and companies: $e');
@@ -583,7 +598,7 @@ Widget _buildTextFieldDropDownSalesEmployees() {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.selectCompany,
+                  AppLocalizations.of(context)!.selectSalesEmployees,
                   style: _appTextStyle,
                 ),
                 SizedBox(height: 8.0),
@@ -670,7 +685,7 @@ Widget _buildTextFieldDropDownCompanies() {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.selectSalesEmployees,
+                  AppLocalizations.of(context)!.selectCompany,
                   style: _appTextStyle,
                 ),
                 SizedBox(height: 8.0),

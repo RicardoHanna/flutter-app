@@ -246,7 +246,7 @@ let queryCustomerPropGroupSpecialPrice='';let queryCustomerPropCategSpecialPrice
     FROM CustomerAttachments`;
 
 
-      queryCustomerItemsSpecialPrice = `
+    /*   queryCustomerItemsSpecialPrice = `
     SELECT 
       LTRIM(RTRIM(cmpCode)) AS cmpCode,
       LTRIM(RTRIM(custCode)) AS custCode,
@@ -260,7 +260,7 @@ let queryCustomerPropGroupSpecialPrice='';let queryCustomerPropCategSpecialPrice
       LTRIM(RTRIM(notes)) AS notes
     FROM CustomerItemsSpecialPrice`;
 
-        queryCustomerBrandSpecialPrice = `
+       queryCustomerBrandSpecialPrice = `
     SELECT 
       LTRIM(RTRIM(cmpCode)) AS cmpCode,
       LTRIM(RTRIM(custCode)) AS custCode,
@@ -372,7 +372,7 @@ let queryCustomerPropGroupSpecialPrice='';let queryCustomerPropCategSpecialPrice
       LTRIM(RTRIM(categCode)) AS categCode,
       disc,
       LTRIM(RTRIM(notes)) AS notes
-    FROM CustomerPropCategSpecialPrice`;
+    FROM CustomerPropCategSpecialPrice`;*/
       }
 
       if(systemTables==='System' || selectAllTables === 'selectall'){
@@ -484,7 +484,7 @@ queryCustGroups = `
       notes
     FROM PaymentTerms`;
 
- querySalesEmployees = `
+ /*querySalesEmployees = `
     SELECT 
       LTRIM(RTRIM(cmpCode)) AS cmpCode,
       LTRIM(RTRIM(seCode)) AS seCode,
@@ -558,7 +558,7 @@ queryCustGroups = `
       LTRIM(RTRIM(userCode)) AS userCode,
       LTRIM(RTRIM(seCode)) AS seCode,
       notes
-    FROM UsersSalesEmployees`;
+    FROM UsersSalesEmployees`;*/
       }
 
       // Add other tables as needed

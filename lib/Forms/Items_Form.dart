@@ -17,6 +17,7 @@ import 'package:project/hive/adminsubmenu_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/itemuom_hive.dart';
+import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/salesemployeesitems_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/userssalesemployees_hive.dart';
@@ -187,13 +188,13 @@ Future<void> insertSampleData() async {
 }
 
 Future<void> printUserDataTranslations() async {
- var itemsBox = await Hive.openBox<ItemUOM>('itemuom');
+ var itemsBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
 
     print('Printing Users:');
     for (var item in itemsBox.values) {
-      print('Username: ${item.itemCode}');
-      print('Email: ${item.uom}');
-      print('Email: ${item.cmpCode}');
+      print('Username: ${item.cmpCode}');
+      print('Email: ${item.userCode}');
+      print('Email: ${item.authoGroup}');
       print('-------------------------');
     }
   // Open 'translationsBox' for Translations
@@ -334,7 +335,7 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
     if (snapshot.connectionState == ConnectionState.waiting) {
       return CircularProgressIndicator();
     } else if (snapshot.hasError) {
-      return Text('Error: ${snapshot.error}');
+      return Text('No data found');
     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
       return Text('No items found');
     } else {

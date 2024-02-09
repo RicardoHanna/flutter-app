@@ -88,14 +88,14 @@ if (hasAccess) {
       await _synchronizeData();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Data is synchronized!', style: _appTextStyle),
+          content: Text(AppLocalizations.of(context)!.dataissynchronized, style: _appTextStyle),
         ),
       );
     } else {
       // No internet connection
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No internet connection. Data will be synchronized when online.', style: _appTextStyle),
+          content: Text(AppLocalizations.of(context)!.nointernetconnectionDatawillbesynchronizedwhenonline, style: _appTextStyle),
         ),
       );
     }
