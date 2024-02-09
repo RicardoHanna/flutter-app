@@ -560,17 +560,6 @@ class _welcomePageState extends State<welcomePage> {
                                     ),
                                   ),
                                 );
-                                // return AlertDialog(
-                                //   backgroundColor: Colors.transparent,
-                                //   content: ClipOval(
-                                //     child: CircleAvatar(
-                                //       backgroundImage: NetworkImage(userData['imageLink']),
-                                //       // child: Image.network(
-                                //       //   userData['imageLink'],
-                                //       // ),
-                                //     ),
-                                //   ),
-                                // );
                               },
                             );
                           },
@@ -583,34 +572,6 @@ class _welcomePageState extends State<welcomePage> {
                       }
                     },
                   ),
-                  // FutureBuilder<Uint8List?>(
-                  //   future: _loadProfilePicturePath(),
-                  //   builder: (context, snapshot) {
-                  //     if (snapshot.connectionState == ConnectionState.waiting) {
-                  //       return CircularProgressIndicator(
-                  //         valueColor:
-                  //             AlwaysStoppedAnimation<Color>(Colors.white),
-                  //       );
-                  //     } else if (snapshot.hasError) {
-                  //       return CircleAvatar(
-                  //         radius: 80,
-                  //         backgroundImage: NetworkImage(
-                  //             'https://png.pngitem.com/pimgs/s/421-4212266_transparent-default-avatar-png-default-avatar-images-png.png'),
-                  //       );
-                  //     } else if (snapshot.data != null) {
-                  //       return CircleAvatar(
-                  //         radius: 80,
-                  //         backgroundImage: MemoryImage(snapshot.data!),
-                  //       );
-                  //     } else {
-                  //       return CircleAvatar(
-                  //         radius: 80,
-                  //         backgroundImage: NetworkImage(
-                  //             'https://png.pngitem.com/pimgs/s/421-4212266_transparent-default-avatar-png-default-avatar-images-png.png'),
-                  //       );
-                  //     }
-                  //   },
-                  // ),
                   Positioned(
                     bottom: -10,
                     left: 52,
@@ -822,6 +783,8 @@ class _welcomePageState extends State<welcomePage> {
                     leading: Icon(iconData[data[index]]),
                     onTap: () {
                       Widget? formWidget = formWidgets[data[index]];
+                      print("################################################################################################");
+                      print(data);
                       if (formWidget != null) {
                         Navigator.push(
                           context,

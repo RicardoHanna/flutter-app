@@ -43,6 +43,8 @@ class _ImportFormState extends State<ImportForm> {
   String companyCode = '';
   String connectionID = '';
 
+  String baseUrl = 'http://5.189.188.139:443/api';
+
   @override
   void initState() {
     super.initState();
@@ -53,7 +55,6 @@ class _ImportFormState extends State<ImportForm> {
   Future<void> waitingGetCmpCode() async {
     await getCompaniesConnectionId(widget.usercode);
     print(connectionID);
-
   }
 
   Future<String?> getCompaniesConnectionId(String usercode) async {
@@ -109,25 +110,58 @@ class _ImportFormState extends State<ImportForm> {
   }
 
   final String serverUrl = 'https://hicd.onrender.com';
-
   Future<void> importData() async {
-    TextStyle _appTextStyle =
-        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
 
-    // Create a Map to hold the data you want to send in the body
-    Map<String, dynamic> requestBody = {
-      'connectionID': connectionID,
-      'itemTable': itemTable,
-      'priceListsTable': priceListsTable,
-      'selectAllTables': selectAllTables,
-      'customersTable': customersTables,
-      'systemTables': systemTables,
-    };
+  // Create a Map to hold the data you want to send in the body
+  Map<String, dynamic> requestBody = {
+    'connectionID': connectionID,
+    'itemTable': itemTable,
+    'priceListsTable': priceListsTable,
+    'selectAllTables': selectAllTables,
+    'customersTable': customersTables,
+    'systemTables': systemTables,
+  };
 
+  final response = await http.post(
+    Uri.parse('$serverUrl/importData'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode(requestBody),
+  );
+
+  if (response.statusCode == 200) {
+    print('Data migration complete');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Data synchronized successfully', style: _appTextStyle),
+      ),
+    );
+  } else {
+    print('Failed to import data. Status code: ${response.statusCode}');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to import data. Status code: ${response.statusCode}', style: _appTextStyle),
+      ),
+    );
+  }
+}
+
+  Future<void> importCustomersData() async {
+  TextStyle _appTextStyle =
+      TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+
+  // defaul cmpcode from cmpuser
+  // system admin id companies
+  // configuration companiesconnection
+
+  String? connectionID = await getCompaniesConnectionId(widget.usercode);
+
+
+  try {
     final response = await http.post(
-      Uri.parse('$serverUrl/importData'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(requestBody),
+      Uri.parse('http://5.189.188.139:443/api/ImportCustomersDataFromERP'),
+      body: {'connectionID':connectionID}
     );
 
     if (response.statusCode == 200) {
@@ -139,6 +173,7 @@ class _ImportFormState extends State<ImportForm> {
       );
     } else {
       print('Failed to import data. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -148,7 +183,18 @@ class _ImportFormState extends State<ImportForm> {
         ),
       );
     }
+  } catch (e) {
+    print('Error during data import: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error during data import: $e', style: _appTextStyle),
+      ),
+    );
   }
+}
+
+
+
 
   bool _importItems = false;
   bool _importPriceLists = false;
@@ -164,8 +210,11 @@ class _ImportFormState extends State<ImportForm> {
   bool _selectAll = false;
   bool _loading = false; // Track loading state
 
-  bool isThereData(){
-    if(_importCustomers==false&&_importSystem==false&&_importPriceLists==false&&_importItems==false){
+  bool isThereData() {
+    if (_importCustomers == false &&
+        _importSystem == false &&
+        _importPriceLists == false &&
+        _importItems == false) {
       return false;
     }
     return true;
@@ -227,34 +276,48 @@ class _ImportFormState extends State<ImportForm> {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     if (widget.title == AppLocalizations.of(context)!.importFromErpToMobile) {
-      return isThereData()? ElevatedButton(
-        onPressed: () async {
-          LoadingHelper.configureLoading();
-          LoadingHelper.showLoading(); // Show loading indicator
-          await importData();
-          LoadingHelper.dismissLoading(); // Dismiss loading indicator
-        },
-        style: ButtonStyle(
-          fixedSize: MaterialStateProperty.all(
-              Size(280, 10)), // Set the width and height
-        ),
-        child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
-      ):SizedBox(width: 0,height: 0,);
+      return isThereData()
+          ? ElevatedButton(
+              onPressed: () async {
+                LoadingHelper.configureLoading();
+                LoadingHelper.showLoading(); // Show loading indicator
+                if(_importCustomers){
+                  await importCustomersData();
+                }
+                LoadingHelper.dismissLoading(); // Dismiss loading indicator
+              },
+              style: ButtonStyle(
+                fixedSize: MaterialStateProperty.all(
+                    Size(280, 10)), // Set the width and height
+              ),
+              child: Text(AppLocalizations.of(context)!.import,
+                  style: _appTextStyle),
+            )
+          : SizedBox(
+              width: 0,
+              height: 0,
+            );
     } else if (widget.title ==
         AppLocalizations.of(context)!.importFromBackendToMobile) {
-      return isThereData()?ElevatedButton(
-        onPressed: () async {
-          LoadingHelper.configureLoading();
-          LoadingHelper.showLoading(); // Show loading indicator
-          await _synchronizeAll();
-          LoadingHelper.dismissLoading(); // Dismiss loading indicator
-        },
-        style: ButtonStyle(
-          fixedSize: MaterialStateProperty.all(
-              Size(280, 10)), // Set the width and height
-        ),
-        child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
-      ):SizedBox(width: 0,height: 0,);
+      return isThereData()
+          ? ElevatedButton(
+              onPressed: () async {
+                LoadingHelper.configureLoading();
+                LoadingHelper.showLoading(); // Show loading indicator
+                await _synchronizeAll();
+                LoadingHelper.dismissLoading(); // Dismiss loading indicator
+              },
+              style: ButtonStyle(
+                fixedSize: MaterialStateProperty.all(
+                    Size(280, 10)), // Set the width and height
+              ),
+              child: Text(AppLocalizations.of(context)!.import,
+                  style: _appTextStyle),
+            )
+          : SizedBox(
+              width: 0,
+              height: 0,
+            );
     } else {
       return Container(); // Placeholder for other scenarios
     }
@@ -389,6 +452,7 @@ class _ImportFormState extends State<ImportForm> {
     }
   }
 
+  //Error Handling Done
   Future<void> _synchronizeItems() async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
@@ -404,48 +468,167 @@ class _ImportFormState extends State<ImportForm> {
     List<String> categCode = await synchronizer.retrieveItemCateg(seCodes);
     List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
 
+    bool check = true;
     // Step 3: Synchronize items based on the retrieved itemCodes
-    await synchronizer.synchronizeData(itemCodes);
-    await synchronizer.synchronizeDataItemAttach(itemCodes);
-    await synchronizer.synchronizeDataItemBrand(brandCode);
-    await synchronizer.synchronizeDataItemCateg(categCode);
-    await synchronizer.synchronizeDataItemGroup(groupCode);
-    await synchronizer.synchronizeDataItemPrice(itemCodes);
-    await synchronizer.synchronizeDataItemUOM(itemCodes);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          AppLocalizations.of(context)!.itemssynchronizedsuccessfully,
-          style: _appTextStyle,
+    String errorSynchronizeData = await synchronizer.synchronizeData(itemCodes);
+    if (errorSynchronizeData != '') {
+      check = false;
+      String err =
+          'Error in table while synchroinizng plz check your table Items';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+
+    String errorsynchronizeDataItemAttach =
+        await synchronizer.synchronizeDataItemAttach(itemCodes);
+    if (errorsynchronizeDataItemAttach != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table ItemAttach';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+
+    String errorsynchronizeDataItemBrand =
+        await synchronizer.synchronizeDataItemBrand(brandCode);
+    if (errorsynchronizeDataItemBrand != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table ItemBrand';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+
+    String errorsynchronizeDataItemCateg =
+        await synchronizer.synchronizeDataItemCateg(categCode);
+    if (errorsynchronizeDataItemCateg != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table ItemCateg';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+
+    String errprsynchronizeDataItemGroup =
+        await synchronizer.synchronizeDataItemGroup(groupCode);
+    if (errprsynchronizeDataItemGroup != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table ItemGroup';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+
+    String errorsynchronizeDataItemPrice =
+        await synchronizer.synchronizeDataItemPrice(itemCodes);
+    if (errorsynchronizeDataItemPrice != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table ItemPrice';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+
+    String errorsynchronizeDataItemUOM =
+        await synchronizer.synchronizeDataItemUOM(itemCodes);
+    if (errorsynchronizeDataItemUOM != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table ItemUOM';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+
+    if (check) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.itemssynchronizedsuccessfully,
+            style: _appTextStyle,
+          ),
         ),
-      ),
-    );
+      );
+    }
     print('Items synchronized successfully');
   }
 
+  //Error Handling Done
   Future<void> _synchronizePriceLists() async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+
     DataSynchronizerFromFirebaseToHive synchronizer =
         DataSynchronizerFromFirebaseToHive();
+
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
     List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
+
     print(itemCodes.toList());
+
     List<String> priceListsCodes =
         await synchronizer.retrievePriceList(itemCodes);
     print(priceListsCodes.toList());
-    await synchronizer.synchronizeDataPriceLists(priceListsCodes);
-    await synchronizer.synchronizeDataPriceListsAutho();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          AppLocalizations.of(context)!.pricelistsynchronizedsuccessfully,
-          style: _appTextStyle,
+
+    bool check = true;
+    String errorsynchronizeDataPriceLists =
+        await synchronizer.synchronizeDataPriceLists(priceListsCodes);
+    if (errorsynchronizeDataPriceLists != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table PriceLists';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+    String errorsynchronizeDataPriceListsAutho =
+        await synchronizer.synchronizeDataPriceListsAutho();
+    if (errorsynchronizeDataPriceListsAutho != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table PriceListsAutho';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+
+    if (check) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.pricelistsynchronizedsuccessfully,
+            style: _appTextStyle,
+          ),
         ),
-      ),
-    );
+      );
+    }
+
     print('PriceLists synchronized successfully');
   }
 
@@ -462,18 +645,50 @@ class _ImportFormState extends State<ImportForm> {
     List<String> categCode = await synchronizer.retrieveItemCateg(seCodes);
     List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
 
-    await synchronizer.synchronizeDataUser();
-    await synchronizer.synchronizeDataUserGroup();
-    await synchronizer.synchronizeDataUserGroupTranslations();
-    await synchronizer.synchronizeDataAuthorization();
-    await synchronizer.synchronizeDataMenu();
-    await synchronizer.synchronizeDataGeneralSettings();
-    await synchronizer.synchronizeCompanies();
-    await synchronizer.synchronizeDepartements();
-    await synchronizer.synchronizeExchangeRates();
-    await synchronizer.synchronizeCurrencies();
-    await synchronizer.synchronizeVATGroups();
-    await synchronizer.synchronizeCustGroups();
+    bool check = true;
+
+    String errorsynchronizeDataUser = await synchronizer.synchronizeDataUser();
+    if (errorsynchronizeDataUser != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table User';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+    String errorsynchronizeDataUserGroup = await synchronizer.synchronizeDataUserGroup();
+    if (errorsynchronizeDataUserGroup != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table UserGroup';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+    String errorsynchronizeDataUserGroupTranslations = await synchronizer.synchronizeDataUserGroupTranslations();
+    if (errorsynchronizeDataUserGroupTranslations != '') {
+      check = false;
+      String err =
+          'Error in Table While synchroinizng Plz Check your table UserGroupTranslations';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        err,
+        style: _appTextStyle,
+      )));
+    }
+    String errorsynchronizeDataAuthorization = await synchronizer.synchronizeDataAuthorization();
+    String errorsynchronizeDataMenu = await synchronizer.synchronizeDataMenu();
+    String errorsynchronizeDataGeneralSettings = await synchronizer.synchronizeDataGeneralSettings();
+    String errorsynchronizeCompanies = await synchronizer.synchronizeCompanies();
+    String errorsynchronizeDepartements = await synchronizer.synchronizeDepartements();
+    String errorsynchronizeExchangeRates = await synchronizer.synchronizeExchangeRates();
+    String errorsynchronizeCurrencies = await synchronizer.synchronizeCurrencies();
+    String errorsynchronizeVATGroups = await synchronizer.synchronizeVATGroups();
+    String errorsynchronizeCustGroups = await synchronizer.synchronizeCustGroups();
 
     await synchronizer.synchronizeCustProperties();
     await synchronizer.synchronizeRegions();
@@ -493,14 +708,16 @@ class _ImportFormState extends State<ImportForm> {
     await synchronizer.synchronizeDataCompaniesConnection();
     await synchronizer.synchronizeDataCompaniesUsers();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          AppLocalizations.of(context)!.systemsynchronizedsuccessfully,
-          style: _appTextStyle,
+    if (check) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.systemsynchronizedsuccessfully,
+            style: _appTextStyle,
+          ),
         ),
-      ),
-    );
+      );
+    }
     print('System synchronized successfully');
   }
 
