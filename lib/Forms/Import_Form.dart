@@ -464,7 +464,7 @@ child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
     await synchronizer.synchronizeDataMenu();
     await synchronizer.synchronizeDataGeneralSettings();
     await synchronizer.synchronizeCompanies();
-    await synchronizer.synchronizeDepartements();
+    // await synchronizer.synchronizeDepartements();
     await synchronizer.synchronizeExchangeRates();
     await synchronizer.synchronizeCurrencies();
      await synchronizer.synchronizeVATGroups();
@@ -477,7 +477,7 @@ child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
      await synchronizer.synchronizeSalesEmployees(seCodes);
       await synchronizer.synchronizeSalesEmployeesCustomers(seCodes);
 
-          await synchronizer.synchronizeSalesEmployeesDepartements(seCodes);
+          // await synchronizer.synchronizeSalesEmployeesDepartements(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsBrands(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsCategories(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsGroups(seCodes);
