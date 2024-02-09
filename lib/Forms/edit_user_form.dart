@@ -192,14 +192,8 @@ defaultCompanyCode=company.cmpCode;
 
     // Fetch price list based on the selected user group
     var priceListBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
-    var khara=priceListBox.values.toList();
-    print('koooooo');
-    for(var l in khara){
-      print(l.cmpCode);
-      print(l.userCode);
-      print(l.authoGroup);
-    }
-    print('ehoecojcw');
+
+  
     List<String> priceList = priceListBox.values
         .where((pricelist) => pricelist.userCode == selectedUserGroup)
         .map((pricelist) {
@@ -744,7 +738,15 @@ Widget _buildTextFieldDropDownPriceListAutho() {
         if (snapshot.connectionState == ConnectionState.done) {
           var priceListsBox = snapshot.data![0] as Box<PriceList>;
           var companyBox = snapshot.data![1] as Box<Companies>;
-
+print(priceListsBox.values.toList());
+print(companyBox.values.toList());
+for(var l in companyBox.values.toList()){
+  print(l.cmpCode);
+}
+for(var y in priceListsBox.values.toList()){
+  print(y.cmpCode);
+  print(y.authoGroup);
+}
           List<String> priceList = priceListsBox.values
               .map((pricelist) {
                 Companies company = companyBox.values

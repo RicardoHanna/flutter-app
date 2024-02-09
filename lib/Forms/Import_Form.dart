@@ -411,12 +411,12 @@ child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
   await synchronizer.synchronizeData(itemCodes);
     await synchronizer.synchronizeDataItemPrice(itemCodes);
     
-  /*await synchronizer.synchronizeDataItemAttach(itemCodes);
+  await synchronizer.synchronizeDataItemAttach(itemCodes);
     await synchronizer.synchronizeDataItemBrand(brandCode);
     await synchronizer.synchronizeDataItemCateg(categCode);
     await synchronizer.synchronizeDataItemGroup(groupCode);
   
-    await synchronizer.synchronizeDataItemUOM(itemCodes);*/
+    await synchronizer.synchronizeDataItemUOM(itemCodes);
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(AppLocalizations.of(context)!.itemssynchronizedsuccessfully, style: _appTextStyle,),
@@ -464,7 +464,7 @@ child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
     await synchronizer.synchronizeDataMenu();
     await synchronizer.synchronizeDataGeneralSettings();
     await synchronizer.synchronizeCompanies();
-    await synchronizer.synchronizeDepartements();
+    await synchronizer.synchronizeDepartments();
     await synchronizer.synchronizeExchangeRates();
     await synchronizer.synchronizeCurrencies();
      await synchronizer.synchronizeVATGroups();
@@ -477,7 +477,7 @@ child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
      await synchronizer.synchronizeSalesEmployees(seCodes);
       await synchronizer.synchronizeSalesEmployeesCustomers(seCodes);
 
-          await synchronizer.synchronizeSalesEmployeesDepartements(seCodes);
+          await synchronizer.synchronizeSalesEmployeesDepartments(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsBrands(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsCategories(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsGroups(seCodes);
