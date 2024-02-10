@@ -98,12 +98,18 @@ Future <void> loadawait() async {
   }
 
     Future<void> printUserMenu() async {
+      print('ssccscs');
+      print(widget.identifier);
+      print(widget.email);
+      print(widget.password);
  var itemsBox = await Hive.openBox<Authorization>('authorizationBox');
-  var itemspriceBox = await Hive.openBox<ItemsPrices>('itemprices');
+  var itemspriceBox = await Hive.openBox('userBox');
    print('Printing Users wdsdsd:');
     for (var item in itemspriceBox.values) {
-      print('Username: ${item.plCode}');
-      print('Email: ${item.price}');
+      print('Username: ${item['active']}');
+      print('Email: ${item['email']}');
+          print('Email: ${item['password']}');
+              print('Email: ${item['usercode']}');
 }
     print('Printing Users Authooo:');
     for (var item in itemsBox.values) {
@@ -201,16 +207,21 @@ Future<void> printUserDataTranslations() async {
   }
 
 Future<void> _loadDefaultCompanyCode() async {
+
     try {
       var companiesUsersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
 
       var companiesUser = companiesUsersBox.values.firstWhere((element) => element.userCode==usercode);
+      print('ooooop');
       if (companiesUser != null) {
+        print('lloooo');
         setState(() {
           // Set the selected company and its code based on the default company code
-          selectedCompanyCode = companiesUser.defaultcmpCode;
-          companyCodeDefltPassedToPages=selectedCompanyCode;
-          selectedCompany = companies.firstWhere((company) => company.cmpCode == selectedCompanyCode).cmpName;
+          selectedCompanyCode = companiesUser.defaultcmpCode??'';
+          companyCodeDefltPassedToPages=selectedCompanyCode??'';
+          selectedCompany = companies.firstWhere((company) => company.cmpCode == selectedCompanyCode).cmpName??'';
+          print('ricop');
+          print(selectedCompany);
         });
       }
     } catch (error) {
@@ -518,7 +529,7 @@ languageUser=_username!;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: Text(selectedCompany!,style: _appTextStyleAppBar,),
+        title: Text(selectedCompany??'',style: _appTextStyleAppBar,),
       ),
      drawer:Drawer(
   child: ListView(

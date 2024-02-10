@@ -182,7 +182,7 @@ Future<List<Map<String, dynamic>>> _fetchItemsData(List<String> itemCodes) async
             data['brand'],
             data['manageBy'],
             data['vatRate'].toDouble(),
-            data['active']==1,
+          data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
             data['weight'].toDouble(),
             data['charect1'],
             data['charact2'],
@@ -207,7 +207,7 @@ Future<List<Map<String, dynamic>>> _fetchItemsData(List<String> itemCodes) async
             data['brand'],
             data['manageBy'],
             data['vatRate'].toDouble(),
-            data['active']==1,
+          data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
             data['weight'].toDouble(),
             data['charect1'],
             data['charact2'],
@@ -322,7 +322,7 @@ Future<void> _synchronizePriceList(
           data['currency'],
           data['basePL'],
           data['factor'].toDouble(),
-          data['incVAT']==1,
+          data['incVAT']== 1 ? true : false, // Convert Tinyint to Boolean
           data['securityGroup'],
           data['cmpCode'],
           data['authoGroup']
@@ -335,7 +335,7 @@ Future<void> _synchronizePriceList(
           data['currency'],
           data['basePL'],
           data['factor'].toDouble(),
-          data['incVAT']==1,
+          data['incVAT']== 1 ? true : false, // Convert Tinyint to Boolean
           data['securityGroup'],
           data['cmpCode'],
           data['authoGroup']
@@ -434,7 +434,7 @@ Future<void> _synchronizeItemPrice(
           data['uom'],
           data['basePrice'].toDouble(),
           data['currency'],
-          data['auto']==1,
+          data['auto']== 1 ? true : false, // Convert Tinyint to Boolean
           data['disc'].toDouble(),
           data['price'].toDouble(),
           data['cmpCode']
@@ -447,7 +447,7 @@ Future<void> _synchronizeItemPrice(
           data['uom'],
           data['basePrice'].toDouble(),
           data['currency'],
-          data['auto']==1,
+          data['auto']== 1 ? true : false, // Convert Tinyint to Boolean
           data['disc'].toDouble(),
           data['price'].toDouble(),
           data['cmpCode']
@@ -1217,7 +1217,6 @@ Future<void> synchronizeDataUser() async {
   }
 }
 
-
 Future<void> _synchronizeUsers(
   List<Map<String, dynamic>> userData,
 ) async {
@@ -1236,6 +1235,12 @@ Future<void> _synchronizeUsers(
     // Iterate over API response
     for (var data in userData) {
       var usercode = data['usercode'];
+
+      // Convert the active field to a boolean
+      bool active = data['active'] == 1 ? true : false;
+
+      // Update the data with the converted active field
+      data['active'] = active;
 
       // If the user code doesn't exist in Hive, add it
       if (!hiveUserCodes.contains(usercode)) {
@@ -1670,7 +1675,7 @@ Future<void> synchronizeIESubMenu(int menucode, List<dynamic> subSyncData, Box<S
           syncronizearname: subMenu['syncronizearname'],
         );
         // Update the item in Hive
-        await syncGroupBox.put(syncGroupBox, updatedGroup);
+        await syncGroupBox.put(syncronizecode, updatedGroup);
       }
     }
   } catch (e) {
@@ -1682,8 +1687,8 @@ Future<void> synchronizeIESubMenu(int menucode, List<dynamic> subSyncData, Box<S
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<List<Map<String, dynamic>>> _fetchAuthorizationData() async {
-  List<Map<String, dynamic>> authorizationData = [];
+Future<List<Map<int, dynamic>>> _fetchAuthorizationData() async {
+  List<Map<int, dynamic>> authorizationData = [];
   try {
     // Perform HTTP GET request to fetch authorization data from the API endpoint
     final response = await http.get(Uri.parse('${apiurl}getAuthorization'));
@@ -1692,11 +1697,11 @@ Future<List<Map<String, dynamic>>> _fetchAuthorizationData() async {
       if (responseData is List) {
         // If the response is a list, append each authorization data to the authorizationData list
         for (var authData in responseData) {
-          if (authData is Map<String, dynamic>) {
+          if (authData is Map<int, dynamic>) {
             authorizationData.add(authData);
           }
         }
-      } else if (responseData is Map<String, dynamic>) {
+      } else if (responseData is Map<int, dynamic>) {
         // If the response is a map, directly append it to the authorizationData list
         authorizationData.add(responseData);
       } else {
@@ -1714,7 +1719,7 @@ Future<List<Map<String, dynamic>>> _fetchAuthorizationData() async {
 Future<void> synchronizeDataAuthorization() async {
   try {
     // Fetch data from API endpoint
-    List<Map<String, dynamic>> apiResponse = await _fetchAuthorizationData();
+    List<Map<int, dynamic>> apiResponse = await _fetchAuthorizationData();
 
     // Open Hive box
     var authoBox = await Hive.openBox<Authorization>('authorizationBox');
@@ -1733,7 +1738,7 @@ Future<void> synchronizeDataAuthorization() async {
 }
 
 Future<void> _synchronizeAutho(
-  List<Map<String, dynamic>> authorizationData,
+  List<Map<int, dynamic>> authorizationData,
   Box<Authorization> authoBox,
 ) async {
   try {
@@ -1763,18 +1768,7 @@ Future<void> _synchronizeAutho(
       }
     }
 
-    // Check for items in Hive that don't exist in the fetched data and delete them
-    Set<String> fetchedAuthoCodes =
-        Set.from(authorizationData.map((data) => '${data['menucode']}${data['groupcode']}'));
-    Set<String> hiveAuthoCodes = Set.from(authoBox.keys);
-
-    // Identify items in Hive that don't exist in the fetched data
-    Set<String> itemsToDelete = hiveAuthoCodes.difference(fetchedAuthoCodes);
-
-    // Delete items in Hive that don't exist in the fetched data
-    itemsToDelete.forEach((hiveAuthoCode) {
-      authoBox.delete(hiveAuthoCode);
-    });
+   
   } catch (e) {
     print('Error synchronizing Authorization from API to Hive: $e');
   }
@@ -1786,8 +1780,8 @@ Future<void> _synchronizeAutho(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-Future<List<Map<String, dynamic>>> _fetchGeneralSettingsData() async {
-  List<Map<String, dynamic>> generalSettingsData = [];
+Future<List<Map<int, dynamic>>> _fetchGeneralSettingsData() async {
+  List<Map<int, dynamic>> generalSettingsData = [];
   try {
     // Perform HTTP GET request to fetch general settings data from the API endpoint
     final response = await http.get(Uri.parse('${apiurl}getSystemAdmin'));
@@ -1796,11 +1790,11 @@ Future<List<Map<String, dynamic>>> _fetchGeneralSettingsData() async {
       if (responseData is List) {
         // If the response is a list, append each general settings data to the generalSettingsData list
         for (var settingsData in responseData) {
-          if (settingsData is Map<String, dynamic>) {
+          if (settingsData is Map<int, dynamic>) {
             generalSettingsData.add(settingsData);
           }
         }
-      } else if (responseData is Map<String, dynamic>) {
+      } else if (responseData is Map<int, dynamic>) {
         // If the response is a map, directly append it to the generalSettingsData list
         generalSettingsData.add(responseData);
       } else {
@@ -1818,7 +1812,7 @@ Future<List<Map<String, dynamic>>> _fetchGeneralSettingsData() async {
 Future<void> synchronizeDataGeneralSettings() async {
   try {
     // Fetch data from API endpoint
-    List<Map<String, dynamic>> apiResponse = await _fetchGeneralSettingsData();
+    List<Map<int, dynamic>> apiResponse = await _fetchGeneralSettingsData();
 
     // Open Hive box
     var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
@@ -1837,7 +1831,7 @@ Future<void> synchronizeDataGeneralSettings() async {
 }
 
 Future<void> _synchronizeSystem(
-  List<Map<String, dynamic>> generalSettingsData,
+  List<Map<int, dynamic>> generalSettingsData,
   Box<SystemAdmin> systemAdminBox,
 ) async {
   try {
@@ -1850,20 +1844,20 @@ Future<void> _synchronizeSystem(
       // If the item doesn't exist in Hive, add it
       if (hiveSystem == null) {
         var newSystem = SystemAdmin(
-          autoExport: data['autoExport'],
+          autoExport: data['autoExport']== 1 ? true : false,
           groupcode: data['groupcode'],
-          importFromErpToMobile: data['importFromErpToMobile'],
-          importFromBackendToMobile: data['importFromBackendToMobile'],
+          importFromErpToMobile: data['importFromErpToMobile']== 1 ? true : false,
+          importFromBackendToMobile: data['importFromBackendToMobile']== 1 ? true : false,
         );
         await systemAdminBox.put(groupcode, newSystem);
       }
       // If the item exists in Hive, update it if needed
       else {
         var updatedSystem = SystemAdmin(
-          autoExport: data['autoExport'],
+          autoExport: data['autoExport']== 1 ? true : false,
           groupcode: data['groupcode'],
-          importFromErpToMobile: data['importFromErpToMobile'],
-          importFromBackendToMobile: data['importFromBackendToMobile'],
+          importFromErpToMobile: data['importFromErpToMobile']== 1 ? true : false,
+          importFromBackendToMobile: data['importFromBackendToMobile']== 1 ? true : false,
         );
         // Update the item in Hive
         await systemAdminBox.put(groupcode, updatedSystem);
@@ -1871,12 +1865,12 @@ Future<void> _synchronizeSystem(
     }
 
     // Check for items in Hive that don't exist in the fetched data and delete them
-    Set<String> fetchedSystemCodes =
+    Set<int> fetchedSystemCodes =
         Set.from(generalSettingsData.map((data) => data['groupcode']));
-    Set<String> hiveSystemCodes = Set.from(systemAdminBox.keys);
+    Set<int> hiveSystemCodes = Set.from(systemAdminBox.keys);
 
     // Identify items in Hive that don't exist in the fetched data
-    Set<String> itemsToDelete = hiveSystemCodes.difference(fetchedSystemCodes);
+    Set<int> itemsToDelete = hiveSystemCodes.difference(fetchedSystemCodes);
 
     // Delete items in Hive that don't exist in the fetched data
     itemsToDelete.forEach((hiveSystemCode) {
@@ -1948,44 +1942,44 @@ Future<void> _synchronizeCompanies(
 
       if (hiveCompany == null) {
         var newCompany = Companies(
-          cmpCode: data['cmpCode'],
-          cmpName: data['cmpName'],
-          cmpFName: data['cmpFName'],
-          tel: data['tel'],
-          mobile: data['mobile'],
-          address: data['address'],
-          fAddress: data['fAddress'],
-          prHeader: data['prHeader'],
-          prFHeader: data['prFHeader'],
-          prFooter: data['prFooter'],
-          prFFooter: data['prFFooter'],
-          mainCurCode: data['mainCurCode'],
-          secCurCode: data['secCurCode'],
-          rateType: data['rateType'],
-          issueBatchMethod: data['issueBatchMethod'],
-          systemAdminID: data['systemAdminID'],
-          notes: data['notes'],
+          cmpCode: data['cmpCode']??'',
+          cmpName: data['cmpName']??'',
+          cmpFName: data['cmpFName']??'',
+          tel: data['tel']??'',
+          mobile: data['mobile']??'',
+          address: data['address']??'',
+          fAddress: data['fAddress']??'',
+          prHeader: data['prHeader']??'',
+          prFHeader: data['prFHeader']??'',
+          prFooter: data['prFooter']??'',
+          prFFooter: data['prFFooter']??'',
+          mainCurCode: data['mainCurCode']??'',
+          secCurCode: data['secCurCode']??'',
+          rateType: data['rateType']??'',
+          issueBatchMethod: data['issueBatchMethod']??'',
+          systemAdminID: data['systemAdminID']??'',
+          notes: data['notes']??'',
         );
         await companiesBox.put(cmpCode, newCompany);
       } else {
         var updatedCompany = Companies(
-          cmpCode: data['cmpCode'],
-          cmpName: data['cmpName'],
-          cmpFName: data['cmpFName'],
-          tel: data['tel'],
-          mobile: data['mobile'],
-          address: data['address'],
-          fAddress: data['fAddress'],
-          prHeader: data['prHeader'],
-          prFHeader: data['prFHeader'],
-          prFooter: data['prFooter'],
-          prFFooter: data['prFFooter'],
-          mainCurCode: data['mainCurCode'],
-          secCurCode: data['secCurCode'],
-          rateType: data['rateType'],
-          issueBatchMethod: data['issueBatchMethod'],
-          systemAdminID: data['systemAdminID'],
-          notes: data['notes'],
+         cmpCode: data['cmpCode']??'',
+          cmpName: data['cmpName']??'',
+          cmpFName: data['cmpFName']??'',
+          tel: data['tel']??'',
+          mobile: data['mobile']??'',
+          address: data['address']??'',
+          fAddress: data['fAddress']??'',
+          prHeader: data['prHeader']??'',
+          prFHeader: data['prFHeader']??'',
+          prFooter: data['prFooter']??'',
+          prFFooter: data['prFFooter']??'',
+          mainCurCode: data['mainCurCode']??'',
+          secCurCode: data['secCurCode']??'',
+          rateType: data['rateType']??'',
+          issueBatchMethod: data['issueBatchMethod']??'',
+          systemAdminID: data['systemAdminID']??'',
+          notes: data['notes']??'',
         );
         await companiesBox.put(cmpCode, updatedCompany);
       }
@@ -2062,8 +2056,8 @@ Future<void> _synchronizeDepartments(
 ) async {
   try {
     for (var data in departmentsData) {
-      var cmpCode = data['cmpCode'];
-      var depCode = data['depCode'];
+      var cmpCode = data['cmpCode']??'';
+      var depCode = data['depCode']??'';
 
       // Check if the department exists in Hive
       var hiveDepartment = departmentsBox.get('$cmpCode$depCode');
@@ -2072,18 +2066,18 @@ Future<void> _synchronizeDepartments(
         var newDepartment = Departements(
           cmpCode: cmpCode,
           depCode: depCode,
-          depName: data['depName'],
-          depFName: data['depFName'],
-          notes: data['notes'],
+          depName: data['depName']??'',
+          depFName: data['depFName']??'',
+          notes: data['notes']??'',
         );
         await departmentsBox.put('$cmpCode$depCode', newDepartment);
       } else {
         var updatedDepartment = Departements(
           cmpCode: cmpCode,
           depCode: depCode,
-          depName: data['depName'],
-          depFName: data['depFName'],
-          notes: data['notes'],
+         depName: data['depName']??'',
+          depFName: data['depFName']??'',
+          notes: data['notes']??'',
         );
         await departmentsBox.put('$cmpCode$depCode', updatedDepartment);
       }
@@ -2160,8 +2154,8 @@ Future<void> _synchronizeExchangeRates(
 ) async {
   try {
     for (var data in exchangeRatesData) {
-      var cmpCode = data['cmpCode'];
-      var curCode = data['curCode'];
+      var cmpCode = data['cmpCode']??'';
+      var curCode = data['curCode']??'';
 
       // Check if the exchange rate exists in Hive
       var hiveExchangeRate = exchangeRatesBox.get('$cmpCode$curCode');
@@ -2172,7 +2166,7 @@ Future<void> _synchronizeExchangeRates(
           curCode: curCode,
           fDate: DateTime.parse(data['fDate']),
           tDate: DateTime.parse(data['tDate']),
-          rate: data['rate'],
+          rate: data['rate']??'',
         );
         await exchangeRatesBox.put('$cmpCode$curCode', newExchangeRate);
       } else {
@@ -2181,7 +2175,7 @@ Future<void> _synchronizeExchangeRates(
           curCode: curCode,
           fDate: DateTime.parse(data['fDate']),
           tDate: DateTime.parse(data['tDate']),
-          rate: data['rate'],
+          rate: data['rate']??'',
         );
         await exchangeRatesBox.put('$cmpCode$curCode', updatedExchangeRate);
       }
@@ -2258,8 +2252,8 @@ Future<void> _synchronizeCurrencies(
 ) async {
   try {
     for (var data in currenciesData) {
-      var cmpCode = data['cmpCode'];
-      var curCode = data['curCode'];
+      var cmpCode = data['cmpCode']??'';
+      var curCode = data['curCode']??'';
 
       // Check if the currency exists in Hive
       var hiveCurrency = currenciesBox.get('$cmpCode$curCode');
@@ -2268,18 +2262,18 @@ Future<void> _synchronizeCurrencies(
         var newCurrency = Currencies(
           cmpCode: cmpCode,
           curCode: curCode,
-          curName: data['curName'],
-          curFName: data['curFName'],
-          notes: data['notes'],
+          curName: data['curName']??'',
+          curFName: data['curFName']??'',
+          notes: data['notes']??'',
         );
         await currenciesBox.put('$cmpCode$curCode', newCurrency);
       } else {
         var updatedCurrency = Currencies(
           cmpCode: cmpCode,
           curCode: curCode,
-          curName: data['curName'],
-          curFName: data['curFName'],
-          notes: data['notes'],
+         curName: data['curName']??'',
+          curFName: data['curFName']??'',
+          notes: data['notes']??'',
         );
         await currenciesBox.put('$cmpCode$curCode', updatedCurrency);
       }
@@ -2355,8 +2349,8 @@ Future<void> _synchronizeVATGroups(
 ) async {
   try {
     for (var data in vatGroupsData) {
-      var cmpCode = data['cmpCode'];
-      var vatCode = data['vatCode'];
+      var cmpCode = data['cmpCode']??'';
+      var vatCode = data['vatCode']??'';
 
       // Check if the VAT group exists in Hive
       var hiveVATGroup = vatGroupsBox.get('$cmpCode$vatCode');
@@ -2365,20 +2359,20 @@ Future<void> _synchronizeVATGroups(
         var newVATGroup = VATGroups(
           cmpCode: cmpCode,
           vatCode: vatCode,
-          vatName: data['vatName'],
-          vatRate: data['vatRate'],
-          baseCurCode: data['baseCurCode'],
-          notes: data['notes'],
+          vatName: data['vatName']??'',
+          vatRate: data['vatRate']??'',
+          baseCurCode: data['baseCurCode']??'',
+          notes: data['notes']??'',
         );
         await vatGroupsBox.put('$cmpCode$vatCode', newVATGroup);
       } else {
         var updatedVATGroup = VATGroups(
           cmpCode: cmpCode,
           vatCode: vatCode,
-          vatName: data['vatName'],
-          vatRate: data['vatRate'],
-          baseCurCode: data['baseCurCode'],
-          notes: data['notes'],
+         vatName: data['vatName']??'',
+          vatRate: data['vatRate']??'',
+          baseCurCode: data['baseCurCode']??'',
+          notes: data['notes']??'',
         );
         await vatGroupsBox.put('$cmpCode$vatCode', updatedVATGroup);
       }
@@ -2455,8 +2449,8 @@ Future<void> _synchronizeCustGroups(
 ) async {
   try {
     for (var data in custGroupsData) {
-      var cmpCode = data['cmpCode'];
-      var grpCode = data['grpCode'];
+      var cmpCode = data['cmpCode']??'';
+      var grpCode = data['grpCode']??'';
 
       // Check if the customer group exists in Hive
       var hiveCustGroup = custGroupsBox.get('$cmpCode$grpCode');
@@ -2465,18 +2459,18 @@ Future<void> _synchronizeCustGroups(
         var newCustGroup = CustGroups(
           cmpCode: cmpCode,
           grpCode: grpCode,
-          grpName: data['grpName'],
-          grpFName: data['grpFName'],
-          notes: data['notes'],
+          grpName: data['grpName']??'',
+          grpFName: data['grpFName']??'',
+          notes: data['notes']??'',
         );
         await custGroupsBox.put('$cmpCode$grpCode', newCustGroup);
       } else {
         var updatedCustGroup = CustGroups(
           cmpCode: cmpCode,
           grpCode: grpCode,
-          grpName: data['grpName'],
-          grpFName: data['grpFName'],
-          notes: data['notes'],
+          grpName: data['grpName']??'',
+          grpFName: data['grpFName']??'',
+          notes: data['notes']??'',
         );
         await custGroupsBox.put('$cmpCode$grpCode', updatedCustGroup);
       }
@@ -2553,8 +2547,8 @@ Future<void> _synchronizeCustProperties(
 ) async {
   try {
     for (var data in custPropertiesData) {
-      var cmpCode = data['cmpCode'];
-      var propCode = data['propCode'];
+      var cmpCode = data['cmpCode']??'';
+      var propCode = data['propCode']??'';
 
       // Check if the customer property exists in Hive
       var hiveCustProperty = custPropertiesBox.get('$cmpCode$propCode');
@@ -2563,18 +2557,18 @@ Future<void> _synchronizeCustProperties(
         var newCustProperty = CustProperties(
           cmpCode: cmpCode,
           propCode: propCode,
-          propName: data['propName'],
-          propFName: data['propFName'],
-          notes: data['notes'],
+          propName: data['propName']??'',
+          propFName: data['propFName']??'',
+          notes: data['notes']??'',
         );
         await custPropertiesBox.put('$cmpCode$propCode', newCustProperty);
       } else {
         var updatedCustProperty = CustProperties(
           cmpCode: cmpCode,
           propCode: propCode,
-          propName: data['propName'],
-          propFName: data['propFName'],
-          notes: data['notes'],
+          propName: data['propName']??'',
+          propFName: data['propFName']??'',
+          notes: data['notes']??'',
         );
         await custPropertiesBox.put('$cmpCode$propCode', updatedCustProperty);
       }
@@ -2650,8 +2644,8 @@ Future<void> _synchronizeRegions(
 ) async {
   try {
     for (var data in regionsData) {
-      var cmpCode = data['cmpCode'];
-      var regCode = data['regCode'];
+      var cmpCode = data['cmpCode']??'';
+      var regCode = data['regCode']??'';
 
       // Check if the region exists in Hive
       var hiveRegion = regionsBox.get('$cmpCode$regCode');
@@ -2660,18 +2654,18 @@ Future<void> _synchronizeRegions(
         var newRegion = Regions(
           cmpCode: cmpCode,
           regCode: regCode,
-          regName: data['regName'],
-          regFName: data['regFName'],
-          notes: data['notes'],
+          regName: data['regName']??'',
+          regFName: data['regFName']??'',
+          notes: data['notes']??'',
         );
         await regionsBox.put('$cmpCode$regCode', newRegion);
       } else {
         var updatedRegion = Regions(
           cmpCode: cmpCode,
           regCode: regCode,
-          regName: data['regName'],
-          regFName: data['regFName'],
-          notes: data['notes'],
+            regName: data['regName']??'',
+          regFName: data['regFName']??'',
+          notes: data['notes']??'',
         );
         await regionsBox.put('$cmpCode$regCode', updatedRegion);
       }
@@ -2746,8 +2740,8 @@ Future<void> _synchronizeWarehouses(
 ) async {
   try {
     for (var data in warehousesData) {
-      var cmpCode = data['cmpCode'];
-      var whsCode = data['whsCode'];
+      var cmpCode = data['cmpCode']??'';
+      var whsCode = data['whsCode']??'';
 
       // Check if the warehouse exists in Hive
       var hiveWarehouse = warehousesBox.get('$cmpCode$whsCode');
@@ -2756,18 +2750,18 @@ Future<void> _synchronizeWarehouses(
         var newWarehouse = Warehouses(
           cmpCode: cmpCode,
           whsCode: whsCode,
-          whsName: data['whsName'],
-          whsFName: data['whsFName'],
-          notes: data['notes'],
+          whsName: data['whsName']??'',
+          whsFName: data['whsFName']??'',
+          notes: data['notes']??'',
         );
         await warehousesBox.put('$cmpCode$whsCode', newWarehouse);
       } else {
         var updatedWarehouse = Warehouses(
           cmpCode: cmpCode,
           whsCode: whsCode,
-          whsName: data['whsName'],
-          whsFName: data['whsFName'],
-          notes: data['notes'],
+          whsName: data['whsName']??'',
+          whsFName: data['whsFName']??'',
+          notes: data['notes']??'',
         );
         await warehousesBox.put('$cmpCode$whsCode', updatedWarehouse);
       }
@@ -2842,8 +2836,8 @@ Future<void> _synchronizePaymentTerms(
 ) async {
   try {
     for (var data in paymentTermsData) {
-      var cmpCode = data['cmpCode'];
-      var ptCode = data['ptCode'];
+      var cmpCode = data['cmpCode']??'';
+      var ptCode = data['ptCode']??'';
 
       // Check if the payment term exists in Hive
       var hivePaymentTerm = paymentTermsBox.get('$cmpCode$ptCode');
@@ -2852,22 +2846,22 @@ Future<void> _synchronizePaymentTerms(
         var newPaymentTerm = PaymentTerms(
           cmpCode: cmpCode,
           ptCode: ptCode,
-          ptName: data['ptName'],
-          ptFName: data['ptFName'],
-          startFrom: data['startFrom'],
-          nbrofDays: data['nbrofDays'],
-          notes: data['notes'],
+          ptName: data['ptName']??'',
+          ptFName: data['ptFName']??'',
+          startFrom: data['startFrom']??'',
+          nbrofDays: data['nbrofDays']??'',
+          notes: data['notes']??'',
         );
         await paymentTermsBox.put('$cmpCode$ptCode', newPaymentTerm);
       } else {
         var updatedPaymentTerm = PaymentTerms(
           cmpCode: cmpCode,
           ptCode: ptCode,
-          ptName: data['ptName'],
-          ptFName: data['ptFName'],
-          startFrom: data['startFrom'],
-          nbrofDays: data['nbrofDays'],
-          notes: data['notes'],
+         ptName: data['ptName']??'',
+          ptFName: data['ptFName']??'',
+          startFrom: data['startFrom']??'',
+          nbrofDays: data['nbrofDays']??'',
+          notes: data['notes']??'',
         );
         await paymentTermsBox.put('$cmpCode$ptCode', updatedPaymentTerm);
       }
@@ -2942,8 +2936,8 @@ Future<void> _synchronizeSalesEmployees(
 ) async {
   try {
     for (var data in salesEmployeesData) {
-      var cmpCode = data['cmpCode'];
-      var seCode = data['seCode'];
+      var cmpCode = data['cmpCode']??'';
+      var seCode = data['seCode']??'';
 
       // Check if the sales employee exists in Hive
       var hiveSalesEmployee = salesEmployeesBox.get('$cmpCode$seCode');
@@ -2952,26 +2946,26 @@ Future<void> _synchronizeSalesEmployees(
         var newSalesEmployee = SalesEmployees(
           cmpCode: cmpCode,
           seCode: seCode,
-          seName: data['seName'],
-          seFName: data['seFName'],
-          mobile: data['mobile'],
-          email: data['email'],
-          whsCode: data['whsCode'],
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+          seName: data['seName']??'',
+          seFName: data['seFName']??'',
+          mobile: data['mobile']??'',
+          email: data['email']??'',
+          whsCode: data['whsCode']??'',
+          reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesBox.put('$cmpCode$seCode', newSalesEmployee);
       } else {
         var updatedSalesEmployee = SalesEmployees(
           cmpCode: cmpCode,
           seCode: seCode,
-          seName: data['seName'],
-          seFName: data['seFName'],
-          mobile: data['mobile'],
-          email: data['email'],
-          whsCode: data['whsCode'],
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+              seName: data['seName']??'',
+          seFName: data['seFName']??'',
+          mobile: data['mobile']??'',
+          email: data['email']??'',
+          whsCode: data['whsCode']??'',
+          reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesBox.put('$cmpCode$seCode', updatedSalesEmployee);
       }
@@ -3046,9 +3040,9 @@ Future<void> _synchronizeSalesEmployeesCustomers(
 ) async {
   try {
     for (var data in salesEmployeesCustomersData) {
-      var cmpCode = data['cmpCode'];
-      var seCode = data['seCode'];
-      var custCode = data['custCode'];
+      var cmpCode = data['cmpCode']??'';
+      var seCode = data['seCode']??'';
+      var custCode = data['custCode']??'';
 
       // Check if the sales employee customer relationship exists in Hive
       var hiveSalesEmployeesCustomers = salesEmployeesCustomersBox.get('$cmpCode$seCode$custCode');
@@ -3058,7 +3052,7 @@ Future<void> _synchronizeSalesEmployeesCustomers(
           cmpCode: cmpCode,
           seCode: seCode,
           custCode: custCode,
-          notes: data['notes'],
+          notes: data['notes']??'',
         );
         await salesEmployeesCustomersBox.put('$cmpCode$seCode$custCode', newSalesEmployeesCustomers);
       } else {
@@ -3066,7 +3060,7 @@ Future<void> _synchronizeSalesEmployeesCustomers(
           cmpCode: cmpCode,
           seCode: seCode,
           custCode: custCode,
-          notes: data['notes'],
+          notes: data['notes']??'',
         );
         await salesEmployeesCustomersBox.put('$cmpCode$seCode$custCode', updatedSalesEmployeesCustomers);
       }
@@ -3143,9 +3137,9 @@ Future<void> _synchronizeSalesEmployeesDepartments(
 ) async {
   try {
     for (var data in salesEmployeesDepartmentsData) {
-      var cmpCode = data['cmpCode'];
-      var seCode = data['seCode'];
-      var deptCode = data['deptCode'];
+      var cmpCode = data['cmpCode']??'';
+      var seCode = data['seCode']??'';
+      var deptCode = data['deptCode']??'';
 
       // Check if the sales employee department relationship exists in Hive
       var hiveSalesEmployeesDepartments = salesEmployeesDepartmentsBox.get('$cmpCode$seCode$deptCode');
@@ -3155,8 +3149,8 @@ Future<void> _synchronizeSalesEmployeesDepartments(
           cmpCode: cmpCode,
           seCode: seCode,
           deptCode: deptCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+          reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesDepartmentsBox.put('$cmpCode$seCode$deptCode', newSalesEmployeesDepartments);
       } else {
@@ -3164,8 +3158,8 @@ Future<void> _synchronizeSalesEmployeesDepartments(
           cmpCode: cmpCode,
           seCode: seCode,
           deptCode: deptCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+           reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesDepartmentsBox.put('$cmpCode$seCode$deptCode', updatedSalesEmployeesDepartments);
       }
@@ -3241,9 +3235,9 @@ Future<void> _synchronizeSalesEmployeesItemsBrands(
 ) async {
   try {
     for (var data in salesEmployeesItemsBrandsData) {
-      var cmpCode = data['cmpCode'];
-      var seCode = data['seCode'];
-      var brandCode = data['brandCode'];
+      var cmpCode = data['cmpCode']??'';
+      var seCode = data['seCode']??'';
+      var brandCode = data['brandCode']??'';
 
       // Check if the sales employee items brands relationship exists in Hive
       var hiveSalesEmployeesItemsBrands = salesEmployeesItemsBrandsBox.get('$cmpCode$seCode$brandCode');
@@ -3253,8 +3247,8 @@ Future<void> _synchronizeSalesEmployeesItemsBrands(
           cmpCode: cmpCode,
           seCode: seCode,
           brandCode: brandCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+          reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesItemsBrandsBox.put('$cmpCode$seCode$brandCode', newSalesEmployeesItemsBrands);
       } else {
@@ -3262,8 +3256,8 @@ Future<void> _synchronizeSalesEmployeesItemsBrands(
           cmpCode: cmpCode,
           seCode: seCode,
           brandCode: brandCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+       reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesItemsBrandsBox.put('$cmpCode$seCode$brandCode', updatedSalesEmployeesItemsBrands);
       }
@@ -3341,9 +3335,9 @@ Future<void> _synchronizeSalesEmployeesItemsCategories(
 ) async {
   try {
     for (var data in salesEmployeesItemsCategoriesData) {
-      var cmpCode = data['cmpCode'];
-      var seCode = data['seCode'];
-      var categCode = data['categCode'];
+      var cmpCode = data['cmpCode']??'';
+      var seCode = data['seCode']??'';
+      var categCode = data['categCode']??'';
 
       // Check if the sales employee items categories relationship exists in Hive
       var hiveSalesEmployeesItemsCategories = salesEmployeesItemsCategoriesBox.get('$cmpCode$seCode$categCode');
@@ -3353,8 +3347,8 @@ Future<void> _synchronizeSalesEmployeesItemsCategories(
           cmpCode: cmpCode,
           seCode: seCode,
           categCode: categCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+          reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesItemsCategoriesBox.put('$cmpCode$seCode$categCode', newSalesEmployeesItemsCategories);
       } else {
@@ -3362,8 +3356,8 @@ Future<void> _synchronizeSalesEmployeesItemsCategories(
           cmpCode: cmpCode,
           seCode: seCode,
           categCode: categCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+           reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesItemsCategoriesBox.put('$cmpCode$seCode$categCode', updatedSalesEmployeesItemsCategories);
       }
@@ -3439,9 +3433,9 @@ Future<void> _synchronizeSalesEmployeesItemsGroups(
 ) async {
   try {
     for (var data in salesEmployeesItemsGroupsData) {
-      var cmpCode = data['cmpCode'];
-      var seCode = data['seCode'];
-      var groupCode = data['groupCode'];
+      var cmpCode = data['cmpCode']??'';
+      var seCode = data['seCode']??'';
+      var groupCode = data['groupCode']??'';
 
       // Check if the sales employee items groups relationship exists in Hive
       var hiveSalesEmployeesItemsGroups = salesEmployeesItemsGroupsBox.get('$cmpCode$seCode$groupCode');
@@ -3451,8 +3445,8 @@ Future<void> _synchronizeSalesEmployeesItemsGroups(
           cmpCode: cmpCode,
           seCode: seCode,
           groupCode: groupCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+          reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesItemsGroupsBox.put('$cmpCode$seCode$groupCode', newSalesEmployeesItemsGroups);
       } else {
@@ -3460,8 +3454,8 @@ Future<void> _synchronizeSalesEmployeesItemsGroups(
           cmpCode: cmpCode,
           seCode: seCode,
           groupCode: groupCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+       reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesItemsGroupsBox.put('$cmpCode$seCode$groupCode', updatedSalesEmployeesItemsGroups);
       }
@@ -3538,9 +3532,9 @@ Future<void> _synchronizeSalesEmployeesItems(
 ) async {
   try {
     for (var data in salesEmployeesItemsData) {
-      var cmpCode = data['cmpCode'];
-      var seCode = data['seCode'];
-      var itemCode = data['itemCode'];
+      var cmpCode = data['cmpCode']??'';
+      var seCode = data['seCode']??'';
+      var itemCode = data['itemCode']??'';
 
       // Check if the sales employee items relationship exists in Hive
       var hiveSalesEmployeesItems = salesEmployeesItemsBox.get('$cmpCode$seCode$itemCode');
@@ -3550,8 +3544,8 @@ Future<void> _synchronizeSalesEmployeesItems(
           cmpCode: cmpCode,
           seCode: seCode,
           itemCode: itemCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+          reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesItemsBox.put('$cmpCode$seCode$itemCode', newSalesEmployeesItems);
       } else {
@@ -3559,8 +3553,8 @@ Future<void> _synchronizeSalesEmployeesItems(
           cmpCode: cmpCode,
           seCode: seCode,
           itemCode: itemCode,
-          reqFromWhsCode: data['reqFromWhsCode'],
-          notes: data['notes'],
+          reqFromWhsCode: data['reqFromWhsCode']??'',
+          notes: data['notes']??'',
         );
         await salesEmployeesItemsBox.put('$cmpCode$seCode$itemCode', updatedSalesEmployeesItems);
       }
@@ -3634,9 +3628,9 @@ Future<void> _synchronizeUserSalesEmployees(
 ) async {
   try {
     for (var data in userSalesEmployeesData) {
-      var userCode = data['userCode'];
-      var cmpCode = data['cmpCode'];
-      var seCode = data['seCode'];
+      var userCode = data['userCode']??'';
+      var cmpCode = data['cmpCode']??'';
+      var seCode = data['seCode']??'';
 
       // Check if the user sales employees relationship exists in Hive
       var hiveUserSalesEmployees = userSalesEmployeesBox.get('$userCode$cmpCode$seCode');
@@ -3646,7 +3640,7 @@ Future<void> _synchronizeUserSalesEmployees(
           cmpCode: cmpCode,
           userCode: userCode,
           seCode: seCode,
-          notes: data['notes'],
+          notes: data['notes']??'',
         );
         await userSalesEmployeesBox.put('$userCode$cmpCode$seCode', newUserSalesEmployees);
       } else {
@@ -3654,7 +3648,7 @@ Future<void> _synchronizeUserSalesEmployees(
           cmpCode: cmpCode,
           userCode: userCode,
           seCode: seCode,
-          notes: data['notes'],
+          notes: data['notes']??'',
         );
         await userSalesEmployeesBox.put('$userCode$cmpCode$seCode', updatedUserSalesEmployees);
       }
@@ -3708,9 +3702,10 @@ Future<List<String>> retrieveCustCodes(List<String> seCodes) async {
 
 Future<void> synchronizeCustomers(List<String> custCodes) async {
   try {
+  
     // Fetch data from API endpoint using custCodes
-    List<Map<String, dynamic>> apiResponse = await _fetchCustomersData(custCodes);
-
+    //List<Map<String, dynamic>> apiResponse = await _fetchCustomersData(custCodes);
+List<Map<String, dynamic>> apiResponse = await _fetchCustomersData();
     // Open Hive box
     var customersBox = await Hive.openBox<Customers>('customersBox');
 
@@ -3721,11 +3716,11 @@ Future<void> synchronizeCustomers(List<String> custCodes) async {
   }
 }
 
-Future<List<Map<String, dynamic>>> _fetchCustomersData(List<String> custCodes) async {
+Future<List<Map<String, dynamic>>> _fetchCustomersData() async {
   List<Map<String, dynamic>> customersData = [];
-  try {
-    for (String custCode in custCodes) {
-      final response = await http.get(Uri.parse('${apiurl}getCustomers?custCode=$custCode'));
+  try {//List<String> custCodes
+  //  for (String custCode in custCodes) {
+      final response = await http.get(Uri.parse('${apiurl}getCustomers'));
       if (response.statusCode == 200) {
         dynamic responseData = jsonDecode(response.body);
         if (responseData is Map<String, dynamic>) {
@@ -3734,9 +3729,9 @@ Future<List<Map<String, dynamic>>> _fetchCustomersData(List<String> custCodes) a
           print('Invalid response format for customer data');
         }
       } else {
-        print('Failed to retrieve customer data for custCode $custCode: ${response.statusCode}');
+        print('Failed to retrieve customer data for custCode : ${response.statusCode}');
       }
-    }
+   // }
   } catch (e) {
     print('Error fetching customer data: $e');
   }
@@ -3749,72 +3744,73 @@ Future<void> _synchronizeCustomers(
 ) async {
   try {
     for (var data in customersData) {
-      var cmpCode = data['cmpCode'];
-      var custCode = data['custCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custCode = data['custCode']??'';
 
       // Check if the customer exists in Hive
       var hiveCustomer = customers.get('$cmpCode$custCode');
-
+print(data);
+print('hii');
       if (hiveCustomer == null) {
         var newCustomer = Customers(
-          cmpCode: data['cmpCode'],
-          custCode: data['custCode'],
-          custName: data['custName'],
-          custFName: data['custFName'],
-          groupCode: data['groupCode'],
-          mofNum: data['mofNum'],
-          barcode: data['barcode'],
-          phone: data['phone'],
-          mobile: data['mobile'],
-          fax: data['fax'],
-          website: data['website'],
-          email: data['email'],
-          active: data['active'],
-          printLayout: data['printLayout'],
-          dfltAddressID: data['dfltAddressID'],
-          dfltContactID: data['dfltContactID'],
-          curCode: data['curCode'],
-          cashClient: data['cashClient'],
-          discType: data['discType'],
-          vatCode: data['vatCode'],
-          prListCode: data['prListCode'],
-          payTermsCode: data['payTermsCode'],
-          discount: data['discount'],
-          creditLimit: data['creditLimit'],
-          balance: data['balance'],
-          balanceDue: data['balanceDue'],
-          notes: data['notes'],
+          cmpCode: data['cmpCode']??'',
+          custCode: data['custCode']??'',
+          custName: data['custName']??'',
+          custFName: data['custFName']??'',
+          groupCode: data['groupCode']??'',
+          mofNum: data['mofNum']??'',
+          barcode: data['barcode']??'',
+          phone: data['phone']??'',
+          mobile: data['mobile']??'',
+          fax: data['fax']??'',
+          website: data['website']??'',
+          email: data['email']??'',
+          active: data['active']??'',
+          printLayout: data['printLayout']??'',
+          dfltAddressID: data['dfltAddressID']??'',
+          dfltContactID: data['dfltContactID']??'',
+          curCode: data['curCode']??'',
+          cashClient: data['cashClient']??'',
+          discType: data['discType']??'',
+          vatCode: data['vatCode']??'',
+          prListCode: data['prListCode']??'',
+          payTermsCode: data['payTermsCode']??'',
+          discount: data['discount']??'',
+          creditLimit: data['creditLimit']??'',
+          balance: data['balance']??'',
+          balanceDue: data['balanceDue']??'',
+          notes: data['notes']??'',
         );
         await customers.put('$cmpCode$custCode', newCustomer);
       } else {
         var updatedCustomer = Customers(
-          cmpCode: data['cmpCode'],
-          custCode: data['custCode'],
-          custName: data['custName'],
-          custFName: data['custFName'],
-          groupCode: data['groupCode'],
-          mofNum: data['mofNum'],
-          barcode: data['barcode'],
-          phone: data['phone'],
-          mobile: data['mobile'],
-          fax: data['fax'],
-          website: data['website'],
-          email: data['email'],
-          active: data['active'],
-          printLayout: data['printLayout'],
-          dfltAddressID: data['dfltAddressID'],
-          dfltContactID: data['dfltContactID'],
-          curCode: data['curCode'],
-          cashClient: data['cashClient'],
-          discType: data['discType'],
-          vatCode: data['vatCode'],
-          prListCode: data['prListCode'],
-          payTermsCode: data['payTermsCode'],
-          discount: data['discount'],
-          creditLimit: data['creditLimit'],
-          balance: data['balance'],
-          balanceDue: data['balanceDue'],
-          notes: data['notes'],
+          cmpCode: data['cmpCode']??'',
+          custCode: data['custCode']??'',
+          custName: data['custName']??'',
+          custFName: data['custFName']??'',
+          groupCode: data['groupCode']??'',
+          mofNum: data['mofNum']??'',
+          barcode: data['barcode']??'',
+          phone: data['phone']??'',
+          mobile: data['mobile']??'',
+          fax: data['fax']??'',
+          website: data['website']??'',
+          email: data['email']??'',
+          active: data['active']??'',
+          printLayout: data['printLayout']??'',
+          dfltAddressID: data['dfltAddressID']??'',
+          dfltContactID: data['dfltContactID']??'',
+          curCode: data['curCode']??'',
+          cashClient: data['cashClient']??'',
+          discType: data['discType']??'',
+          vatCode: data['vatCode']??'',
+          prListCode: data['prListCode']??'',
+          payTermsCode: data['payTermsCode']??'',
+          discount: data['discount']??'',
+          creditLimit: data['creditLimit']??'',
+          balance: data['balance']??'',
+          balanceDue: data['balanceDue']??'',
+          notes: data['notes']??'',
         );
         await customers.put('$cmpCode$custCode', updatedCustomer);
       }

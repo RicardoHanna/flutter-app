@@ -227,13 +227,13 @@ Future<void> _getCurrentLocation() async {
 }
 
 Future<void> printUserDataTranslations() async {
- var custBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+ var custBox = await Hive.openBox<Customers>('customersBox');
 
     print('Printinggg Users:');
     for (var cust in custBox.values) {
       print('CmpCode: ${cust.cmpCode}');
-      print('Name: ${cust.defaultcmpCode}');
-      print(cust.userCode);
+      print('Name: ${cust.creditLimit}');
+      print(cust.custName);
 
       print('-------------------------');
     }
@@ -258,12 +258,13 @@ Future<List<Customers>> _getCustomers() async {
   try {
 
     // Find the UserSalesEmployees objects with matching userCode
-    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode && userSalesEmployee.cmpCode==widget.defltCompanyCode);
+   // var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode && userSalesEmployee.cmpCode==widget.defltCompanyCode);
 
     List<Customers> allCustomers = [];
+    allCustomers=customersBox.values.toList();
 
     // Iterate through each userSalesEmployee object
-    for (var userSalesEmployee in userSalesEmployees) {
+   /* for (var userSalesEmployee in userSalesEmployees) {
       var cmpCode = userSalesEmployee.cmpCode;
       var seCode = userSalesEmployee.seCode;
 
@@ -284,7 +285,7 @@ Future<List<Customers>> _getCustomers() async {
     }
 
 
-
+*/
     return allCustomers;
   } catch (e) {
     print("Error: $e");

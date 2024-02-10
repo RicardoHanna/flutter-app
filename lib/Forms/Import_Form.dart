@@ -482,7 +482,7 @@ class _ImportFormState extends State<ImportForm> {
     await synchronizer.synchronizeSalesEmployees(seCodes);
     await synchronizer.synchronizeSalesEmployeesCustomers(seCodes);
 
-    await synchronizer.synchronizeSalesEmployeesDepartements(seCodes);
+    await synchronizer.synchronizeSalesEmployeesDepartments(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsBrands(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsCategories(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsGroups(seCodes);
@@ -520,9 +520,10 @@ class _ImportFormState extends State<ImportForm> {
     List<String> itemCode = await synchronizer.retrieveItemCodes(seCodes);
     List<String> custGroupCodes =
         await synchronizer.retrieveItemCodes(custCode);
-
+print('lo');
     await synchronizer.synchronizeCustomers(custCode);
-    await synchronizer.synchronizeCustomerAddresses(custCode);
+    print('l');
+    /*await synchronizer.synchronizeCustomerAddresses(custCode);
     await synchronizer.synchronizeCustomerContacts(custCode);
     await synchronizer.synchronizeCustomerProperties(custCode);
     await synchronizer.synchronizeCustomerAttachments(custCode);
@@ -551,7 +552,7 @@ class _ImportFormState extends State<ImportForm> {
     await synchronizer.synchronizeCustomerPropGroupSpecialPrice(
         custGroupCodes, custCode);
     await synchronizer.synchronizeCustomerPropCategSpecialPrice(
-        categCode, custCode);
+        categCode, custCode);*/
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
