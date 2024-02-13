@@ -62,7 +62,7 @@ import 'package:http/http.dart' as http;
 
 class DataSynchronizerFromFirebaseToHive {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
-String apiurl='http://5.189.188.139/api/';
+String apiurl='http://5.189.188.139:8080/api/';
 
 Future<List<String>> retrieveSeCodes(String usercode) async {
   List<String> seCodes = [];

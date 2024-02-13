@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
@@ -11,9 +13,11 @@ import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart'; // Replace with your actual Hive user class
+import 'package:http/http.dart' as http; 
+
 
 class DataSynchronizer {
-
+String baseUrl='http://5.189.188.139:8080';
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
    late Box userBox;
   Future<void> synchronizeData() async {
@@ -67,371 +71,223 @@ class DataSynchronizer {
     }
   }
 Future<void> _updateFirestoreUsers(List<String> users) async {
-  try {
-    // Fetch documents from Firestore
-    QuerySnapshot<Map<String, dynamic>> firestoreUsers =
-        await _firestore.collection('Users').get();
-print('joo');
-    // Get a list of user emails in Firestore
-    List<String> firestoreUserEmails =
-        firestoreUsers.docs.map((doc) => doc['usercode'] as String).toList();
+ try {
+      // Fetch user data from the API
+      var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/users'));
+      print(response.body);
+      if (response.statusCode == 200) {
+        List<dynamic> apiUsers = jsonDecode(response.body);
+  
+print(apiUsers);
+        // Iterate through each user to determine if it should be added, updated, or deleted
+        for (String userCode in users) {
+          var userData = userBox.get(userCode);
+                      var existingUser = apiUsers.firstWhere((user) => user['usercode'] == userCode, orElse: () => null);
 
-    // Identify users that need to be added or updated in Firestore
-    List<String> usersToAddOrUpdate =
-        users.where((userEmail) => firestoreUserEmails.contains(userEmail)).toList();
+          if (userData != null) {
+            // Check if user exists in API response
 
-    // Identify users in Firestore that need to be deleted
-    List<String> usersToDelete =
-        firestoreUserEmails.where((userEmail) => !users.contains(userEmail)).toList();
-
-    // Delete users that exist in Firestore but not in Hive
-    for (String userCodeToDelete in usersToDelete) {
-      QuerySnapshot<Map<String, dynamic>> userToDeleteSnapshot = await _firestore
-          .collection('Users')
-          .where('usercode', isEqualTo: userCodeToDelete)
-          .get();
-
-      for (QueryDocumentSnapshot<Map<String, dynamic>> doc in userToDeleteSnapshot.docs) {
-        await _firestore.collection('Users').doc(doc.id).delete();
-        print('User deleted: $userCodeToDelete');
-      }
-    }
-print('mmmn');
-    // Loop through each user to update or add to Firestore
-    for (String userCodeToAddOrUpdate in usersToAddOrUpdate) {
-      var userDataDynamic = userBox.get(userCodeToAddOrUpdate);
-      Map<String, dynamic>? userData =
-          userDataDynamic is Map ? Map<String, dynamic>.from(userDataDynamic) : null;
-
-      try {
-        // Check if the user already exists in Firestore
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('Users')
-            .where('usercode', isEqualTo: userData?['usercode'])
-            .get();
-print('ric');
-        if (querySnapshot.docs.isNotEmpty) {
-          print('ricoo');
-          // Update the existing user in Firestore
-          String documentId = querySnapshot.docs[0].id;
-          await _firestore.collection('Users').doc(documentId).update(
-            {
-              'usercode': userData?['usercode'],
-              'username': userData?['username'],
-              'userFname': userData?['userFname'],
-              'email': userData?['email'],
-              'password': userData?['password'],
-              'phonenumber': userData?['phonenumber'],
-              'imeicode': userData?['imeicode'],
-              'active': userData?['active'],
-              'imageLink': userData?['imageLink'],
-              'usergroup': userData?['usergroup'],
-              'languages': userData?['languages'],
-              'font': userData?['font'],
-            },
-          );
-          print('User updated: ${userData?['email']}');
-        } else {
-          // Add the user to Firestore if it doesn't exist
-          await _firestore.collection('Users').add(
-            {
-              'usercode': userData?['usercode'],
-              'username': userData?['username'],
-              'userFname': userData?['userFname'],
-              'email': userData?['email'],
-              'password': userData?['password'],
-              'phonenumber': userData?['phonenumber'],
-              'imeicode': userData?['imeicode'],
-              'active': userData?['active'],
-              'imageLink': userData?['imageLink'],
-              'usergroup': userData?['usergroup'],
-              'languages': userData?['languages'],
-              'font': userData?['font'],
-            },
-          );
-          print('User added: ${userData?['email']}');
+            if (existingUser != null) {
+              // User exists, update user data
+              final response = await http.put(
+                Uri.parse('http://5.189.188.139:8080/api/users/updateUser/${existingUser['usercode']}'),
+                body: jsonEncode(userData),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print(response.statusCode);
+              print(response.body);
+              print('User updated: $userCode');
+            } else {
+              // User does not exist, add new user
+              await http.post(
+                Uri.parse('http://5.189.188.139:8080/api/users/insertUser'),
+                body: jsonEncode(userData),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print('User added: $userCode');
+            }
+          } else {
+            // User does not exist in local storage, delete user from API
+            if (existingUser != null) {
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/users/deleteUser/${existingUser['usercode']}'));
+              print('User deleted: $userCode');
+            }
+          }
         }
-      } catch (e) {
-        print('Error updating Firestore user: $e');
+      } else {
+        print('Failed to fetch users from API');
       }
+    } catch (e) {
+      print('Error updating API users: $e');
     }
-  } catch (e) {
-    print('Error updating/deleting Firestore users: $e');
   }
-}
+
+
+
 
 
 Future<void> _updateFirestoreUserGroup(List<UserGroup> userGroups) async {
   try {
-    // Get all UserGroup documents from Firestore
-    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
-        await _firestore.collection('usergroup').get();
+    var userGroupBox = await Hive.openBox<UserGroup>('userGroupBox');
 
-    // Create a list to keep track of documents to delete
-    List<DocumentReference> docsToDelete = [];
+      // Fetch user data from the API
+      var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/usergroup'));
+      print(response.body);
+      if (response.statusCode == 200) {
+        List<dynamic> apiUsers = jsonDecode(response.body);
+ 
+print(apiUsers);
+        // Iterate through each user to determine if it should be added, updated, or deleted
+        for (UserGroup groupCode in userGroups) {
+          var userGroupData = userGroupBox.get(groupCode.groupcode);
+                      var existingUserGroup = apiUsers.firstWhere((user) => user['groupcode'] == groupCode.groupcode, orElse: () => null);
+                     print('jelo');
 
-    // Loop through each UserGroup object and update or add to Firestore
-    for (UserGroup userGroup in userGroups) {
-      try {
-        // Check if the user group already exists in Firestore
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('usergroup')
-            .where('groupcode', isEqualTo: userGroup.groupcode)
-            .get();
-
-        if (querySnapshot.docs.isNotEmpty) {
-          // UserGroup already exists
-          String documentId = querySnapshot.docs[0].id;
-          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
-
-          if (!dataEqualsUserGroup(existingData, userGroup)) {
-            // Update existing data in Firestore
-            await _firestore.collection('usergroup').doc(documentId).update(
-              {
-                'groupcode': userGroup.groupcode,
-                'groupname': userGroup.groupname,
-                // Update other fields if needed
-              },
-            );
-            print('UserGroup updated: ${userGroup.groupcode}');
+          if (userGroupData != null) {
+            // Check if user exists in API response
+            print('fomocs');
+print(existingUserGroup);
+            if (existingUserGroup != null) {
+              // User exists, update user data
+              final response = await http.put(
+                Uri.parse('http://5.189.188.139:8080/api/usergroup/updateUserGroup/${existingUserGroup['groupcode']}'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print(response.statusCode);
+              print(response.body);
+              print('User Group updated: $userGroupData');
+            } else {
+              print('riccc');
+              // User does not exist, add new user
+              await http.post(
+                Uri.parse('http://5.189.188.139:8080/api/usergroup/insertUserGroup'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print('User added: $groupCode');
+            }
+          } else {
+            // User does not exist in local storage, delete user from API
+            if (existingUserGroup != null) {
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/usergroup/deleteUserGroup/${existingUserGroup['groupcode']}'));
+              print('User deleted: $groupCode');
+            }
           }
-        } else {
-          // UserGroup doesn't exist, add it to Firestore
-          await _firestore.collection('usergroup').add(
-            {
-              'groupcode': userGroup.groupcode,
-              'groupname': userGroup.groupname,
-              // Add other fields if needed
-            },
-          );
-          print('UserGroup added: ${userGroup.groupcode}');
         }
-      } catch (e) {
-        print('Error updating Firestore UserGroup: $e');
+      } else {
+        print('Failed to fetch users from API');
       }
+    } catch (e) {
+      print('Error updating API users group: $e');
     }
-
-    // Check for deletions
-    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
-      // Extract data from the document
-      Map<String, dynamic> firestoreData = docSnapshot.data()!;
-      String groupcode = firestoreData['groupcode'];
-
-      // Check if the document exists in the local list of UserGroup objects
-      bool existsLocally = userGroups.any((localUserGroup) => localUserGroup.groupcode == groupcode);
-
-      // If the document doesn't exist locally, add it to the list of documents to delete
-      if (!existsLocally) {
-        docsToDelete.add(docSnapshot.reference);
-        print('UserGroup to delete: $groupcode');
-      }
-    }
-
-    // Delete documents
-    for (DocumentReference docRef in docsToDelete) {
-      await docRef.delete();
-      print('UserGroup deleted');
-    }
-  } catch (e) {
-    print('Error updating Firestore UserGroup: $e');
   }
-}
 
-// Function to compare UserGroup data equality (customize based on your data structure)
-bool dataEqualsUserGroup(
-    Map<String, dynamic> existingData, UserGroup newUserGroup) {
-  // Compare fields and return true if they are equal, otherwise return false
-  // Add conditions for each field you want to compare
-  return existingData['groupcode'] == newUserGroup.groupcode &&
-      existingData['groupname'] == newUserGroup.groupname;
-  // Add additional conditions as needed
-}
+
 
 Future<void> _updateFirestoreTranslations(List<Translations> translations) async {
-  try {
-    // Get all Translations documents from Firestore
-    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
-        await _firestore.collection('Translations').get();
+   try {
+      var translationsBox = await Hive.openBox<Translations>('translationsBox');
 
-    // Create a list to keep track of documents to delete
-    List<DocumentReference> docsToDelete = [];
+      // Fetch user data from the API
+      var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/translations'));
+      print(response.body);
+      if (response.statusCode == 200) {
+        List<dynamic> apiUsers = jsonDecode(response.body);
+ 
+print(apiUsers);
+        // Iterate through each user to determine if it should be added, updated, or deleted
+        for (Translations groupCode in translations) {
+          var userGroupData = translationsBox.get(groupCode.groupcode);
+                      var existingTrans = apiUsers.firstWhere((user) => user['groupcode'] == groupCode.groupcode, orElse: () => null);
+                     print('jelo');
 
-    // Loop through each Translations object and update or add to Firestore
-    for (Translations translation in translations) {
-      try {
-        // Check if the translation already exists in Firestore
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('Translations')
-            .where('groupcode', isEqualTo: translation.groupcode)
-            .get();
-
-        if (querySnapshot.docs.isNotEmpty) {
-          // Translation already exists
-          String documentId = querySnapshot.docs[0].id;
-          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
-
-          if (!dataEqualsTranslations(existingData, translation)) {
-            // Update existing data in Firestore
-            await _firestore.collection('Translations').doc(documentId).update(
-              {
-                'groupcode': translation.groupcode,
-                'translations': {
-                  'en': translation.translations['en'],
-                  'ar': translation.translations['ar'],
-                },
-                // Update other fields if needed
-              },
-            );
-            print('Translations updated: ${translation.groupcode}');
+          if (userGroupData != null) {
+            // Check if user exists in API response
+            print('fomocs');
+print(existingTrans);
+            if (existingTrans != null) {
+              // User exists, update user data
+              final response = await http.put(
+                Uri.parse('http://5.189.188.139:8080/api/translations/updateTranslations/${existingTrans['groupcode']}'),
+                body: jsonEncode(userGroupData),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print(response.statusCode);
+              print(response.body);
+              print('Trans updated: $userGroupData');
+            } else {
+              print('riccc');
+              // User does not exist, add new user
+              await http.post(
+                Uri.parse('http://5.189.188.139:8080/api/translations/insertTranslations'),
+                body: jsonEncode(userGroupData),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print('Trans added: $groupCode');
+            }
+          } else {
+            // User does not exist in local storage, delete user from API
+            if (existingTrans != null) {
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/translations/deleteTranslations/${existingTrans['groupcode']}'));
+              print('Trans deleted: $groupCode');
+            }
           }
-        } else {
-          // Translation doesn't exist, add it to Firestore
-          await _firestore.collection('Translations').add(
-            {
-              'groupcode': translation.groupcode,
-              'translations': {
-                'en': translation.translations['en'],
-                'ar': translation.translations['ar'],
-              },
-              // Add other fields if needed
-            },
-          );
-          print('Translations added: ${translation.groupcode}');
         }
-      } catch (e) {
-        print('Error updating Firestore Translations: $e');
+      } else {
+        print('Failed to fetch Trans from API');
       }
+    } catch (e) {
+      print('Error updating API Transla group: $e');
     }
-
-    // Check for deletions
-    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
-      // Extract data from the document
-      Map<String, dynamic> firestoreData = docSnapshot.data()!;
-      String groupcode = firestoreData['groupcode'];
-
-      // Check if the document exists in the local list of Translations objects
-      bool existsLocally = translations.any((localTranslation) => localTranslation.groupcode == groupcode);
-
-      // If the document doesn't exist locally, add it to the list of documents to delete
-      if (!existsLocally) {
-        docsToDelete.add(docSnapshot.reference);
-        print('Translation to delete: $groupcode');
-      }
-    }
-
-    // Delete documents
-    for (DocumentReference docRef in docsToDelete) {
-      await docRef.delete();
-      print('Translation deleted');
-    }
-  } catch (e) {
-    print('Error updating Firestore Translations: $e');
   }
-}
-
-
-// Function to compare Translations data equality (customize based on your data structure)
-bool dataEqualsTranslations(
-    Map<String, dynamic> existingData, Translations newTranslation) {
-  // Compare fields and return true if they are equal, otherwise return false
-  // Add conditions for each field you want to compare
-  return existingData['groupcode'] == newTranslation.groupcode &&
-      existingData['translations']['en'] == newTranslation.translations['en'] &&
-      existingData['translations']['ar'] == newTranslation.translations['ar'];
-  // Add additional conditions as needed
-}
-
 
 Future<void> _updateFirestoreAuthorization(List<Authorization> authorizations) async {
   try {
-    // Fetch existing authorizations from Firestore
-    QuerySnapshot<Map<String, dynamic>> allAuthorizationsSnapshot =
-        await _firestore.collection('Authorization').get();
+    var authorizationBox = await Hive.openBox<Authorization>('authorizationBox');
 
-    // Extract existing group codes and menu codes from Firestore
-    List<int> existingGroupCodes =
-        allAuthorizationsSnapshot.docs.map((doc) => doc['groupcode'] as int).toList();
-    List<int> existingMenuCodes =
-        allAuthorizationsSnapshot.docs.map((doc) => doc['menucode'] as int).toList();
+    // Fetch user data from the API
+    var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/authorization'));
+    print(response.body);
+    if (response.statusCode == 200) {
+      List<dynamic> apiAutho = jsonDecode(response.body);
 
-    // Loop through each authorization and update or add to Firestore
-    for (Authorization authorization in authorizations) {
-      try {
-        // Check if the authorization already exists in Firestore
-        bool authorizationExists =
-            existingGroupCodes.contains(authorization.groupcode) &&
-            existingMenuCodes.contains(authorization.menucode);
+      print(apiAutho);
+      // Iterate through each user to determine if it should be added, updated, or deleted
+   for (Authorization authorization in authorizationBox.values) {
+  var existingAuthoGroup = apiAutho.firstWhere((user) => user['groupcode'] == authorization.groupcode && user['menucode'] == authorization.menucode, orElse: () => null);
+  print('Processing authorization: $authorization');
 
-        if (authorizationExists) {
-          // Authorization already exists, check for updates
-          QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-              .collection('Authorization')
-              .where('groupcode', isEqualTo: authorization.groupcode)
-              .where('menucode', isEqualTo: authorization.menucode)
-              .get();
-
-          if (querySnapshot.docs.isNotEmpty) {
-            String documentId = querySnapshot.docs[0].id;
-
-            // Check if there are changes before updating
-            Map<String, dynamic> existingAuthorizationData = querySnapshot.docs[0].data()!;
-
-            // Compare existing data with data from Hive
-            if (!dataEquals(existingAuthorizationData, authorization)) {
-              await _firestore.collection('Authorization').doc(documentId).update(
-                {
-                  'groupcode': authorization.groupcode,
-                  'menucode': authorization.menucode,
-                  // Update other fields if needed
-                },
-              );
-              print('Authorization updated: ${authorization.groupcode}, ${authorization.menucode}');
-            }
-          }
-        } else {
-          // Add the authorization to Firestore if it doesn't exist
-          await _firestore.collection('Authorization').add(
-            {
-              'groupcode': authorization.groupcode,
-              'menucode': authorization.menucode,
-              // Add other fields if needed
-            },
-          );
-          print('Authorization added: ${authorization.groupcode}, ${authorization.menucode}');
-        }
-      } catch (e) {
-        print('Error updating Firestore authorization: $e');
-      }
-    }
-
-    // Delete authorizations in Firestore that don't exist in Hive
-    for (QueryDocumentSnapshot<Map<String, dynamic>> doc in allAuthorizationsSnapshot.docs) {
-      int groupCode = doc['groupcode'] as int;
-      int menuCode = doc['menucode'] as int;
-
-      // Check if the authorization exists in the Hive list
-      bool authorizationExistsInHive = authorizations
-          .any((auth) => auth.groupcode == groupCode && auth.menucode == menuCode);
-
-      if (!authorizationExistsInHive) {
-        // Authorization doesn't exist in Hive, delete it from Firestore
-        await _firestore.collection('Authorization').doc(doc.id).delete();
-        print('Authorization deleted: $groupCode, $menuCode');
-      }
-    }
-  } catch (e) {
-    print('Error updating/deleting Firestore authorizations: $e');
+  if (existingAuthoGroup != null) {
+    // User exists, update user data
+    final response = await http.put(
+      Uri.parse('http://5.189.188.139:8080/api/authorization/updateAuthorization/${authorization.menucode}/${authorization.groupcode}'),
+      body: jsonEncode(authorization.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print(response.statusCode);
+    print(response.body);
+    print('Authorization updated: $authorization');
+  } else {
+    // User does not exist, add new user
+    await http.post(
+      Uri.parse('http://5.189.188.139:8080/api/authorization/insertAuthorization'),
+      body: jsonEncode(authorization.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print('Authorization added: $authorization');
   }
 }
 
-// Function to compare data equality (customize based on your data structure)
-bool dataEquals(Map<String, dynamic> existingData, Authorization newData) {
-  // Compare fields and return true if they are equal, otherwise return false
-  // Add conditions for each field you want to compare
-  return existingData['groupcode'] == newData.groupcode &&
-      existingData['menucode'] == newData.menucode;
-  // Add additional conditions as needed
+
+    } else {
+      print('Failed to fetch authorizations from API');
+    }
+  } catch (e) {
+    print('Error updating API authorizations: $e');
+  }
 }
+
 
 
 
