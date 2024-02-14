@@ -161,57 +161,57 @@ Future<List<Map<String, dynamic>>> _fetchItemsData(List<String> itemCodes) async
   Future<void> _synchronizeItems(List<dynamic> itemsData, Box<Items> itemsBox) async {
     try {
       for (var data in itemsData) {
-        var itemCode = data['itemCode'];
+        var itemCode = data['itemCode']??'';
         var hiveItem = itemsBox.get(itemCode);
 
         if (hiveItem == null) {
           var newItem = Items(
-            data['itemCode'],
-            data['itemName'],
-            data['itemPrName'],
-            data['itemFName'],
-            data['itemPrFName'],
-            data['groupCode'],
-            data['categCode'],
-            data['brandCode'],
-            data['itemType'],
-            data['barCode'],
-            data['uom'],
-            data['picture'],
-            data['remark'],
-            data['brand'],
-            data['manageBy'],
-            data['vatRate'].toDouble(),
+            data['itemCode']??'',
+            data['itemName']??'',
+            data['itemPrName']??'',
+            data['itemFName']??'',
+            data['itemPrFName']??'',
+            data['groupCode']??'',
+            data['categCode']??'',
+            data['brandCode']??'',
+            data['itemType']??'',
+            data['barCode']??'',
+            data['uom']??'',
+            data['picture']??'',
+            data['remark']??'',
+            data['brand']??'',
+            data['manageBy']??'',
+            data['vatRate'].toDouble()??0,
           data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
-            data['weight'].toDouble(),
-            data['charect1'],
-            data['charact2'],
-            data['cmpCode']
+            data['weight'].toDouble()??0,
+            data['charect1']??'',
+            data['charact2']??'',
+            data['cmpCode']??''
           );
           await itemsBox.put(itemCode, newItem);
         } else {
           var updatedItem = Items(
-            data['itemCode'],
-            data['itemName'],
-            data['itemPrName'],
-            data['itemFName'],
-            data['itemPrFName'],
-            data['groupCode'],
-            data['categCode'],
-            data['brandCode'],
-            data['itemType'],
-            data['barCode'],
-            data['uom'],
-            data['picture'],
-            data['remark'],
-            data['brand'],
-            data['manageBy'],
-            data['vatRate'].toDouble(),
+            data['itemCode']??'',
+            data['itemName']??'',
+            data['itemPrName']??'',
+            data['itemFName']??'',
+            data['itemPrFName']??'',
+            data['groupCode']??'',
+            data['categCode']??'',
+            data['brandCode']??'',
+            data['itemType']??'',
+            data['barCode']??'',
+            data['uom']??'',
+            data['picture']??'',
+            data['remark']??'',
+            data['brand']??'',
+            data['manageBy']??'',
+            data['vatRate'].toDouble()??0,
           data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
-            data['weight'].toDouble(),
-            data['charect1'],
-            data['charact2'],
-            data['cmpCode']
+            data['weight'].toDouble()??0,
+            data['charect1']??'',
+            data['charact2']??'',
+            data['cmpCode']??''
           );
           await itemsBox.put(itemCode, updatedItem);
         }
@@ -312,33 +312,33 @@ Future<void> _synchronizePriceList(
 ) async {
   try {
     for (var data in priceListData) {
-      var plCode = data['plCode'];
+      var plCode = data['plCode']??'';
       var hivePrice = pricelistsBox.get(plCode);
 
       if (hivePrice == null) {
         var newPrice = PriceList(
-          data['plCode'],
-          data['plName'],
-          data['currency'],
-          data['basePL'],
-          data['factor'].toDouble(),
+          data['plCode']??'',
+          data['plName']??'',
+          data['currency']??'',
+          data['basePL']??'',
+          data['factor'].toDouble()??0,
           data['incVAT']== 1 ? true : false, // Convert Tinyint to Boolean
-          data['securityGroup'],
-          data['cmpCode'],
-          data['authoGroup']
+          data['securityGroup']??'',
+          data['cmpCode']??'',
+          data['authoGroup']??''
         );
         await pricelistsBox.put(plCode, newPrice);
       } else {
         var updatedPrice = PriceList(
-          data['plCode'],
-          data['plName'],
-          data['currency'],
-          data['basePL'],
-          data['factor'].toDouble(),
+            data['plCode']??'',
+          data['plName']??'',
+          data['currency']??'',
+          data['basePL']??'',
+          data['factor'].toDouble()??0,
           data['incVAT']== 1 ? true : false, // Convert Tinyint to Boolean
-          data['securityGroup'],
-          data['cmpCode'],
-          data['authoGroup']
+          data['securityGroup']??'',
+          data['cmpCode']??'',
+          data['authoGroup']??''
         );
         await pricelistsBox.put(plCode, updatedPrice);
       }
@@ -422,8 +422,8 @@ Future<void> _synchronizeItemPrice(
 ) async {
   try {
     for (var data in itemPricesData) {
-      var plCode = data['plCode'];
-      var itemCode = data['itemCode'];
+      var plCode = data['plCode']??'';
+      var itemCode = data['itemCode']??'';
 
       var hivePriceItem = itempriceBox.get('$plCode$itemCode');
 
@@ -431,26 +431,26 @@ Future<void> _synchronizeItemPrice(
         var newPriceItem = ItemsPrices(
           plCode,
           itemCode,
-          data['uom'],
-          data['basePrice'].toDouble(),
-          data['currency'],
+          data['uom']??'',
+          data['basePrice'].toDouble()??0,
+          data['currency']??'',
           data['auto']== 1 ? true : false, // Convert Tinyint to Boolean
-          data['disc'].toDouble(),
-          data['price'].toDouble(),
-          data['cmpCode']
+          data['disc'].toDouble()??0,
+          data['price'].toDouble()??0,
+          data['cmpCode']??''
         );
         await itempriceBox.put('$plCode$itemCode', newPriceItem);
       } else {
         var updatedPriceItem = ItemsPrices(
           plCode,
           itemCode,
-          data['uom'],
-          data['basePrice'].toDouble(),
-          data['currency'],
+          data['uom']??'',
+          data['basePrice'].toDouble()??0,
+          data['currency']??'',
           data['auto']== 1 ? true : false, // Convert Tinyint to Boolean
-          data['disc'].toDouble(),
-          data['price'].toDouble(),
-          data['cmpCode']
+          data['disc'].toDouble()??0,
+          data['price'].toDouble()??0,
+          data['cmpCode']??''
         );
         await itempriceBox.put('$plCode$itemCode', updatedPriceItem);
       }
@@ -534,26 +534,26 @@ Future<void> _synchronizeItemAttach(
 ) async {
   try {
     for (var data in itemAttachData) {
-      var itemCode = data['itemCode'];
+      var itemCode = data['itemCode']??'';
 
       var hiveAttachItem = itemattachBox.get(itemCode);
 
       if (hiveAttachItem == null) {
         var newAttachItem = ItemAttach(
-          data['itemCode'],
-          data['attachmentType'],
-          data['attachmentPath'],
-          data['note'],
-          data['cmpCode']
+          data['itemCode']??'',
+          data['attachmentType']??'',
+          data['attachmentPath']??'',
+          data['note']??'',
+          data['cmpCode']??''
         );
         await itemattachBox.put(itemCode, newAttachItem);
       } else {
         var updatedAttachItem = ItemAttach(
-          data['itemCode'],
-          data['attachmentType'],
-          data['attachmentPath'],
-          data['note'],
-          data['cmpCode']
+           data['itemCode']??'',
+          data['attachmentType']??'',
+          data['attachmentPath']??'',
+          data['note']??'',
+          data['cmpCode']??''
         );
         await itemattachBox.put(itemCode, updatedAttachItem);
       }
@@ -669,25 +669,25 @@ Future<void> _synchronizeItemGroup(
 ) async {
   try {
     for (var data in itemGroupData) {
-      var groupCode = data['groupCode'];
-      var cmpCode = data['cmpCode'];
+      var groupCode = data['groupCode']??'';
+      var cmpCode = data['cmpCode']??'';
 
       var hiveGroupItem = itemgroupBox.get('$groupCode$cmpCode');
 
       if (hiveGroupItem == null) {
         var newGroupItem = ItemGroup(
-          data['groupCode'],
-          data['groupName'],
-          data['groupFName'],
-          data['cmpCode']
+          data['groupCode']??'',
+          data['groupName']??'',
+          data['groupFName']??'',
+          data['cmpCode']??''
         );
         await itemgroupBox.put('$groupCode$cmpCode', newGroupItem);
       } else {
         var updatedGroupItem = ItemGroup(
-          data['groupCode'],
-          data['groupName'],
-          data['groupFName'],
-          data['cmpCode']
+          data['groupCode']??'',
+          data['groupName']??'',
+          data['groupFName']??'',
+          data['cmpCode']??''
         );
         await itemgroupBox.put('$groupCode$cmpCode', updatedGroupItem);
       }
@@ -804,25 +804,25 @@ Future<void> _synchronizeItemCateg(
 ) async {
   try {
     for (var data in itemCategData) {
-      var categCode = data['categCode'];
-      var cmpCode = data['cmpCode'];
+      var categCode = data['categCode']??'';
+      var cmpCode = data['cmpCode']??'';
 
       var hiveCategItem = itemcategBox.get('$categCode$cmpCode');
 
       if (hiveCategItem == null) {
         var newCategItem = ItemCateg(
-          data['categCode'],
-          data['categName'],
-          data['categFName'],
-          data['cmpCode']
+          data['categCode']??'',
+          data['categName']??'',
+          data['categFName']??'',
+          data['cmpCode']??''
         );
         await itemcategBox.put('$categCode$cmpCode', newCategItem);
       } else {
         var updatedCategItem = ItemCateg(
-          data['categCode'],
-          data['categName'],
-          data['categFName'],
-          data['cmpCode']
+          data['categCode']??'',
+          data['categName']??'',
+          data['categFName']??'',
+          data['cmpCode']??''
         );
         await itemcategBox.put('$categCode$cmpCode', updatedCategItem);
       }
@@ -937,25 +937,25 @@ Future<void> _synchronizeItemBrand(
 ) async {
   try {
     for (var data in itemBrandData) {
-      var brandCode = data['brandCode'];
-      var cmpCode = data['cmpCode'];
+      var brandCode = data['brandCode']??'';
+      var cmpCode = data['cmpCode']??'';
 
       var hiveBrandItem = itembrandBox.get('$brandCode$cmpCode');
 
       if (hiveBrandItem == null) {
         var newBrandItem = ItemBrand(
-          data['brandCode'],
-          data['brandName'],
-          data['brandFName'],
-          data['cmpCode']
+          data['brandCode']??'',
+          data['brandName']??'',
+          data['brandFName']??'',
+          data['cmpCode']??''
         );
         await itembrandBox.put('$brandCode$cmpCode', newBrandItem);
       } else {
         var updatedBrandItem = ItemBrand(
-          data['brandCode'],
-          data['brandName'],
-          data['brandFName'],
-          data['cmpCode']
+           data['brandCode']??'',
+          data['brandName']??'',
+          data['brandFName']??'',
+          data['cmpCode']??''
         );
         await itembrandBox.put('$brandCode$cmpCode', updatedBrandItem);
       }
@@ -1042,28 +1042,28 @@ Future<void> _synchronizeItemUOM(
 ) async {
   try {
     for (var data in itemUOMData) {
-      var uom = data['uom'];
-      var itemCode = data['itemCode'];
-      var cmpCode = data['cmpCode'];
+      var uom = data['uom']??'';
+      var itemCode = data['itemCode']??'';
+      var cmpCode = data['cmpCode']??'';
 
       var hiveUOMItem = itemuomBox.get('$uom$itemCode$cmpCode');
 
       if (hiveUOMItem == null) {
         var newUOMItem = ItemUOM(
-          data['itemCode'],
-          data['uom'],
-          data['qtyperUOM'].toDouble(),
-          data['barCode'],
-          data['cmpCode']
+          data['itemCode']??'',
+          data['uom']??'',
+          data['qtyperUOM'].toDouble()??0,
+          data['barCode']??'',
+          data['cmpCode']??''
         );
         await itemuomBox.put('$uom$itemCode$cmpCode', newUOMItem);
       } else {
         var updatedUOMItem = ItemUOM(
-          data['itemCode'],
-          data['uom'],
-          data['qtyperUOM'].toDouble(),
-          data['barCode'],
-          data['cmpCode']
+          data['itemCode']??'',
+          data['uom']??'',
+          data['qtyperUOM'].toDouble()??0,
+          data['barCode']??'',
+          data['cmpCode']??''
         );
         await itemuomBox.put('$uom$itemCode$cmpCode', updatedUOMItem);
       }
@@ -1141,20 +1141,20 @@ Future<void> _synchronizeUserPL(
 ) async {
   try {
     for (var data in userPLData) {
-      var userCode = data['userCode'];
+      var userCode = data['userCode']??'';
 
       var hiveUserPL = userplBox.get(userCode);
 
       if (hiveUserPL == null) {
         var newUserPL = UserPL(
-          data['userCode'],
-          data['plSecGroup'],
+          data['userCode']??'',
+          data['plSecGroup']??'',
         );
         await userplBox.put(userCode, newUserPL);
       } else {
         var updatedUserPL = UserPL(
-          data['userCode'],
-          data['plSecGroup'],
+          data['userCode']??'',
+          data['plSecGroup']??'',
         );
         await userplBox.put(userCode, updatedUserPL);
       }
@@ -1321,21 +1321,21 @@ Future<void> _synchronizeUsersGroup(
   try {
     // Iterate over API response
     for (var data in userGroupData) {
-      var groupcode = data['groupcode'];
+      var groupcode = data['groupcode']??'';
 
       // If the item doesn't exist in Hive, add it
       if (!usersGroup.containsKey(groupcode)) {
         var newUserGroup = UserGroup(
-          groupcode: data['groupcode'],
-          groupname: data['groupname'],
+          groupcode: data['groupcode']??'',
+          groupname: data['groupname']??'',
         );
         await usersGroup.put(groupcode, newUserGroup);
       }
       // If the item exists in Hive, update it if needed
       else {
         var updatedUserGroup = UserGroup(
-          groupcode: data['groupcode'],
-          groupname: data['groupname'],
+          groupcode: data['groupcode']??'',
+          groupname: data['groupname']??'',
         );
         // Update the item in Hive
         await usersGroup.put(groupcode, updatedUserGroup);
@@ -1420,13 +1420,13 @@ Future<void> _synchronizeUserGroupTranslations(
   try {
     // Iterate over MySQL data
     for (var data in mysqlData) {
-      var groupcode = data['groupcode'];
+      var groupcode = data['groupcode']??'';
 
       // If the item doesn't exist in Hive, add it
       if (!translationBox.containsKey(groupcode)) {
         var newTranslations = Translations(
           groupcode: groupcode,
-          translations: {'en': data['en'], 'ar': data['ar']},
+          translations: {'en': data['en']??'', 'ar': data['ar']??''},
         );
         await translationBox.put(groupcode, newTranslations);
       }
@@ -1434,7 +1434,7 @@ Future<void> _synchronizeUserGroupTranslations(
       else {
         var updatedTranslations = Translations(
           groupcode: groupcode,
-          translations: {'en': data['en'], 'ar': data['ar']},
+          translations: {'en': data['en']??'', 'ar': data['ar']??''},
         );
         // Update the item in Hive
         await translationBox.put(groupcode, updatedTranslations);
@@ -1574,7 +1574,7 @@ Future<void> _synchronizeMenu(
   try {
     // Iterate over API response data
     for (var data in apiResponse) {
-      var menucode = data['menucode'];
+      var menucode = data['menucode']??'';
 
       // Check if the menu item exists in Hive
       var hiveMenu = menuBox.get(menucode);
@@ -1582,17 +1582,17 @@ Future<void> _synchronizeMenu(
       // If the menu item doesn't exist in Hive, add it
       if (hiveMenu == null) {
         var newMenu = Menu(
-          menucode: data['menucode'],
-          menuname: data['menuname'],
-          menuarname: data['menuarname'],
+          menucode: data['menucode']??'',
+          menuname: data['menuname']??'',
+          menuarname: data['menuarname']??'',
         );
         await menuBox.put(menucode, newMenu);
       } else {
         // If the menu item exists in Hive, update it if needed
         var updatedMenu = Menu(
-          menucode: data['menucode'],
-          menuname: data['menuname'],
-          menuarname: data['menuarname'],
+          menucode: data['menucode']??'',
+          menuname: data['menuname']??'',
+          menuarname: data['menuarname']??'',
         );
         // Update the item in Hive
         await menuBox.put(menucode, updatedMenu);
@@ -1619,7 +1619,7 @@ Future<void> _synchronizeSubMenu(int menucode, List<dynamic> subMenuData, Box<dy
   try {
     // Iterate over subMenuData
     for (var subMenu in subMenuData) {
-      var groupcode = subMenu['groupcode'];
+      var groupcode = subMenu['groupcode']??'';
 
       // Check if the usergroup/syncgroup exists in Hive
       var hiveGroup = groupBox.get(groupcode);
@@ -1627,18 +1627,18 @@ Future<void> _synchronizeSubMenu(int menucode, List<dynamic> subMenuData, Box<dy
       // If the usergroup/syncgroup doesn't exist in Hive, add it
       if (hiveGroup == null) {
         var newGroup = AdminSubMenu(
-          groupcode: subMenu['groupcode'],
-          groupname: subMenu['groupname'],
-          grouparname: subMenu['grouparname'],
+          groupcode: subMenu['groupcode']??'',
+          groupname: subMenu['groupname']??'',
+          grouparname: subMenu['grouparname']??'',
           
         );
         await groupBox.put(groupcode, newGroup);
       } else {
         // If the usergroup/syncgroup exists in Hive, update it if needed
         var updatedGroup = AdminSubMenu(
-          groupcode: subMenu['groupcode'],
-          groupname: subMenu['groupname'],
-          grouparname: subMenu['grouparname'],
+          groupcode: subMenu['groupcode']??'',
+          groupname: subMenu['groupname']??'',
+          grouparname: subMenu['grouparname']??'',
         );
         // Update the item in Hive
         await groupBox.put(groupcode, updatedGroup);
@@ -1653,7 +1653,7 @@ Future<void> synchronizeIESubMenu(int menucode, List<dynamic> subSyncData, Box<S
  try {
     // Iterate over subMenuData
     for (var subMenu in subSyncData) {
-      var syncronizecode = subMenu['syncronizecode'];
+      var syncronizecode = subMenu['syncronizecode']??'';
 
       // Check if the usergroup/syncgroup exists in Hive
       var hiveGroup = syncGroupBox.get(syncronizecode);
@@ -1661,18 +1661,18 @@ Future<void> synchronizeIESubMenu(int menucode, List<dynamic> subSyncData, Box<S
       // If the usergroup/syncgroup doesn't exist in Hive, add it
       if (hiveGroup == null) {
         var newGroup = SynchronizeSubMenu(
-          syncronizecode: subMenu['syncronizecode'],
-          syncronizename: subMenu['syncronizename'],
-          syncronizearname: subMenu['syncronizearname'],
+          syncronizecode: subMenu['syncronizecode']??'',
+          syncronizename: subMenu['syncronizename']??'',
+          syncronizearname: subMenu['syncronizearname']??'',
           
         );
         await syncGroupBox.put(syncronizecode, newGroup);
       } else {
         // If the usergroup/syncgroup exists in Hive, update it if needed
         var updatedGroup = SynchronizeSubMenu(
-             syncronizecode: subMenu['syncronizecode'],
-          syncronizename: subMenu['syncronizename'],
-          syncronizearname: subMenu['syncronizearname'],
+             syncronizecode: subMenu['syncronizecode']??'',
+          syncronizename: subMenu['syncronizename']??'',
+          syncronizearname: subMenu['syncronizearname']??'',
         );
         // Update the item in Hive
         await syncGroupBox.put(syncronizecode, updatedGroup);
@@ -1743,8 +1743,8 @@ Future<void> _synchronizeAutho(
 ) async {
   try {
     for (var data in authorizationData) {
-      var menucode = data['menucode'];
-      var groupcode = data['groupcode'];
+      var menucode = data['menucode']??'';
+      var groupcode = data['groupcode']??'';
 
       // Check if the item exists in Hive
       var hiveAutho = authoBox.get('$menucode$groupcode');
@@ -1836,7 +1836,7 @@ Future<void> _synchronizeSystem(
 ) async {
   try {
     for (var data in generalSettingsData) {
-      var groupcode = data['groupcode'];
+      var groupcode = data['groupcode']??'';
 
       // Check if the item exists in Hive
       var hiveSystem = systemAdminBox.get(groupcode);
@@ -1845,7 +1845,7 @@ Future<void> _synchronizeSystem(
       if (hiveSystem == null) {
         var newSystem = SystemAdmin(
           autoExport: data['autoExport']== 1 ? true : false,
-          groupcode: data['groupcode'],
+          groupcode: data['groupcode']??'',
           importFromErpToMobile: data['importFromErpToMobile']== 1 ? true : false,
           importFromBackendToMobile: data['importFromBackendToMobile']== 1 ? true : false,
         );
@@ -1855,7 +1855,7 @@ Future<void> _synchronizeSystem(
       else {
         var updatedSystem = SystemAdmin(
           autoExport: data['autoExport']== 1 ? true : false,
-          groupcode: data['groupcode'],
+          groupcode: data['groupcode']??'',
           importFromErpToMobile: data['importFromErpToMobile']== 1 ? true : false,
           importFromBackendToMobile: data['importFromBackendToMobile']== 1 ? true : false,
         );
@@ -3878,37 +3878,37 @@ Future<void> _synchronizeCustomerAddresses(
 ) async {
   try {
     for (var data in addressesData) {
-      var cmpCode = data['cmpCode'];
-      var addressID = data['addressID'];
-      var custCode = data['custCode'];
+      var cmpCode = data['cmpCode']??'';
+      var addressID = data['addressID']??'';
+      var custCode = data['custCode']??'';
 
       // Check if the address exists in Hive
       var hiveAddress = addresses.get('$cmpCode$addressID$custCode');
 
       if (hiveAddress == null) {
         var newAddress = CustomerAddresses(
-          cmpCode: data['cmpCode'],
-          custCode: data['custCode'],
-          addressID: data['addressID'],
-          address: data['address'],
-          fAddress: data['fAddress'],
-          regCode: data['regCode'],
-          gpslat: data['gpslat'],
-          gpslong: data['gpslong'],
-          notes: data['notes'],
+          cmpCode: data['cmpCode']??'',
+          custCode: data['custCode']??'',
+          addressID: data['addressID']??'',
+          address: data['address']??'',
+          fAddress: data['fAddress']??'',
+          regCode: data['regCode']??'',
+          gpslat: data['gpslat']??'',
+          gpslong: data['gpslong']??'',
+          notes: data['notes']??'',
         );
         await addresses.put('$cmpCode$addressID$custCode', newAddress);
       } else {
         var updatedAddress = CustomerAddresses(
-          cmpCode: data['cmpCode'],
-          custCode: data['custCode'],
-          addressID: data['addressID'],
-          address: data['address'],
-          fAddress: data['fAddress'],
-          regCode: data['regCode'],
-          gpslat: data['gpslat'],
-          gpslong: data['gpslong'],
-          notes: data['notes'],
+            cmpCode: data['cmpCode']??'',
+          custCode: data['custCode']??'',
+          addressID: data['addressID']??'',
+          address: data['address']??'',
+          fAddress: data['fAddress']??'',
+          regCode: data['regCode']??'',
+          gpslat: data['gpslat']??'',
+          gpslong: data['gpslong']??'',
+          notes: data['notes']??'',
         );
         await addresses.put('$cmpCode$addressID$custCode', updatedAddress);
       }
@@ -3974,39 +3974,39 @@ Future<void> _synchronizeCustomerContacts(
 ) async {
   try {
     for (var data in contactsData) {
-      var cmpCode = data['cmpCode'];
-      var contactID = data['contactID'];
-      var custCode = data['custCode'];
+      var cmpCode = data['cmpCode']??'';
+      var contactID = data['contactID']??'';
+      var custCode = data['custCode']??'';
 
       // Check if the contact exists in Hive
       var hiveContact = contacts.get('$cmpCode$contactID$custCode');
 
       if (hiveContact == null) {
         var newContact = CustomerContacts(
-          cmpCode: data['cmpCode'],
-          custCode: data['custCode'],
-          contactID: data['contactID'],
-          contactName: data['contactName'],
-          contactFName: data['contactFName'],
-          phone: data['phone'],
-          mobile: data['mobile'],
-          email: data['email'],
-          position: data['position'],
-          notes: data['notes'],
+          cmpCode: data['cmpCode']??'',
+          custCode: data['custCode']??'',
+          contactID: data['contactID']??'',
+          contactName: data['contactName']??'',
+          contactFName: data['contactFName']??'',
+          phone: data['phone']??'',
+          mobile: data['mobile']??'',
+          email: data['email']??'',
+          position: data['position']??'',
+          notes: data['notes']??'',
         );
         await contacts.put('$cmpCode$contactID$custCode', newContact);
       } else {
         var updatedContact = CustomerContacts(
-          cmpCode: data['cmpCode'],
-          custCode: data['custCode'],
-          contactID: data['contactID'],
-          contactName: data['contactName'],
-          contactFName: data['contactFName'],
-          phone: data['phone'],
-          mobile: data['mobile'],
-          email: data['email'],
-          position: data['position'],
-          notes: data['notes'],
+          cmpCode: data['cmpCode']??'',
+          custCode: data['custCode']??'',
+          contactID: data['contactID']??'',
+          contactName: data['contactName']??'',
+          contactFName: data['contactFName']??'',
+          phone: data['phone']??'',
+          mobile: data['mobile']??'',
+          email: data['email']??'',
+          position: data['position']??'',
+          notes: data['notes']??'',
         );
         await contacts.put('$cmpCode$contactID$custCode', updatedContact);
       }
@@ -4083,9 +4083,9 @@ Future<void> _synchronizeCustomerProperties(
   try {
     // Iterate over the retrieved data
     for (var data in customerPropertiesData) {
-      var cmpCode = data['cmpCode'];
-      var custCode = data['custCode'];
-      var propCode = data['propCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custCode = data['custCode']??'';
+      var propCode = data['propCode']??'';
 
       // Check if the property exists in Hive
       var hiveProperty = properties.get('$cmpCode$propCode$custCode');
@@ -4096,7 +4096,7 @@ Future<void> _synchronizeCustomerProperties(
           cmpCode: cmpCode,
           custCode: custCode,
           propCode: propCode,
-          notes: data['notes'],
+          notes: data['notes']??'',
         );
         await properties.put('$cmpCode$propCode$custCode', newProperty);
       }
@@ -4106,7 +4106,7 @@ Future<void> _synchronizeCustomerProperties(
           cmpCode: cmpCode,
           custCode: custCode,
           propCode: propCode,
-          notes: data['notes'],
+          notes: data['notes']??'',
         );
         // Update the property in Hive
         await properties.put('$cmpCode$propCode$custCode', updatedProperty);
@@ -4185,8 +4185,8 @@ Future<void> _synchronizeCustomerAttachments(
   try {
     // Iterate over the retrieved data
     for (var data in customerAttachmentsData) {
-      var cmpCode = data['cmpCode'];
-      var custCode = data['custCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custCode = data['custCode']??'';
 
       // Check if the attachment exists in Hive
       var hiveAttachment = attachments.get('$cmpCode$custCode');
@@ -4196,9 +4196,9 @@ Future<void> _synchronizeCustomerAttachments(
         var newAttachment = CustomerAttachments(
           cmpCode: cmpCode,
           custCode: custCode,
-          attach: data['attach'],
-          attachType: data['attachType'],
-          notes: data['notes'],
+          attach: data['attach']??'',
+          attachType: data['attachType']??'',
+          notes: data['notes']??'',
         );
         await attachments.put('$cmpCode$custCode', newAttachment);
       }
@@ -4207,9 +4207,9 @@ Future<void> _synchronizeCustomerAttachments(
         var updatedAttachment = CustomerAttachments(
           cmpCode: cmpCode,
           custCode: custCode,
-          attach: data['attach'],
-          attachType: data['attachType'],
-          notes: data['notes'],
+          attach: data['attach']??'',
+          attachType: data['attachType']??'',
+          notes: data['notes']??'',
         );
         // Update the attachment in Hive
         await attachments.put('$cmpCode$custCode', updatedAttachment);
@@ -4291,10 +4291,10 @@ Future<void> _synchronizeCustomerItemsSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerItemsSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custCode = data['custCode'];
-      var itemCode = data['itemCode'];
-      var uom = data['uom'];
+      var cmpCode = data['cmpCode']??'';
+      var custCode = data['custCode']??'';
+      var itemCode = data['itemCode']??'';
+      var uom = data['uom']??'';
 
       // Check if the special price exists in Hive
       var hiveSpecialPrice = specialPrice.get('$cmpCode$itemCode$custCode$uom');
@@ -4306,12 +4306,12 @@ Future<void> _synchronizeCustomerItemsSpecialPrice(
           custCode: custCode,
           itemCode: itemCode,
           uom: uom,
-          basePrice: data['basePrice'],
-          currency: data['currency'],
-          auto: data['auto'],
-          disc: data['disc'],
-          price: data['price'],
-          notes: data['notes'],
+          basePrice: data['basePrice']??'',
+          currency: data['currency']??'',
+          auto: data['auto']??'',
+          disc: data['disc']??'',
+          price: data['price']??'',
+          notes: data['notes']??'',
         );
         await specialPrice.put('$cmpCode$itemCode$custCode$uom', newSpecialPrice);
       }
@@ -4322,12 +4322,12 @@ Future<void> _synchronizeCustomerItemsSpecialPrice(
           custCode: custCode,
           itemCode: itemCode,
           uom: uom,
-          basePrice: data['basePrice'],
-          currency: data['currency'],
-          auto: data['auto'],
-          disc: data['disc'],
-          price: data['price'],
-          notes: data['notes'],
+          basePrice: data['basePrice']??'',
+          currency: data['currency']??'',
+          auto: data['auto']??'',
+          disc: data['disc']??'',
+          price: data['price']??'',
+          notes: data['notes']??'',
         );
         // Update the special price in Hive
         await specialPrice.put('$cmpCode$itemCode$custCode$uom', updatedSpecialPrice);
@@ -4408,9 +4408,9 @@ Future<void> _synchronizeCustomerBrandsSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerBrandsSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custCode = data['custCode'];
-      var brandCode = data['brandCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custCode = data['custCode']??'';
+      var brandCode = data['brandCode']??'';
 
       // Check if the brand special price exists in Hive
       var hiveBrandSpecialPrice = brandsSpecialPrice.get('$cmpCode$custCode$brandCode');
@@ -4421,8 +4421,8 @@ Future<void> _synchronizeCustomerBrandsSpecialPrice(
           cmpCode: cmpCode,
           custCode: custCode,
           brandCode: brandCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         await brandsSpecialPrice.put('$cmpCode$custCode$brandCode', newBrandSpecialPrice);
       }
@@ -4432,8 +4432,8 @@ Future<void> _synchronizeCustomerBrandsSpecialPrice(
           cmpCode: cmpCode,
           custCode: custCode,
           brandCode: brandCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         // Update the brand special price in Hive
         await brandsSpecialPrice.put('$cmpCode$custCode$brandCode', updatedBrandSpecialPrice);
@@ -4514,9 +4514,9 @@ Future<void> _synchronizeCustomerGroupsSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerGroupsSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custCode = data['custCode'];
-      var groupCode = data['groupCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custCode = data['custCode']??'';
+      var groupCode = data['groupCode']??'';
 
       // Check if the group special price exists in Hive
       var hiveGroupSpecialPrice = groupsSpecialPrice.get('$cmpCode$custCode$groupCode');
@@ -4527,8 +4527,8 @@ Future<void> _synchronizeCustomerGroupsSpecialPrice(
           cmpCode: cmpCode,
           custCode: custCode,
           groupCode: groupCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         await groupsSpecialPrice.put('$cmpCode$custCode$groupCode', newGroupSpecialPrice);
       }
@@ -4538,8 +4538,8 @@ Future<void> _synchronizeCustomerGroupsSpecialPrice(
           cmpCode: cmpCode,
           custCode: custCode,
           groupCode: groupCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         // Update the group special price in Hive
         await groupsSpecialPrice.put('$cmpCode$custCode$groupCode', updatedGroupSpecialPrice);
@@ -4620,9 +4620,9 @@ Future<void> _synchronizeCustomerCategSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerCategSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custCode = data['custCode'];
-      var categCode = data['categCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custCode = data['custCode']??'';
+      var categCode = data['categCode']??'';
 
       // Check if the categ special price exists in Hive
       var hiveCategSpecialPrice = categSpecialPrice.get('$cmpCode$custCode$categCode');
@@ -4633,8 +4633,8 @@ Future<void> _synchronizeCustomerCategSpecialPrice(
           cmpCode: cmpCode,
           custCode: custCode,
           categCode: categCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         await categSpecialPrice.put('$cmpCode$custCode$categCode', newCategSpecialPrice);
       }
@@ -4644,8 +4644,8 @@ Future<void> _synchronizeCustomerCategSpecialPrice(
           cmpCode: cmpCode,
           custCode: custCode,
           categCode: categCode,
-          disc: data['disc'],
-          notes: data['notes'],
+           disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         // Update the categ special price in Hive
         await categSpecialPrice.put('$cmpCode$custCode$categCode', updatedCategSpecialPrice);
@@ -4748,10 +4748,10 @@ Future<void> _synchronizeCustomerGroupItemsSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerGroupItemsSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custGroupCode = data['custGroupCode'];
-      var itemCode = data['itemCode'];
-      var uom = data['uom'];
+      var cmpCode = data['cmpCode']??'';
+      var custGroupCode = data['custGroupCode']??'';
+      var itemCode = data['itemCode']??'';
+      var uom = data['uom']??'';
 
       // Check if the group item special price exists in Hive
       var hiveGroupItemSpecialPrice = groupItemsSpecialPrice.get('$cmpCode$custGroupCode$itemCode$uom');
@@ -4763,12 +4763,12 @@ Future<void> _synchronizeCustomerGroupItemsSpecialPrice(
           custGroupCode: custGroupCode,
           itemCode: itemCode,
           uom: uom,
-          basePrice: data['basePrice'],
-          currency: data['currency'],
-          auto: data['auto'],
-          disc: data['disc'],
-          price: data['price'],
-          notes: data['notes'],
+          basePrice: data['basePrice']??'',
+          currency: data['currency']??'',
+          auto: data['auto']??'',
+          disc: data['disc']??'',
+          price: data['price']??'',
+          notes: data['notes']??'',
         );
         await groupItemsSpecialPrice.put('$cmpCode$custGroupCode$itemCode$uom', newGroupItemSpecialPrice);
       }
@@ -4779,12 +4779,12 @@ Future<void> _synchronizeCustomerGroupItemsSpecialPrice(
           custGroupCode: custGroupCode,
           itemCode: itemCode,
           uom: uom,
-          basePrice: data['basePrice'],
-          currency: data['currency'],
-          auto: data['auto'],
-          disc: data['disc'],
-          price: data['price'],
-          notes: data['notes'],
+          basePrice: data['basePrice']??'',
+          currency: data['currency']??'',
+          auto: data['auto']??'',
+          disc: data['disc']??'',
+          price: data['price']??'',
+          notes: data['notes']??'',
         );
         // Update the group item special price in Hive
         await groupItemsSpecialPrice.put('$cmpCode$custGroupCode$itemCode$uom', updatedGroupItemSpecialPrice);
@@ -4864,9 +4864,9 @@ Future<void> _synchronizeCustomerGroupBrandSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerGroupBrandSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custGroupCode = data['custGroupCode'];
-      var brandCode = data['brandCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custGroupCode = data['custGroupCode']??'';
+      var brandCode = data['brandCode']??'';
 
       // Check if the group brand special price exists in Hive
       var hiveGroupBrandSpecialPrice = groupBrandSpecialPrice.get('$cmpCode$custGroupCode$brandCode');
@@ -4877,8 +4877,8 @@ Future<void> _synchronizeCustomerGroupBrandSpecialPrice(
           cmpCode: cmpCode,
           custGroupCode: custGroupCode,
           brandCode: brandCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         await groupBrandSpecialPrice.put('$cmpCode$custGroupCode$brandCode', newGroupBrandSpecialPrice);
       }
@@ -4888,8 +4888,8 @@ Future<void> _synchronizeCustomerGroupBrandSpecialPrice(
           cmpCode: cmpCode,
           custGroupCode: custGroupCode,
           brandCode: brandCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         // Update the group brand special price in Hive
         await groupBrandSpecialPrice.put('$cmpCode$custGroupCode$brandCode', updatedGroupBrandSpecialPrice);
@@ -4969,9 +4969,9 @@ Future<void> _synchronizeCustomerGroupGroupSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerGroupGroupSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custGroupCode = data['custGroupCode'];
-      var groupCode = data['groupCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custGroupCode = data['custGroupCode']??'';
+      var groupCode = data['groupCode']??'';
 
       // Check if the group group special price exists in Hive
       var hiveGroupGroupSpecialPrice = groupGroupSpecialPrice.get('$cmpCode$custGroupCode$groupCode');
@@ -4982,8 +4982,8 @@ Future<void> _synchronizeCustomerGroupGroupSpecialPrice(
           cmpCode: cmpCode,
           custGroupCode: custGroupCode,
           groupCode: groupCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         await groupGroupSpecialPrice.put('$cmpCode$custGroupCode$groupCode', newGroupGroupSpecialPrice);
       }
@@ -4993,8 +4993,8 @@ Future<void> _synchronizeCustomerGroupGroupSpecialPrice(
           cmpCode: cmpCode,
           custGroupCode: custGroupCode,
           groupCode: groupCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         // Update the group group special price in Hive
         await groupGroupSpecialPrice.put('$cmpCode$custGroupCode$groupCode', updatedGroupGroupSpecialPrice);
@@ -5074,9 +5074,9 @@ Future<void> _synchronizeCustomerGroupCategSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerGroupCategSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custGroupCode = data['custGroupCode'];
-      var categCode = data['categCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custGroupCode = data['custGroupCode']??'';
+      var categCode = data['categCode']??'';
 
       // Check if the group categ special price exists in Hive
       var hiveGroupCategSpecialPrice = groupCategSpecialPrice.get('$cmpCode$custGroupCode$categCode');
@@ -5087,8 +5087,8 @@ Future<void> _synchronizeCustomerGroupCategSpecialPrice(
           cmpCode: cmpCode,
           custGroupCode: custGroupCode,
           categCode: categCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         await groupCategSpecialPrice.put('$cmpCode$custGroupCode$categCode', newGroupCategSpecialPrice);
       }
@@ -5098,8 +5098,8 @@ Future<void> _synchronizeCustomerGroupCategSpecialPrice(
           cmpCode: cmpCode,
           custGroupCode: custGroupCode,
           categCode: categCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         // Update the group categ special price in Hive
         await groupCategSpecialPrice.put('$cmpCode$custGroupCode$categCode', updatedGroupCategSpecialPrice);
@@ -5211,10 +5211,10 @@ Future<void> _synchronizeCustomerPropItemsSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerPropItemsSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custPropCode = data['custPropCode'];
-      var itemCode = data['itemCode'];
-      var uom = data['uom'];
+      var cmpCode = data['cmpCode']??'';
+      var custPropCode = data['custPropCode']??'';
+      var itemCode = data['itemCode']??'';
+      var uom = data['uom']??'';
 
       // Check if the prop items special price exists in Hive
       var hivePropItemsSpecialPrice = propItemsSpecialPrice.get('$cmpCode$custPropCode$itemCode$uom');
@@ -5226,12 +5226,12 @@ Future<void> _synchronizeCustomerPropItemsSpecialPrice(
           custPropCode: custPropCode,
           itemCode: itemCode,
           uom: uom,
-          basePrice: data['basePrice'],
-          currency: data['currency'],
-          auto: data['auto'],
-          disc: data['disc'],
-          price: data['price'],
-          notes: data['notes'],
+          basePrice: data['basePrice']??'',
+          currency: data['currency']??'',
+          auto: data['auto']??'',
+          disc: data['disc']??'',
+          price: data['price']??'',
+          notes: data['notes']??'',
         );
         await propItemsSpecialPrice.put('$cmpCode$custPropCode$itemCode$uom', newPropItemsSpecialPrice);
       }
@@ -5242,12 +5242,12 @@ Future<void> _synchronizeCustomerPropItemsSpecialPrice(
           custPropCode: custPropCode,
           itemCode: itemCode,
           uom: uom,
-          basePrice: data['basePrice'],
-          currency: data['currency'],
-          auto: data['auto'],
-          disc: data['disc'],
-          price: data['price'],
-          notes: data['notes'],
+          basePrice: data['basePrice']??'',
+          currency: data['currency']??'',
+          auto: data['auto']??'',
+          disc: data['disc']??'',
+          price: data['price']??'',
+          notes: data['notes']??'',
         );
         // Update the prop items special price in Hive
         await propItemsSpecialPrice.put('$cmpCode$custPropCode$itemCode$uom', updatedPropItemsSpecialPrice);
@@ -5330,9 +5330,9 @@ Future<void> _synchronizeCustomerPropBrandSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerPropBrandSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custPropCode = data['custPropCode'];
-      var brandCode = data['brandCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custPropCode = data['custPropCode']??'';
+      var brandCode = data['brandCode']??'';
 
       // Check if the prop brand special price exists in Hive
       var hivePropBrandSpecialPrice = propBrandSpecialPrice.get('$cmpCode$custPropCode$brandCode');
@@ -5343,8 +5343,8 @@ Future<void> _synchronizeCustomerPropBrandSpecialPrice(
           cmpCode: cmpCode,
           custPropCode: custPropCode,
           brandCode: brandCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         await propBrandSpecialPrice.put('$cmpCode$custPropCode$brandCode', newPropBrandSpecialPrice);
       }
@@ -5354,8 +5354,8 @@ Future<void> _synchronizeCustomerPropBrandSpecialPrice(
           cmpCode: cmpCode,
           custPropCode: custPropCode,
           brandCode: brandCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         // Update the prop brand special price in Hive
         await propBrandSpecialPrice.put('$cmpCode$custPropCode$brandCode', updatedPropBrandSpecialPrice);
@@ -5440,9 +5440,9 @@ Future<void> _synchronizeCustomerPropGroupSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerPropGroupSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custGroupCode = data['custGroupCode'];
-      var propCode = data['propCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custGroupCode = data['custGroupCode']??'';
+      var propCode = data['propCode']??'';
 
       // Check if the prop group special price exists in Hive
       var hivePropGroupSpecialPrice = propGroupSpecialPrice.get('$cmpCode$custGroupCode$propCode');
@@ -5453,8 +5453,8 @@ Future<void> _synchronizeCustomerPropGroupSpecialPrice(
           cmpCode: cmpCode,
           custGroupCode: custGroupCode,
           propCode: propCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         await propGroupSpecialPrice.put('$cmpCode$custGroupCode$propCode', newPropGroupSpecialPrice);
       }
@@ -5464,8 +5464,8 @@ Future<void> _synchronizeCustomerPropGroupSpecialPrice(
           cmpCode: cmpCode,
           custGroupCode: custGroupCode,
           propCode: propCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         // Update the prop group special price in Hive
         await propGroupSpecialPrice.put('$cmpCode$custGroupCode$propCode', updatedPropGroupSpecialPrice);
@@ -5551,9 +5551,9 @@ Future<void> _synchronizeCustomerPropCategSpecialPrice(
   try {
     // Iterate over the retrieved data
     for (var data in customerPropCategSpecialPriceData) {
-      var cmpCode = data['cmpCode'];
-      var custPropCode = data['custPropCode'];
-      var categCode = data['categCode'];
+      var cmpCode = data['cmpCode']??'';
+      var custPropCode = data['custPropCode']??'';
+      var categCode = data['categCode']??'';
 
       // Check if the prop categ special price exists in Hive
       var hivePropCategSpecialPrice = propCategSpecialPrice.get('$cmpCode$custPropCode$categCode');
@@ -5564,8 +5564,8 @@ Future<void> _synchronizeCustomerPropCategSpecialPrice(
           cmpCode: cmpCode,
           custPropCode: custPropCode,
           categCode: categCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         await propCategSpecialPrice.put('$cmpCode$custPropCode$categCode', newPropCategSpecialPrice);
       }
@@ -5575,8 +5575,8 @@ Future<void> _synchronizeCustomerPropCategSpecialPrice(
           cmpCode: cmpCode,
           custPropCode: custPropCode,
           categCode: categCode,
-          disc: data['disc'],
-          notes: data['notes'],
+          disc: data['disc']??'',
+          notes: data['notes']??'',
         );
         // Update the prop categ special price in Hive
         await propCategSpecialPrice.put('$cmpCode$custPropCode$categCode', updatedPropCategSpecialPrice);
@@ -5650,9 +5650,9 @@ Future<void> _synchronizePriceListAutho(
 ) async {
   try {
     for (var data in priceListAuthoData) {
-      var userCode = data['userCode'] as String?;
-      var cmpCode = data['cmpCode'] as String?;
-      var authoGroup = data['authoGroup'] as String?;
+      var userCode = data['userCode'] as String??'';
+      var cmpCode = data['cmpCode'] as String??'';
+      var authoGroup = data['authoGroup'] as String??'';
       
       // Print the data map to inspect its structure
       print('Data Map: $data');
@@ -5759,7 +5759,7 @@ Future<void> _synchronizeCompaniesConnection(
   try {
     // Iterate over the retrieved data
     for (var data in companiesConnectionData) {
-      var connectionID = data['connectionID'];
+      var connectionID = data['connectionID']??'';
 
       // Check if the item exists in Hive
       var hiveComp = companiesConnectionBox.get('$connectionID');
@@ -5768,12 +5768,12 @@ Future<void> _synchronizeCompaniesConnection(
       if (hiveComp == null) {
         var newComp = CompaniesConnection(
           connectionID: connectionID,
-          connDatabase: data['connDatabase'],
-          connServer: data['connServer'],
-          connUser: data['connUser'],
-          connPassword: data['connPassword'],
-          connPort: data['connPort'],
-          typeDatabase: data['typeDatabase'],
+          connDatabase: data['connDatabase']??'',
+          connServer: data['connServer']??'',
+          connUser: data['connUser']??'',
+          connPassword: data['connPassword']??'',
+          connPort: data['connPort']??'',
+          typeDatabase: data['typeDatabase']??'',
         );
         await companiesConnectionBox.put('$connectionID', newComp);
       }
@@ -5781,12 +5781,12 @@ Future<void> _synchronizeCompaniesConnection(
       else {
         var updatedComp = CompaniesConnection(
           connectionID: connectionID,
-          connDatabase: data['connDatabase'],
-          connServer: data['connServer'],
-          connUser: data['connUser'],
-          connPassword: data['connPassword'],
-          connPort: data['connPort'],
-          typeDatabase: data['typeDatabase'],
+          connDatabase: data['connDatabase']??'',
+          connServer: data['connServer']??'',
+          connUser: data['connUser']??'',
+          connPassword: data['connPassword']??'',
+          connPort: data['connPort']??'',
+          typeDatabase: data['typeDatabase']??'',
         );
         // Update the item in Hive
         await companiesConnectionBox.put('$connectionID', updatedComp);
@@ -5866,8 +5866,8 @@ Future<void> _synchronizeCompaniesUsers(
   try {
     // Iterate over the retrieved data
     for (var data in companiesUsersData) {
-      var userCode = data['userCode'];
-      var cmpCode = data['cmpCode'];
+      var userCode = data['userCode']??'';
+      var cmpCode = data['cmpCode']??'';
 
       // Check if the item exists in Hive
       var hiveComp = companiesUsersBox.get('$userCode$cmpCode');
@@ -5877,7 +5877,7 @@ Future<void> _synchronizeCompaniesUsers(
         var newComp = CompaniesUsers(
           userCode: userCode,
           cmpCode: cmpCode,
-          defaultcmpCode: data['defaultcmpCode'],
+          defaultcmpCode: data['defaultcmpCode']??'',
         );
         await companiesUsersBox.put('$userCode$cmpCode', newComp);
       }
@@ -5886,7 +5886,7 @@ Future<void> _synchronizeCompaniesUsers(
         var updatedComp = CompaniesUsers(
           userCode: userCode,
           cmpCode: cmpCode,
-          defaultcmpCode: data['defaultcmpCode'],
+          defaultcmpCode: data['defaultcmpCode']??'',
         );
         // Update the item in Hive
         await companiesUsersBox.put('$userCode$cmpCode', updatedComp);
