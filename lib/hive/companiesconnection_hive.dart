@@ -36,4 +36,16 @@ class CompaniesConnection extends HiveObject {
    required this.typeDatabase,
   }
   );
+   // Convert UserGroup instance to JSON format
+  Map<String, dynamic> toJson() {
+    return {
+      'connectionID': connectionID,
+      'connDatabase': connDatabase,
+      'connServer': connServer,
+      'connUser': connUser,
+      'connPassword':connPassword,
+      'connPort': connPort,
+      'typeDatabase': typeDatabase
+    };
+  }
 }

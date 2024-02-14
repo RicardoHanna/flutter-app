@@ -293,461 +293,280 @@ Future<void> _updateFirestoreAuthorization(List<Authorization> authorizations) a
 
 Future<void> _updateFirestoreSystemAdmin(List<SystemAdmin> systemAdmin) async {
   try {
-    // Loop through each SystemAdmin and update or add to Firestore
-    for (SystemAdmin systemadmin in systemAdmin) {
-      try {
-        // Check if the SystemAdmin already exists in Firestore
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('SystemAdmin')
-            .where('groupcode', isEqualTo: systemadmin.groupcode)
-            .get();
+          var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
 
-        if (querySnapshot.docs.isNotEmpty) {
-          // SystemAdmin already exists, check for updates
-          String documentId = querySnapshot.docs[0].id;
+      // Fetch user data from the API
+      var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/systemadmin'));
+      print(response.body);
+      if (response.statusCode == 200) {
+        List<dynamic> apiSys = jsonDecode(response.body);
+ 
+print(apiSys);
+        // Iterate through each user to determine if it should be added, updated, or deleted
+        for (SystemAdmin groupCode in systemAdmin) {
+          var userGroupData = systemAdminBox.get(groupCode.groupcode);
+                      var existingUserGroup = apiSys.firstWhere((user) => user['groupcode'] == groupCode.groupcode, orElse: () => null);
+                     print('jelo');
 
-          // Fetch existing data from Firestore
-          Map<String, dynamic> existingSystemAdminData = querySnapshot.docs[0].data()!;
-
-          // Compare existing data with data from Hive
-          if (!dataEqualsSystemAdmin(existingSystemAdminData, systemadmin)) {
-            await _firestore.collection('SystemAdmin').doc(documentId).update(
-              {
-                'autoExport': systemadmin.autoExport,
-
-                'groupcode': systemadmin.groupcode,
-                'importFromErpToMobile': systemadmin.importFromErpToMobile,
-                'importFromBackendToMobile': systemadmin.importFromBackendToMobile,
-                // Update other fields if needed
-              },
-            );
-            print('SystemAdmin updated: ${systemadmin.groupcode}');
+          if (userGroupData != null) {
+            // Check if user exists in API response
+            print('fomocs');
+print(existingUserGroup);
+            if (existingUserGroup != null) {
+              // User exists, update user data
+              final response = await http.put(
+                Uri.parse('http://5.189.188.139:8080/api/systemAdmin/updateSystemAdmin/${existingUserGroup['groupcode']}'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print(response.statusCode);
+              print(response.body);
+              print('System Admin Group updated: $userGroupData');
+            } else {
+              print('riccc');
+              // User does not exist, add new user
+              await http.post(
+                Uri.parse('http://5.189.188.139:8080/api/systemadmin/insertSystemAdmin'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print('System Admin added: $groupCode');
+            }
+          } else {
+            // User does not exist in local storage, delete user from API
+            if (existingUserGroup != null) {
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/systemAdmin/deleteSystemAdmin/${existingUserGroup['groupcode']}'));
+              print('System Admin deleted: $groupCode');
+            }
           }
-        } else {
-          // Add the SystemAdmin to Firestore if it doesn't exist
-          await _firestore.collection('SystemAdmin').add(
-            {
-              'autoExport': systemadmin.autoExport,
-              
-              'groupcode': systemadmin.groupcode,
-              'importFromErpToMobile': systemadmin.importFromErpToMobile,
-              'importFromBackendToMobile': systemadmin.importFromBackendToMobile,
-              // Add other fields if needed
-            },
-          );
-          print('SystemAdmin added: ${systemadmin.groupcode}');
         }
-      } catch (e) {
-        print('Error updating Firestore SystemAdmin: $e');
+      } else {
+        print('Failed to fetch system admin from API');
       }
+    } catch (e) {
+      print('Error updating API system admin group: $e');
     }
-  } catch (e) {
-    print('Error updating Firestore SystemAdmins: $e');
   }
-}
+
 
 
 
 
 Future<void> _updateFirestoreCompaniesConnection(List<CompaniesConnection> companiesConnection) async {
   try {
-    // Loop through each SystemAdmin and update or add to Firestore
-    for (CompaniesConnection companyConnection in companiesConnection) {
-      try {
-        // Check if the SystemAdmin already exists in Firestore
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('CompaniesConnection')
-            .where('connectionID', isEqualTo: companyConnection.connectionID)
-            .get();
+          var companiesConnectionBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
 
-        if (querySnapshot.docs.isNotEmpty) {
-          // SystemAdmin already exists, check for updates
-          String documentId = querySnapshot.docs[0].id;
 
-          // Fetch existing data from Firestore
-          Map<String, dynamic> existingSystemAdminData = querySnapshot.docs[0].data()!;
-
-          // Compare existing data with data from Hive
-          if (!dataEqualsCompaniesConnection(existingSystemAdminData, companyConnection)) {
-            await _firestore.collection('CompaniesConnection').doc(documentId).update(
-              {
-                'connectionID': companyConnection.connectionID,
-
-                'connDatabase': companyConnection.connDatabase,
-                'connServer': companyConnection.connServer,
-                 'connUser': companyConnection.connUser,
-                 'connPassword':companyConnection.connPassword,
-                 'connPort':companyConnection.connPort,
-                  'typeDatabase':companyConnection.typeDatabase,
-         
-                // Update other fields if needed
-              },
-            );
-            print('Companies Connection updated: ${companyConnection.connectionID}');
+      // Fetch user data from the API
+      var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/companiesconnection'));
+      print(response.body);
+      if (response.statusCode == 200) {
+        List<dynamic> apiComp = jsonDecode(response.body);
+ 
+print(apiComp);
+        // Iterate through each user to determine if it should be added, updated, or deleted
+        for (CompaniesConnection connID in companiesConnection) {
+          var userGroupData = companiesConnectionBox.get(connID.connectionID);
+                      var existingUserGroup = apiComp.firstWhere((user) => user['connectionID'] == connID.connectionID, orElse: () => null);
+                     print('jelo');
+print(userGroupData?.connectionID);
+          if (userGroupData != null) {
+            // Check if user exists in API response
+            print('fomocs');
+print(existingUserGroup);
+            if (existingUserGroup != null) {
+              // User exists, update user data
+              final response = await http.put(
+                Uri.parse('http://5.189.188.139:8080/api/companiesconnection/updateCompaniesConnection/${existingUserGroup['connectionID']}'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print(response.statusCode);
+              print(response.body);
+              print('Companies Connection Group updated: $userGroupData');
+            } else {
+              print('riccc');
+              // User does not exist, add new user
+              await http.post(
+                Uri.parse('http://5.189.188.139:8080/api/companiesconnection/insertCompaniesConnection'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print('Companies Connection  added: $connID');
+            }
+          } else {
+            // User does not exist in local storage, delete user from API
+            if (existingUserGroup != null) {
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/companiesconnection/deleteCompaniesConnection/${existingUserGroup['connectionID']}'));
+              print('Companies Connection  deleted: $connID');
+            }
           }
-        } else {
-          // Add the SystemAdmin to Firestore if it doesn't exist
-          await _firestore.collection('CompaniesConnection').add(
-            {
-               'connectionID': companyConnection.connectionID,
-
-                'connDatabase': companyConnection.connDatabase,
-                'connServer': companyConnection.connServer,
-                 'connUser': companyConnection.connUser,
-                 'connPassword':companyConnection.connPassword,
-                 'connPort':companyConnection.connPort,
-                  'typeDatabase':companyConnection.typeDatabase,
-              // Add other fields if needed
-            },
-          );
-          print('Companies Connection added: ${companyConnection.connectionID}');
         }
-      } catch (e) {
-        print('Error updating Firestore Companies Connection: $e');
+      } else {
+        print('Failed to fetch companies connection from API');
       }
+    } catch (e) {
+      print('Error updating API companies connection  group: $e');
     }
-  } catch (e) {
-    print('Error updating Firestore SystemAdmins: $e');
   }
-}
 
 
 
 Future<void> _updateFirestoreCompaniesUsers(List<CompaniesUsers> companiesusers) async {
-  try {
-    // Get all CompaniesUsers documents from Firestore
-    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
-        await _firestore.collection('CompaniesUsers').get();
+   try {
+      var companiesusersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
 
-    // Create a list to keep track of documents to delete
-    List<DocumentReference> docsToDelete = [];
+    // Fetch user data from the API
+    var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/companiesusers'));
+    print(response.body);
+    if (response.statusCode == 200) {
+      List<dynamic> apiCompUser = jsonDecode(response.body);
 
-    // Loop through each CompaniesUsers and update or add to Firestore
-    for (CompaniesUsers companyuser in companiesusers) {
-      try {
-        // Check if the CompaniesUsers already exists in Firestore
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('CompaniesUsers')
-            .where('cmpCode', isEqualTo: companyuser.cmpCode)
-            .where('userCode', isEqualTo: companyuser.userCode)
-            .get();
+      print(apiCompUser);
+      // Iterate through each user to determine if it should be added, updated, or deleted
+   for (CompaniesUsers compuser in companiesusersBox.values) {
+  var existingAuthoGroup = apiCompUser.firstWhere((user) => user['userCode'] == compuser.userCode && user['cmpCode'] == compuser.cmpCode, orElse: () => null);
+  print('Processing Comp User: $compuser');
 
-        if (querySnapshot.docs.isNotEmpty) {
-          // CompaniesUsers already exists
-          String documentId = querySnapshot.docs[0].id;
-          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
-
-          if (!dataEqualsCompaniesUsers(existingData, companyuser)) {
-            // Update existing data in Firestore
-            await _firestore.collection('CompaniesUsers').doc(documentId).update(
-              {
-                'userCode': companyuser.userCode,
-                'cmpCode': companyuser.cmpCode,
-                'defaultcmpCode': companyuser.defaultcmpCode
-                // Update other fields if needed
-              },
-            );
-            print('Companies Users updated: ${companyuser.cmpCode}');
-          }
-        } else {
-          // CompaniesUsers doesn't exist, add it to Firestore
-          await _firestore.collection('CompaniesUsers').add(
-            {
-              'userCode': companyuser.userCode,
-              'cmpCode': companyuser.cmpCode,
-              'defaultcmpCode': companyuser.defaultcmpCode
-              // Add other fields if needed
-            },
-          );
-          print('Companies Users added: ${companyuser.cmpCode}');
-        }
-      } catch (e) {
-        print('Error updating Firestore Companies Users: $e');
-      }
-    }
-
-    // Check for deletions
-    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
-      // Extract data from the document
-      Map<String, dynamic> firestoreData = docSnapshot.data()!;
-      String cmpCode = firestoreData['cmpCode'];
-      String userCode = firestoreData['userCode'];
-
-      // Check if the document exists in the local list of CompaniesUsers objects
-      bool existsLocally = companiesusers.any((localCompanyUser) =>
-          localCompanyUser.cmpCode == cmpCode && localCompanyUser.userCode == userCode);
-
-      // If the document doesn't exist locally, add it to the list of documents to delete
-      if (!existsLocally) {
-        docsToDelete.add(docSnapshot.reference);
-        print('Companies Users to delete: $cmpCode');
-      }
-    }
-
-    // Delete documents
-    for (DocumentReference docRef in docsToDelete) {
-      await docRef.delete();
-      print('Companies Users deleted');
-    }
-  } catch (e) {
-    print('Error updating Firestore Companies Users: $e');
+  if (existingAuthoGroup != null) {
+    // User exists, update user data
+    final response = await http.put(
+      Uri.parse('http://5.189.188.139:8080/api/companiesusers/updateCompaniesUsers/${compuser.userCode}/${compuser.cmpCode}'),
+      body: jsonEncode(compuser.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print(response.statusCode);
+    print(response.body);
+    print('Company User updated: $compuser');
+  } else {
+    // User does not exist, add new user
+    await http.post(
+      Uri.parse('http://5.189.188.139:8080/api/companiesusers/insertCompaniesUsers'),
+      body: jsonEncode(compuser.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print('Company User added: $compuser');
   }
 }
+
+
+    } else {
+      print('Failed to fetch comp user from API');
+    }
+  } catch (e) {
+    print('Error updating API comp user: $e');
+  }
+}
+
+
 
 Future<void> _updateFirestorePriceListAutho(List<PriceListAuthorization> pricelistsautho) async {
-  try {
-    // Get all PriceListAuthorization documents from Firestore
-    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
-        await _firestore.collection('PriceListAuthorization').get();
+ try {
+      var pricelistauthoBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
 
-    // Create a list to keep track of documents to delete
-    List<DocumentReference> docsToDelete = [];
+    // Fetch user data from the API
+    var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/pricelistauthorization'));
+    print(response.body);
+    if (response.statusCode == 200) {
+      List<dynamic> apiPrice = jsonDecode(response.body);
 
-    // Loop through each PriceListAuthorization and update or add to Firestore
-    for (PriceListAuthorization pricelistautho in pricelistsautho) {
-      try {
-        // Check if the PriceListAuthorization already exists in Firestore
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('PriceListAuthorization')
-            .where('cmpCode', isEqualTo: pricelistautho.cmpCode)
-            .where('userCode', isEqualTo: pricelistautho.userCode)
-            .where('authoGroup', isEqualTo: pricelistautho.authoGroup)
-            .get();
+      print(apiPrice);
+      // Iterate through each user to determine if it should be added, updated, or deleted
+   for (PriceListAuthorization pricelistautho in pricelistauthoBox.values) {
+  var existingAuthoGroup = apiPrice.firstWhere((user) => user['userCode'] == pricelistautho.userCode && user['cmpCode'] == pricelistautho.cmpCode  && user['authoGroup'] == pricelistautho.authoGroup, orElse: () => null);
+  print('Processing price lsit authi : $pricelistautho');
 
-        if (querySnapshot.docs.isNotEmpty) {
-          // PriceListAuthorization already exists
-          String documentId = querySnapshot.docs[0].id;
-          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
-
-          if (!dataEqualsPriceListAutho(existingData, pricelistautho)) {
-            // Update existing data in Firestore
-            await _firestore.collection('PriceListAuthorization').doc(documentId).update(
-              {
-                'userCode': pricelistautho.userCode,
-                'cmpCode': pricelistautho.cmpCode,
-                'authoGroup': pricelistautho.authoGroup
-                // Update other fields if needed
-              },
-            );
-            print('Price List Users updated: ${pricelistautho.authoGroup}');
-          }
-        } else {
-          // PriceListAuthorization doesn't exist, add it to Firestore
-          await _firestore.collection('PriceListAuthorization').add(
-            {
-              'userCode': pricelistautho.userCode,
-              'cmpCode': pricelistautho.cmpCode,
-              'authoGroup': pricelistautho.authoGroup
-              // Add other fields if needed
-            },
-          );
-          print('Price List Users added: ${pricelistautho.authoGroup}');
-        }
-      } catch (e) {
-        print('Error updating Firestore Price List Users: $e');
-      }
-    }
-
-    // Check for deletions
-    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
-      // Extract data from the document
-      Map<String, dynamic> firestoreData = docSnapshot.data()!;
-      String cmpCode = firestoreData['cmpCode'];
-      String userCode = firestoreData['userCode'];
-      String authoGroup = firestoreData['authoGroup'];
-
-      // Check if the document exists in the local list of PriceListAuthorization objects
-      bool existsLocally = pricelistsautho.any((localPriceListAutho) =>
-          localPriceListAutho.cmpCode == cmpCode &&
-          localPriceListAutho.userCode == userCode &&
-          localPriceListAutho.authoGroup == authoGroup);
-
-      // If the document doesn't exist locally, add it to the list of documents to delete
-      if (!existsLocally) {
-        docsToDelete.add(docSnapshot.reference);
-        print('Price List Users to delete: $authoGroup');
-      }
-    }
-
-    // Delete documents
-    for (DocumentReference docRef in docsToDelete) {
-      await docRef.delete();
-      print('Price List Users deleted');
-    }
-  } catch (e) {
-    print('Error updating Firestore Price List Users: $e');
+  if (existingAuthoGroup != null) {
+    // User exists, update user data
+    final response = await http.put(
+      Uri.parse('http://5.189.188.139:8080/api/pricelistauthorization/updatePriceListAuthorization/${pricelistautho.userCode}/${pricelistautho.cmpCode}/${pricelistautho.authoGroup}'),
+      body: jsonEncode(pricelistautho.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print(response.statusCode);
+    print(response.body);
+    print('Price list  updated: $pricelistautho');
+  } else {
+    // User does not exist, add new user
+    await http.post(
+      Uri.parse('http://5.189.188.139:8080/api/pricelistauthorization/insertPriceListAuthorization'),
+      body: jsonEncode(pricelistautho.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print('Price List autho  added: $pricelistautho');
   }
 }
+
+
+    } else {
+      print('Failed to fetch Price List autho from API');
+    }
+  } catch (e) {
+    print('Error updating API Price List autho : $e');
+  }
+}
+
 
 
 Future<void> _updateFirestoreCompanies(List<Companies> companies) async {
-  try {
-    // Get all PriceListAuthorization documents from Firestore
-    QuerySnapshot<Map<String, dynamic>> allDocsSnapshot =
-        await _firestore.collection('Companies').get();
+ try {
+      var companiesBox = await Hive.openBox<Companies>('companiesBox');
 
-    // Create a list to keep track of documents to delete
-    List<DocumentReference> docsToDelete = [];
 
-    // Loop through each PriceListAuthorization and update or add to Firestore
-    for (Companies company in companies) {
-      try {
-        // Check if the PriceListAuthorization already exists in Firestore
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-            .collection('Companies')
-            .where('cmpCode', isEqualTo: company.cmpCode)
-            .get();
 
-        if (querySnapshot.docs.isNotEmpty) {
-          // PriceListAuthorization already exists
-          String documentId = querySnapshot.docs[0].id;
-          Map<String, dynamic> existingData = querySnapshot.docs[0].data()!;
-
-          if (!dataEqualsCompany(existingData, company)) {
-            // Update existing data in Firestore
-            await _firestore.collection('Companies').doc(documentId).update(
-              {
-          'cmpCode': company.cmpCode,
-          'cmpName': company.cmpName,
-          'cmpFName': company.cmpFName,
-          'tel': company.tel,
-          'mobile': company.mobile,
-          'address': company.address,
-          'fAddress':company.address,
-          'prHeader': company.prHeader,
-          'prFHeader': company.prFHeader,
-          'prFooter': company.prFFooter,
-          'prFFooter': company.prFFooter,
-          'mainCurCode': company.mainCurCode,
-          'secCurCode': company.secCurCode,
-          'rateType': company.rateType,
-          'issueBatchMethod': company.issueBatchMethod,
-          'systemAdminID': company.systemAdminID ,
-          'notes': company.notes,
-              },
-            );
-            print('Company updated: ${company.cmpCode}');
+      // Fetch user data from the API
+      var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/companies'));
+      print(response.body);
+      if (response.statusCode == 200) {
+        List<dynamic> apiComp = jsonDecode(response.body);
+ 
+print(apiComp);
+        // Iterate through each user to determine if it should be added, updated, or deleted
+        for (Companies cmpCode in companies) {
+          var userGroupData = companiesBox.get(cmpCode.cmpCode);
+                      var existingUserGroup = apiComp.firstWhere((user) => user['cmpCode'] == cmpCode.cmpCode, orElse: () => null);
+                     print('jelo');
+print(userGroupData?.cmpCode);
+          if (userGroupData != null) {
+            // Check if user exists in API response
+            print('fomocs');
+print(existingUserGroup);
+            if (existingUserGroup != null) {
+              // User exists, update user data
+              final response = await http.put(
+                Uri.parse('http://5.189.188.139:8080/api/companies/updateCompanies/${existingUserGroup['cmpCode']}'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print(response.statusCode);
+              print(response.body);
+              print('Companies  Group updated: $userGroupData');
+            } else {
+              print('riccc');
+              // User does not exist, add new user
+              await http.post(
+                Uri.parse('http://5.189.188.139:8080/api/companies/insertCompanies'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print('Companies   added: $companies');
+            }
+          } else {
+            // User does not exist in local storage, delete user from API
+            if (existingUserGroup != null) {
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/companies/deleteCompanies/${existingUserGroup['cmpCode']}'));
+              print('Companies   deleted: $companies');
+            }
           }
-        } else {
-          // PriceListAuthorization doesn't exist, add it to Firestore
-          await _firestore.collection('Companies').add(
-            {
-                'cmpCode': company.cmpCode,
-          'cmpName': company.cmpName,
-          'cmpFName': company.cmpFName,
-          'tel': company.tel,
-          'mobile': company.mobile,
-          'address': company.address,
-          'fAddress':company.address,
-          'prHeader': company.prHeader,
-          'prFHeader': company.prFHeader,
-          'prFooter': company.prFFooter,
-          'prFFooter': company.prFFooter,
-          'mainCurCode': company.mainCurCode,
-          'secCurCode': company.secCurCode,
-          'rateType': company.rateType,
-          'issueBatchMethod': company.issueBatchMethod,
-          'systemAdminID': company.systemAdminID ,
-          'notes': company.notes,
-            },
-          );
-          print('Company added: ${company.cmpCode}');
         }
-      } catch (e) {
-        print('Error updating Firestore Company : $e');
+      } else {
+        print('Failed to fetch companies  from API');
       }
+    } catch (e) {
+      print('Error updating API companies   group: $e');
     }
-
-    // Check for deletions
-    for (DocumentSnapshot<Map<String, dynamic>> docSnapshot in allDocsSnapshot.docs) {
-      // Extract data from the document
-      Map<String, dynamic> firestoreData = docSnapshot.data()!;
-      String cmpCode = firestoreData['cmpCode'];
-
-
-      // Check if the document exists in the local list of PriceListAuthorization objects
-      bool existsLocally = companies.any((localCompany) =>
-          localCompany.cmpCode == cmpCode 
-         );
-
-      // If the document doesn't exist locally, add it to the list of documents to delete
-      if (!existsLocally) {
-        docsToDelete.add(docSnapshot.reference);
-        print('Company to delete: $cmpCode');
-      }
-    }
-
-    // Delete documents
-    for (DocumentReference docRef in docsToDelete) {
-      await docRef.delete();
-      print('Company deleted');
-    }
-  } catch (e) {
-    print('Error updating Firestore Company: $e');
   }
-}
 
-
-
-
-
-
-// Function to compare SystemAdmin data equality (customize based on your data structure)
-bool dataEqualsSystemAdmin(
-    Map<String, dynamic> existingData, SystemAdmin newSystemAdmin) {
-  // Compare fields and return true if they are equal, otherwise return false
-  // Add conditions for each field you want to compare
-  return existingData['autoExport'] == newSystemAdmin.autoExport &&
-      existingData['groupcode'] == newSystemAdmin.groupcode &&
-      existingData['importFromErpToMobile'] == newSystemAdmin.importFromErpToMobile &&
-      existingData['importFromBackendToMobile'] == newSystemAdmin.importFromBackendToMobile;
-  // Add additional conditions as needed
-}
-
-bool dataEqualsCompaniesConnection(
-    Map<String, dynamic> existingData, CompaniesConnection newCompanyConnection) {
-  // Compare fields and return true if they are equal, otherwise return false
-  // Add conditions for each field you want to compare
-  return existingData['connectionID'] == newCompanyConnection.connectionID &&
-      existingData['connDatabase'] == newCompanyConnection.connDatabase &&
-      existingData['connUser'] == newCompanyConnection.connUser &&
-       existingData['connPassword'] == newCompanyConnection.connPassword &&
-        existingData['connPort'] == newCompanyConnection.connPort &&
-      existingData['typeDatabase'] == newCompanyConnection.typeDatabase &&
-        existingData['connServer'] == newCompanyConnection.connServer;
-
-  // Add additional conditions as needed
-}
-
-bool dataEqualsCompaniesUsers(
-    Map<String, dynamic> existingData, CompaniesUsers newCompanyUser) {
-  // Compare fields and return true if they are equal, otherwise return false
-  // Add conditions for each field you want to compare
-  return existingData['cmpCode'] == newCompanyUser.cmpCode &&
-      existingData['userCode'] == newCompanyUser.userCode &&
-        existingData['defaultcmpCode'] == newCompanyUser.defaultcmpCode ;
-  // Add additional conditions as needed
-}
-
-bool dataEqualsPriceListAutho(
-    Map<String, dynamic> existingData, PriceListAuthorization newPriceList) {
-  // Compare fields and return true if they are equal, otherwise return false
-  // Add conditions for each field you want to compare
-  return existingData['cmpCode'] == newPriceList.cmpCode &&
-      existingData['userCode'] == newPriceList.userCode &&
-      existingData['authoGroup']== newPriceList.authoGroup;
-  // Add additional conditions as needed
-}
-
-
-// Function to compare SystemAdmin data equality (customize based on your data structure)
-bool dataEqualsCompany(
-    Map<String, dynamic> existingData, Companies newCompanies) {
-  // Compare fields and return true if they are equal, otherwise return false
-  // Add conditions for each field you want to compare
-  return existingData['cmpCode'] == newCompanies.cmpCode;
-  // Add additional conditions as needed
-}
 
   Future<bool> hasInternetConnection() async {
     try {

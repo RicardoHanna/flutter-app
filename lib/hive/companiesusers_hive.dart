@@ -20,4 +20,12 @@ class CompaniesUsers extends HiveObject {
 
   }
   );
+
+   Map<String, dynamic> toJson() {
+    return {
+      'userCode': userCode,
+      'cmpCode': cmpCode,
+      'defaultcmpCode': defaultcmpCode
+    };
+  }
 }

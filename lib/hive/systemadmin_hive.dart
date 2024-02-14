@@ -24,4 +24,13 @@ class SystemAdmin extends HiveObject {
    required this.importFromBackendToMobile
   }
   );
+   // Convert UserGroup instance to JSON format
+  Map<String, dynamic> toJson() {
+    return {
+      'autoExport': autoExport,
+      'groupcode': groupcode,
+      'importFromErpToMobile':importFromErpToMobile,
+      'importFromBackendToMobile':importFromBackendToMobile
+    };
+  }
 }
