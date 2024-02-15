@@ -72,7 +72,7 @@ class ItemsInfoForm extends StatelessWidget {
                     ],
                   ),
 
-                Container(
+               /* Container(
                     height: 80, // Adjust the height as needed
                     width: 80, // Adjust the width as needed
                     decoration: BoxDecoration(
@@ -82,7 +82,7 @@ class ItemsInfoForm extends StatelessWidget {
                         image: NetworkImage(item.picture ?? ''), // Use the item's picture URL
                       ),
                     ),
-                  ),
+                  ),*/
                 ],
               ),
 

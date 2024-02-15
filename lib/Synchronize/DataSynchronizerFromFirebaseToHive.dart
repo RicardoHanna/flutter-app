@@ -72,8 +72,13 @@ Future<List<String>> retrieveSeCodes(String usercode) async {
     if (response.statusCode == 200) {
       // Parse response body and extract seCodes
       // Adjust this part based on your server's response format
-      String seCode = response.body;
-      seCodes.add(seCode); // Wrap the single value in a list
+      List<dynamic> responseBody = jsonDecode(response.body);
+      for (var item in responseBody) {
+        if (item['seCode'] != null) {
+          String seCode = item['seCode'];
+          seCodes.add(seCode); // Add seCode to the list
+        }
+      }
     } else {
       print('Failed to retrieve seCodes: ${response.statusCode}');
     }
@@ -82,6 +87,7 @@ Future<List<String>> retrieveSeCodes(String usercode) async {
   }
   return seCodes;
 }
+
 
   
 Future<List<String>> retrieveItemCodes(List<String> seCodes) async {
@@ -3675,10 +3681,12 @@ Future<void> _synchronizeUserSalesEmployees(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 Future<List<String>> retrieveCustCodes(List<String> seCodes) async {
+ print('ksdpds'); print(seCodes);print('ksdps');
   List<String> custCodes = [];
   try {
     for (String seCode in seCodes) {
       final response = await http.get(Uri.parse('${apiurl}getSalesEmployeesCustomers?seCode=$seCode'));
+      print(response.body);
       if (response.statusCode == 200) {
         dynamic responseData = jsonDecode(response.body);
         if (responseData is List) {
@@ -3705,7 +3713,7 @@ Future<void> synchronizeCustomers(List<String> custCodes) async {
   
     // Fetch data from API endpoint using custCodes
     //List<Map<String, dynamic>> apiResponse = await _fetchCustomersData(custCodes);
-List<Map<String, dynamic>> apiResponse = await _fetchCustomersData();
+List<Map<String, dynamic>> apiResponse = await _fetchCustomersData(custCodes);
     // Open Hive box
     var customersBox = await Hive.openBox<Customers>('customersBox');
 
@@ -3716,22 +3724,31 @@ List<Map<String, dynamic>> apiResponse = await _fetchCustomersData();
   }
 }
 
-Future<List<Map<String, dynamic>>> _fetchCustomersData() async {
+
+
+Future<List<Map<String, dynamic>>> _fetchCustomersData(List<String>custCodes) async {
   List<Map<String, dynamic>> customersData = [];
-  try {//List<String> custCodes
-  //  for (String custCode in custCodes) {
-      final response = await http.get(Uri.parse('${apiurl}getCustomers'));
+  try {
+    for (String custCode in custCodes) {
+      final response = await http.get(Uri.parse('${apiurl}getCustomers?custCode=$custCode'));
       if (response.statusCode == 200) {
-        dynamic responseData = jsonDecode(response.body);
-        if (responseData is Map<String, dynamic>) {
+                dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+          // If the response is a list, append each item to the itemsData list
+          for (var item in responseData) {
+            if (item is Map<String, dynamic>) {
+              customersData.add(item);
+            }
+          }
+        } else if (responseData is Map<String, dynamic>) {
+          // If the response is a map, directly append it to the itemsData list
           customersData.add(responseData);
-        } else {
-          print('Invalid response format for customer data');
         }
       } else {
         print('Failed to retrieve customer data for custCode : ${response.statusCode}');
       }
-   // }
+    }
   } catch (e) {
     print('Error fetching customer data: $e');
   }
@@ -3765,7 +3782,8 @@ print('hii');
           fax: data['fax']??'',
           website: data['website']??'',
           email: data['email']??'',
-          active: data['active']??'',
+          active:data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
+
           printLayout: data['printLayout']??'',
           dfltAddressID: data['dfltAddressID']??'',
           dfltContactID: data['dfltContactID']??'',
@@ -3796,7 +3814,8 @@ print('hii');
           fax: data['fax']??'',
           website: data['website']??'',
           email: data['email']??'',
-          active: data['active']??'',
+          active:data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
+
           printLayout: data['printLayout']??'',
           dfltAddressID: data['dfltAddressID']??'',
           dfltContactID: data['dfltContactID']??'',

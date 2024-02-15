@@ -6,9 +6,11 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/Forms/Catalog_Form.dart';
 import 'package:project/Forms/Items_Info_Form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/DataSearch.dart';
@@ -207,8 +209,8 @@ Future<List<Items>> _getItems() async {
   var usersSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
   var salesEmployeesItemsBox = await Hive.openBox<SalesEmployeesItems>('salesEmployeesItemsBox');
   var itemsBox = await Hive.openBox<Items>('items');
-
-  try {
+ List<Items> allItems = [];
+  /*try {
     // Find the UserSalesEmployees objects with matching userCode
     var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode && userSalesEmployee.cmpCode == widget.defltCompanyCode);
 
@@ -234,18 +236,18 @@ Future<List<Items>> _getItems() async {
         allItems.addAll(items);
       }
     }
-
-
+*/
+allItems=itemsBox.values.toList();
 
     return allItems;
-  } catch (e) {
+ /* } catch (e) {
     print("Error: $e");
 
     // Close the boxes if an error occurs
     
 
     return []; // Return an empty list if an error occurs
-  }
+  }*/
 }
 
 
@@ -369,16 +371,76 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
 ),
 
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showSettingsDialog();
-        },
-        child: Icon(Icons.add),
-      ),
+      floatingActionButton: Align(
+  alignment: Directionality.of(context) == TextDirection.rtl
+      ? Alignment.bottomRight
+      : Alignment.bottomRight,
+  child: Padding(
+    padding: EdgeInsets.only(
+      right: Directionality.of(context) == TextDirection.rtl ? 23.0 : 0.0,
+      left: Directionality.of(context) == TextDirection.ltr ? 23.0 : 0.0,
+    ),
+    child: _getFAB(),
+  ),
+),
+
     
     );
     
   }
+
+  
+Widget _getFAB() {
+    return SpeedDial(
+      animatedIcon: AnimatedIcons.menu_close,
+      animatedIconTheme: IconThemeData(size: 22),
+      backgroundColor: Color(0xFF2196F3),
+      visible: true,
+      curve: Curves.bounceIn,
+      children: [
+        SpeedDialChild(
+          child: Icon(Icons.image),
+          backgroundColor: Color(0xFF2196F3),
+          onTap: () {
+          _showCatalogItems();
+          },
+          label: 'Items Catalog',
+          labelStyle: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontSize: 16.0,
+          ),
+          labelBackgroundColor: Color(0xFF2196F3),
+        ),
+        // Sub button 2
+        SpeedDialChild(
+          child: Icon(Icons.add),
+          backgroundColor: Color(0xFF2196F3),
+          onTap: () {
+         _showSettingsDialog();
+          },
+          label:'Add Fields Items',
+          labelStyle: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontSize: 16.0,
+          ),
+          labelBackgroundColor: Color(0xFF2196F3),
+        ),
+      ],
+    );
+  }
+
+void _showCatalogItems(){
+    Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CatalogForm(appNotifier:widget.appNotifier, usercode: widget.userCode, items: filteredItems,),
+                    ),
+                  );
+ 
+}
+
 
  Widget _buildCheckbox(String label, bool value, Function(bool?) onChanged) {
   return CheckboxListTile(
