@@ -422,6 +422,7 @@ void _deleteUser(int groupcode, String username) async {
     try {
       
         var userBox = await Hive.openBox<Translations>('translationsBox');
+        var userGroupBox= await Hive.openBox<UserGroup>('userGroupBox');
   
   // Mark the user as deleted (you can use a specific field like 'isDeleted')
   print(groupcode);
@@ -432,6 +433,7 @@ void _deleteUser(int groupcode, String username) async {
       }
       else{
   userBox.delete(groupcode);
+  userGroupBox.delete(groupcode);
 
   // Update offlineUsers list after deletion
                 setState(() {

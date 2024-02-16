@@ -70,57 +70,73 @@ String baseUrl='http://5.189.188.139:8080';
       print('Error synchronizing data: $e');
     }
   }
-Future<void> _updateFirestoreUsers(List<String> users) async {
- try {
-      // Fetch user data from the API
-      var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/users'));
-      print(response.body);
-      if (response.statusCode == 200) {
-        List<dynamic> apiUsers = jsonDecode(response.body);
   
-print(apiUsers);
-        // Iterate through each user to determine if it should be added, updated, or deleted
-        for (String userCode in users) {
-          var userData = userBox.get(userCode);
-                      var existingUser = apiUsers.firstWhere((user) => user['usercode'] == userCode, orElse: () => null);
-
-          if (userData != null) {
-            // Check if user exists in API response
-
-            if (existingUser != null) {
-              // User exists, update user data
-              final response = await http.put(
-                Uri.parse('http://5.189.188.139:8080/api/users/updateUser/${existingUser['usercode']}'),
-                body: jsonEncode(userData),
-                headers: {'Content-Type': 'application/json'},
-              );
-              print(response.statusCode);
-              print(response.body);
-              print('User updated: $userCode');
-            } else {
-              // User does not exist, add new user
-              await http.post(
-                Uri.parse('http://5.189.188.139:8080/api/users/insertUser'),
-                body: jsonEncode(userData),
-                headers: {'Content-Type': 'application/json'},
-              );
-              print('User added: $userCode');
-            }
-          } else {
-            // User does not exist in local storage, delete user from API
-            if (existingUser != null) {
-              await http.delete(Uri.parse('http://5.189.188.139:8080/api/users/deleteUser/${existingUser['usercode']}'));
-              print('User deleted: $userCode');
-            }
-          }
+  Future<void> _updateFirestoreUsers(List<String> users) async {
+  try {
+    // Fetch user data from the API
+    var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/users'));
+    print(response.body);
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      List<dynamic> apiUsers = jsonDecode(response.body);
+      print(apiUsers);
+      
+      // Iterate through each user to determine if it should be added, updated, or deleted
+      for (String userCode in users) {
+        var userData = userBox.get(userCode);
+        var existingUser;
+        if (apiUsers != null) {
+          existingUser = apiUsers.firstWhere((user) => user['usercode'] == userCode, orElse: () => null);
         }
-      } else {
-        print('Failed to fetch users from API');
-      }
-    } catch (e) {
-      print('Error updating API users: $e');
+       if (existingUser != null) {
+          print(existingUser['usercode']);
+        } else {
+          print('Existing user not found in API');
+        }
+        print('khata');
+        if (userData != null) {
+          // Check if user exists in API response
+          print('jooo');
+          if (existingUser != null) {
+            // User exists, update user data
+            final response = await http.put(
+              Uri.parse('http://5.189.188.139:8080/api/users/updateUser/${existingUser['usercode']}'),
+              body: jsonEncode(userData),
+              headers: {'Content-Type': 'application/json'},
+            );
+            print(response.statusCode);
+            print(response.body);
+            print('User updated: $userCode');
+          } else {
+            print('ricooo');
+            // User does not exist, add new user
+            await http.post(
+              Uri.parse('http://5.189.188.139:8080/api/users/insertUser'),
+              body: jsonEncode(userData),
+              headers: {'Content-Type': 'application/json'},
+            );
+            print('User added: $userCode');
+          }
+        } 
+         List<String> hiveUsers = userBox.keys.cast<String>().toList();
+for (dynamic apiUser in apiUsers) {
+    String apiUserCode = apiUser['usercode'];
+    // Check if the user exists in Hive
+    if (!hiveUsers.contains(apiUserCode)) {
+        // User exists in the API but not in Hive, delete from API
+        await http.delete(Uri.parse('http://5.189.188.139:8080/api/users/deleteUser/$apiUserCode'));
+        print('User deleted from API: $apiUserCode');
     }
+}
+        
+      }
+    } else {
+      print('Failed to fetch users from API');
+    }
+  } catch (e) {
+    print('Error updating API users: $e');
   }
+}
 
 
 
@@ -140,13 +156,13 @@ print(apiUsers);
         // Iterate through each user to determine if it should be added, updated, or deleted
         for (UserGroup groupCode in userGroups) {
           var userGroupData = userGroupBox.get(groupCode.groupcode);
-                      var existingUserGroup = apiUsers.firstWhere((user) => user['groupcode'] == groupCode.groupcode, orElse: () => null);
-                     print('jelo');
+           var existingUserGroup;
+           if(apiUsers!=null){
+                    existingUserGroup = apiUsers.firstWhere((user) => user['groupcode'] == groupCode.groupcode, orElse: () => null);
+           }
 
           if (userGroupData != null) {
             // Check if user exists in API response
-            print('fomocs');
-print(existingUserGroup);
             if (existingUserGroup != null) {
               // User exists, update user data
               final response = await http.put(
@@ -167,13 +183,21 @@ print(existingUserGroup);
               );
               print('User added: $groupCode');
             }
-          } else {
-            // User does not exist in local storage, delete user from API
-            if (existingUserGroup != null) {
-              await http.delete(Uri.parse('http://5.189.188.139:8080/api/usergroup/deleteUserGroup/${existingUserGroup['groupcode']}'));
-              print('User deleted: $groupCode');
-            }
-          }
+          } 
+          List<int> hiveUsersGroup = userGroupBox.keys.cast<int>().toList();
+
+// Compare the list of users from Hive with the list of users from the API
+for (dynamic apiUser in apiUsers) {
+    int apiUserCode = apiUser['groupcode'];
+    // Check if the user exists in Hive
+    if (!hiveUsersGroup.contains(apiUserCode)) {
+        // User exists in the API but not in Hive, delete from API
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/usergroup/deleteUserGroup/$apiUserCode'));
+        print('User Group deleted from API: $apiUserCode');
+    }
+}
+        
+          
         }
       } else {
         print('Failed to fetch users from API');
@@ -184,99 +208,127 @@ print(existingUserGroup);
   }
 
 
-
 Future<void> _updateFirestoreTranslations(List<Translations> translations) async {
-   try {
-      var translationsBox = await Hive.openBox<Translations>('translationsBox');
+  try {
+    var translationsBox = await Hive.openBox<Translations>('translationsBox');
 
-      // Fetch user data from the API
-      var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/translations'));
-      print(response.body);
-      if (response.statusCode == 200) {
-        List<dynamic> apiUsers = jsonDecode(response.body);
- 
-print(apiUsers);
-        // Iterate through each user to determine if it should be added, updated, or deleted
-        for (Translations groupCode in translations) {
-          var userGroupData = translationsBox.get(groupCode.groupcode);
-                      var existingTrans = apiUsers.firstWhere((user) => user['groupcode'] == groupCode.groupcode, orElse: () => null);
-                     print('jelo');
-
-          if (userGroupData != null) {
-            // Check if user exists in API response
-            print('fomocs');
-print(existingTrans);
-            if (existingTrans != null) {
-              // User exists, update user data
-              final response = await http.put(
-                Uri.parse('http://5.189.188.139:8080/api/translations/updateTranslations/${existingTrans['groupcode']}'),
-                body: jsonEncode(userGroupData),
-                headers: {'Content-Type': 'application/json'},
-              );
-              print(response.statusCode);
-              print(response.body);
-              print('Trans updated: $userGroupData');
-            } else {
-              print('riccc');
-              // User does not exist, add new user
-              await http.post(
-                Uri.parse('http://5.189.188.139:8080/api/translations/insertTranslations'),
-                body: jsonEncode(userGroupData),
-                headers: {'Content-Type': 'application/json'},
-              );
-              print('Trans added: $groupCode');
-            }
-          } else {
-            // User does not exist in local storage, delete user from API
-            if (existingTrans != null) {
-              await http.delete(Uri.parse('http://5.189.188.139:8080/api/translations/deleteTranslations/${existingTrans['groupcode']}'));
-              print('Trans deleted: $groupCode');
-            }
-          }
+    // Fetch translations data from the API
+    var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/translations'));
+    print(response.body);
+    if (response.statusCode == 200) {
+      List<dynamic> apiTranslations = jsonDecode(response.body);
+      print(apiTranslations);
+      
+      // Iterate through each translation group to determine if it should be added, updated, or deleted
+      for (Translations groupCode in translations) {
+        var userGroupData = translationsBox.get(groupCode.groupcode);
+        var existingTrans;
+        if (apiTranslations != null) {
+          existingTrans = apiTranslations.firstWhere((trans) => trans['groupcode'] == groupCode.groupcode, orElse: () => null);
         }
-      } else {
-        print('Failed to fetch Trans from API');
+        if (userGroupData != null) {
+          // Check if translation group exists in API response
+          if (existingTrans != null) {
+            // Translation group exists, update translation data
+            final response = await http.put(
+              Uri.parse('http://5.189.188.139:8080/api/translations/updateTranslations/${existingTrans['groupcode']}'),
+              body: jsonEncode(userGroupData),
+              headers: {'Content-Type': 'application/json'},
+            );
+            print(response.statusCode);
+            print(response.body);
+            print('Translation group updated: $userGroupData');
+          } else {
+            // Translation group does not exist, add new translation group
+            print('Adding translation group to API');
+            await http.post(
+              Uri.parse('http://5.189.188.139:8080/api/translations/insertTranslations'),
+              body: jsonEncode(userGroupData),
+              headers: {'Content-Type': 'application/json'},
+            );
+            print('Translation group added: $groupCode');
+          }
+        } else {
+          print('Translation group data not found in local storage');
+        }
       }
-    } catch (e) {
-      print('Error updating API Transla group: $e');
-    }
-  }
 
+      // Compare the list of translation groups from Hive with the list of translation groups from the API
+      List<int> hiveTrans = translationsBox.keys.cast<int>().toList();
+      for (dynamic apiTrans in apiTranslations) {
+        int apiTransCode = apiTrans['groupcode'];
+        // Check if the translation group exists in Hive
+        if (!hiveTrans.contains(apiTransCode)) {
+          // Translation group exists in the API but not in Hive, delete from API
+          await http.delete(Uri.parse('http://5.189.188.139:8080/api/translations/deleteTranslations/$apiTransCode'));
+          print('Translation group deleted from API: $apiTransCode');
+        }
+      }
+    } else {
+      print('Failed to fetch translations from API');
+    }
+  } catch (e) {
+    print('Error updating API translation group: $e');
+  }
+}
 Future<void> _updateFirestoreAuthorization(List<Authorization> authorizations) async {
   try {
     var authorizationBox = await Hive.openBox<Authorization>('authorizationBox');
 
-    // Fetch user data from the API
+    // Fetch authorization data from the API
     var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/authorization'));
     print(response.body);
+    print('hiiiii');
+    print(response.statusCode);
     if (response.statusCode == 200) {
       List<dynamic> apiAutho = jsonDecode(response.body);
-
       print(apiAutho);
-      // Iterate through each user to determine if it should be added, updated, or deleted
-   for (Authorization authorization in authorizationBox.values) {
-  var existingAuthoGroup = apiAutho.firstWhere((user) => user['groupcode'] == authorization.groupcode && user['menucode'] == authorization.menucode, orElse: () => null);
-  print('Processing authorization: $authorization');
+      
+      // Iterate through each authorization to determine if it should be added, updated, or deleted
+      for (Authorization authorization in authorizations) {
+        var existingAuthoGroup;
+        if (apiAutho != null) {
+          existingAuthoGroup = apiAutho.firstWhere((autho) => autho['groupcode'] == authorization.groupcode && autho['menucode'] == authorization.menucode, orElse: () => null);
+        }
+        print('Processing authorization: $authorization');
+        if (existingAuthoGroup != null) {
+          // Authorization exists, update authorization data
+          final response = await http.put(
+            Uri.parse('http://5.189.188.139:8080/api/authorization/updateAuthorization/${authorization.menucode}/${authorization.groupcode}'),
+            body: jsonEncode(authorization.toJson()),
+            headers: {'Content-Type': 'application/json'},
+          );
+          print(response.statusCode);
+          print(response.body);
+          print('Authorization updated: $authorization');
+        } else {
+          // Authorization does not exist, add new authorization
+          print('Adding authorization to API');
+          await http.post(
+            Uri.parse('http://5.189.188.139:8080/api/authorization/insertAuthorization'),
+            body: jsonEncode(authorization.toJson()),
+            headers: {'Content-Type': 'application/json'},
+          );
+          print('Authorization added: $authorization');
+        }
+      }
 
-  if (existingAuthoGroup != null) {
-    // User exists, update user data
-    final response = await http.put(
-      Uri.parse('http://5.189.188.139:8080/api/authorization/updateAuthorization/${authorization.menucode}/${authorization.groupcode}'),
-      body: jsonEncode(authorization.toJson()),
-      headers: {'Content-Type': 'application/json'},
-    );
-    print(response.statusCode);
-    print(response.body);
-    print('Authorization updated: $authorization');
-  } else {
-    // User does not exist, add new user
-    await http.post(
-      Uri.parse('http://5.189.188.139:8080/api/authorization/insertAuthorization'),
-      body: jsonEncode(authorization.toJson()),
-      headers: {'Content-Type': 'application/json'},
-    );
-    print('Authorization added: $authorization');
-  }
+   // Convert the keys from authorizationBox to strings for comparison
+List<String> hiveAuthoKeys = authorizationBox.keys.map((key) => key.toString()).toList();
+
+// Compare the list of authorizations from Hive with the list of authorizations from the API
+for (dynamic apiAuth in apiAutho) {
+    int apiGroupCode = apiAuth['groupcode'];
+    int apiMenuCode = apiAuth['menucode'];
+    // Construct the key in the same format as stored in authorizationBox
+    String apiKey = '$apiMenuCode$apiGroupCode';
+    print(apiKey);
+    // Check if the authorization exists in Hive
+    if (!hiveAuthoKeys.contains(apiKey)) {
+        // Authorization exists in the API but not in Hive, delete from API
+        await http.delete(Uri.parse('http://5.189.188.139:8080/api/authorization/deleteAuthorization/$apiMenuCode/$apiGroupCode'));
+        print('Authorization deleted from API: $apiKey');
+    }
 }
 
 
@@ -287,6 +339,7 @@ Future<void> _updateFirestoreAuthorization(List<Authorization> authorizations) a
     print('Error updating API authorizations: $e');
   }
 }
+
 
 
 
@@ -305,13 +358,15 @@ print(apiSys);
         // Iterate through each user to determine if it should be added, updated, or deleted
         for (SystemAdmin groupCode in systemAdmin) {
           var userGroupData = systemAdminBox.get(groupCode.groupcode);
-                      var existingUserGroup = apiSys.firstWhere((user) => user['groupcode'] == groupCode.groupcode, orElse: () => null);
-                     print('jelo');
+          var existingUserGroup;
+          if(apiSys!=null){
+              existingUserGroup = apiSys.firstWhere((user) => user['groupcode'] == groupCode.groupcode, orElse: () => null);
+          }
+                  
 
           if (userGroupData != null) {
             // Check if user exists in API response
-            print('fomocs');
-print(existingUserGroup);
+
             if (existingUserGroup != null) {
               // User exists, update user data
               final response = await http.put(
@@ -332,13 +387,13 @@ print(existingUserGroup);
               );
               print('System Admin added: $groupCode');
             }
-          } else {
+          } 
             // User does not exist in local storage, delete user from API
             if (existingUserGroup != null) {
               await http.delete(Uri.parse('http://5.189.188.139:8080/api/systemAdmin/deleteSystemAdmin/${existingUserGroup['groupcode']}'));
               print('System Admin deleted: $groupCode');
             }
-          }
+          
         }
       } else {
         print('Failed to fetch system admin from API');
@@ -367,13 +422,15 @@ print(apiComp);
         // Iterate through each user to determine if it should be added, updated, or deleted
         for (CompaniesConnection connID in companiesConnection) {
           var userGroupData = companiesConnectionBox.get(connID.connectionID);
-                      var existingUserGroup = apiComp.firstWhere((user) => user['connectionID'] == connID.connectionID, orElse: () => null);
+          var existingUserGroup;
+          if(apiComp!=null){
+          existingUserGroup = apiComp.firstWhere((user) => user['connectionID'] == connID.connectionID, orElse: () => null);
+          }
                      print('jelo');
 print(userGroupData?.connectionID);
           if (userGroupData != null) {
             // Check if user exists in API response
             print('fomocs');
-print(existingUserGroup);
             if (existingUserGroup != null) {
               // User exists, update user data
               final response = await http.put(
@@ -394,13 +451,21 @@ print(existingUserGroup);
               );
               print('Companies Connection  added: $connID');
             }
-          } else {
-            // User does not exist in local storage, delete user from API
-            if (existingUserGroup != null) {
-              await http.delete(Uri.parse('http://5.189.188.139:8080/api/companiesconnection/deleteCompaniesConnection/${existingUserGroup['connectionID']}'));
-              print('Companies Connection  deleted: $connID');
-            }
           }
+
+               // Compare the list of translation groups from Hive with the list of translation groups from the API
+      List<String> hiveTrans = companiesConnectionBox.keys.cast<String>().toList();
+      for (dynamic apiComps in apiComp) {
+        String apiconnId = apiComps['connectionID'];
+        // Check if the translation group exists in Hive
+        if (!hiveTrans.contains(apiconnId)) {
+          // Translation group exists in the API but not in Hive, delete from API
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/companiesconnection/deleteCompaniesConnection/$apiconnId'));
+          print('Companies Conn  deleted from API: $apiconnId');
+        }
+      }
+  
+          
         }
       } else {
         print('Failed to fetch companies connection from API');
@@ -425,7 +490,10 @@ Future<void> _updateFirestoreCompaniesUsers(List<CompaniesUsers> companiesusers)
       print(apiCompUser);
       // Iterate through each user to determine if it should be added, updated, or deleted
    for (CompaniesUsers compuser in companiesusersBox.values) {
-  var existingAuthoGroup = apiCompUser.firstWhere((user) => user['userCode'] == compuser.userCode && user['cmpCode'] == compuser.cmpCode, orElse: () => null);
+    var existingAuthoGroup;
+    if(apiCompUser!=null){
+   existingAuthoGroup = apiCompUser.firstWhere((user) => user['userCode'] == compuser.userCode && user['cmpCode'] == compuser.cmpCode, orElse: () => null);
+    }
   print('Processing Comp User: $compuser');
 
   if (existingAuthoGroup != null) {
@@ -449,6 +517,23 @@ Future<void> _updateFirestoreCompaniesUsers(List<CompaniesUsers> companiesusers)
   }
 }
 
+   // Convert the keys from authorizationBox to strings for comparison
+List<String> hiveCmpUserKeys = companiesusersBox.keys.map((key) => key.toString()).toList();
+
+// Compare the list of authorizations from Hive with the list of authorizations from the API
+for (dynamic apiAuth in apiCompUser) {
+    String apiUserCode = apiAuth['userCode'];
+    String apiCmpCode = apiAuth['cmpCode'];
+    // Construct the key in the same format as stored in authorizationBox
+    String apiKey = '$apiUserCode$apiCmpCode';
+    print(apiKey);
+    // Check if the authorization exists in Hive
+    if (!hiveCmpUserKeys.contains(apiKey)) {
+        // Authorization exists in the API but not in Hive, delete from API
+        await http.delete(Uri.parse('http://5.189.188.139:8080/api/companiesusers/deleteCompaniesUsers/$apiUserCode/$apiCmpCode'));
+        print('Comp Users deleted from API: $apiKey');
+    }
+}
 
     } else {
       print('Failed to fetch comp user from API');
@@ -473,7 +558,10 @@ Future<void> _updateFirestorePriceListAutho(List<PriceListAuthorization> priceli
       print(apiPrice);
       // Iterate through each user to determine if it should be added, updated, or deleted
    for (PriceListAuthorization pricelistautho in pricelistauthoBox.values) {
-  var existingAuthoGroup = apiPrice.firstWhere((user) => user['userCode'] == pricelistautho.userCode && user['cmpCode'] == pricelistautho.cmpCode  && user['authoGroup'] == pricelistautho.authoGroup, orElse: () => null);
+    var existingAuthoGroup;
+    if(apiPrice!=null){
+   existingAuthoGroup = apiPrice.firstWhere((user) => user['userCode'] == pricelistautho.userCode && user['cmpCode'] == pricelistautho.cmpCode  && user['authoGroup'] == pricelistautho.authoGroup, orElse: () => null);
+    }
   print('Processing price lsit authi : $pricelistautho');
 
   if (existingAuthoGroup != null) {
@@ -495,6 +583,25 @@ Future<void> _updateFirestorePriceListAutho(List<PriceListAuthorization> priceli
     );
     print('Price List autho  added: $pricelistautho');
   }
+}
+
+ // Convert the keys from authorizationBox to strings for comparison
+List<String> hivePriceListKeys = pricelistauthoBox.keys.map((key) => key.toString()).toList();
+
+// Compare the list of authorizations from Hive with the list of authorizations from the API
+for (dynamic apiPrices in apiPrice) {
+    String apiUserCode = apiPrices['userCode'];
+    String apiCmpCode = apiPrices['cmpCode'];
+    String authoGroup = apiPrices['authoGroup'];
+    // Construct the key in the same format as stored in authorizationBox
+    String apiKey = '$apiUserCode$apiCmpCode$authoGroup';
+    print(apiKey);
+    // Check if the authorization exists in Hive
+    if (!hivePriceListKeys.contains(apiKey)) {
+        // Authorization exists in the API but not in Hive, delete from API
+        await http.delete(Uri.parse('http://5.189.188.139:8080/api/pricelistauthorization/deletePriceListAuthorization/$apiUserCode/$apiCmpCode/$authoGroup'));
+        print('Price List Auhto deleted from API: $apiKey');
+    }
 }
 
 
@@ -524,7 +631,10 @@ print(apiComp);
         // Iterate through each user to determine if it should be added, updated, or deleted
         for (Companies cmpCode in companies) {
           var userGroupData = companiesBox.get(cmpCode.cmpCode);
-                      var existingUserGroup = apiComp.firstWhere((user) => user['cmpCode'] == cmpCode.cmpCode, orElse: () => null);
+          var existingUserGroup;
+          if(apiComp!=null){
+               existingUserGroup = apiComp.firstWhere((user) => user['cmpCode'] == cmpCode.cmpCode, orElse: () => null);
+          }
                      print('jelo');
 print(userGroupData?.cmpCode);
           if (userGroupData != null) {
@@ -551,13 +661,23 @@ print(existingUserGroup);
               );
               print('Companies   added: $companies');
             }
-          } else {
-            // User does not exist in local storage, delete user from API
-            if (existingUserGroup != null) {
-              await http.delete(Uri.parse('http://5.189.188.139:8080/api/companies/deleteCompanies/${existingUserGroup['cmpCode']}'));
-              print('Companies   deleted: $companies');
-            }
-          }
+          } 
+
+  List<String> hiveCompanies= companiesBox.keys.cast<String>().toList();
+print(hiveCompanies);
+// Compare the list of users from Hive with the list of users from the API
+for (dynamic apiComps in apiComp) {
+    String apiCmpCode = apiComps['cmpCode'];
+    print(cmpCode);
+    // Check if the user exists in Hive
+    if (!hiveCompanies.contains(apiCmpCode)) {
+        // User exists in the API but not in Hive, delete from API
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/companies/deleteCompanies/$apiCmpCode'));
+        print('Companies deleted from API: $apiCmpCode');
+    }
+}
+         
+          
         }
       } else {
         print('Failed to fetch companies  from API');

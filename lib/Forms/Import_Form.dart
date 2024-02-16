@@ -523,7 +523,7 @@ class _ImportFormState extends State<ImportForm> {
 print('lo');
     await synchronizer.synchronizeCustomers(custCode);
     print('l');
-    /*await synchronizer.synchronizeCustomerAddresses(custCode);
+    await synchronizer.synchronizeCustomerAddresses(custCode);
     await synchronizer.synchronizeCustomerContacts(custCode);
     await synchronizer.synchronizeCustomerProperties(custCode);
     await synchronizer.synchronizeCustomerAttachments(custCode);
@@ -552,7 +552,7 @@ print('lo');
     await synchronizer.synchronizeCustomerPropGroupSpecialPrice(
         custGroupCodes, custCode);
     await synchronizer.synchronizeCustomerPropCategSpecialPrice(
-        categCode, custCode);*/
+        categCode, custCode);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

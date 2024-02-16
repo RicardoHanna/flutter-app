@@ -168,9 +168,13 @@ Future<bool> _performConnectionTest(CompaniesConnection connection) async {
   }
 }
 
-void _deleteSpecificCompany(String cmpCode) {
+void _deleteSpecificCompany(String cmpCode, String connId) {
   var companiesBox = Hive.box<Companies>('companiesBox');
-  Companies? company = companiesBox.get(cmpCode);
+    var companiesConnectionBox = Hive.box<CompaniesConnection>('companiesConnectionBox');
+
+  Companies? company = companiesBox.values.firstWhere((element) => element.systemAdminID==connId);
+    CompaniesConnection? companyConnection = companiesConnectionBox.get(connId);
+
    _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
   // Show the confirmation dialog
   showDialog(
@@ -192,6 +196,7 @@ void _deleteSpecificCompany(String cmpCode) {
               if (company?.cmpFName == '' && company?.mainCurCode == '') {
                 // Delete the company if the condition is met
                 companiesBox.delete(cmpCode);
+                companiesConnectionBox.delete(connId);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("Company deleted successfully",style: _appTextStyle,),
@@ -604,7 +609,7 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                             color: Colors.red,
                             onPressed: () {
                               
-                             _deleteSpecificCompany(user.cmpCode);
+                             _deleteSpecificCompany(user.cmpCode,user.systemAdminID);
                             },
                           ),
                         ],

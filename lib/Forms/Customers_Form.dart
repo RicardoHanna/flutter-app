@@ -16,6 +16,7 @@ import 'package:project/app_notifier.dart';
 import 'package:project/classes/DataSearch.dart';
 import 'package:project/classes/DataSearchCustomers.dart';
 import 'package:project/classes/UserPreferences.dart';
+import 'package:project/hive/companies_hive.dart';
 import 'package:project/hive/companiesusers_hive.dart';
 import 'package:project/hive/customeraddresses_hive.dart';
 import 'package:project/hive/customerbrandsspecialprice_hive.dart';
@@ -227,13 +228,13 @@ Future<void> _getCurrentLocation() async {
 }
 
 Future<void> printUserDataTranslations() async {
- var custBox = await Hive.openBox<Customers>('customersBox');
+ var custBox = await Hive.openBox<Companies>('companiesBox');
 
     print('Printinggg Users:');
     for (var cust in custBox.values) {
       print('CmpCode: ${cust.cmpCode}');
-      print('Name: ${cust.creditLimit}');
-      print(cust.custName);
+      print('Name: ${cust.cmpFName}');
+      print(cust.address);
 
       print('-------------------------');
     }

@@ -3875,11 +3875,17 @@ Future<List<Map<String, dynamic>>> _fetchCustomerAddressesData(List<String> cust
     for (String custCode in custCodes) {
       final response = await http.get(Uri.parse('${apiurl}getCustomerAddresses?custCode=$custCode'));
       if (response.statusCode == 200) {
-       List<Map<String, dynamic>> responseData = jsonDecode(response.body);
+     dynamic responseData = jsonDecode(response.body);
         if (responseData is List) {
-          addressesData.addAll(responseData);
-        } else {
-          print('Invalid response format for customer addresses data');
+          // If the response is a list, append each item to the itemsData list
+          for (var item in responseData) {
+            if (item is Map<String, dynamic>) {
+              addressesData.add(item);
+            }
+          }
+        } else if (responseData is Map<String, dynamic>) {
+          // If the response is a map, directly append it to the itemsData list
+          addressesData.add(responseData);
         }
       } else {
         print('Failed to retrieve customer addresses data for custCode $custCode: ${response.statusCode}');
@@ -4396,7 +4402,7 @@ Future<List<Map<String, dynamic>>> _fetchCustomerBrandsSpecialPriceData(List<Str
     // Iterate over each custCode and fetch data for each one
     for (String custCode in custCodes) {
       // Make API call to fetch customer brands special price data
-      var response = await http.get(Uri.parse('${apiurl}getCustomerBrandsSpecialPrice?custCode=$custCode'));
+      var response = await http.get(Uri.parse('${apiurl}getCustomerBrandSpecialPrice?custCode=$custCode'));
       if (response.statusCode == 200) {
         // Parse the response data
         dynamic responseData = jsonDecode(response.body);
@@ -4502,7 +4508,7 @@ Future<List<Map<String, dynamic>>> _fetchCustomerGroupsSpecialPriceData(List<Str
     // Iterate over each custCode and fetch data for each one
     for (String custCode in custCodes) {
       // Make API call to fetch customer groups special price data
-      var response = await http.get(Uri.parse('${apiurl}getCustomerGroupsSpecialPrice?custCode=$custCode'));
+      var response = await http.get(Uri.parse('${apiurl}getCustomerGroupSpecialPrice?custCode=$custCode'));
       if (response.statusCode == 200) {
         // Parse the response data
         dynamic responseData = jsonDecode(response.body);
