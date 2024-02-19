@@ -44,28 +44,28 @@ class Items extends HiveObject {
   late String remark;
 
   @HiveField(13)
-  late String brand;
-
-  @HiveField(14)
   late String manageBy;
 
+  @HiveField(14)
+  late dynamic vatCode;
+
   @HiveField(15)
-  late dynamic vatRate;
-
-  @HiveField(16)
-  late bool active;
-
-  @HiveField(17)
   late dynamic weight;
 
+  @HiveField(16)
+  late String cmpCode;
+
+  @HiveField(17)
+  late String wUOMCode;
+
   @HiveField(18)
-  late String charect1;
+  late String salesItem;
 
   @HiveField(19)
-  late String charact2;
+  late String purchItem;
 
   @HiveField(20)
-  late String cmpCode;
+  late String invntItem;
 
   Items(
     this.itemCode,
@@ -81,13 +81,13 @@ class Items extends HiveObject {
     this.uom,
     this.picture,
     this.remark,
-    this.brand,
     this.manageBy,
-    this.vatRate,
-    this.active,
+    this.vatCode,
     this.weight,
-    this.charect1,
-    this.charact2,
-    this.cmpCode
+    this.cmpCode,
+    this.wUOMCode,
+    this.salesItem,
+    this.purchItem,
+    this.invntItem
   );
 }

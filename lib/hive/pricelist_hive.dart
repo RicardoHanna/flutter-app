@@ -23,13 +23,16 @@ class PriceList extends HiveObject {
   late bool incVAT;
 
   @HiveField(6)
-  late String securityGroup;
-
-  @HiveField(7)
   late String cmpCode;
 
-  @HiveField(8)
+  @HiveField(7)
   late String authoGroup;
+  
+  @HiveField(8)
+  late String plFName;
+
+  @HiveField(9)
+  late String notes;
 
   PriceList(
     this.plCode,
@@ -38,8 +41,9 @@ class PriceList extends HiveObject {
     this.basePL,
     this.factor,
     this.incVAT,
-    this.securityGroup,
     this.cmpCode,
-    this.authoGroup
+    this.authoGroup,
+    this.plFName,
+    this.notes
   );
 }

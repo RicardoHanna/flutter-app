@@ -34,13 +34,19 @@ class CompaniesAdapter extends TypeAdapter<Companies> {
       issueBatchMethod: fields[14] as String,
       systemAdminID: fields[15] as String,
       notes: fields[16] as String,
+      priceDec: fields[17] as dynamic,
+      amntDec: fields[18] as dynamic,
+      qtyDec: fields[19] as dynamic,
+      rounding: fields[20] as dynamic,
+      importMethod: fields[21] as String,
+      time: fields[22] as TimeOfDay,
     );
   }
 
   @override
   void write(BinaryWriter writer, Companies obj) {
     writer
-      ..writeByte(17)
+      ..writeByte(23)
       ..writeByte(0)
       ..write(obj.cmpCode)
       ..writeByte(1)
@@ -74,7 +80,19 @@ class CompaniesAdapter extends TypeAdapter<Companies> {
       ..writeByte(15)
       ..write(obj.systemAdminID)
       ..writeByte(16)
-      ..write(obj.notes);
+      ..write(obj.notes)
+      ..writeByte(17)
+      ..write(obj.priceDec)
+      ..writeByte(18)
+      ..write(obj.amntDec)
+      ..writeByte(19)
+      ..write(obj.qtyDec)
+      ..writeByte(20)
+      ..write(obj.rounding)
+      ..writeByte(21)
+      ..write(obj.importMethod)
+      ..writeByte(22)
+      ..write(obj.time);
   }
 
   @override

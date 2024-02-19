@@ -1,44 +1,44 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'itemuom_hive.dart';
+part of 'itemmanufacturers_hive.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
+class ItemManufacturersAdapter extends TypeAdapter<ItemManufacturers> {
   @override
-  final int typeId = 8;
+  final int typeId = 57;
 
   @override
-  ItemUOM read(BinaryReader reader) {
+  ItemManufacturers read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return ItemUOM(
-      fields[0] as String,
-      fields[1] as String,
-      fields[2] as dynamic,
-      fields[3] as String,
-      fields[4] as String,
+    return ItemManufacturers(
+      cmpCode: fields[0] as String,
+      manufCode: fields[1] as String,
+      manufName: fields[2] as String,
+      manufFName: fields[3] as String,
+      notes: fields[4] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, ItemUOM obj) {
+  void write(BinaryWriter writer, ItemManufacturers obj) {
     writer
       ..writeByte(5)
       ..writeByte(0)
-      ..write(obj.itemCode)
+      ..write(obj.cmpCode)
       ..writeByte(1)
-      ..write(obj.uom)
+      ..write(obj.manufCode)
       ..writeByte(2)
-      ..write(obj.qtyperUOM)
+      ..write(obj.manufName)
       ..writeByte(3)
-      ..write(obj.docType)
+      ..write(obj.manufFName)
       ..writeByte(4)
-      ..write(obj.cmpCode);
+      ..write(obj.notes);
   }
 
   @override
@@ -47,7 +47,7 @@ class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ItemUOMAdapter &&
+      other is ItemManufacturersAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

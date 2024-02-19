@@ -3,11 +3,13 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 import 'package:project/classes/PriceItemKey.dart';
+import 'package:project/hive/addressformat_hive.dart';
 import 'package:project/hive/adminsubmenu_hive.dart';
 import 'package:project/hive/authorization_hive.dart';
 import 'package:project/hive/companies_hive.dart';
 import 'package:project/hive/companiesconnection_hive.dart';
 import 'package:project/hive/companiesusers_hive.dart';
+import 'package:project/hive/countries_hive.dart';
 import 'package:project/hive/currencies_hive.dart';
 import 'package:project/hive/custgroups_hive.dart';
 import 'package:project/hive/customeraddresses_hive.dart';
@@ -30,9 +32,12 @@ import 'package:project/hive/customers_hive.dart';
 import 'package:project/hive/custproperties_hive.dart';
 import 'package:project/hive/departements_hive.dart';
 import 'package:project/hive/exchangerate_hive.dart';
+import 'package:project/hive/itembarcode_hive.dart';
 import 'package:project/hive/itembrand_hive.dart';
 import 'package:project/hive/itemcateg_hive.dart';
 import 'package:project/hive/itemgroup_hive.dart';
+import 'package:project/hive/itemmanufacturers_hive.dart';
+import 'package:project/hive/itemprop_hive.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/itemsprices_hive.dart';
 import 'package:project/hive/itemattach_hive.dart';
@@ -185,14 +190,15 @@ Future<List<Map<String, dynamic>>> _fetchItemsData(List<String> itemCodes) async
             data['uom']??'',
             data['picture']??'',
             data['remark']??'',
-            data['brand']??'',
             data['manageBy']??'',
-            data['vatRate'].toDouble()??0,
-          data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
+            data['vatCode'].toDouble()??0,
             data['weight'].toDouble()??0,
-            data['charect1']??'',
-            data['charact2']??'',
-            data['cmpCode']??''
+            data['cmpCode']??'',
+            data['wUOMCode']??'',
+            data['salesItem']??'',
+            data['purchItem']??'',
+            data['invntItem']??'',
+
           );
           await itemsBox.put(itemCode, newItem);
         } else {
@@ -210,14 +216,14 @@ Future<List<Map<String, dynamic>>> _fetchItemsData(List<String> itemCodes) async
             data['uom']??'',
             data['picture']??'',
             data['remark']??'',
-            data['brand']??'',
             data['manageBy']??'',
-            data['vatRate'].toDouble()??0,
-          data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
+            data['vatCode'].toDouble()??0,
             data['weight'].toDouble()??0,
-            data['charect1']??'',
-            data['charact2']??'',
-            data['cmpCode']??''
+            data['cmpCode']??'',
+            data['wUOMCode']??'',
+            data['salesItem']??'',
+            data['purchItem']??'',
+            data['invntItem']??'',
           );
           await itemsBox.put(itemCode, updatedItem);
         }
@@ -329,22 +335,24 @@ Future<void> _synchronizePriceList(
           data['basePL']??'',
           data['factor'].toDouble()??0,
           data['incVAT']== 1 ? true : false, // Convert Tinyint to Boolean
-          data['securityGroup']??'',
           data['cmpCode']??'',
-          data['authoGroup']??''
+          data['authoGroup']??'',
+          data['plFName']??'',
+          data['notes']??''
         );
         await pricelistsBox.put(plCode, newPrice);
       } else {
         var updatedPrice = PriceList(
-            data['plCode']??'',
+          data['plCode']??'',
           data['plName']??'',
           data['currency']??'',
           data['basePL']??'',
           data['factor'].toDouble()??0,
           data['incVAT']== 1 ? true : false, // Convert Tinyint to Boolean
-          data['securityGroup']??'',
           data['cmpCode']??'',
-          data['authoGroup']??''
+          data['authoGroup']??'',
+          data['plFName']??'',
+          data['notes']??''
         );
         await pricelistsBox.put(plCode, updatedPrice);
       }
@@ -1965,6 +1973,12 @@ Future<void> _synchronizeCompanies(
           issueBatchMethod: data['issueBatchMethod']??'',
           systemAdminID: data['systemAdminID']??'',
           notes: data['notes']??'',
+          priceDec: data['priceDec'].toDouble()??0,
+          amntDec: data['amntDec'].toDouble()??0, 
+          qtyDec: data['qtyDec'].toDouble()??0,
+          rounding: data['rounding']??'',
+          importMethod: data['importMethod']??'',
+          time: data['time']??'',
         );
         await companiesBox.put(cmpCode, newCompany);
       } else {
@@ -1986,6 +2000,12 @@ Future<void> _synchronizeCompanies(
           issueBatchMethod: data['issueBatchMethod']??'',
           systemAdminID: data['systemAdminID']??'',
           notes: data['notes']??'',
+          priceDec: data['priceDec'].toDouble()??0,
+          amntDec: data['amntDec'].toDouble()??0, 
+          qtyDec: data['qtyDec'].toDouble()??0,
+          rounding: data['rounding']??'',
+          importMethod: data['importMethod']??'',
+          time: data['time']??'',
         );
         await companiesBox.put(cmpCode, updatedCompany);
       }
@@ -2270,7 +2290,9 @@ Future<void> _synchronizeCurrencies(
           curCode: curCode,
           curName: data['curName']??'',
           curFName: data['curFName']??'',
-          notes: data['notes']??'',
+          notes: data['notes']??'', 
+          amntDec: data['amntDec'].toDouble()??0, 
+          rounding: data['rounding']??'',
         );
         await currenciesBox.put('$cmpCode$curCode', newCurrency);
       } else {
@@ -2279,7 +2301,9 @@ Future<void> _synchronizeCurrencies(
           curCode: curCode,
          curName: data['curName']??'',
           curFName: data['curFName']??'',
-          notes: data['notes']??'',
+          notes: data['notes']??'', 
+         amntDec: data['amntDec'].toDouble()??0, 
+          rounding: data['rounding']??'',
         );
         await currenciesBox.put('$cmpCode$curCode', updatedCurrency);
       }
@@ -2759,6 +2783,7 @@ Future<void> _synchronizeWarehouses(
           whsName: data['whsName']??'',
           whsFName: data['whsFName']??'',
           notes: data['notes']??'',
+          binActivate: data['binActivate']== 1 ? true : false, // Convert Tinyint to Boolean
         );
         await warehousesBox.put('$cmpCode$whsCode', newWarehouse);
       } else {
@@ -2768,6 +2793,8 @@ Future<void> _synchronizeWarehouses(
           whsName: data['whsName']??'',
           whsFName: data['whsFName']??'',
           notes: data['notes']??'',
+          binActivate: data['binActivate']== 1 ? true : false, // Convert Tinyint to Boolean
+          
         );
         await warehousesBox.put('$cmpCode$whsCode', updatedWarehouse);
       }
@@ -2856,7 +2883,8 @@ Future<void> _synchronizePaymentTerms(
           ptFName: data['ptFName']??'',
           startFrom: data['startFrom']??'',
           nbrofDays: data['nbrofDays']??'',
-          notes: data['notes']??'',
+          notes: data['notes']??'', 
+          nbrofMonths: data['nbrofMonths']??0,
         );
         await paymentTermsBox.put('$cmpCode$ptCode', newPaymentTerm);
       } else {
@@ -2868,6 +2896,7 @@ Future<void> _synchronizePaymentTerms(
           startFrom: data['startFrom']??'',
           nbrofDays: data['nbrofDays']??'',
           notes: data['notes']??'',
+          nbrofMonths: data['nbrofMonths']??0,
         );
         await paymentTermsBox.put('$cmpCode$ptCode', updatedPaymentTerm);
       }
@@ -3906,9 +3935,10 @@ Future<void> _synchronizeCustomerAddresses(
       var cmpCode = data['cmpCode']??'';
       var addressID = data['addressID']??'';
       var custCode = data['custCode']??'';
+      var addressType = data['addressType']?? '';
 
       // Check if the address exists in Hive
-      var hiveAddress = addresses.get('$cmpCode$addressID$custCode');
+      var hiveAddress = addresses.get('$cmpCode$addressID$custCode$addressType');
 
       if (hiveAddress == null) {
         var newAddress = CustomerAddresses(
@@ -3920,9 +3950,16 @@ Future<void> _synchronizeCustomerAddresses(
           regCode: data['regCode']??'',
           gpslat: data['gpslat']??'',
           gpslong: data['gpslong']??'',
-          notes: data['notes']??'',
+          notes: data['notes']??'', 
+          addressType: data['addressType'],
+          countryCode: data['countryCode']??'', 
+          city: data['city']??'',
+          block: data['block']??'',
+          street: data['street']??'',
+          zipCode: data['zipCode']??'',
+          building: data['building']??'',
         );
-        await addresses.put('$cmpCode$addressID$custCode', newAddress);
+        await addresses.put('$cmpCode$addressID$custCode$addressType', newAddress);
       } else {
         var updatedAddress = CustomerAddresses(
             cmpCode: data['cmpCode']??'',
@@ -3934,12 +3971,19 @@ Future<void> _synchronizeCustomerAddresses(
           gpslat: data['gpslat']??'',
           gpslong: data['gpslong']??'',
           notes: data['notes']??'',
+          addressType: data['addressType'],
+          countryCode: data['countryCode']??'', 
+          city: data['city']??'',
+          block: data['block']??'',
+          street: data['street']??'',
+          zipCode: data['zipCode']??'',
+          building: data['building']??'',
         );
-        await addresses.put('$cmpCode$addressID$custCode', updatedAddress);
+        await addresses.put('$cmpCode$addressID$custCode$addressType', updatedAddress);
       }
     }
 
-    Set<String> addressesKeys = Set.from(addressesData.map((data) => '${data['cmpCode']}${data['addressID']}${data['custCode']}'));
+    Set<String> addressesKeys = Set.from(addressesData.map((data) => '${data['cmpCode']}${data['addressID']}${data['custCode']}${data['addressType']}'));
     Set<String> hiveAddressesKeys = Set.from(addresses.keys);
 
     // Identify addresses in Hive that don't exist in the fetched data
@@ -4223,7 +4267,10 @@ Future<void> _synchronizeCustomerAttachments(
           custCode: custCode,
           attach: data['attach']??'',
           attachType: data['attachType']??'',
-          notes: data['notes']??'',
+          notes: data['notes']??'', 
+          lineID: '', 
+          attachPath: '', 
+          attachFile: '',
         );
         await attachments.put('$cmpCode$custCode', newAttachment);
       }
@@ -4234,7 +4281,10 @@ Future<void> _synchronizeCustomerAttachments(
           custCode: custCode,
           attach: data['attach']??'',
           attachType: data['attachType']??'',
-          notes: data['notes']??'',
+          notes: data['notes']??'', 
+          lineID: '',
+           attachPath: '',
+           attachFile: '',
         );
         // Update the attachment in Hive
         await attachments.put('$cmpCode$custCode', updatedAttachment);
@@ -5933,7 +5983,517 @@ Future<void> _synchronizeCompaniesUsers(
     print('Error synchronizing Companies Users data from API to Hive: $e');
   }
 }
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
+Future<List<Map<String, dynamic>>> _fetchCountriesData() async {
+  List<Map<String, dynamic>> countriesData = [];
+  try {
+    // Perform HTTP GET request to fetch departments data from the API endpoint
+    final response = await http.get(Uri.parse('${apiurl}getCountries'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each department data to the departmentsData list
+        for (var countryData in responseData) {
+          if (countryData is Map<String, dynamic>) {
+            countriesData.add(countryData);
+          }
+        }
+      } else {
+        print('Invalid response format for countries data');
+      }
+    } else {
+      print('Failed to retrieve countries data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching countries data: $e');
+  }
+  return countriesData;
 }
+
+Future<void> synchronizeCountries() async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchCountriesData();
+
+    // Open Hive box
+    var countriesBox = await Hive.openBox<Countries>('countriesBox');
+
+    // Synchronize data
+    await _synchronizeCountries(apiResponse, countriesBox);
+
+    // Close Hive box
+    // await departmentsBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Countries: $e');
+  }
+}
+
+Future<void> _synchronizeCountries(
+  List<Map<String, dynamic>> countriesData,
+  Box<Countries> countriesBox,
+) async {
+  try {
+    for (var data in countriesData) {
+      var cmpCode = data['cmpCode']??'';
+      var countryCode = data['countryCode']??'';
+
+      // Check if the department exists in Hive
+      var hiveCountry = countriesBox.get('$cmpCode$countryCode');
+
+      if (hiveCountry == null) {
+        var newCountry = Countries(
+          cmpCode: cmpCode,
+          countryCode: countryCode,
+          countryName: data['countryName']??'',
+          countryFName: data['countryFName']??'',
+          addrFormatID: data['addrFormatID']??'',
+          notes: data['notes']??'',
+        );
+        await countriesBox.put('$cmpCode$countryCode', newCountry);
+      } else {
+        var updatedCountry = Countries(
+          cmpCode: cmpCode,
+          countryCode: countryCode,
+          countryName: data['countryName']??'',
+          countryFName: data['countryFName']??'',
+          addrFormatID: data['addrFormatID']??'',
+          notes: data['notes']??'',
+        );
+        await countriesBox.put('$cmpCode$countryCode', updatedCountry);
+      }
+    }
+
+    // Check for departments in Hive that don't exist in the fetched data and delete them
+    Set<String> fetchedCountriesKeys =
+        Set.from(countriesData.map((data) => '${data['cmpCode']}${data['countryCode']}'));
+    Set<String> hiveCountryKeys = Set.from(countriesBox.keys);
+
+    // Identify departments in Hive that don't exist in the fetched data
+    Set<String> countriesToDelete = hiveCountryKeys.difference(fetchedCountriesKeys);
+
+    // Delete departments in Hive that don't exist in the fetched data
+    countriesToDelete.forEach((hiveCountryKeys) {
+      countriesBox.delete(hiveCountryKeys);
+    });
+  } catch (e) {
+    print('Error synchronizing countries from API to Hive: $e');
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
+Future<List<Map<String, dynamic>>> _fetchItemManufacturers() async {
+  List<Map<String, dynamic>> itemmanuData = [];
+  try {
+    // Perform HTTP GET request to fetch departments data from the API endpoint
+    final response = await http.get(Uri.parse('${apiurl}getItemManufacturers'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each department data to the departmentsData list
+        for (var manuData in responseData) {
+          if (manuData is Map<String, dynamic>) {
+            itemmanuData.add(manuData);
+          }
+        }
+      } else {
+        print('Invalid response format for item manu data');
+      }
+    } else {
+      print('Failed to retrieve item manu data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching item manu data: $e');
+  }
+  return itemmanuData;
+}
+
+Future<void> synchronizeItemManu() async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchItemManufacturers();
+
+    // Open Hive box
+    var itemManuBox = await Hive.openBox<ItemManufacturers>('itemManufacturersBox');
+
+    // Synchronize data
+    await _synchronizeItemManu(apiResponse, itemManuBox);
+
+    // Close Hive box
+    // await departmentsBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Item Manu: $e');
+  }
+}
+
+Future<void> _synchronizeItemManu(
+  List<Map<String, dynamic>> itemManuData,
+  Box<ItemManufacturers> itemmanuBox,
+) async {
+  try {
+    for (var data in itemManuData) {
+      var cmpCode = data['cmpCode']??'';
+      var manufCode = data['manufCode']??'';
+
+      // Check if the department exists in Hive
+      var hiveManu = itemmanuBox.get('$cmpCode$manufCode');
+
+      if (hiveManu == null) {
+        var newManu = ItemManufacturers(
+          cmpCode: cmpCode??'',
+          manufCode:manufCode??'',
+          manufName: data['manufName']??'',
+          manufFName: data['manufFname']??'',
+          notes: data['notes']??'', 
+        );
+        await itemmanuBox.put('$cmpCode$manufCode', newManu);
+      } else {
+        var updatedManu = ItemManufacturers(
+         cmpCode: cmpCode??'',
+          manufCode:manufCode??'',
+          manufName: data['manufName']??'',
+          manufFName: data['manufFname']??'',
+          notes: data['notes']??'', 
+        );
+        await itemmanuBox.put('$cmpCode$manufCode', updatedManu);
+      }
+    }
+
+    // Check for departments in Hive that don't exist in the fetched data and delete them
+    Set<String> fetchedManufKeys =
+        Set.from(itemManuData.map((data) => '${data['cmpCode']}${data['manufCode']}'));
+    Set<String> hiveManufKeys = Set.from(itemmanuBox.keys);
+
+    // Identify departments in Hive that don't exist in the fetched data
+    Set<String> manufToDelete = hiveManufKeys.difference(fetchedManufKeys);
+
+    // Delete departments in Hive that don't exist in the fetched data
+    manufToDelete.forEach((hiveManufKeys) {
+      itemmanuBox.delete(hiveManufKeys);
+    });
+  } catch (e) {
+    print('Error synchronizing item manu from API to Hive: $e');
+  }
+}
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
+Future<List<Map<String, dynamic>>> _fetchItemBarcode(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itembarcodeData = [];
+  try {
+    // Perform HTTP GET request to fetch departments data from the API endpoint
+        for (String itemCode in itemCodes) {
+    final response = await http.get(Uri.parse('${apiurl}getItemBarCode?itemCode=$itemCode'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each department data to the departmentsData list
+        for (var barcodeData in responseData) {
+          if (barcodeData is Map<String, dynamic>) {
+            itembarcodeData.add(barcodeData);
+          }
+        }
+      }
+      else if (responseData is Map<String, dynamic>) {
+          // If the response is a map, directly append it to the itemUOMData list
+          itembarcodeData.add(responseData);
+        } else {
+          print('Invalid response format for item barcode $itemCode');
+        }
+      } else {
+        print('Failed to retrieve item UOM for item barcode $itemCode: ${response.statusCode}');
+      }
+        }
+  } catch (e) {
+    print('Error fetching item barcode  data: $e');
+  }
+  return itembarcodeData;
+}
+
+Future<void> synchronizeItemBarcode(List<String> itemCodes) async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchItemBarcode(itemCodes);
+
+    // Open Hive box
+    var itemBarcodeBox = await Hive.openBox<ItemBarcode>('itemBarcodeBox');
+
+    // Synchronize data
+    await _synchronizeItemBarcode(apiResponse, itemBarcodeBox);
+
+    // Close Hive box
+    // await departmentsBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Item Manu: $e');
+  }
+}
+
+Future<void> _synchronizeItemBarcode(
+  List<Map<String, dynamic>> itemBarcodeData,
+  Box<ItemBarcode> itembarcodeBox,
+) async {
+  try {
+    for (var data in itemBarcodeData) {
+      var cmpCode = data['cmpCode']??'';
+      var itemCode = data['itemCode']??'';
+      var uomCode = data['uomCode']??'';
+
+      // Check if the department exists in Hive
+      var hiveItemBar = itembarcodeBox.get('$cmpCode$itemCode$uomCode');
+
+      if (hiveItemBar == null) {
+        var newBar = ItemBarcode(
+          cmpCode: cmpCode??'',
+          itemCode:itemCode??'',
+          uomCode: data['uomCode']??'',
+          barcode: data['barcode']??'',
+          notes: data['notes']??'', 
+        );
+        await itembarcodeBox.put('$cmpCode$itemCode$uomCode', newBar);
+      } else {
+        var updatedBar = ItemBarcode(
+          cmpCode: cmpCode??'',
+          itemCode:itemCode??'',
+          uomCode: data['uomCode']??'',
+          barcode: data['barcode']??'',
+          notes: data['notes']??'', 
+        );
+        await itembarcodeBox.put('$cmpCode$itemCode$uomCode', updatedBar);
+      }
+    }
+
+    // Check for departments in Hive that don't exist in the fetched data and delete them
+    Set<String> fetchedBarKeys =
+        Set.from(itemBarcodeData.map((data) => '${data['cmpCode']}${data['itemCode']}${data['uomCode']}'));
+    Set<String> hivebarKeys = Set.from(itembarcodeBox.keys);
+
+    // Identify departments in Hive that don't exist in the fetched data
+    Set<String> barToDelete = hivebarKeys.difference(fetchedBarKeys);
+
+    // Delete departments in Hive that don't exist in the fetched data
+    barToDelete.forEach((hivebarKeys) {
+      itembarcodeBox.delete(hivebarKeys);
+    });
+  } catch (e) {
+    print('Error synchronizing item barcode from API to Hive: $e');
+  }
+}
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+Future<List<Map<String, dynamic>>> _fetchItemProps(List<String>itemCodes, List<String>propCodes) async {
+  List<Map<String, dynamic>> itemPropsData = [];
+  try {
+    // Perform HTTP GET request to fetch item properties data from the API endpoint
+        for (String itemCode in itemCodes) {
+      for (String propCode in propCodes) {
+    final response = await http.get(Uri.parse('${apiurl}getItemProps?itemCode=$itemCode&propCode=$propCode'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each item property data to the itemPropsData list
+        for (var propData in responseData) {
+          if (propData is Map<String, dynamic>) {
+            itemPropsData.add(propData);
+          }
+        }
+      } else {
+        print('Invalid response format for item prop data');
+      }
+    } else {
+      print('Failed to retrieve item prop data: ${response.statusCode}');
+    }
+      }}
+  } catch (e) {
+    print('Error fetching item prop data: $e');
+  }
+  return itemPropsData;
+}
+
+Future<void> synchronizeItemProps(List<String> itemCodes,List<String>propCodes) async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchItemProps(itemCodes,propCodes);
+
+    // Open Hive box
+    var itemPropsBox = await Hive.openBox<ItemProp>('itemPropBox');
+
+    // Synchronize data
+    await _synchronizeItemProps(apiResponse, itemPropsBox);
+
+    // Close Hive box
+    // await itemPropsBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Item Props: $e');
+  }
+}
+
+Future<void> _synchronizeItemProps(
+  List<Map<String, dynamic>> itemPropsData,
+  Box<ItemProp> itemPropsBox,
+) async {
+  try {
+    for (var data in itemPropsData) {
+      var cmpCode = data['cmpCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var propCode = data['propCode'] ?? '';
+
+      // Check if the item property exists in Hive
+      var hiveItemProp = itemPropsBox.get('$cmpCode$itemCode$propCode');
+
+      if (hiveItemProp == null) {
+        var newItemProp = ItemProp(
+          cmpCode: cmpCode,
+          itemCode: itemCode,
+          propCode: propCode,
+          notes: data['notes'] ?? '',
+        );
+        await itemPropsBox.put('$cmpCode$itemCode$propCode', newItemProp);
+      } else {
+        var updatedItemProp = ItemProp(
+          cmpCode: cmpCode,
+          itemCode: itemCode,
+          propCode: propCode,
+          notes: data['notes'] ?? '',
+        );
+        await itemPropsBox.put('$cmpCode$itemCode$propCode', updatedItemProp);
+      }
+    }
+
+    // Check for item properties in Hive that don't exist in the fetched data and delete them
+    Set<String> fetchedPropKeys = Set.from(itemPropsData.map((data) => '${data['cmpCode']}${data['itemCode']}${data['propCode']}'));
+    Set<String> hivePropKeys = Set.from(itemPropsBox.keys);
+
+    // Identify item properties in Hive that don't exist in the fetched data
+    Set<String> propsToDelete = hivePropKeys.difference(fetchedPropKeys);
+
+    // Delete item properties in Hive that don't exist in the fetched data
+    propsToDelete.forEach((hivePropKey) {
+      itemPropsBox.delete(hivePropKey);
+    });
+  } catch (e) {
+    print('Error synchronizing item properties from API to Hive: $e');
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+Future<List<Map<String, dynamic>>> _fetchAddressFormats() async {
+  List<Map<String, dynamic>> addressFormatsData = [];
+  try {
+    // Perform HTTP GET request to fetch address formats data from the API endpoint
+    final response = await http.get(Uri.parse('${apiurl}getAddressFormats'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each address format data to the addressFormatsData list
+        for (var formatData in responseData) {
+          if (formatData is Map<String, dynamic>) {
+            addressFormatsData.add(formatData);
+          }
+        }
+      } else {
+        print('Invalid response format for address formats data');
+      }
+    } else {
+      print('Failed to retrieve address formats data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching address formats data: $e');
+  }
+  return addressFormatsData;
+}
+
+Future<void> synchronizeAddressFormats() async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchAddressFormats();
+
+    // Open Hive box
+    var addressFormatsBox = await Hive.openBox<AddressFormat>('addressFormatBox');
+
+    // Synchronize data
+    await _synchronizeAddressFormats(apiResponse, addressFormatsBox);
+
+    // Close Hive box
+    // await addressFormatsBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Address Formats: $e');
+  }
+}
+
+Future<void> _synchronizeAddressFormats(
+  List<Map<String, dynamic>> addressFormatsData,
+  Box<AddressFormat> addressFormatsBox,
+) async {
+  try {
+    for (var data in addressFormatsData) {
+      var cmpCode = data['cmpCode'] ?? '';
+      var addrFormatID = data['addrFormatID'] ?? '';
+
+      // Check if the address format exists in Hive
+      var hiveAddressFormat = addressFormatsBox.get('$cmpCode$addrFormatID');
+
+      if (hiveAddressFormat == null) {
+        var newAddressFormat = AddressFormat(
+          cmpCode: cmpCode,
+          addrFormatID: addrFormatID,
+        );
+        await addressFormatsBox.put('$cmpCode$addrFormatID', newAddressFormat);
+      } else {
+        var updatedAddressFormat = AddressFormat(
+          cmpCode: cmpCode,
+          addrFormatID: addrFormatID,
+        );
+        await addressFormatsBox.put('$cmpCode$addrFormatID', updatedAddressFormat);
+      }
+    }
+
+    // Check for address formats in Hive that don't exist in the fetched data and delete them
+    Set<String> fetchedFormatKeys = Set.from(addressFormatsData.map((data) => '${data['cmpCode']}${data['addrFormatID']}'));
+    Set<String> hiveFormatKeys = Set.from(addressFormatsBox.keys);
+
+    // Identify address formats in Hive that don't exist in the fetched data
+    Set<String> formatsToDelete = hiveFormatKeys.difference(fetchedFormatKeys);
+
+    // Delete address formats in Hive that don't exist in the fetched data
+    formatsToDelete.forEach((hiveFormatKey) {
+      addressFormatsBox.delete(hiveFormatKey);
+    });
+  } catch (e) {
+    print('Error synchronizing address formats from API to Hive: $e');
+  }
+}
+
+
+
+
+}
+
+  // Add similar methods for synchronizing other data if needed
+
+
+
+
+
 
 
 

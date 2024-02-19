@@ -31,6 +31,30 @@ class CustomerAddresses extends HiveObject {
   @HiveField(8)
   late String notes;
 
+  @HiveField(9)
+  late String addressType;
+
+  @HiveField(10)
+  late String countryCode;
+
+  @HiveField(11)
+  late String city;
+
+  @HiveField(12)
+  late String block;
+
+  @HiveField(13)
+  late String street;
+
+  @HiveField(14)
+  late String zipCode;
+
+  @HiveField(15)
+  late String building;
+
+
+
+
  
   CustomerAddresses({
     required this.cmpCode,
@@ -42,6 +66,13 @@ class CustomerAddresses extends HiveObject {
     required this.gpslat,
     required this.gpslong,
     required this.notes,
+    required this.addressType,
+    required this.countryCode,
+    required this.city,
+    required this.block,
+    required this.street,
+    required this.zipCode,
+    required this.building,
   });
 
 

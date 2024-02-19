@@ -93,8 +93,7 @@ dynamic getField(PriceList item, String fieldName) {
         return item.plCode;
       case 'plName':
         return item.plName;
-      case 'securityGroup':
-        return item.securityGroup;
+
       // Add cases for other fields as needed
       default:
         return null;
@@ -102,19 +101,7 @@ dynamic getField(PriceList item, String fieldName) {
   }
 
 
-  Future<void> insertSamplePriceLists() async {
-  var priceListsBox = await Hive.openBox<PriceList>('pricelists');
 
-  // Insert sample data
-  var priceList1 = PriceList('PL001', 'Price List 1', 'USD', 100.0, 1.0, true, 'Group1','','A');
-  var priceList2 = PriceList('PL002', 'Price List 2', 'EUR', 150.0, 1.2, false, 'Group2','','B');
-  var priceList3 = PriceList('PL001', 'Price List 1', 'EUR', 150.0, 1.2, false, 'Group2','','A');
-  await priceListsBox.put(priceList1.plCode, priceList1);
-  await priceListsBox.put(priceList2.plCode, priceList2);
-
-  // Close the box when done
- 
-}
 
  Future<List<PriceList>> _getPriceLists(String usercode) async {
   // Open both boxes
@@ -145,9 +132,6 @@ dynamic getField(PriceList item, String fieldName) {
     switch (selectedSortingOption) {
       case 'PLCode':
         filteredPrices.sort((a, b) => a.plCode!.compareTo(b.plCode!));
-        break;
-      case 'SecurityGroup':
-        filteredPrices.sort((a, b) => a.securityGroup!.compareTo(b.securityGroup!));
         break;
       case 'Alphabetic':
         filteredPrices.sort((a, b) => a.plName!.compareTo(b.plName!));
@@ -214,7 +198,7 @@ dynamic getField(PriceList item, String fieldName) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return CircularProgressIndicator();
             } else if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
+              return Text('No price lists found');
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return Text('No price lists found');
             } else {
@@ -329,9 +313,9 @@ dynamic getField(PriceList item, String fieldName) {
 
       var pricecodeMatch = selectedPriceCode.isEmpty || selectedPriceCode.contains(price.plCode);
       var pricenameMatch = selectedPriceName.isEmpty || selectedPriceName.contains(price.plName);
-      var securityMatch = selectedSecurityGroup.isEmpty || selectedSecurityGroup.contains(price.securityGroup);
 
-      return pricecodeMatch && pricenameMatch && securityMatch;
+
+      return pricecodeMatch && pricenameMatch;
     }).toList();
 
     setState(() {

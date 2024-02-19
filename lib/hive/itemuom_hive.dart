@@ -14,7 +14,7 @@ class ItemUOM extends HiveObject {
   late dynamic qtyperUOM;
 
   @HiveField(3)
-  late String barCode;
+  late String docType;
 
   @HiveField(4)
   late String cmpCode;
@@ -23,7 +23,7 @@ class ItemUOM extends HiveObject {
     this.itemCode,
     this.uom,
     this.qtyperUOM,
-    this.barCode,
+    this.docType,
     this.cmpCode
   );
 }

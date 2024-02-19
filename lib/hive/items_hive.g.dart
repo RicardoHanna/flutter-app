@@ -31,10 +31,10 @@ class ItemsAdapter extends TypeAdapter<Items> {
       fields[11] as String,
       fields[12] as String,
       fields[13] as String,
-      fields[14] as String,
+      fields[14] as dynamic,
       fields[15] as dynamic,
-      fields[16] as bool,
-      fields[17] as dynamic,
+      fields[16] as String,
+      fields[17] as String,
       fields[18] as String,
       fields[19] as String,
       fields[20] as String,
@@ -72,21 +72,21 @@ class ItemsAdapter extends TypeAdapter<Items> {
       ..writeByte(12)
       ..write(obj.remark)
       ..writeByte(13)
-      ..write(obj.brand)
-      ..writeByte(14)
       ..write(obj.manageBy)
+      ..writeByte(14)
+      ..write(obj.vatCode)
       ..writeByte(15)
-      ..write(obj.vatRate)
-      ..writeByte(16)
-      ..write(obj.active)
-      ..writeByte(17)
       ..write(obj.weight)
+      ..writeByte(16)
+      ..write(obj.cmpCode)
+      ..writeByte(17)
+      ..write(obj.wUOMCode)
       ..writeByte(18)
-      ..write(obj.charect1)
+      ..write(obj.salesItem)
       ..writeByte(19)
-      ..write(obj.charact2)
+      ..write(obj.purchItem)
       ..writeByte(20)
-      ..write(obj.cmpCode);
+      ..write(obj.invntItem);
   }
 
   @override

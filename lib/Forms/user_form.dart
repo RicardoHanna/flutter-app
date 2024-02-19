@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'package:hive/hive.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/numeriqrangeformatters.dart';
@@ -41,6 +40,7 @@ class _UserFormState extends State<UserForm> {
   final TextEditingController phoneNumberController = TextEditingController();
   final TextEditingController imeiCodeController = TextEditingController();
   bool isActive = false;
+   TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
  String selectedUserGroup = 'مسؤل'; // Set the default user group
   String selectedLanguage = 'English';
   List<String> userGroups = ['Admin', 'User'];
@@ -484,7 +484,8 @@ Widget _buildTextFieldDropDownPriceListAutho() {
                 rateType: '',
                 issueBatchMethod: '',
                 systemAdminID: '',
-                notes: '',
+                notes: '', 
+                priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time: noTime,
               ));
 
       return '${pricelist.authoGroup ?? ''} - ${company.cmpName ?? ''}';

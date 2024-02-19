@@ -41,6 +41,8 @@ class CompaniesSettings extends StatefulWidget {
 class _CompaniesSettingsState extends State<CompaniesSettings> {
 TextStyle _appTextStyle=TextStyle();
  TextEditingController _searchController = TextEditingController();
+ TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
+
  // late Stream<List<UserClass>> _usersStream;
   late List<CompaniesClass> users = [];
   late List<CompaniesClass> filteredUsers = [];
@@ -348,7 +350,7 @@ Future<Stream<List<CompaniesClass>>> _getUserStream() async {
             address: company.address ??'empty', fAddress:company.fAddress ??'empty', prHeader: company.prHeader ??'empty',
              prFHeader: company.prFHeader ??'empty', prFFooter:company.prFFooter ??'empty', 
              mainCurCode:company.mainCurCode ??'empty', secCurCode: company.secCurCode ??'empty', issueBatchMethod:company.issueBatchMethod ??'empty'
-             , systemAdminID: company.systemAdminID ??'empty', notes: company.notes ??'empty'
+             , systemAdminID: company.systemAdminID ??'empty', notes: company.notes ??'empty', priceDec: company.priceDec ??0, amntDec: company.amntDec??0, qtyDec: company.qtyDec??0, rounding: company.rounding??'', importMethod: company.importMethod??'', time: company.time??noTime
             
           ));
         }
@@ -463,7 +465,7 @@ void _addUserToList(String name) {
       secCurCode: '',
       issueBatchMethod: '',
       systemAdminID: '',
-      notes: '',
+      notes: '', priceDec: 0, amntDec: 0, qtyDec: 0, rounding: '', importMethod: '', time: noTime,
       // Add other fields as needed
     );
 
@@ -498,7 +500,7 @@ String  compCode=_generateCompanyCode();
   cmpCode: compCode,
         cmpName: name, cmpFName: '', tel: '', mobile: '', address: '', fAddress: '',
          prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '',
-          rateType: '', issueBatchMethod: '', systemAdminID: connectionID, notes: '',
+          rateType: '', issueBatchMethod: '', systemAdminID: connectionID, notes: '', priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time: noTime,
 
     );
 

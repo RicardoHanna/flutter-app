@@ -19,13 +19,21 @@ class Currencies extends HiveObject {
   @HiveField(4)
   late String notes;
 
+  @HiveField(5)
+  late dynamic amntDec;
+
+  @HiveField(6)
+  late String rounding;
+
 
   Currencies({
     required this.cmpCode,
     required this.curCode,
     required this.curName,
     required this.curFName,
-    required this.notes
+    required this.notes,
+    required this.amntDec,
+    required this.rounding
   });
 
 

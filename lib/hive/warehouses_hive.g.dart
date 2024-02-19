@@ -22,13 +22,14 @@ class WarehousesAdapter extends TypeAdapter<Warehouses> {
       whsName: fields[2] as String,
       whsFName: fields[3] as String,
       notes: fields[4] as String,
+      binActivate: fields[5] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Warehouses obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.cmpCode)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class WarehousesAdapter extends TypeAdapter<Warehouses> {
       ..writeByte(3)
       ..write(obj.whsFName)
       ..writeByte(4)
-      ..write(obj.notes);
+      ..write(obj.notes)
+      ..writeByte(5)
+      ..write(obj.binActivate);
   }
 
   @override

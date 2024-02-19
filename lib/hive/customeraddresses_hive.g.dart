@@ -26,13 +26,20 @@ class CustomerAddressesAdapter extends TypeAdapter<CustomerAddresses> {
       gpslat: fields[6] as String,
       gpslong: fields[7] as String,
       notes: fields[8] as String,
+      addressType: fields[9] as String,
+      countryCode: fields[10] as String,
+      city: fields[11] as String,
+      block: fields[12] as String,
+      street: fields[13] as String,
+      zipCode: fields[14] as String,
+      building: fields[15] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, CustomerAddresses obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.cmpCode)
       ..writeByte(1)
@@ -50,7 +57,21 @@ class CustomerAddressesAdapter extends TypeAdapter<CustomerAddresses> {
       ..writeByte(7)
       ..write(obj.gpslong)
       ..writeByte(8)
-      ..write(obj.notes);
+      ..write(obj.notes)
+      ..writeByte(9)
+      ..write(obj.addressType)
+      ..writeByte(10)
+      ..write(obj.countryCode)
+      ..writeByte(11)
+      ..write(obj.city)
+      ..writeByte(12)
+      ..write(obj.block)
+      ..writeByte(13)
+      ..write(obj.street)
+      ..writeByte(14)
+      ..write(obj.zipCode)
+      ..writeByte(15)
+      ..write(obj.building);
   }
 
   @override

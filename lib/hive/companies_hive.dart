@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 part 'companies_hive.g.dart';
@@ -55,6 +56,25 @@ class Companies extends HiveObject {
   @HiveField(16)
   late String notes;
 
+  @HiveField(17)
+  late dynamic priceDec;
+
+  @HiveField(18)
+  late dynamic amntDec;
+
+  @HiveField(19)
+  late dynamic qtyDec;
+
+  @HiveField(20)
+  late dynamic rounding;
+
+  @HiveField(21)
+  late String importMethod;
+
+  @HiveField(22)
+  late TimeOfDay time;
+
+
   Companies({
     required this.cmpCode,
     required this.cmpName,
@@ -73,6 +93,12 @@ class Companies extends HiveObject {
     required this.issueBatchMethod,
     required this.systemAdminID,
     required this.notes,
+    required this.priceDec,
+    required this.amntDec,
+    required this.qtyDec,
+    required this.rounding,
+    required this.importMethod,
+    required this.time
   });
 
     Map<String, dynamic> toJson() {
@@ -93,7 +119,14 @@ class Companies extends HiveObject {
       'rateType': rateType,
       'issueBatchMethod': issueBatchMethod,
       'systemAdminID': systemAdminID,
-      'notes': notes
+      'notes': notes,
+      'priceDec': priceDec,
+      'amntDec': amntDec,
+      'qtyDec': qtyDec,
+      'rounding': rounding,
+      'importMethod': importMethod,
+      'time': time
+
 
 
     };

@@ -22,13 +22,15 @@ class CurrenciesAdapter extends TypeAdapter<Currencies> {
       curName: fields[2] as String,
       curFName: fields[3] as String,
       notes: fields[4] as String,
+      amntDec: fields[5] as dynamic,
+      rounding: fields[6] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Currencies obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.cmpCode)
       ..writeByte(1)
@@ -38,7 +40,11 @@ class CurrenciesAdapter extends TypeAdapter<Currencies> {
       ..writeByte(3)
       ..write(obj.curFName)
       ..writeByte(4)
-      ..write(obj.notes);
+      ..write(obj.notes)
+      ..writeByte(5)
+      ..write(obj.amntDec)
+      ..writeByte(6)
+      ..write(obj.rounding);
   }
 
   @override

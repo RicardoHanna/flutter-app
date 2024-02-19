@@ -41,9 +41,7 @@ class DataSearch extends SearchDelegate<String> {
     final results = itemsList
         .where((item) =>
             item.itemCode.contains(query) ||
-            item.itemName.contains(query) ||
-            // ... add other fields as needed
-            item.charact2.contains(query))
+            item.itemName.contains(query))
         .toList();
 
     return _buildSearchResults(results);
@@ -57,9 +55,7 @@ class DataSearch extends SearchDelegate<String> {
         : itemsList
             .where((item) =>
                 item.itemCode.contains(query) ||
-                item.itemName.contains(query) ||
-                // ... add other fields as needed
-                item.charact2.contains(query))
+                item.itemName.contains(query))
             .toList();
 
     return _buildSearchResults(suggestionList);

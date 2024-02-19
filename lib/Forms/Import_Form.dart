@@ -42,6 +42,7 @@ class _ImportFormState extends State<ImportForm> {
   // Track the selected checkboxes
   String companyCode = '';
   String connectionID = '';
+ TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
 
   @override
   void initState() {
@@ -94,7 +95,7 @@ class _ImportFormState extends State<ImportForm> {
               secCurCode: '',
               rateType: '',
               issueBatchMethod: '',
-              systemAdminID: ''), // Default company when not found
+              systemAdminID: '', priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time:noTime), // Default company when not found
         );
 
         // Retrieve the connectionID from the company

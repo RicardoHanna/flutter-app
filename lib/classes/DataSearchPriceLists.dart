@@ -41,9 +41,7 @@ class DataSearchPriceLists extends SearchDelegate<String> {
     final results = pricesList
         .where((price) =>
             price.plCode.contains(query) ||
-            price.plName.contains(query) ||
-            // ... add other fields as needed
-            price.securityGroup.contains(query))
+            price.plName.contains(query) )
         .toList();
 
     return _buildSearchResults(results);
@@ -57,9 +55,7 @@ class DataSearchPriceLists extends SearchDelegate<String> {
         : pricesList
             .where((price) =>
                 price.plCode.contains(query) ||
-                price.plName.contains(query) ||
-                // ... add other fields as needed
-                price.securityGroup.contains(query))
+                price.plName.contains(query) )
             .toList();
 
     return _buildSearchResults(suggestionList);

@@ -131,63 +131,7 @@ dynamic getField(Items item, String fieldName) {
   }
 
   
-Future<void> insertSampleData() async {
-  var itemsBox = await Hive.openBox<Items>('items');
-  itemsBox.add(
-    Items(
-      '001',
-      'Sample Item 1',
-      'Sample Pr Name 1',
-      'Sample F Name 1',
-      'Sample Pr F Name 1',
-      'B',
-      'Sample Categ Code 1',
-      'Sample Brand Code 1',
-      'Sample ItemType 1',
-      'Sample Bar Code 1',
-      'Sample UOM 1',
-      'https://firebasestorage.googleapis.com/v0/b/sales-bab47.appspot.com/o/profileImage?alt=media&token=c74746f0-cb07-422b-8428-fc236d0e1339', // Replace with an actual base64-encoded image
-      'Sample Remark 1',
-      'Sample Brand 1',
-      'Sample ManageBy 1',
-      10.0, // Sample VATRate
-      true, // Sample Active
-      1.5, // Sample Weight
-      'Sample Charect1 1',
-      'Sample Charact2 1',
-      ''
-    ),
-  );
 
-  itemsBox.add(
-    Items(
-      '002',
-      'Sample Item 2',
-      'Sample Pr Name 2',
-      'Sample F Name 2',
-      'Sample Pr F Name 2',
-      'A',
-      'Sample Categ Code 2',
-      'Sample Brand Code 2',
-      'Sample ItemType 2',
-      'Sample Bar Code 2',
-      'Sample UOM 2',
-      'https://firebasestorage.googleapis.com/v0/b/sales-bab47.appspot.com/o/profileImage?alt=media&token=c74746f0-cb07-422b-8428-fc236d0e1339', // Replace with an actual base64-encoded image
-      'Sample Remark 2',
-      'Sample Brand 2',
-      'Sample ManageBy 2',
-      15.0, // Sample VATRate
-      false, // Sample Active
-      2.0, // Sample Weight
-      'Sample Charect1 2',
-      'Sample Charact2 2',
-      ''
-    ),
-  );
-
-  print('Sample data inserted successfully');
-
-}
 
 Future<void> printUserDataTranslations() async {
  var itemsBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
@@ -457,9 +401,6 @@ void _showCatalogItems(){
 
   for (var field in selectedFields) {
     switch (field) {
-      case 'Active':
-        widgets.add(Text(item.active.toString(),style: _appTextStylewidgets,));
-        break;
       case 'Weight':
         widgets.add(Text(item.weight.toString(),style: _appTextStylewidgets,));
         break;

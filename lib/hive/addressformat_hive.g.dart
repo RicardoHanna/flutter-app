@@ -1,44 +1,35 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'itemuom_hive.dart';
+part of 'addressformat_hive.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
+class AddressFormatAdapter extends TypeAdapter<AddressFormat> {
   @override
-  final int typeId = 8;
+  final int typeId = 55;
 
   @override
-  ItemUOM read(BinaryReader reader) {
+  AddressFormat read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return ItemUOM(
-      fields[0] as String,
-      fields[1] as String,
-      fields[2] as dynamic,
-      fields[3] as String,
-      fields[4] as String,
+    return AddressFormat(
+      cmpCode: fields[0] as String,
+      addrFormatID: fields[1] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, ItemUOM obj) {
+  void write(BinaryWriter writer, AddressFormat obj) {
     writer
-      ..writeByte(5)
-      ..writeByte(0)
-      ..write(obj.itemCode)
-      ..writeByte(1)
-      ..write(obj.uom)
       ..writeByte(2)
-      ..write(obj.qtyperUOM)
-      ..writeByte(3)
-      ..write(obj.docType)
-      ..writeByte(4)
-      ..write(obj.cmpCode);
+      ..writeByte(0)
+      ..write(obj.cmpCode)
+      ..writeByte(1)
+      ..write(obj.addrFormatID);
   }
 
   @override
@@ -47,7 +38,7 @@ class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ItemUOMAdapter &&
+      other is AddressFormatAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

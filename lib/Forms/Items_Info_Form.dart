@@ -96,13 +96,10 @@ class ItemsInfoForm extends StatelessWidget {
             _buildTitleText(AppLocalizations.of(context)!.barcode, item.barCode ?? ''),
             _buildTitleText(AppLocalizations.of(context)!.uom, item.uom ?? ''),
             _buildTitleText(AppLocalizations.of(context)!.remark, item.remark ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.brand, item.brand ?? ''),
             _buildTitleText(AppLocalizations.of(context)!.manageby, item.manageBy ?? ''),
-            _buildTitleTextNumber(AppLocalizations.of(context)!.vatrate, item.vatRate ?? ''),
-            _buildTitleTextNumber(AppLocalizations.of(context)!.active, item.active ?? ''),
+            _buildTitleTextNumber(AppLocalizations.of(context)!.vatrate, item.vatCode ?? ''),
             _buildTitleTextNumber(AppLocalizations.of(context)!.weight, item.weight ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.charect1, item.charect1 ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.charect2, item.charact2 ?? ''),
+         
           
         
             ])),
@@ -140,7 +137,7 @@ print(itemuom.toList());
                       _buildTitleText(AppLocalizations.of(context)!.cmpCode, itemuoms.cmpCode ?? 'N/A'),
                       _buildTitleText(AppLocalizations.of(context)!.itemcode, itemuoms.itemCode ?? 'N/A'),
                       _buildTitleTextNumber(AppLocalizations.of(context)!.qtyperUOM, itemuoms.qtyperUOM ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.barcode, itemuoms.barCode ?? 'N/A'),
+                    
                  
                   
                       // Add more fields as needed

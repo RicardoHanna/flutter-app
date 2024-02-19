@@ -25,6 +25,9 @@ class PaymentTerms extends HiveObject {
   @HiveField(6)
   late String notes;
 
+  @HiveField(7)
+  late int nbrofMonths;
+
 
 
   PaymentTerms({
@@ -34,7 +37,8 @@ class PaymentTerms extends HiveObject {
     required this.ptFName,
     required this.startFrom,
     required this.nbrofDays,
-    required this.notes
+    required this.notes,
+    required this.nbrofMonths
   });
 
 

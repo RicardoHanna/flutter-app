@@ -19,6 +19,15 @@ class CustomerAttachments extends HiveObject {
   @HiveField(4)
   late String notes;
 
+  @HiveField(5)
+  late String lineID;
+
+  @HiveField(6)
+  late String attachPath;
+
+  @HiveField(7)
+  late String attachFile;
+
  
   CustomerAttachments({
     required this.cmpCode,
@@ -26,6 +35,9 @@ class CustomerAttachments extends HiveObject {
     required this.attach,
     required this.attachType,
     required this.notes,
+    required this.lineID,
+    required this.attachPath,
+    required this.attachFile
   });
 
 

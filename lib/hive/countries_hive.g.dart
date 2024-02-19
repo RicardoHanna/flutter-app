@@ -1,44 +1,47 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'itemuom_hive.dart';
+part of 'countries_hive.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
+class CountriesAdapter extends TypeAdapter<Countries> {
   @override
-  final int typeId = 8;
+  final int typeId = 56;
 
   @override
-  ItemUOM read(BinaryReader reader) {
+  Countries read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return ItemUOM(
-      fields[0] as String,
-      fields[1] as String,
-      fields[2] as dynamic,
-      fields[3] as String,
-      fields[4] as String,
+    return Countries(
+      cmpCode: fields[0] as String,
+      countryCode: fields[1] as String,
+      countryName: fields[2] as String,
+      countryFName: fields[3] as String,
+      addrFormatID: fields[4] as String,
+      notes: fields[5] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, ItemUOM obj) {
+  void write(BinaryWriter writer, Countries obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
-      ..write(obj.itemCode)
+      ..write(obj.cmpCode)
       ..writeByte(1)
-      ..write(obj.uom)
+      ..write(obj.countryCode)
       ..writeByte(2)
-      ..write(obj.qtyperUOM)
+      ..write(obj.countryName)
       ..writeByte(3)
-      ..write(obj.docType)
+      ..write(obj.countryFName)
       ..writeByte(4)
-      ..write(obj.cmpCode);
+      ..write(obj.addrFormatID)
+      ..writeByte(5)
+      ..write(obj.notes);
   }
 
   @override
@@ -47,7 +50,7 @@ class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ItemUOMAdapter &&
+      other is CountriesAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

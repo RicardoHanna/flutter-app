@@ -19,6 +19,9 @@ class Warehouses extends HiveObject {
   @HiveField(4)
   late String notes;
 
+  @HiveField(5)
+  late bool binActivate;
+
 
 
   Warehouses({
@@ -26,7 +29,8 @@ class Warehouses extends HiveObject {
     required this.whsCode,
     required this.whsName,
     required this.whsFName,
-    required this.notes
+    required this.notes,
+    required this.binActivate
   });
 
 

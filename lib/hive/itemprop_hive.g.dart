@@ -1,44 +1,41 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'itemuom_hive.dart';
+part of 'itemprop_hive.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
+class ItemPropAdapter extends TypeAdapter<ItemProp> {
   @override
-  final int typeId = 8;
+  final int typeId = 59;
 
   @override
-  ItemUOM read(BinaryReader reader) {
+  ItemProp read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return ItemUOM(
-      fields[0] as String,
-      fields[1] as String,
-      fields[2] as dynamic,
-      fields[3] as String,
-      fields[4] as String,
+    return ItemProp(
+      cmpCode: fields[0] as String,
+      itemCode: fields[1] as String,
+      propCode: fields[2] as String,
+      notes: fields[3] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, ItemUOM obj) {
+  void write(BinaryWriter writer, ItemProp obj) {
     writer
-      ..writeByte(5)
-      ..writeByte(0)
-      ..write(obj.itemCode)
-      ..writeByte(1)
-      ..write(obj.uom)
-      ..writeByte(2)
-      ..write(obj.qtyperUOM)
-      ..writeByte(3)
-      ..write(obj.docType)
       ..writeByte(4)
-      ..write(obj.cmpCode);
+      ..writeByte(0)
+      ..write(obj.cmpCode)
+      ..writeByte(1)
+      ..write(obj.itemCode)
+      ..writeByte(2)
+      ..write(obj.propCode)
+      ..writeByte(3)
+      ..write(obj.notes);
   }
 
   @override
@@ -47,7 +44,7 @@ class ItemUOMAdapter extends TypeAdapter<ItemUOM> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ItemUOMAdapter &&
+      other is ItemPropAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

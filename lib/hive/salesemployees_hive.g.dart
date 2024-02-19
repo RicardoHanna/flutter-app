@@ -24,7 +24,7 @@ class SalesEmployeesAdapter extends TypeAdapter<SalesEmployees> {
       mobile: fields[4] as String,
       email: fields[5] as String,
       whsCode: fields[6] as String,
-      reqFromWhsCode: fields[7] as int,
+      reqFromWhsCode: fields[7] as dynamic,
       notes: fields[8] as String,
     );
   }

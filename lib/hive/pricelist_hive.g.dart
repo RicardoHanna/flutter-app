@@ -26,13 +26,14 @@ class PriceListAdapter extends TypeAdapter<PriceList> {
       fields[6] as String,
       fields[7] as String,
       fields[8] as String,
+      fields[9] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, PriceList obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.plCode)
       ..writeByte(1)
@@ -46,11 +47,13 @@ class PriceListAdapter extends TypeAdapter<PriceList> {
       ..writeByte(5)
       ..write(obj.incVAT)
       ..writeByte(6)
-      ..write(obj.securityGroup)
-      ..writeByte(7)
       ..write(obj.cmpCode)
+      ..writeByte(7)
+      ..write(obj.authoGroup)
       ..writeByte(8)
-      ..write(obj.authoGroup);
+      ..write(obj.plFName)
+      ..writeByte(9)
+      ..write(obj.notes);
   }
 
   @override

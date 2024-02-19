@@ -24,13 +24,14 @@ class PaymentTermsAdapter extends TypeAdapter<PaymentTerms> {
       startFrom: fields[4] as String,
       nbrofDays: fields[5] as int,
       notes: fields[6] as String,
+      nbrofMonths: fields[7] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, PaymentTerms obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.cmpCode)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class PaymentTermsAdapter extends TypeAdapter<PaymentTerms> {
       ..writeByte(5)
       ..write(obj.nbrofDays)
       ..writeByte(6)
-      ..write(obj.notes);
+      ..write(obj.notes)
+      ..writeByte(7)
+      ..write(obj.nbrofMonths);
   }
 
   @override
