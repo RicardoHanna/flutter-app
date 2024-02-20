@@ -110,7 +110,7 @@ let queryCustomerPropGroupSpecialPrice='';let queryCustomerPropCategSpecialPrice
           LTRIM(RTRIM(groupFName)) AS groupFName,
           LTRIM(RTRIM(cmpCode)) AS cmpCode
         FROM ItemGroup`;
-    
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         queryItemCateg = `
         SELECT 
           LTRIM(RTRIM(categCode)) AS categCode,
@@ -718,13 +718,7 @@ function constructObject(fields, values) {
   }
   return result;
 }
-
-
-
-
-
-
-      try {
+     try {
         if (selectAllTables === 'selectall') {
          selectALL();
         }
@@ -3544,8 +3538,6 @@ await deleteFirestoreOnSqlServerDelete('UsersSalesEmployees', identifierFieldsUs
       } catch (error) {
         console.error('Error adding document:', error);
       }
-  
-
     console.log('Data migration complete.');
   } catch (err) {
     console.error('Error:', err);
@@ -3553,9 +3545,6 @@ await deleteFirestoreOnSqlServerDelete('UsersSalesEmployees', identifierFieldsUs
     // Close the SQL Server connection
     await sql.close();
   }
-
-
-
 
 }
 

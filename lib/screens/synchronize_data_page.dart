@@ -242,34 +242,34 @@ class _SynchronizeDataPageState extends State<SynchronizeDataPage> {
                   print(menuCode);
                   bool hasAccess = await checkSystemAdminExport(_userGroup);
 
-                  if (!hasAccess) {
-                    // Handle other actions as before
-                    String exportSource = await _showExportDialog();
-                    if (exportSource == AppLocalizations.of(context)!.yes) {
-                      LoadingHelper.configureLoading();
-                      LoadingHelper.showLoading(); // Show loading indicator
-                      await _synchronizeData();
-                      LoadingHelper
-                          .dismissLoading(); // Dismiss loading indicator
+                  // if (!hasAccess) {
+                  // Handle other actions as before
+                  String exportSource = await _showExportDialog();
+                  if (exportSource == AppLocalizations.of(context)!.yes) {
+                    LoadingHelper.configureLoading();
+                    LoadingHelper.showLoading(); // Show loading indicator
+                    await _synchronizeData();
+                    LoadingHelper.dismissLoading(); // Dismiss loading indicator
 
-                      EasyLoading.dismiss();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            AppLocalizations.of(context)!.dataisexported,
-                            style: _appTextStyle,
-                          ),
-                        ),
-                      );
-                    } else {}
-                  } else {
+                    EasyLoading.dismiss();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                            AppLocalizations.of(context)!.permissionAccess),
+                          AppLocalizations.of(context)!.dataisexported,
+                          style: _appTextStyle,
+                        ),
                       ),
                     );
-                  }
+                  } else {}
+                  // }
+                  // else {
+                  //   ScaffoldMessenger.of(context).showSnackBar(
+                  //     SnackBar(
+                  //       content: Text(
+                  //           AppLocalizations.of(context)!.permissionAccess),
+                  //     ),
+                  //   );
+                  // }
                 }
               },
             );

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -32,10 +31,8 @@ import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/Synchronize/DataSynchronizer.dart';
 import 'dart:typed_data';
 
-
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-
 
 class ReportForm extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -55,62 +52,76 @@ class _ReportFormState extends State<ReportForm> {
   void initState() {
     super.initState();
     _firestore = FirebaseFirestore.instance;
-    _specialPriceCollection = _firestore.collection('CustomerGroupItemsSpecialPrice');
+    _specialPriceCollection =
+        _firestore.collection('CustomerGroupItemsSpecialPrice');
   }
-Future<Uint8List> _generatePdf(PdfPageFormat format) async {
-  final pdf = pw.Document();
-  final specialPrices = await _specialPriceCollection.get(); // Fetch data from Firestore
 
-  final List<List<String>> tableData = [
-    // Header row
-    ['Item Code', 'Price', 'Company Code', 'Customer Group Code', 'UOM', 'Base Price', 'Currency', 'Auto', 'Disc', 'Notes'],
-    // Data rows
-    for (var specialPrice in specialPrices.docs)
+  Future<Uint8List> _generatePdf(PdfPageFormat format) async {
+    final pdf = pw.Document();
+
+    final specialPrices =
+        await _specialPriceCollection.get(); // Fetch data from Firestore
+
+    final List<List<String>> tableData = [
+      // Header row
       [
-        specialPrice['itemCode'] ?? '',
-        specialPrice['price']?.toString() ?? '',
-        specialPrice['cmpCode'] ?? '',
-        specialPrice['custGroupCode'] ?? '',
-        specialPrice['uom'] ?? '',
-        specialPrice['basePrice']?.toString() ?? '',
-        specialPrice['currency'] ?? '',
-        specialPrice['auto']?.toString() ?? '',
-        specialPrice['disc']?.toString() ?? '',
-        specialPrice['notes'] ?? '',
+        'Item Code',
+        'Price',
+        'Company Code',
+        'Customer Group Code',
+        'UOM',
+        'Base Price',
+        'Currency',
+        'Auto',
+        'Disc',
+        'Notes'
       ],
-  ];
+      // Data rows
+      for (var specialPrice in specialPrices.docs)
+        [
+          specialPrice['itemCode'] ?? '',
+          specialPrice['price']?.toString() ?? '',
+          specialPrice['cmpCode'] ?? '',
+          specialPrice['custGroupCode'] ?? '',
+          specialPrice['uom'] ?? '',
+          specialPrice['basePrice']?.toString() ?? '',
+          specialPrice['currency'] ?? '',
+          specialPrice['auto']?.toString() ?? '',
+          specialPrice['disc']?.toString() ?? '',
+          specialPrice['notes'] ?? '',
+        ],
+    ];
 
-  pdf.addPage(
-    pw.Page(
-      pageFormat: format,
-      build: (context) {
-        return pw.Table(
-          columnWidths: {
-            0: pw.FixedColumnWidth(80),
-            1: pw.FixedColumnWidth(80),
-            2: pw.FixedColumnWidth(80),
-            3: pw.FixedColumnWidth(80),
-            4: pw.FixedColumnWidth(80),
-            5: pw.FixedColumnWidth(80),
-            6: pw.FixedColumnWidth(80),
-            7: pw.FixedColumnWidth(80),
-            8: pw.FixedColumnWidth(80),
-            9: pw.FixedColumnWidth(80),
-          },
-          children: [
-            for (var row in tableData)
-              pw.TableRow(
-                children: [for (var cell in row) pw.Text(cell)],
-              ),
-          ],
-        );
-      },
-    ),
-  );
+    pdf.addPage(
+      pw.Page(
+        pageFormat: format,
+        build: (context) {
+          return pw.Table(
+            columnWidths: {
+              0: pw.FixedColumnWidth(80),
+              1: pw.FixedColumnWidth(80),
+              2: pw.FixedColumnWidth(80),
+              3: pw.FixedColumnWidth(80),
+              4: pw.FixedColumnWidth(80),
+              5: pw.FixedColumnWidth(80),
+              6: pw.FixedColumnWidth(80),
+              7: pw.FixedColumnWidth(80),
+              8: pw.FixedColumnWidth(80),
+              9: pw.FixedColumnWidth(80),
+            },
+            children: [
+              for (var row in tableData)
+                pw.TableRow(
+                  children: [for (var cell in row) pw.Text(cell)],
+                ),
+            ],
+          );
+        },
+      ),
+    );
 
-  return pdf.save();
-}
-
+    return pdf.save();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,3 +147,34 @@ Future<Uint8List> _generatePdf(PdfPageFormat format) async {
     Printing.layoutPdf(onLayout: (_) => uint8List);
   }
 }
+
+
+class Reports extends StatefulWidget {
+  final AppNotifier appNotifier;
+  final String usercode;
+
+  const Reports({super.key, required this.appNotifier, required this.usercode});
+
+  @override
+  State<Reports> createState() => _ReportsState();
+}
+
+class _ReportsState extends State<Reports> {
+    late FirebaseFirestore _firestore;
+  late CollectionReference<Map<String, dynamic>> _specialPriceCollection;
+
+
+   @override
+  void initState() {
+    super.initState();
+    _firestore = FirebaseFirestore.instance;
+    _specialPriceCollection =
+        _firestore.collection('CustomerGroupItemsSpecialPrice');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+

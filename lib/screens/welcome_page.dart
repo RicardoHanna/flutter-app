@@ -61,12 +61,23 @@ String ?_image1;
   String? selectedCompany;
   String selectedCompanyCode=''; // Variable to hold the selected company code
 
+<<<<<<< HEAD
  String ? _userFname;
    @override
 void initState() {
   super.initState();
  
   loadawait();
+=======
+  String? _userFname;
+
+  String baseUrl = 'http://5.189.188.139:8081/api';
+  @override
+  void initState() {
+    super.initState();
+
+    loadawait();
+>>>>>>> 8eff638a690e042cbe9999aefb0a89f6e3a88659
 
     loadUserGroupHive();
 printUserMenu();
@@ -250,6 +261,7 @@ Future<void> _loadUserGroup() async {
     var userBox = await Hive.openBox('userBox');
     var user;
 
+<<<<<<< HEAD
     if (usercode.isEmpty) {
       // If usercode is empty, fetch data based on email
       user = userBox.values.firstWhere(
@@ -259,6 +271,35 @@ Future<void> _loadUserGroup() async {
     } else {
       // Retrieve user data from Hive box based on usercode
       user = userBox.get(usercode) as Map<dynamic, dynamic>?;
+=======
+      if (usercode.isEmpty) {
+        // If usercode is empty, fetch data based on email
+        user = userBox.values.firstWhere(
+          (user) => user['email'] == widget.email,
+          orElse: () => null,
+        );
+      } else {
+        // Retrieve user data from Hive box based on usercode
+        user = userBox.get(usercode) as Map<dynamic, dynamic>?;
+      }
+
+      print(user.toString());
+      print(widget.email);
+
+      if (user != null && mounted) {
+        setState(() {
+          _userGroup = user['usergroup'];
+          _username = user['username'];
+          _userFname = user['userFname'];
+          usercode = user['usercode'];
+        });
+      } else {
+        print('User not found in Hive.');
+        // Handle the case when the user is not found in Hive.
+      }
+    } catch (e) {
+      print('Error loading user group and username: $e');
+>>>>>>> 8eff638a690e042cbe9999aefb0a89f6e3a88659
     }
 
     print(user.toString());
@@ -305,6 +346,14 @@ Future<Uint8List?> _loadProfilePicturePath() async {
           return localImageBytes;
         }
       }
+<<<<<<< HEAD
+=======
+
+      return null;
+    } catch (e) {
+      print('Error loading profile picture path from Hive: $e');
+      return null;
+>>>>>>> 8eff638a690e042cbe9999aefb0a89f6e3a88659
     }
 
     return null;
@@ -372,9 +421,48 @@ Future<void> _selectProfilePicture() async {
         );
       },
     );
+<<<<<<< HEAD
   } catch (e) {
     print('Error selecting profile picture: $e');
     // Handle the error as needed
+=======
+
+    if (image != null) {
+      Uint8List img = await image.readAsBytes();
+      setState(() {
+        _image = img;
+      });
+
+      String localPath = image.path;
+      File imageFile = new File(localPath);
+
+      await updateImage(imageFile);
+    }
+  }
+
+  Future<void> updateImage(File image) async {
+    if (image.existsSync()) {
+      var request =
+          http.MultipartRequest('POST', Uri.parse('http://5.189.188.139:8081/api/UploadImage'));
+      request.files.add(await http.MultipartFile.fromPath('image', image.path));
+
+      request.fields['userId'] = usercode;
+      print(request.files);
+      try {
+        var response = await request.send();
+        if (response.statusCode == 200) {
+          print('Image uploaded successfully');
+        } else {
+          print(await response.stream.transform(utf8.decoder).join());
+          print('Failed to upload image. Status code: ${response.statusCode}');
+        }
+      } catch (error) {
+
+      }
+    } else {
+      print('Image file does not exist');
+    }
+>>>>>>> 8eff638a690e042cbe9999aefb0a89f6e3a88659
   }
 }
 
@@ -446,60 +534,108 @@ void saveProfile(String localPath) async {
   }
 }
 
+<<<<<<< HEAD
 Future<String> fetchUsername(String userCode) async {
   var userBox = await Hive.openBox('userBox');
   var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
   return user?['username'] ?? '';
 }
+=======
+  void saveProfile(String localPath) async {
+    String? email = widget.email;
+    String resp = await StoreData()
+        .saveData(email: email, file: _image!, localPath: localPath);
 
-Future<String> fetchUserFname(String userCode) async {
-  var userBox = await Hive.openBox('userBox');
-  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
-  return user?['userFname'] ?? '';
-}
+    // Save image to Firebase Storage
+    String downloadURL =
+        await StoreData().uploadImageToStorage('profileImage', _image!);
 
-Future<String> fetchEmail(String userCode) async {
-  var userBox = await Hive.openBox('userBox');
-  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
-  return user?['email'] ?? '';
-}
+    FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-Future<String> fetchPassword(String userCode) async {
-  var userBox = await Hive.openBox('userBox');
-  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
-  return user?['password'] ?? '';
-}
+    // Save download URL in Firestore
+    try {
+      await _firestore
+          .collection('Users')
+          .where('usercode', isEqualTo: usercode)
+          .get()
+          .then(
+        (QuerySnapshot<Map<String, dynamic>> querySnapshot) {
+          if (querySnapshot.docs.isNotEmpty) {
+            // Update the existing user in Firestore
+            String documentId = querySnapshot.docs[0].id;
+            _firestore.collection('Users').doc(documentId).update({
+              'imageLink': downloadURL,
+            });
+          }
+        },
+      );
+    } catch (e) {
+      print('Error updating Firestore user: $e');
+    }
+  }
 
-Future<String> fetchPhoneNumber(String userCode) async {
-  var userBox = await Hive.openBox('userBox');
-  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
-  return user?['phonenumber'] ?? '';
-}
+  Future<String> fetchUsername(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['username'] ?? '';
+  }
+>>>>>>> 8eff638a690e042cbe9999aefb0a89f6e3a88659
 
-Future<String> fetchImeiCode(String userCode) async {
-  var userBox = await Hive.openBox('userBox');
-  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
-  return user?['imeicode'] ?? '';
-}
- 
- Future<bool> fetchIsActive(String userCode) async {
-  var userBox = await Hive.openBox('userBox');
-  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
-  return user?['active'] ?? '';
-}
- 
- Future<String> fetchSelectedLanguage(String userCode) async {
-  var userBox = await Hive.openBox('userBox');
-  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
-  return user?['languages'] ?? '';
-}
- 
- Future<int> fetchSelectedFont(String userCode) async {
-  var userBox = await Hive.openBox('userBox');
-  var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
-  return user?['font'] ?? '';
-}
+  Future<String> fetchUserFname(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['userFname'] ?? '';
+  }
 
+  Future<String> fetchEmail(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['email'] ?? '';
+  }
+
+  Future<String> fetchPassword(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['password'] ?? '';
+  }
+
+  Future<String> fetchPhoneNumber(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['phonenumber'] ?? '';
+  }
+
+  Future<String> fetchImeiCode(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['imeicode'] ?? '';
+  }
+
+  Future<bool> fetchIsActive(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['active'] ?? '';
+  }
+
+  Future<String> fetchSelectedLanguage(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['languages'] ?? '';
+  }
+
+  Future<int> fetchSelectedFont(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['font'] ?? '';
+  }
+
+  Future<String> fetchSelectedUserGroup(String userCode) async {
+    var userBox = await Hive.openBox('userBox');
+    var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
+    return user?['usergroup'].toString() ?? '';
+  }
+
+<<<<<<< HEAD
  Future<String> fetchSelectedUserGroup(String userCode) async {
   var userBox = await Hive.openBox('userBox');
   var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
@@ -508,6 +644,8 @@ Future<String> fetchImeiCode(String userCode) async {
  
  
   
+=======
+>>>>>>> 8eff638a690e042cbe9999aefb0a89f6e3a88659
   @override
   Widget build(BuildContext context) {
      final Map<String, Widget> formWidgets = {
@@ -545,7 +683,14 @@ languageUser=_username!;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
+<<<<<<< HEAD
         title: Text(selectedCompany??'',style: _appTextStyleAppBar,),
+=======
+        title: Text(
+          selectedCompany!,
+          style: _appTextStyleAppBar,
+        ),
+>>>>>>> 8eff638a690e042cbe9999aefb0a89f6e3a88659
       ),
      drawer:Drawer(
   child: ListView(
@@ -557,6 +702,7 @@ languageUser=_username!;
         accountEmail: Text(widget.email!,style: _appTextStyle,),
         currentAccountPicture: Stack(
           children: [
+<<<<<<< HEAD
             FutureBuilder<Uint8List?>(
               future: _loadProfilePicturePath(),
               builder: (context, snapshot) {
@@ -571,6 +717,126 @@ languageUser=_username!;
                   return CircleAvatar(
                      radius: 80,
                     backgroundImage: MemoryImage(snapshot.data!),
+=======
+            UserAccountsDrawerHeader(
+              accountName: Text(
+                languageUser,
+                style: _appTextStyle,
+              ),
+              accountEmail: Text(
+                widget.email!,
+                style: _appTextStyle,
+              ),
+              currentAccountPicture: Stack(
+                children: [
+                  FutureBuilder<Uint8List?>(
+                    future: _loadProfilePicturePath(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        );
+                      } else if (snapshot.hasError) {
+                        return CircleAvatar(
+                          radius: 80,
+                          backgroundImage: NetworkImage(
+                              'https://png.pngitem.com/pimgs/s/421-4212266_transparent-default-avatar-png-default-avatar-images-png.png'),
+                        );
+                      } else if (snapshot.data != null) {
+                        return CircleAvatar(
+                          radius: 80,
+                          backgroundImage: MemoryImage(snapshot.data!),
+                        );
+                      } else {
+                        return CircleAvatar(
+                          radius: 80,
+                          backgroundImage: NetworkImage(
+                              'https://png.pngitem.com/pimgs/s/421-4212266_transparent-default-avatar-png-default-avatar-images-png.png'),
+                        );
+                      }
+                    },
+                  ),
+                  Positioned(
+                    top: 40,
+                    left: 29,
+                    child: IconButton(
+                      onPressed: _selectProfilePicture,
+                      icon: Icon(Icons.add_a_photo),
+                      tooltip: 'Add Photo',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.business),
+              title: Text(
+                AppLocalizations.of(context)!.company,
+                style: _appTextStyle,
+              ),
+              subtitle: selectedCompany != null ? Text(selectedCompany!) : null,
+              onTap: () {
+                _showCompanySelectionDialog(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: FutureBuilder<bool>(
+                future: checkAuthorization(Menu.SETTINGS_MENU_CODE, _userGroup),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    // If still loading, you can return a loading indicator or an empty container
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError || !(snapshot.data ?? false)) {
+                    // If there is an error or the user doesn't have access, show grey text
+                    return Text(
+                      AppLocalizations.of(context)!.settings,
+                      style: _appTextStyle.copyWith(color: Colors.grey),
+                    );
+                  } else {
+                    // If the user has access, show regular text
+                    return Text(
+                      AppLocalizations.of(context)!.settings,
+                      style: _appTextStyle,
+                    );
+                  }
+                },
+              ),
+              onTap: () async {
+                String initialUsername = await fetchUsername(
+                    usercode); // Replace with your actual data fetching logic
+                String initialUserFname = await fetchUserFname(usercode);
+                String initialEmail = await fetchEmail(usercode);
+                String initialPassword = await fetchPassword(usercode);
+                String initialPhoneNumber = await fetchPhoneNumber(usercode);
+                String initialImeiCode = await fetchImeiCode(usercode);
+                bool initialIsActive = await fetchIsActive(usercode);
+                String initialSelectedUserGroup =
+                    await fetchSelectedUserGroup(usercode);
+
+                bool hasAccess = await checkAuthorization(
+                    Menu.SETTINGS_MENU_CODE, _userGroup);
+
+                if (hasAccess) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingsEditUserForm(
+                        usercode: usercode,
+                        password: widget.password,
+                        appNotifier: widget.appNotifier,
+                        initialUsername: initialUsername,
+                        initialUserFname: initialUserFname,
+                        initialEmail: initialEmail,
+                        initialPassword: initialPassword,
+                        initialPhoneNumber: initialPhoneNumber,
+                        initialImeiCode: initialImeiCode,
+                        initialUserGroup: initialSelectedUserGroup,
+                        initialIsActive: initialIsActive,
+                      ),
+                    ),
+>>>>>>> 8eff638a690e042cbe9999aefb0a89f6e3a88659
                   );
                 } else {
                   return CircleAvatar(
@@ -592,6 +858,7 @@ languageUser=_username!;
           ],
         ),
       ),
+<<<<<<< HEAD
         ListTile(
             leading: Icon(Icons.business),
             title: Text(AppLocalizations.of(context)!.company,style: _appTextStyle,),
@@ -808,6 +1075,23 @@ languageUser=_username!;
                     context,
                     MaterialPageRoute(
                       builder: (context) => formWidget,
+=======
+      body: Padding(
+        padding: EdgeInsets.all(8),
+        child: ListView.separated(
+          itemCount: data.length,
+          itemBuilder: (BuildContext context, int index) {
+            return FutureBuilder<bool>(
+              future:
+                  checkAuthorization(menuCodes[data[index]] ?? 0, _userGroup),
+              builder: (context, snapshot) {
+                if (snapshot.hasError || !(snapshot.data ?? false)) {
+                  // If there is an error or the user doesn't have access, show grey text
+                  return ListTile(
+                    title: Text(
+                      data[index],
+                      style: _appTextStyle.copyWith(color: Colors.grey),
+>>>>>>> 8eff638a690e042cbe9999aefb0a89f6e3a88659
                     ),
                   );
                 } else {
