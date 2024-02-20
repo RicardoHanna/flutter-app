@@ -42,8 +42,6 @@ class _ImportFormState extends State<ImportForm> {
   // Track the selected checkboxes
   String companyCode = '';
   String connectionID = '';
-
-  String baseUrl = 'http://5.189.188.139:8081/api';
  TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
 
   @override
@@ -55,8 +53,8 @@ class _ImportFormState extends State<ImportForm> {
 
   Future<void> waitingGetCmpCode() async {
     await getCompaniesConnectionId(widget.usercode);
-    print('barbar');
     print(connectionID);
+
   }
 
   Future<String?> getCompaniesConnectionId(String usercode) async {
@@ -75,7 +73,6 @@ class _ImportFormState extends State<ImportForm> {
 
       if (companyUser.cmpCode.isNotEmpty) {
         // If cmpCode is not empty, open the companies box and retrieve connectionID
-        companyCode = companyUser.cmpCode;
         var companiesBox = await Hive.openBox<Companies>('companiesBox');
 
         // Look for a company with the specified cmpCode
@@ -100,7 +97,7 @@ class _ImportFormState extends State<ImportForm> {
               issueBatchMethod: '',
               systemAdminID: '', priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time:noTime), // Default company when not found
         );
-        //Wed Oct 25 2023 02:00:00 GMT+0200 (Central European Summer Time)
+
         // Retrieve the connectionID from the company
         return connectionID = company.systemAdminID;
       } else {
@@ -113,6 +110,7 @@ class _ImportFormState extends State<ImportForm> {
   }
 
   final String serverUrl = 'https://hicd.onrender.com';
+
   Future<void> importData() async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
@@ -153,207 +151,6 @@ class _ImportFormState extends State<ImportForm> {
     }
   }
 
-  Future<void> importSystemFromERP() async {
-    TextStyle _appTextStyle =
-        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-
-    // defaul cmpcode from cmpuser
-    // system admin id companies
-    // configuration companiesconnection
-
-
-    // await getCompaniesConnectionId(widget.usercode);
-    // print(companyCode);
-    String cmpCode = 'AlBina_Qatar';
-    String connectionID = '1707896933781_340';
-
-    try {
-      final response = await http.post(
-          Uri.parse('$baseUrl/ImportSystemDataFromERP'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
-
-      if (response.statusCode == 200) {
-        print('Data migration complete');
-        print(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Data synchronized successfully', style: _appTextStyle),
-          ),
-        );
-      } else {
-        print('Failed to import data. Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Failed to import data. Status code: ${response.statusCode}',
-                style: _appTextStyle),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error during data import: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error during data import: $e', style: _appTextStyle),
-        ),
-      );
-    }
-  }
-
-  Future<void> importCustomersData() async {
-    TextStyle _appTextStyle =
-        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-
-    // defaul cmpcode from cmpuser
-    // system admin id companies
-    // configuration companiesconnection
-
-    // await getCompaniesConnectionId(widget.usercode);
-    // print(companyCode);
-    String cmpCode = 'AlBina_Qatar';
-    String connectionID = '1707896933781_340';
-
-    try {
-      final response = await http.post(
-          Uri.parse('$baseUrl/ImportCustomersDataFromERP'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
-
-      if (response.statusCode == 200) {
-        print('Data migration complete');
-        print(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Data synchronized successfully', style: _appTextStyle),
-          ),
-        );
-      } else {
-        print('Failed to import data. Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Failed to import data. Status code: ${response.statusCode}',
-                style: _appTextStyle),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error during data import: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error during data import: $e', style: _appTextStyle),
-        ),
-      );
-    }
-  }
-
-  Future<void> importItemsDataFromERP() async {
-    TextStyle _appTextStyle =
-        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-
-    // defaul cmpcode from cmpuser
-    // system admin id companies
-    // configuration companiesconnection
-
-    // await getCompaniesConnectionId(widget.usercode);
-    // print(companyCode);
-    String cmpCode = 'AlBina_Qatar';
-    String connectionID = '1707896933781_340';
-
-    try {
-      final response = await http.post(
-          Uri.parse('$baseUrl/ImportItemsDataFromERP'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
-
-      if (response.statusCode == 200) {
-        print('Data migration complete');
-        print(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Data synchronized successfully', style: _appTextStyle),
-          ),
-        );
-      } else {
-        print('Failed to import data. Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Failed to import data. Status code: ${response.statusCode}',
-                style: _appTextStyle),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error during data import: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error during data import: $e', style: _appTextStyle),
-        ),
-      );
-    }
-  }
-
-  Future<void> importPriceListsDataFromErp() async {
-    TextStyle _appTextStyle =
-        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-
-    // defaul cmpcode from cmpuser
-    // system admin id companies
-    // configuration companiesconnection
-
-    // await getCompaniesConnectionId(widget.usercode);
-    // print(companyCode);
-    String cmpCode = 'AlBina_Qatar';
-    String connectionID = '1706693724518_553';
-
-    try {
-      final response = await http.post(
-          Uri.parse('$baseUrl/ImportItemsDataFromERP'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
-
-      if (response.statusCode == 200) {
-        print('Data migration complete');
-        print(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Data synchronized successfully', style: _appTextStyle),
-          ),
-        );
-      } else {
-        print('Failed to import data. Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Failed to import data. Status code: ${response.statusCode}',
-                style: _appTextStyle),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error during data import: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error during data import: $e', style: _appTextStyle),
-        ),
-      );
-    }
-  }
-
   bool _importItems = false;
   bool _importPriceLists = false;
   bool _importSystem = false;
@@ -368,11 +165,8 @@ class _ImportFormState extends State<ImportForm> {
   bool _selectAll = false;
   bool _loading = false; // Track loading state
 
-  bool isThereData() {
-    if (_importCustomers == false &&
-        _importSystem == false &&
-        _importPriceLists == false &&
-        _importItems == false) {
+  bool isThereData(){
+    if(_importCustomers==false&&_importSystem==false&&_importPriceLists==false&&_importItems==false){
       return false;
     }
     return true;
@@ -434,226 +228,180 @@ class _ImportFormState extends State<ImportForm> {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     if (widget.title == AppLocalizations.of(context)!.importFromErpToMobile) {
-      return isThereData()
-          ? ElevatedButton(
-              onPressed: () async {
-                LoadingHelper.configureLoading();
-                LoadingHelper.showLoading(); // Show loading indicator
-                if (_importCustomers) {
-                  await importCustomersData();
-                }
-                if(_importSystem){
-                  await importSystemFromERP();
-                }
-                if(_importItems){
-                  await importItemsDataFromERP();
-                }
-                LoadingHelper.dismissLoading(); // Dismiss loading indicator
-              },
-              style: ButtonStyle(
-                fixedSize: MaterialStateProperty.all(
-                    Size(280, 10)), // Set the width and height
-              ),
-              child: Text(AppLocalizations.of(context)!.import,
-                  style: _appTextStyle),
-            )
-          : SizedBox(
-              width: 0,
-              height: 0,
-            );
+      return isThereData()? ElevatedButton(
+        onPressed: () async {
+          LoadingHelper.configureLoading();
+          LoadingHelper.showLoading(); // Show loading indicator
+          await importData();
+          LoadingHelper.dismissLoading(); // Dismiss loading indicator
+        },
+        style: ButtonStyle(
+          fixedSize: MaterialStateProperty.all(
+              Size(280, 10)), // Set the width and height
+        ),
+        child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
+      ):SizedBox(width: 0,height: 0,);
     } else if (widget.title ==
         AppLocalizations.of(context)!.importFromBackendToMobile) {
-      return isThereData()
-          ? ElevatedButton(
-              onPressed: () async {
-                LoadingHelper.configureLoading();
-                LoadingHelper.showLoading(); // Show loading indicator
-                await _synchronizeAll();
-                LoadingHelper.dismissLoading(); // Dismiss loading indicator
-              },
-              style: ButtonStyle(
-                fixedSize: MaterialStateProperty.all(
-                    Size(280, 10)), // Set the width and height
-              ),
-              child: Text(AppLocalizations.of(context)!.import,
-                  style: _appTextStyle),
-            )
-          : SizedBox(
-              width: 0,
-              height: 0,
-            );
+      return isThereData()?ElevatedButton(
+        onPressed: () async {
+          LoadingHelper.configureLoading();
+          LoadingHelper.showLoading(); // Show loading indicator
+          await _synchronizeAll();
+          LoadingHelper.dismissLoading(); // Dismiss loading indicator
+        },
+        style: ButtonStyle(
+          fixedSize: MaterialStateProperty.all(
+              Size(280, 10)), // Set the width and height
+        ),
+        child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
+      ):SizedBox(width: 0,height: 0,);
     } else {
       return Container(); // Placeholder for other scenarios
     }
   }
 
   List<Widget> _buildSwitchList() {
-  TextStyle _appTextStyle =
-      TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-  if (widget.title == AppLocalizations.of(context)!.importFromErpToMobile) {
-    return [
-      SwitchListTile(
-        title: Text('System', style: _appTextStyle),
-        value: _importSystem,
-        onChanged: (value) {
-          setState(() {
-            _importSystem = value ?? false;
-            if(_importSystem==true) systemTables='System'; else systemTables='';
-            print(systemTables);
-          });
-        },
-      ),
-      SwitchListTile(
-        title: Text('Items', style: _appTextStyle),
-        value: _importItems,
-        onChanged: (value) {
-          setState(() {
-            _importItems = value ?? false;
-            if(_importItems==true) itemTable='Items'; else itemTable='';
-            print(itemTable);
-          });
-        },
-      ),
-      SwitchListTile(
-        title: Text('PriceLists', style: _appTextStyle),
-        value: _importPriceLists,
-        onChanged: (value) {
-          setState(() {
-            _importPriceLists = value ?? false;
-            if(_importPriceLists==true) priceListsTable='PriceList'; else priceListsTable='';
-            print(priceListsTable);
-          });
-        },
-      ),
-
-       SwitchListTile(
-        title: Text('Customers', style: _appTextStyle),
-        value: _importCustomers,
-        onChanged: (value) {
-          setState(() {
-            _importCustomers = value ?? false;
-            if(_importCustomers==true) customersTables='Customers'; else customersTables='';
-            print(customersTables);
-          });
-        },
-      ),
-       SizedBox(height:200),
-      Column(
-         crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ElevatedButton(
-               onPressed: () async {
-  LoadingHelper.configureLoading();
-  LoadingHelper.showLoading(); // Show loading indicator
-  await importData();
-  LoadingHelper.dismissLoading(); // Dismiss loading indicator
-},
-child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
-
-              ),
-            ],
-          
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    if (widget.title == AppLocalizations.of(context)!.importFromErpToMobile) {
+      return [
+        SwitchListTile(
+          title: Text('System', style: _appTextStyle),
+          value: _importSystem,
+          onChanged: (value) {
+            setState(() {
+              _importSystem = value ?? false;
+              if (_importSystem == true)
+                systemTables = 'System';
+              else
+                systemTables = '';
+              print(systemTables);
+            });
+          },
         ),
-      
-    ];
-  } else if (widget.title == AppLocalizations.of(context)!.importFromBackendToMobile) {
-    return [
-         SwitchListTile(
-        title: Text('System', style: _appTextStyle),
-        value: _importSystem,
-        onChanged: (value) {
-          setState(() {
-            _importSystem = value ?? false;
-          });
-        },
-      ),
-      SwitchListTile(
-        title: Text('Items', style: _appTextStyle),
-        value: _importItems,
-        onChanged: (value) {
-          setState(() {
-            _importItems = value ?? false;
-          });
-        },
-      ),
-      SwitchListTile(
-        title: Text('PriceLists', style: _appTextStyle),
-        value: _importPriceLists,
-        onChanged: (value) {
-          setState(() {
-            _importPriceLists = value ?? false;
-          });
-        },
-      ),
-   
-         SwitchListTile(
-        title: Text('Customers', style: _appTextStyle),
-        value: _importCustomers,
-        onChanged: (value) {
-          setState(() {
-            _importCustomers = value ?? false;
-          });
-        },
-      ),
-      SizedBox(height:200),
-         Column(
-         crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-  LoadingHelper.configureLoading();
-  LoadingHelper.showLoading(); // Show loading indicator
-  await _synchronizeAll();
-  LoadingHelper.dismissLoading(); // Dismiss loading indicator
-},
-child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
-
-              ),
-            ],
-          
+        SwitchListTile(
+          title: Text('Items', style: _appTextStyle),
+          value: _importItems,
+          onChanged: (value) {
+            setState(() {
+              _importItems = value ?? false;
+              if (_importItems == true)
+                itemTable = 'Items';
+              else
+                itemTable = '';
+              print(itemTable);
+            });
+          },
         ),
-
-    ];
+        SwitchListTile(
+          title: Text('PriceLists', style: _appTextStyle),
+          value: _importPriceLists,
+          onChanged: (value) {
+            setState(() {
+              _importPriceLists = value ?? false;
+              if (_importPriceLists == true)
+                priceListsTable = 'PriceList';
+              else
+                priceListsTable = '';
+              print(priceListsTable);
+            });
+          },
+        ),
+        SwitchListTile(
+          title: Text('Customers', style: _appTextStyle),
+          value: _importCustomers,
+          onChanged: (value) {
+            setState(() {
+              _importCustomers = value ?? false;
+              if (_importCustomers == true)
+                customersTables = 'Customers';
+              else
+                customersTables = '';
+              print(customersTables);
+            });
+          },
+        ),
+      ];
+    } else if (widget.title ==
+        AppLocalizations.of(context)!.importFromBackendToMobile) {
+      return [
+        SwitchListTile(
+          title: Text('System', style: _appTextStyle),
+          value: _importSystem,
+          onChanged: (value) {
+            setState(() {
+              _importSystem = value ?? false;
+            });
+          },
+        ),
+        SwitchListTile(
+          title: Text('Items', style: _appTextStyle),
+          value: _importItems,
+          onChanged: (value) {
+            setState(() {
+              _importItems = value ?? false;
+            });
+          },
+        ),
+        SwitchListTile(
+          title: Text('PriceLists', style: _appTextStyle),
+          value: _importPriceLists,
+          onChanged: (value) {
+            setState(() {
+              _importPriceLists = value ?? false;
+            });
+          },
+        ),
+        SwitchListTile(
+          title: Text('Customers', style: _appTextStyle),
+          value: _importCustomers,
+          onChanged: (value) {
+            setState(() {
+              _importCustomers = value ?? false;
+            });
+          },
+        ),
+      ];
+    }
+    return [];
   }
-  return [];
-}
 
-   Future<void> _synchronizeAll() async {
-
-     if(_selectAll){
+  Future<void> _synchronizeAll() async {
+    if (_selectAll) {
       await _synchronizeDatatoHive();
-    }else{
-    // Synchronize all selected options
-    if (_importItems) {
-      await _synchronizeItems();
-    }
+    } else {
+      // Synchronize all selected options
+      if (_importItems) {
+        await _synchronizeItems();
+      }
 
-    if (_importPriceLists) {
-      await _synchronizePriceLists();
-    }
+      if (_importPriceLists) {
+        await _synchronizePriceLists();
+      }
 
-    if (_importSystem) {
-      await _synchronizeSystem();
-    }
+      if (_importSystem) {
+        await _synchronizeSystem();
+      }
 
-    if(_importCustomers){
-      await _synchronizeCustomers();
+      if (_importCustomers) {
+        await _synchronizeCustomers();
+      }
     }
-
-    }
-    
   }
 
   Future<void> _synchronizeItems() async {
-  TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-  DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
-  
-  // Step 1: Retrieve seCodes based on widget.usercode from UserSalesEmployees
-  List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
-  
-  // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-  List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
-   List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    DataSynchronizerFromFirebaseToHive synchronizer =
+        DataSynchronizerFromFirebaseToHive();
+
+    // Step 1: Retrieve seCodes based on widget.usercode from UserSalesEmployees
+    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
+
+    // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
+    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
+    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
     List<String> categCode = await synchronizer.retrieveItemCateg(seCodes);
     List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
 
@@ -665,45 +413,55 @@ child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
     await synchronizer.synchronizeDataItemGroup(groupCode);
   
     await synchronizer.synchronizeDataItemUOM(itemCodes);
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(AppLocalizations.of(context)!.itemssynchronizedsuccessfully, style: _appTextStyle,),
-    ),
-  );
-  print('Items synchronized successfully');
-}
-
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context)!.itemssynchronizedsuccessfully,
+          style: _appTextStyle,
+        ),
+      ),
+    );
+    print('Items synchronized successfully');
+  }
 
   Future<void> _synchronizePriceLists() async {
-      TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-    DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
-      List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
-  
-  // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-  List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
-  print(itemCodes.toList());
-    List<String> priceListsCodes = await synchronizer.retrievePriceList(itemCodes);
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    DataSynchronizerFromFirebaseToHive synchronizer =
+        DataSynchronizerFromFirebaseToHive();
+    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
+
+    // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
+    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
+    print(itemCodes.toList());
+    List<String> priceListsCodes =
+        await synchronizer.retrievePriceList(itemCodes);
     print(priceListsCodes.toList());
     await synchronizer.synchronizeDataPriceLists(priceListsCodes);
-          await synchronizer.synchronizeDataPriceListsAutho();
-        ScaffoldMessenger.of(context).showSnackBar(
+    await synchronizer.synchronizeDataPriceListsAutho();
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context)!.pricelistsynchronizedsuccessfully,style: _appTextStyle,),
+        content: Text(
+          AppLocalizations.of(context)!.pricelistsynchronizedsuccessfully,
+          style: _appTextStyle,
+        ),
       ),
     );
     print('PriceLists synchronized successfully');
   }
 
   Future<void> _synchronizeSystem() async {
-      TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-     DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
-      List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    DataSynchronizerFromFirebaseToHive synchronizer =
+        DataSynchronizerFromFirebaseToHive();
+    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
-  // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-  List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
-   List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
+    // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
+    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
+    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
     List<String> categCode = await synchronizer.retrieveItemCateg(seCodes);
-     List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
+    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
 
     await synchronizer.synchronizeDataUser();
     await synchronizer.synchronizeDataUserGroup();
@@ -715,46 +473,48 @@ child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
     await synchronizer.synchronizeDepartments();
     await synchronizer.synchronizeExchangeRates();
     await synchronizer.synchronizeCurrencies();
-     await synchronizer.synchronizeVATGroups();
-      await synchronizer.synchronizeCustGroups();
+    await synchronizer.synchronizeVATGroups();
+    await synchronizer.synchronizeCustGroups();
 
     await synchronizer.synchronizeCustProperties();
     await synchronizer.synchronizeRegions();
     await synchronizer.synchronizeWarehouses();
     await synchronizer.synchronizePaymentTerms();
-     await synchronizer.synchronizeSalesEmployees(seCodes);
-      await synchronizer.synchronizeSalesEmployeesCustomers(seCodes);
+    await synchronizer.synchronizeSalesEmployees(seCodes);
+    await synchronizer.synchronizeSalesEmployeesCustomers(seCodes);
 
     await synchronizer.synchronizeSalesEmployeesDepartments(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsBrands(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsCategories(seCodes);
     await synchronizer.synchronizeSalesEmployeesItemsGroups(seCodes);
-     await synchronizer.synchronizeSalesEmployeesItems(seCodes);
+    await synchronizer.synchronizeSalesEmployeesItems(seCodes);
 
-      await synchronizer.synchronizeUserSalesEmployees();
+    await synchronizer.synchronizeUserSalesEmployees();
 
+    await synchronizer.synchronizeDataCompaniesConnection();
+    await synchronizer.synchronizeDataCompaniesUsers();
 
-      await synchronizer.synchronizeDataCompaniesConnection();
-      await synchronizer.synchronizeDataCompaniesUsers();
-      
-
-        
-        ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context)!.systemsynchronizedsuccessfully,style: _appTextStyle,),
+        content: Text(
+          AppLocalizations.of(context)!.systemsynchronizedsuccessfully,
+          style: _appTextStyle,
+        ),
       ),
     );
     print('System synchronized successfully');
   }
 
- Future<void> _synchronizeCustomers() async {
-      TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-     DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
-         List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
-  
-  // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-  List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
-   List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
+  Future<void> _synchronizeCustomers() async {
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    DataSynchronizerFromFirebaseToHive synchronizer =
+        DataSynchronizerFromFirebaseToHive();
+    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
+
+    // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
+    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
+    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
     List<String> categCode = await synchronizer.retrieveItemCateg(seCodes);
     List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
     List<String> custCode = await synchronizer.retrieveCustCodes(seCodes);
@@ -769,77 +529,93 @@ print('lo');
     await synchronizer.synchronizeCustomerProperties(custCode);
     await synchronizer.synchronizeCustomerAttachments(custCode);
 
-    await synchronizer.synchronizeCustomerItemsSpecialPrice(custCode,itemCode);
-    await synchronizer.synchronizeCustomerBrandsSpecialPrice(custCode,brandCode);
-    await synchronizer.synchronizeCustomerGroupsSpecialPrice(custCode,groupCode);
-    await synchronizer.synchronizeCustomerCategSpecialPrice(custCode,categCode);
+    await synchronizer.synchronizeCustomerItemsSpecialPrice(custCode, itemCode);
+    await synchronizer.synchronizeCustomerBrandsSpecialPrice(
+        custCode, brandCode);
+    await synchronizer.synchronizeCustomerGroupsSpecialPrice(
+        custCode, groupCode);
+    await synchronizer.synchronizeCustomerCategSpecialPrice(
+        custCode, categCode);
 
-    await synchronizer.synchronizeCustomerGroupItemsSpecialPrice(itemCode,custGroupCodes);
-    await synchronizer.synchronizeCustomerGroupBrandSpecialPrice(brandCode,custGroupCodes);
-    await synchronizer.synchronizeCustomerGroupGroupSpecialPrice(groupCode,custGroupCodes);
-    await synchronizer.synchronizeCustomerGroupCategSpecialPrice(categCode,custGroupCodes);
+    await synchronizer.synchronizeCustomerGroupItemsSpecialPrice(
+        itemCode, custGroupCodes);
+    await synchronizer.synchronizeCustomerGroupBrandSpecialPrice(
+        brandCode, custGroupCodes);
+    await synchronizer.synchronizeCustomerGroupGroupSpecialPrice(
+        groupCode, custGroupCodes);
+    await synchronizer.synchronizeCustomerGroupCategSpecialPrice(
+        categCode, custGroupCodes);
 
-    await synchronizer.synchronizeCustomerPropItemsSpecialPrice(itemCode,custCode);
-    await synchronizer.synchronizeCustomerPropBrandSpecialPrice(brandCode,custCode);
-    await synchronizer.synchronizeCustomerPropGroupSpecialPrice(custGroupCodes,custCode);
-     await synchronizer.synchronizeCustomerPropCategSpecialPrice(categCode,custCode);
+    await synchronizer.synchronizeCustomerPropItemsSpecialPrice(
+        itemCode, custCode);
+    await synchronizer.synchronizeCustomerPropBrandSpecialPrice(
+        brandCode, custCode);
+    await synchronizer.synchronizeCustomerPropGroupSpecialPrice(
+        custGroupCodes, custCode);
+    await synchronizer.synchronizeCustomerPropCategSpecialPrice(
+        categCode, custCode);
 
-
-      
-        ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context)!.customerssynchronizedsuccessfully,style: _appTextStyle,),
+        content: Text(
+          AppLocalizations.of(context)!.customerssynchronizedsuccessfully,
+          style: _appTextStyle,
+        ),
       ),
     );
     print('Customers synchronized successfully');
   }
 
-Future<void> _synchronizeDatatoHive() async {
-    TextStyle   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-  try {
-    // Set loading state to true before starting synchronization
-    setState(() {
-      _loading = true;
-    });
+  Future<void> _synchronizeDatatoHive() async {
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    try {
+      // Set loading state to true before starting synchronization
+      setState(() {
+        _loading = true;
+      });
 
-    // Your existing synchronization logic
-    DataSynchronizerFromFirebaseToHive synchronizer = DataSynchronizerFromFirebaseToHive();
+      // Your existing synchronization logic
+      DataSynchronizerFromFirebaseToHive synchronizer =
+          DataSynchronizerFromFirebaseToHive();
 
-    // Run the synchronization process
-  await _synchronizeSystem();
-  await _synchronizeItems();
-  await _synchronizePriceLists();
+      // Run the synchronization process
+      await _synchronizeSystem();
+      await _synchronizeItems();
+      await _synchronizePriceLists();
 
-await _synchronizeCustomers();
-    // Simulate a delay for demonstration purposes (remove in production)
-    await Future.delayed(Duration(seconds: 3));
+      await _synchronizeCustomers();
+      // Simulate a delay for demonstration purposes (remove in production)
+      await Future.delayed(Duration(seconds: 3));
 
-    // Display a success message or update UI as needed
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.dataissynchronized,style: _appTextStyle,),
-      ),
-    );
-  } catch (e) {
-    // Handle errors and display an error message or update UI accordingly
-    print('Error synchronizing data: $e');
-  } finally {
-    // Set loading state to false after synchronization
-    setState(() {
-      _loading = false;
-    });
+      // Display a success message or update UI as needed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.dataissynchronized,
+            style: _appTextStyle,
+          ),
+        ),
+      );
+    } catch (e) {
+      // Handle errors and display an error message or update UI accordingly
+      print('Error synchronizing data: $e');
+    } finally {
+      // Set loading state to false after synchronization
+      setState(() {
+        _loading = false;
+      });
+    }
   }
-}
 
 // Add this function to show a loading indicator using FutureBuilder
-Widget _buildLoadingIndicator() {
-  if (_loading) {
-    EasyLoading.show(status: 'Loading...');
-  } else {
-    EasyLoading.dismiss();
+  Widget _buildLoadingIndicator() {
+    if (_loading) {
+      EasyLoading.show(status: 'Loading...');
+    } else {
+      EasyLoading.dismiss();
+    }
+
+    return Container();
   }
-
-  return Container();
-}
-
 }
