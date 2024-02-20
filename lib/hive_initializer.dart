@@ -1,5 +1,6 @@
 // hive_initializer.dart
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:project/hive/addressformat_hive.dart';
 import 'package:project/hive/companiesconnection_hive.dart';
@@ -133,7 +134,8 @@ Future<void> initializeHive() async {
     ..registerAdapter(PriceListAuthorizationAdapter())
     ..registerAdapter(CompaniesUsersAdapter())
     ..registerAdapter(AddressFormatAdapter())
-    ..registerAdapter(ItemManufacturersAdapter());
+    ..registerAdapter(ItemManufacturersAdapter())
+    ..registerAdapter(TimeOfDayAdapter());
 }
 
 Future<void> openHiveBoxes() async {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:project/classes/PriceItemKey.dart';
 import 'package:project/hive/addressformat_hive.dart';
@@ -68,6 +69,7 @@ import 'package:http/http.dart' as http;
 class DataSynchronizerFromFirebaseToHive {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
 String apiurl='http://5.189.188.139:8080/api/';
+   TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
 
 Future<List<String>> retrieveSeCodes(String usercode) async {
   List<String> seCodes = [];
@@ -1973,12 +1975,12 @@ Future<void> _synchronizeCompanies(
           issueBatchMethod: data['issueBatchMethod']??'',
           systemAdminID: data['systemAdminID']??'',
           notes: data['notes']??'',
-          priceDec: data['priceDec'].toDouble()??0,
-          amntDec: data['amntDec'].toDouble()??0, 
-          qtyDec: data['qtyDec'].toDouble()??0,
+          priceDec: data['priceDec']??0,
+          amntDec: data['amntDec']??0, 
+          qtyDec: data['qtyDec']??0,
           rounding: data['rounding']??'',
           importMethod: data['importMethod']??'',
-          time: data['time']??'',
+          time: data['time']??noTime,
         );
         await companiesBox.put(cmpCode, newCompany);
       } else {
@@ -2000,12 +2002,12 @@ Future<void> _synchronizeCompanies(
           issueBatchMethod: data['issueBatchMethod']??'',
           systemAdminID: data['systemAdminID']??'',
           notes: data['notes']??'',
-          priceDec: data['priceDec'].toDouble()??0,
-          amntDec: data['amntDec'].toDouble()??0, 
-          qtyDec: data['qtyDec'].toDouble()??0,
+          priceDec: data['priceDec']??0,
+          amntDec: data['amntDec']??0, 
+          qtyDec: data['qtyDec']??0,
           rounding: data['rounding']??'',
           importMethod: data['importMethod']??'',
-          time: data['time']??'',
+          time: data['time']??noTime,
         );
         await companiesBox.put(cmpCode, updatedCompany);
       }
@@ -2291,7 +2293,7 @@ Future<void> _synchronizeCurrencies(
           curName: data['curName']??'',
           curFName: data['curFName']??'',
           notes: data['notes']??'', 
-          amntDec: data['amntDec'].toDouble()??0, 
+          amntDec: data['amntDec']??0, 
           rounding: data['rounding']??'',
         );
         await currenciesBox.put('$cmpCode$curCode', newCurrency);
@@ -2302,7 +2304,7 @@ Future<void> _synchronizeCurrencies(
          curName: data['curName']??'',
           curFName: data['curFName']??'',
           notes: data['notes']??'', 
-         amntDec: data['amntDec'].toDouble()??0, 
+         amntDec: data['amntDec']??0, 
           rounding: data['rounding']??'',
         );
         await currenciesBox.put('$cmpCode$curCode', updatedCurrency);
@@ -3951,7 +3953,7 @@ Future<void> _synchronizeCustomerAddresses(
           gpslat: data['gpslat']??'',
           gpslong: data['gpslong']??'',
           notes: data['notes']??'', 
-          addressType: data['addressType'],
+          addressType: data['addressType']??'',
           countryCode: data['countryCode']??'', 
           city: data['city']??'',
           block: data['block']??'',
@@ -3971,7 +3973,7 @@ Future<void> _synchronizeCustomerAddresses(
           gpslat: data['gpslat']??'',
           gpslong: data['gpslong']??'',
           notes: data['notes']??'',
-          addressType: data['addressType'],
+          addressType: data['addressType']??'',
           countryCode: data['countryCode']??'', 
           city: data['city']??'',
           block: data['block']??'',
@@ -4268,9 +4270,9 @@ Future<void> _synchronizeCustomerAttachments(
           attach: data['attach']??'',
           attachType: data['attachType']??'',
           notes: data['notes']??'', 
-          lineID: '', 
-          attachPath: '', 
-          attachFile: '',
+          lineID: data['lineID'], 
+          attachPath: data['attachPath'], 
+          attachFile: data['attachFile'],
         );
         await attachments.put('$cmpCode$custCode', newAttachment);
       }
@@ -4282,9 +4284,9 @@ Future<void> _synchronizeCustomerAttachments(
           attach: data['attach']??'',
           attachType: data['attachType']??'',
           notes: data['notes']??'', 
-          lineID: '',
-           attachPath: '',
-           attachFile: '',
+      lineID: data['lineID'], 
+          attachPath: data['attachPath'], 
+          attachFile: data['attachFile'],
         );
         // Update the attachment in Hive
         await attachments.put('$cmpCode$custCode', updatedAttachment);

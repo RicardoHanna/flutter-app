@@ -18,9 +18,9 @@ class CompaniesClass {
   final String issueBatchMethod;
   final String systemAdminID;
   final String notes;
-  final double priceDec;
-  final double amntDec;
-  final double qtyDec;
+  final dynamic priceDec;
+  final dynamic amntDec;
+  final dynamic qtyDec;
   final String rounding;
   final String importMethod;
   final TimeOfDay? time;

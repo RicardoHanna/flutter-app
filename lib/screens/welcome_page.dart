@@ -192,19 +192,35 @@ Future<void> printUserDataTranslations() async {
 
 
 
- Future<void> _loadCompanies() async {
-    try {
-      var companiesBox = await Hive.openBox<Companies>('companiesBox');
-      // Retrieve all companies from the box
-      List<Companies> allCompanies = companiesBox.values.toList();
-      setState(() {
-        // Update the companies list with the retrieved companies
-        companies = allCompanies;
-      });
-    } catch (error) {
-      print('Error loading companies: $error');
-    }
+Future<void> _loadCompanies() async {
+  try {
+    var companiesBox = await Hive.openBox<Companies>('companiesBox');
+    var companiesusersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+
+    // Retrieve all companies from the box
+    List<Companies> allCompanies = companiesBox.values.toList();
+
+    // Retrieve cmpCodes from companiesUsersBox where userCode is equal to a specific value
+    List<String> cmpCodesInUsers = companiesusersBox.values
+        .where((companyUser) => companyUser.userCode == usercode)
+        .map((companyUser) => companyUser.cmpCode)
+        .toList();
+
+    // Filter companies where cmpCode is in cmpCodesInUsers
+    List<Companies> filteredCompanies = allCompanies
+        .where((company) => cmpCodesInUsers.contains(company.cmpCode))
+        .toList();
+
+    setState(() {
+      // Update the companies list with the filtered companies
+      companies = filteredCompanies;
+    });
+  } catch (error) {
+    print('Error loading companies: $error');
   }
+}
+
+
 
 Future<void> _loadDefaultCompanyCode() async {
 
