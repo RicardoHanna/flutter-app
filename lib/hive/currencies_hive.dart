@@ -23,7 +23,7 @@ class Currencies extends HiveObject {
   late dynamic amntDec;
 
   @HiveField(6)
-  late String rounding;
+  late dynamic rounding;
 
 
   Currencies({

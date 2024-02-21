@@ -149,7 +149,7 @@ Future<void> fetchSalesEmployeesAndCompanies(String selectedUserGroup) async {
             var salesEmployeesBox = Hive.box<SalesEmployees>('salesEmployeesBox');
           Companies company = companiesBox.values
               .firstWhere((company) => company.cmpCode == userSalesEmployee.cmpCode,
-              orElse: () => Companies(cmpCode: userSalesEmployee.cmpCode, cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: '', priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time:noTime));
+              orElse: () => Companies(cmpCode: userSalesEmployee.cmpCode, cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime));
 
               SalesEmployees salesemployees = salesEmployeesBox.values
               .firstWhere((salesemployees) => salesemployees.seCode == userSalesEmployee.seCode,
@@ -176,7 +176,7 @@ Future<void> fetchSalesEmployeesAndCompanies(String selectedUserGroup) async {
    
           Companies company = companiesBox.values
               .firstWhere((company) => company.cmpCode == companyuser.cmpCode,
-              orElse: () => Companies(cmpCode:'', cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: '', priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time:noTime));
+              orElse: () => Companies(cmpCode:'', cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime));
 defaultCompanyCode=company.cmpCode;
 
           return '${company.cmpName}';
@@ -202,7 +202,7 @@ defaultCompanyCode=company.cmpCode;
           var companiesBox = Hive.box<Companies>('companiesBox');
           Companies company = companiesBox.values
               .firstWhere((company) => company.cmpCode == pricelist.cmpCode,
-            orElse: () => Companies(cmpCode: pricelist.cmpCode, cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: '', priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time: noTime));
+            orElse: () => Companies(cmpCode: pricelist.cmpCode, cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time: noTime));
 
 
           return '${pricelist.authoGroup} - ${company.cmpName}';
@@ -769,7 +769,7 @@ for(var y in priceListsBox.values.toList()){
                 rateType: '',
                 issueBatchMethod: '',
                 systemAdminID: '',
-                notes: '', priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time:noTime,
+                notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime,
               ));
 
       return '${pricelist.authoGroup ?? ''} - ${company.cmpName ?? ''}';

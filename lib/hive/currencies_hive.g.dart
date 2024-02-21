@@ -23,7 +23,7 @@ class CurrenciesAdapter extends TypeAdapter<Currencies> {
       curFName: fields[3] as String,
       notes: fields[4] as String,
       amntDec: fields[5] as dynamic,
-      rounding: fields[6] as String,
+      rounding: fields[6] as dynamic,
     );
   }
 

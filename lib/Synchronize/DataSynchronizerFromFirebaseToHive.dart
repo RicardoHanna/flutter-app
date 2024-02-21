@@ -125,8 +125,8 @@ Future<List<String>> retrieveItemCodes(List<String> seCodes) async {
     List<Map<String, dynamic>> itemsData = [];
     try {
       for (String itemCode in itemCodes) {
-        final response =
-            await http.get(Uri.parse('${apiurl}getItems?itemCode=$itemCode'));
+        final response =await http.get(Uri.parse('${apiurl}getItems'));
+            //await http.get(Uri.parse('${apiurl}getItems?itemCode=$itemCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -171,17 +171,17 @@ Future<List<String>> retrieveItemCodes(List<String> seCodes) async {
       print('Error synchronizing data from API to Hive: $e');
     }
   }
+Future<void> _synchronizeItems(
+    List<dynamic> itemsData, Box<Items> itemsBox) async {
+  try {
+    List<Items> itemsToUpdate = [];
+    List<String> itemsToDelete = [];
 
-  Future<void> _synchronizeItems(
-      List<dynamic> itemsData, Box<Items> itemsBox) async {
-    try {
-      for (var data in itemsData) {
-        var itemCode = data['itemCode']??'';
-        var hiveItem = itemsBox.get(itemCode);
-
-        if (hiveItem == null) {
-          var newItem = Items(
-            data['itemCode']??'',
+    // Prepare items to update and delete
+    for (var data in itemsData) {
+      var itemCode = data['itemCode'] ?? '';
+      var updatedItem = Items(
+       data['itemCode']??'',
             data['itemName']??'',
             data['itemPrName']??'',
             data['itemFName']??'',
@@ -195,53 +195,35 @@ Future<List<String>> retrieveItemCodes(List<String> seCodes) async {
             data['picture']??'',
             data['remark']??'',
             data['manageBy']??'',
-            data['vatCode'].toDouble()??0,
-            data['weight'].toDouble()??0,
+            data['vatCode']??'',
+            data['weight']??0,
             data['cmpCode']??'',
             data['wUOMCode']??'',
             data['salesItem']??'',
             data['purchItem']??'',
             data['invntItem']??'',
+        // Populate other fields similarly
+      );
 
-          );
-          await itemsBox.put(itemCode, newItem);
-        } else {
-          var updatedItem = Items(
-            data['itemCode']??'',
-            data['itemName']??'',
-            data['itemPrName']??'',
-            data['itemFName']??'',
-            data['itemPrFName']??'',
-            data['groupCode']??'',
-            data['categCode']??'',
-            data['brandCode']??'',
-            data['itemType']??'',
-            data['barCode']??'',
-            data['uom']??'',
-            data['picture']??'',
-            data['remark']??'',
-            data['manageBy']??'',
-            data['vatCode'].toDouble()??0,
-            data['weight'].toDouble()??0,
-            data['cmpCode']??'',
-            data['wUOMCode']??'',
-            data['salesItem']??'',
-            data['purchItem']??'',
-            data['invntItem']??'',
-          );
-          await itemsBox.put(itemCode, updatedItem);
-        }
-      }
-
-      itemsBox.keys.toList().forEach((hiveItemCode) {
-        if (!itemsData.any((data) => data['itemCode'] == hiveItemCode)) {
-          itemsBox.delete(hiveItemCode);
-        }
-      });
-    } catch (e) {
-      print('Error synchronizing items from API to Hive: $e');
+      itemsToUpdate.add(updatedItem);
     }
+
+    // Batch update items
+    await itemsBox.putAll(Map.fromIterable(itemsToUpdate, key: (item) => item.itemCode));
+
+    // Delete items not present in the updated data
+    Set<String> updatedItemCodes = itemsToUpdate.map((item) => item.itemCode).toSet();
+    itemsBox.keys.where((itemCode) => !updatedItemCodes.contains(itemCode)).forEach((itemCode) {
+      itemsToDelete.add(itemCode);
+    });
+    await itemsBox.deleteAll(itemsToDelete);
+  } catch (e) {
+    print('Error synchronizing items from API to Hive: $e');
   }
+}
+
+
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -274,8 +256,8 @@ Future<List<String>> retrieveItemCodes(List<String> seCodes) async {
     List<Map<String, dynamic>> priceListData = [];
     try {
       for (String plCode in priceLists) {
-        final response =
-            await http.get(Uri.parse('${apiurl}getPriceList?plCode=$plCode'));
+        final response = await http.get(Uri.parse('${apiurl}getPriceList'));
+         //   await http.get(Uri.parse('${apiurl}getPriceList?plCode=$plCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -329,58 +311,43 @@ Future<void> _synchronizePriceList(
   Box<PriceList> pricelistsBox,
 ) async {
   try {
+    List<PriceList> priceListsToUpdate = [];
+    List<String> priceListsToDelete = [];
+
+    // Prepare price lists to update and delete
     for (var data in priceListData) {
-      var plCode = data['plCode']??'';
-      var hivePrice = pricelistsBox.get(plCode);
-
-      if (hivePrice == null) {
-        var newPrice = PriceList(
-          data['plCode']??'',
+      var plCode = data['plCode'] ?? '';
+      var updatedPriceList = PriceList(
+         data['plCode']??'',
           data['plName']??'',
           data['currency']??'',
           data['basePL']??'',
-          data['factor'].toDouble()??0,
+          data['factor']??0,
           data['incVAT']== 1 ? true : false, // Convert Tinyint to Boolean
           data['cmpCode']??'',
           data['authoGroup']??'',
           data['plFName']??'',
           data['notes']??''
-        );
-        await pricelistsBox.put(plCode, newPrice);
-      } else {
-        var updatedPrice = PriceList(
-          data['plCode']??'',
-          data['plName']??'',
-          data['currency']??'',
-          data['basePL']??'',
-          data['factor'].toDouble()??0,
-          data['incVAT']== 1 ? true : false, // Convert Tinyint to Boolean
-          data['cmpCode']??'',
-          data['authoGroup']??'',
-          data['plFName']??'',
-          data['notes']??''
-        );
-        await pricelistsBox.put(plCode, updatedPrice);
-      }
+        // Populate other fields similarly
+      );
+
+      priceListsToUpdate.add(updatedPriceList);
     }
 
-      // Check for price lists in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedPriceCodes =
-          Set.from(priceListData.map((data) => data['plCode']));
-      Set<String> hivePriceCodes = Set.from(pricelistsBox.keys);
+    // Batch update price lists
+    await pricelistsBox.putAll(Map.fromIterable(priceListsToUpdate, key: (priceList) => priceList.plCode));
 
-      // Identify price lists in Hive that don't exist in the fetched data
-      Set<String> priceListsToDelete =
-          hivePriceCodes.difference(fetchedPriceCodes);
-
-      // Delete price lists in Hive that don't exist in the fetched data
-      priceListsToDelete.forEach((hivePriceCode) {
-        pricelistsBox.delete(hivePriceCode);
-      });
-    } catch (e) {
-      print('Error synchronizing PriceLists from API to Hive: $e');
-    }
+    // Delete price lists not present in the updated data
+    Set<String> updatedPriceListCodes = priceListsToUpdate.map((priceList) => priceList.plCode).toSet();
+    pricelistsBox.keys.where((plCode) => !updatedPriceListCodes.contains(plCode)).forEach((plCode) {
+      priceListsToDelete.add(plCode);
+    });
+    await pricelistsBox.deleteAll(priceListsToDelete);
+  } catch (e) {
+    print('Error synchronizing PriceLists from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -440,64 +407,48 @@ Future<void> _synchronizePriceList(
       print('Error synchronizing data from API to Hive: $e');
     }
   }
-
 Future<void> _synchronizeItemPrice(
   List<Map<String, dynamic>> itemPricesData,
   Box<ItemsPrices> itempriceBox,
 ) async {
   try {
+    List<ItemsPrices> itemPricesToUpdate = [];
+    List<String> itemPricesToDelete = [];
+
+    // Prepare item prices to update and delete
     for (var data in itemPricesData) {
-      var plCode = data['plCode']??'';
-      var itemCode = data['itemCode']??'';
+      var plCode = data['plCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
 
-        var hivePriceItem = itempriceBox.get('$plCode$itemCode');
+      var updatedItemPrice = ItemsPrices(
+        plCode,
+        itemCode,
+        data['uom'] ?? '',
+        data['basePrice'] ?? 0,
+        data['currency'] ?? '',
+        data['auto'] == 1 ? true : false,
+        data['disc'] ?? 0,
+        data['price'] ?? 0,
+        data['cmpCode'] ?? '',
+      );
 
-      if (hivePriceItem == null) {
-        var newPriceItem = ItemsPrices(
-          plCode,
-          itemCode,
-          data['uom']??'',
-          data['basePrice'].toDouble()??0,
-          data['currency']??'',
-          data['auto']== 1 ? true : false, // Convert Tinyint to Boolean
-          data['disc'].toDouble()??0,
-          data['price'].toDouble()??0,
-          data['cmpCode']??''
-        );
-        await itempriceBox.put('$plCode$itemCode', newPriceItem);
-      } else {
-        var updatedPriceItem = ItemsPrices(
-          plCode,
-          itemCode,
-          data['uom']??'',
-          data['basePrice'].toDouble()??0,
-          data['currency']??'',
-          data['auto']== 1 ? true : false, // Convert Tinyint to Boolean
-          data['disc'].toDouble()??0,
-          data['price'].toDouble()??0,
-          data['cmpCode']??''
-        );
-        await itempriceBox.put('$plCode$itemCode', updatedPriceItem);
-      }
+      itemPricesToUpdate.add(updatedItemPrice);
     }
 
-      // Check for price items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedPriceItemKeys = Set.from(
-          itemPricesData.map((data) => '${data['plCode']}${data['itemCode']}'));
-      Set<String> hivePriceItemKeys = Set.from(itempriceBox.keys);
+    // Batch update item prices
+    await itempriceBox.putAll(Map.fromIterable(itemPricesToUpdate, key: (itemPrice) => '${itemPrice.plCode}${itemPrice.itemCode}'));
 
-      // Identify price items in Hive that don't exist in the fetched data
-      Set<String> priceItemsToDelete =
-          hivePriceItemKeys.difference(fetchedPriceItemKeys);
-
-      // Delete price items in Hive that don't exist in the fetched data
-      priceItemsToDelete.forEach((hivePriceItemKey) {
-        itempriceBox.delete(hivePriceItemKey);
-      });
-    } catch (e) {
-      print('Error synchronizing ItemPrices from API to Hive: $e');
-    }
+    // Delete item prices not present in the updated data
+    Set<String> updatedItemPriceKeys = itemPricesToUpdate.map((itemPrice) => '${itemPrice.plCode}${itemPrice.itemCode}').toSet();
+    itempriceBox.keys.where((itemPriceKey) => !updatedItemPriceKeys.contains(itemPriceKey)).forEach((itemPriceKey) {
+      itemPricesToDelete.add(itemPriceKey);
+    });
+    await itempriceBox.deleteAll(itemPricesToDelete);
+  } catch (e) {
+    print('Error synchronizing ItemPrices from API to Hive: $e');
   }
+}
+
 
 //---------------------------------------
 
@@ -556,55 +507,43 @@ Future<void> _synchronizeItemPrice(
   }
 }
 
-
 Future<void> _synchronizeItemAttach(
   List<Map<String, dynamic>> itemAttachData,
   Box<ItemAttach> itemattachBox,
 ) async {
   try {
+    List<ItemAttach> itemAttachsToUpdate = [];
+    List<String> itemAttachsToDelete = [];
+
+    // Prepare item attachments to update and delete
     for (var data in itemAttachData) {
-      var itemCode = data['itemCode']??'';
+      var itemCode = data['itemCode'] ?? '';
 
-        var hiveAttachItem = itemattachBox.get(itemCode);
+      var updatedItemAttach = ItemAttach(
+        data['itemCode'] ?? '',
+        data['attachmentType'] ?? '',
+        data['attachmentPath'] ?? '',
+        data['note'] ?? '',
+        data['cmpCode'] ?? '',
+      );
 
-      if (hiveAttachItem == null) {
-        var newAttachItem = ItemAttach(
-          data['itemCode']??'',
-          data['attachmentType']??'',
-          data['attachmentPath']??'',
-          data['note']??'',
-          data['cmpCode']??''
-        );
-        await itemattachBox.put(itemCode, newAttachItem);
-      } else {
-        var updatedAttachItem = ItemAttach(
-           data['itemCode']??'',
-          data['attachmentType']??'',
-          data['attachmentPath']??'',
-          data['note']??'',
-          data['cmpCode']??''
-        );
-        await itemattachBox.put(itemCode, updatedAttachItem);
-      }
+      itemAttachsToUpdate.add(updatedItemAttach);
     }
 
-      // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedItemAttachCodes =
-          Set.from(itemAttachData.map((data) => data['itemCode']));
-      Set<String> hiveItemAttachCodes = Set.from(itemattachBox.keys);
+    // Batch update item attachments
+    await itemattachBox.putAll(Map.fromIterable(itemAttachsToUpdate, key: (itemAttach) => itemAttach.itemCode));
 
-      // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete =
-          hiveItemAttachCodes.difference(fetchedItemAttachCodes);
-
-      // Delete items in Hive that don't exist in the fetched data
-      itemsToDelete.forEach((hiveItemAttachCode) {
-        itemattachBox.delete(hiveItemAttachCode);
-      });
-    } catch (e) {
-      print('Error synchronizing ItemAttach from API to Hive: $e');
-    }
+    // Delete item attachments not present in the updated data
+    Set<String> updatedItemAttachCodes = itemAttachsToUpdate.map((itemAttach) => itemAttach.itemCode).toSet();
+    itemattachBox.keys.where((itemAttachCode) => !updatedItemAttachCodes.contains(itemAttachCode)).forEach((itemAttachCode) {
+      itemAttachsToDelete.add(itemAttachCode);
+    });
+    await itemattachBox.deleteAll(itemAttachsToDelete);
+  } catch (e) {
+    print('Error synchronizing ItemAttach from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -644,8 +583,8 @@ Future<void> _synchronizeItemAttach(
     List<Map<String, dynamic>> itemGroupData = [];
     try {
       for (String groupCode in itemGroupCodes) {
-        final response = await http
-            .get(Uri.parse('${apiurl}getItemGroup?groupCode=$groupCode'));
+        final response = await http.get(Uri.parse('${apiurl}getItemGroup'));
+      //     await http.get(Uri.parse('${apiurl}getItemGroup?groupCode=$groupCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -695,54 +634,43 @@ Future<void> _synchronizeItemAttach(
 }
 
 
-
 Future<void> _synchronizeItemGroup(
   List<Map<String, dynamic>> itemGroupData,
   Box<ItemGroup> itemgroupBox,
 ) async {
   try {
+    List<ItemGroup> itemGroupsToUpdate = [];
+    List<String> itemGroupsToDelete = [];
+
+    // Prepare item groups to update and delete
     for (var data in itemGroupData) {
-      var groupCode = data['groupCode']??'';
-      var cmpCode = data['cmpCode']??'';
+      var groupCode = data['groupCode'] ?? '';
+      var cmpCode = data['cmpCode'] ?? '';
 
-        var hiveGroupItem = itemgroupBox.get('$groupCode$cmpCode');
+      var updatedItemGroup = ItemGroup(
+        data['groupCode'] ?? '',
+        data['groupName'] ?? '',
+        data['groupFName'] ?? '',
+        data['cmpCode'] ?? '',
+      );
 
-      if (hiveGroupItem == null) {
-        var newGroupItem = ItemGroup(
-          data['groupCode']??'',
-          data['groupName']??'',
-          data['groupFName']??'',
-          data['cmpCode']??''
-        );
-        await itemgroupBox.put('$groupCode$cmpCode', newGroupItem);
-      } else {
-        var updatedGroupItem = ItemGroup(
-          data['groupCode']??'',
-          data['groupName']??'',
-          data['groupFName']??'',
-          data['cmpCode']??''
-        );
-        await itemgroupBox.put('$groupCode$cmpCode', updatedGroupItem);
-      }
+      itemGroupsToUpdate.add(updatedItemGroup);
     }
 
-      // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedItemGroupCodes = Set.from(itemGroupData
-          .map((data) => '${data['groupCode']}${data['cmpCode']}'));
-      Set<String> hiveItemGroupCodes = Set.from(itemgroupBox.keys);
+    // Batch update item groups
+    await itemgroupBox.putAll(Map.fromIterable(itemGroupsToUpdate, key: (itemGroup) => '${itemGroup.groupCode}${itemGroup.cmpCode}'));
 
-      // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete =
-          hiveItemGroupCodes.difference(fetchedItemGroupCodes);
-
-      // Delete items in Hive that don't exist in the fetched data
-      itemsToDelete.forEach((hiveItemGroupCode) {
-        itemgroupBox.delete(hiveItemGroupCode);
-      });
-    } catch (e) {
-      print('Error synchronizing ItemGroup from API to Hive: $e');
-    }
+    // Delete item groups not present in the updated data
+    Set<String> updatedItemGroupCodes = itemGroupsToUpdate.map((itemGroup) => '${itemGroup.groupCode}${itemGroup.cmpCode}').toSet();
+    itemgroupBox.keys.where((itemGroupCode) => !updatedItemGroupCodes.contains(itemGroupCode)).forEach((itemGroupCode) {
+      itemGroupsToDelete.add(itemGroupCode);
+    });
+    await itemgroupBox.deleteAll(itemGroupsToDelete);
+  } catch (e) {
+    print('Error synchronizing ItemGroup from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -783,8 +711,8 @@ Future<void> _synchronizeItemGroup(
     List<Map<String, dynamic>> itemCategData = [];
     try {
       for (String categCode in itemCateg) {
-        final response = await http
-            .get(Uri.parse('${apiurl}getItemCateg?categCode=$categCode'));
+        final response =await http.get(Uri.parse('${apiurl}getItemCateg'));
+           // await http.get(Uri.parse('${apiurl}getItemCateg?categCode=$categCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -833,54 +761,43 @@ Future<void> _synchronizeItemGroup(
   }
 }
 
-
 Future<void> _synchronizeItemCateg(
   List<Map<String, dynamic>> itemCategData,
   Box<ItemCateg> itemcategBox,
 ) async {
   try {
+    List<ItemCateg> itemCategsToUpdate = [];
+    List<String> itemCategsToDelete = [];
+
+    // Prepare item categories to update and delete
     for (var data in itemCategData) {
-      var categCode = data['categCode']??'';
-      var cmpCode = data['cmpCode']??'';
+      var categCode = data['categCode'] ?? '';
+      var cmpCode = data['cmpCode'] ?? '';
 
-        var hiveCategItem = itemcategBox.get('$categCode$cmpCode');
+      var updatedItemCateg = ItemCateg(
+        data['categCode'] ?? '',
+        data['categName'] ?? '',
+        data['categFName'] ?? '',
+        data['cmpCode'] ?? '',
+      );
 
-      if (hiveCategItem == null) {
-        var newCategItem = ItemCateg(
-          data['categCode']??'',
-          data['categName']??'',
-          data['categFName']??'',
-          data['cmpCode']??''
-        );
-        await itemcategBox.put('$categCode$cmpCode', newCategItem);
-      } else {
-        var updatedCategItem = ItemCateg(
-          data['categCode']??'',
-          data['categName']??'',
-          data['categFName']??'',
-          data['cmpCode']??''
-        );
-        await itemcategBox.put('$categCode$cmpCode', updatedCategItem);
-      }
+      itemCategsToUpdate.add(updatedItemCateg);
     }
 
-      // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedItemCategCodes = Set.from(itemCategData
-          .map((data) => '${data['categCode']}${data['cmpCode']}'));
-      Set<String> hiveItemCategCodes = Set.from(itemcategBox.keys);
+    // Batch update item categories
+    await itemcategBox.putAll(Map.fromIterable(itemCategsToUpdate, key: (itemCateg) => '${itemCateg.categCode}${itemCateg.cmpCode}'));
 
-      // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete =
-          hiveItemCategCodes.difference(fetchedItemCategCodes);
-
-      // Delete items in Hive that don't exist in the fetched data
-      itemsToDelete.forEach((hiveItemCategCode) {
-        itemcategBox.delete(hiveItemCategCode);
-      });
-    } catch (e) {
-      print('Error synchronizing ItemCateg from API to Hive: $e');
-    }
+    // Delete item categories not present in the updated data
+    Set<String> updatedItemCategCodes = itemCategsToUpdate.map((itemCateg) => '${itemCateg.categCode}${itemCateg.cmpCode}').toSet();
+    itemcategBox.keys.where((itemCategCode) => !updatedItemCategCodes.contains(itemCategCode)).forEach((itemCategCode) {
+      itemCategsToDelete.add(itemCategCode);
+    });
+    await itemcategBox.deleteAll(itemCategsToDelete);
+  } catch (e) {
+    print('Error synchronizing ItemCateg from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -920,8 +837,8 @@ Future<void> _synchronizeItemCateg(
     List<Map<String, dynamic>> itemBrandData = [];
     try {
       for (String brandCode in itemBrand) {
-        final response = await http
-            .get(Uri.parse('${apiurl}getItemBrand?brandCode=$brandCode'));
+        final response = await http .get(Uri.parse('${apiurl}getItemBrand'));
+           //= await http .get(Uri.parse('${apiurl}getItemBrand?brandCode=$brandCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -970,54 +887,42 @@ Future<void> _synchronizeItemCateg(
   }
 }
 
-
 Future<void> _synchronizeItemBrand(
   List<Map<String, dynamic>> itemBrandData,
   Box<ItemBrand> itembrandBox,
 ) async {
   try {
+    List<ItemBrand> itemBrandsToUpdate = [];
+    List<String> itemBrandsToDelete = [];
+
+    // Prepare item brands to update and delete
     for (var data in itemBrandData) {
-      var brandCode = data['brandCode']??'';
-      var cmpCode = data['cmpCode']??'';
+      var brandCode = data['brandCode'] ?? '';
+      var cmpCode = data['cmpCode'] ?? '';
 
-        var hiveBrandItem = itembrandBox.get('$brandCode$cmpCode');
+      var updatedItemBrand = ItemBrand(
+        data['brandCode'] ?? '',
+        data['brandName'] ?? '',
+        data['brandFName'] ?? '',
+        data['cmpCode'] ?? '',
+      );
 
-      if (hiveBrandItem == null) {
-        var newBrandItem = ItemBrand(
-          data['brandCode']??'',
-          data['brandName']??'',
-          data['brandFName']??'',
-          data['cmpCode']??''
-        );
-        await itembrandBox.put('$brandCode$cmpCode', newBrandItem);
-      } else {
-        var updatedBrandItem = ItemBrand(
-           data['brandCode']??'',
-          data['brandName']??'',
-          data['brandFName']??'',
-          data['cmpCode']??''
-        );
-        await itembrandBox.put('$brandCode$cmpCode', updatedBrandItem);
-      }
+      itemBrandsToUpdate.add(updatedItemBrand);
     }
 
-      // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedItemBrandCodes = Set.from(itemBrandData
-          .map((data) => '${data['brandCode']}${data['cmpCode']}'));
-      Set<String> hiveItemBrandCodes = Set.from(itembrandBox.keys);
+    // Batch update item brands
+    await itembrandBox.putAll(Map.fromIterable(itemBrandsToUpdate, key: (itemBrand) => '${itemBrand.brandCode}${itemBrand.cmpCode}'));
 
-      // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete =
-          hiveItemBrandCodes.difference(fetchedItemBrandCodes);
-
-      // Delete items in Hive that don't exist in the fetched data
-      itemsToDelete.forEach((hiveItemBrandCode) {
-        itembrandBox.delete(hiveItemBrandCode);
-      });
-    } catch (e) {
-      print('Error synchronizing ItemBrand from API to Hive: $e');
-    }
+    // Delete item brands not present in the updated data
+    Set<String> updatedItemBrandCodes = itemBrandsToUpdate.map((itemBrand) => '${itemBrand.brandCode}${itemBrand.cmpCode}').toSet();
+    itembrandBox.keys.where((itemBrandCode) => !updatedItemBrandCodes.contains(itemBrandCode)).forEach((itemBrandCode) {
+      itemBrandsToDelete.add(itemBrandCode);
+    });
+    await itembrandBox.deleteAll(itemBrandsToDelete);
+  } catch (e) {
+    print('Error synchronizing ItemBrand from API to Hive: $e');
   }
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -1028,8 +933,8 @@ Future<void> _synchronizeItemBrand(
     List<Map<String, dynamic>> itemUOMData = [];
     try {
       for (String itemCode in itemCodes) {
-        final response =
-            await http.get(Uri.parse('${apiurl}getItemUOM?itemCode=$itemCode'));
+        final response =await http.get(Uri.parse('${apiurl}getItemUOM'));
+           // await http.get(Uri.parse('${apiurl}getItemUOM?itemCode=$itemCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -1078,58 +983,45 @@ Future<void> _synchronizeItemBrand(
   }
 }
 
-
-
 Future<void> _synchronizeItemUOM(
   List<Map<String, dynamic>> itemUOMData,
   Box<ItemUOM> itemuomBox,
 ) async {
   try {
+    List<ItemUOM> itemUOMsToUpdate = [];
+    List<String> itemUOMsToDelete = [];
+
+    // Prepare item UOMs to update and delete
     for (var data in itemUOMData) {
-      var uom = data['uom']??'';
-      var itemCode = data['itemCode']??'';
-      var cmpCode = data['cmpCode']??'';
+      var uom = data['uom'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var cmpCode = data['cmpCode'] ?? '';
 
-        var hiveUOMItem = itemuomBox.get('$uom$itemCode$cmpCode');
+      var updatedItemUOM = ItemUOM(
+        data['itemCode'] ?? '',
+        data['uom'] ?? '',
+        data['qtyperUOM'] ?? 0,
+        data['barCode'] ?? '',
+        data['cmpCode'] ?? '',
+      );
 
-      if (hiveUOMItem == null) {
-        var newUOMItem = ItemUOM(
-          data['itemCode']??'',
-          data['uom']??'',
-          data['qtyperUOM'].toDouble()??0,
-          data['barCode']??'',
-          data['cmpCode']??''
-        );
-        await itemuomBox.put('$uom$itemCode$cmpCode', newUOMItem);
-      } else {
-        var updatedUOMItem = ItemUOM(
-          data['itemCode']??'',
-          data['uom']??'',
-          data['qtyperUOM'].toDouble()??0,
-          data['barCode']??'',
-          data['cmpCode']??''
-        );
-        await itemuomBox.put('$uom$itemCode$cmpCode', updatedUOMItem);
-      }
+      itemUOMsToUpdate.add(updatedItemUOM);
     }
 
-      // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedItemUOMCodes = Set.from(itemUOMData.map(
-          (data) => '${data['uom']}${data['itemCode']}${data['cmpCode']}'));
-      Set<String> hiveItemUOMCodes = Set.from(itemuomBox.keys);
+    // Batch update item UOMs
+    await itemuomBox.putAll(Map.fromIterable(itemUOMsToUpdate, key: (itemUOM) => '${itemUOM.uom}${itemUOM.itemCode}${itemUOM.cmpCode}'));
 
-      // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete =
-          hiveItemUOMCodes.difference(fetchedItemUOMCodes);
-
-      // Delete items in Hive that don't exist in the fetched data
-      itemsToDelete.forEach((hiveItemUOMCode) {
-        itemuomBox.delete(hiveItemUOMCode);
-      });
-    } catch (e) {
-      print('Error synchronizing ItemUOM from API to Hive: $e');
-    }
+    // Delete item UOMs not present in the updated data
+    Set<String> updatedItemUOMCodes = itemUOMsToUpdate.map((itemUOM) => '${itemUOM.uom}${itemUOM.itemCode}${itemUOM.cmpCode}').toSet();
+    itemuomBox.keys.where((itemUOMCode) => !updatedItemUOMCodes.contains(itemUOMCode)).forEach((itemUOMCode) {
+      itemUOMsToDelete.add(itemUOMCode);
+    });
+    await itemuomBox.deleteAll(itemUOMsToDelete);
+  } catch (e) {
+    print('Error synchronizing ItemUOM from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -1177,49 +1069,40 @@ Future<void> _synchronizeItemUOM(
 }
 
 
-
 Future<void> _synchronizeUserPL(
   List<Map<String, dynamic>> userPLData,
   Box<UserPL> userplBox,
 ) async {
   try {
+    List<UserPL> userPLsToUpdate = [];
+    List<String> userPLsToDelete = [];
+
+    // Prepare user PLs to update and delete
     for (var data in userPLData) {
-      var userCode = data['userCode']??'';
+      var userCode = data['userCode'] ?? '';
 
-        var hiveUserPL = userplBox.get(userCode);
+      var updatedUserPL = UserPL(
+        data['userCode'] ?? '',
+        data['plSecGroup'] ?? '',
+      );
 
-      if (hiveUserPL == null) {
-        var newUserPL = UserPL(
-          data['userCode']??'',
-          data['plSecGroup']??'',
-        );
-        await userplBox.put(userCode, newUserPL);
-      } else {
-        var updatedUserPL = UserPL(
-          data['userCode']??'',
-          data['plSecGroup']??'',
-        );
-        await userplBox.put(userCode, updatedUserPL);
-      }
+      userPLsToUpdate.add(updatedUserPL);
     }
 
-      // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedUserPLCodes =
-          Set.from(userPLData.map((data) => data['userCode']));
-      Set<String> hiveUserPLCodes = Set.from(userplBox.keys);
+    // Batch update user PLs
+    await userplBox.putAll(Map.fromIterable(userPLsToUpdate, key: (userPL) => userPL.userCode));
 
-      // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete =
-          hiveUserPLCodes.difference(fetchedUserPLCodes);
-
-      // Delete items in Hive that don't exist in the fetched data
-      itemsToDelete.forEach((hiveUserPLCode) {
-        userplBox.delete(hiveUserPLCode);
-      });
-    } catch (e) {
-      print('Error synchronizing USERPL from API to Hive: $e');
-    }
+    // Delete user PLs not present in the updated data
+    Set<String> updatedUserPLCodes = userPLsToUpdate.map((userPL) => userPL.userCode).toSet();
+    userplBox.keys.where((userPLCode) => !updatedUserPLCodes.contains(userPLCode)).forEach((userPLCode) {
+      userPLsToDelete.add(userPLCode);
+    });
+    await userplBox.deleteAll(userPLsToDelete);
+  } catch (e) {
+    print('Error synchronizing USERPL from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -1734,22 +1617,27 @@ Future<void> synchronizeIESubMenu(int menucode, List<dynamic> subSyncData, Box<S
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-
-Future<List<Map<int, dynamic>>> _fetchAuthorizationData() async {
-  List<Map<int, dynamic>> authorizationData = [];
+Future<List<Map<String, dynamic>>> _fetchAuthorizationData() async {
+  List<Map<String, dynamic>> authorizationData = [];
   try {
     // Perform HTTP GET request to fetch authorization data from the API endpoint
     final response = await http.get(Uri.parse('${apiurl}getAuthorization'));
     if (response.statusCode == 200) {
       dynamic responseData = jsonDecode(response.body);
+      print(responseData);
       if (responseData is List) {
+        print('hi');
         // If the response is a list, append each authorization data to the authorizationData list
         for (var authData in responseData) {
-          if (authData is Map<int, dynamic>) {
+          print('Type of authData: ${authData.runtimeType}');
+          print('Keys of authData: ${authData.keys}');
+          if (authData is Map<String, dynamic>) {
+            print('helo');
+            print(authData);
             authorizationData.add(authData);
           }
         }
-      } else if (responseData is Map<int, dynamic>) {
+      } else if (responseData is Map<String, dynamic>) {
         // If the response is a map, directly append it to the authorizationData list
         authorizationData.add(responseData);
       } else {
@@ -1764,15 +1652,17 @@ Future<List<Map<int, dynamic>>> _fetchAuthorizationData() async {
   return authorizationData;
 }
 
+
+
 Future<void> synchronizeDataAuthorization() async {
   try {
     // Fetch data from API endpoint
-    List<Map<int, dynamic>> apiResponse = await _fetchAuthorizationData();
+    List<Map<String, dynamic>> apiResponse = await _fetchAuthorizationData();
 
       // Open Hive box
       var authoBox = await Hive.openBox<Authorization>('authorizationBox');
       // Open other boxes if needed
-
+print(apiResponse);
       // Synchronize data
       await _synchronizeAutho(apiResponse, authoBox);
       // Synchronize other data if needed
@@ -1786,7 +1676,7 @@ Future<void> synchronizeDataAuthorization() async {
   }
 
 Future<void> _synchronizeAutho(
-  List<Map<int, dynamic>> authorizationData,
+  List<Map<String, dynamic>> authorizationData,
   Box<Authorization> authoBox,
 ) async {
   try {
@@ -1828,8 +1718,8 @@ Future<void> _synchronizeAutho(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-Future<List<Map<int, dynamic>>> _fetchGeneralSettingsData() async {
-  List<Map<int, dynamic>> generalSettingsData = [];
+Future<List<Map<String, dynamic>>> _fetchGeneralSettingsData() async {
+  List<Map<String, dynamic>> generalSettingsData = [];
   try {
     // Perform HTTP GET request to fetch general settings data from the API endpoint
     final response = await http.get(Uri.parse('${apiurl}getSystemAdmin'));
@@ -1838,11 +1728,11 @@ Future<List<Map<int, dynamic>>> _fetchGeneralSettingsData() async {
       if (responseData is List) {
         // If the response is a list, append each general settings data to the generalSettingsData list
         for (var settingsData in responseData) {
-          if (settingsData is Map<int, dynamic>) {
+          if (settingsData is Map<String, dynamic>) {
             generalSettingsData.add(settingsData);
           }
         }
-      } else if (responseData is Map<int, dynamic>) {
+      } else if (responseData is Map<String, dynamic>) {
         // If the response is a map, directly append it to the generalSettingsData list
         generalSettingsData.add(responseData);
       } else {
@@ -1860,7 +1750,7 @@ Future<List<Map<int, dynamic>>> _fetchGeneralSettingsData() async {
 Future<void> synchronizeDataGeneralSettings() async {
   try {
     // Fetch data from API endpoint
-    List<Map<int, dynamic>> apiResponse = await _fetchGeneralSettingsData();
+    List<Map<String, dynamic>> apiResponse = await _fetchGeneralSettingsData();
 
       // Open Hive box
       var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
@@ -1879,7 +1769,7 @@ Future<void> synchronizeDataGeneralSettings() async {
   }
 
 Future<void> _synchronizeSystem(
-  List<Map<int, dynamic>> generalSettingsData,
+  List<Map<String, dynamic>> generalSettingsData,
   Box<SystemAdmin> systemAdminBox,
 ) async {
   try {
@@ -2009,7 +1899,7 @@ Future<void> _synchronizeSystem(
           priceDec: data['priceDec']??0,
           amntDec: data['amntDec']??0, 
           qtyDec: data['qtyDec']??0,
-          rounding: data['rounding']??'',
+          roundMethod: data['roundMethod']??'',
           importMethod: data['importMethod']??'',
           time: data['time']??noTime,
         );
@@ -2036,7 +1926,7 @@ Future<void> _synchronizeSystem(
           priceDec: data['priceDec']??0,
           amntDec: data['amntDec']??0, 
           qtyDec: data['qtyDec']??0,
-          rounding: data['rounding']??'',
+          roundMethod: data['roundMethod']??'',
           importMethod: data['importMethod']??'',
           time: data['time']??noTime,
         );
@@ -2115,51 +2005,39 @@ Future<void> _synchronizeDepartments(
   Box<Departements> departmentsBox,
 ) async {
   try {
+    List<Departements> departmentsToUpdate = [];
+    List<String> departmentsToDelete = [];
+
+    // Prepare departments to update and delete
     for (var data in departmentsData) {
-      var cmpCode = data['cmpCode']??'';
-      var depCode = data['depCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var depCode = data['depCode'] ?? '';
 
-        // Check if the department exists in Hive
-        var hiveDepartment = departmentsBox.get('$cmpCode$depCode');
+      var updatedDepartment = Departements(
+        cmpCode: cmpCode,
+        depCode: depCode,
+        depName: data['depName'] ?? '',
+        depFName: data['depFName'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveDepartment == null) {
-        var newDepartment = Departements(
-          cmpCode: cmpCode,
-          depCode: depCode,
-          depName: data['depName']??'',
-          depFName: data['depFName']??'',
-          notes: data['notes']??'',
-        );
-        await departmentsBox.put('$cmpCode$depCode', newDepartment);
-      } else {
-        var updatedDepartment = Departements(
-          cmpCode: cmpCode,
-          depCode: depCode,
-         depName: data['depName']??'',
-          depFName: data['depFName']??'',
-          notes: data['notes']??'',
-        );
-        await departmentsBox.put('$cmpCode$depCode', updatedDepartment);
-      }
+      departmentsToUpdate.add(updatedDepartment);
     }
 
-      // Check for departments in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedDepartmentKeys = Set.from(departmentsData
-          .map((data) => '${data['cmpCode']}${data['depCode']}'));
-      Set<String> hiveDepartmentKeys = Set.from(departmentsBox.keys);
+    // Batch update departments
+    await departmentsBox.putAll(Map.fromIterable(departmentsToUpdate, key: (department) => '${department.cmpCode}${department.depCode}'));
 
-      // Identify departments in Hive that don't exist in the fetched data
-      Set<String> departmentsToDelete =
-          hiveDepartmentKeys.difference(fetchedDepartmentKeys);
-
-      // Delete departments in Hive that don't exist in the fetched data
-      departmentsToDelete.forEach((hiveDepartmentKey) {
-        departmentsBox.delete(hiveDepartmentKey);
-      });
-    } catch (e) {
-      print('Error synchronizing Departments from API to Hive: $e');
-    }
+    // Delete departments not present in the updated data
+    Set<String> updatedDepartmentKeys = departmentsToUpdate.map((department) => '${department.cmpCode}${department.depCode}').toSet();
+    departmentsBox.keys.where((departmentKey) => !updatedDepartmentKeys.contains(departmentKey)).forEach((departmentKey) {
+      departmentsToDelete.add(departmentKey);
+    });
+    await departmentsBox.deleteAll(departmentsToDelete);
+  } catch (e) {
+    print('Error synchronizing Departments from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -2207,57 +2085,44 @@ Future<void> _synchronizeDepartments(
       print('Error synchronizing data from API to Hive for ExchangeRates: $e');
     }
   }
-
 Future<void> _synchronizeExchangeRates(
   List<Map<String, dynamic>> exchangeRatesData,
   Box<ExchangeRate> exchangeRatesBox,
 ) async {
   try {
+    List<ExchangeRate> exchangeRatesToUpdate = [];
+    List<String> exchangeRatesToDelete = [];
+
+    // Prepare exchange rates to update and delete
     for (var data in exchangeRatesData) {
-      var cmpCode = data['cmpCode']??'';
-      var curCode = data['curCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var curCode = data['curCode'] ?? '';
 
-        // Check if the exchange rate exists in Hive
-        var hiveExchangeRate = exchangeRatesBox.get('$cmpCode$curCode');
+      var updatedExchangeRate = ExchangeRate(
+        cmpCode: cmpCode,
+        curCode: curCode,
+        fDate: DateTime.parse(data['fDate']),
+        tDate: DateTime.parse(data['tDate']),
+        rate: data['rate'] ?? '',
+      );
 
-      if (hiveExchangeRate == null) {
-        var newExchangeRate = ExchangeRate(
-          cmpCode: cmpCode,
-          curCode: curCode,
-          fDate: DateTime.parse(data['fDate']),
-          tDate: DateTime.parse(data['tDate']),
-          rate: data['rate']??'',
-        );
-        await exchangeRatesBox.put('$cmpCode$curCode', newExchangeRate);
-      } else {
-        var updatedExchangeRate = ExchangeRate(
-          cmpCode: cmpCode,
-          curCode: curCode,
-          fDate: DateTime.parse(data['fDate']),
-          tDate: DateTime.parse(data['tDate']),
-          rate: data['rate']??'',
-        );
-        await exchangeRatesBox.put('$cmpCode$curCode', updatedExchangeRate);
-      }
+      exchangeRatesToUpdate.add(updatedExchangeRate);
     }
 
-      // Check for exchange rates in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedExchangeRateKeys = Set.from(exchangeRatesData
-          .map((data) => '${data['cmpCode']}${data['curCode']}'));
-      Set<String> hiveExchangeRateKeys = Set.from(exchangeRatesBox.keys);
+    // Batch update exchange rates
+    await exchangeRatesBox.putAll(Map.fromIterable(exchangeRatesToUpdate, key: (exchangeRate) => '${exchangeRate.cmpCode}${exchangeRate.curCode}'));
 
-      // Identify exchange rates in Hive that don't exist in the fetched data
-      Set<String> exchangeRatesToDelete =
-          hiveExchangeRateKeys.difference(fetchedExchangeRateKeys);
-
-      // Delete exchange rates in Hive that don't exist in the fetched data
-      exchangeRatesToDelete.forEach((hiveExchangeRateKey) {
-        exchangeRatesBox.delete(hiveExchangeRateKey);
-      });
-    } catch (e) {
-      print('Error synchronizing ExchangeRates from API to Hive: $e');
-    }
+    // Delete exchange rates not present in the updated data
+    Set<String> updatedExchangeRateKeys = exchangeRatesToUpdate.map((exchangeRate) => '${exchangeRate.cmpCode}${exchangeRate.curCode}').toSet();
+    exchangeRatesBox.keys.where((exchangeRateKey) => !updatedExchangeRateKeys.contains(exchangeRateKey)).forEach((exchangeRateKey) {
+      exchangeRatesToDelete.add(exchangeRateKey);
+    });
+    await exchangeRatesBox.deleteAll(exchangeRatesToDelete);
+  } catch (e) {
+    print('Error synchronizing ExchangeRates from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -2305,61 +2170,46 @@ Future<void> _synchronizeExchangeRates(
       print('Error synchronizing data from API to Hive for Currencies: $e');
     }
   }
-
 Future<void> _synchronizeCurrencies(
   List<Map<String, dynamic>> currenciesData,
   Box<Currencies> currenciesBox,
 ) async {
   try {
+    List<Currencies> currenciesToUpdate = [];
+    List<String> currenciesToDelete = [];
+
+    // Prepare currencies to update and delete
     for (var data in currenciesData) {
-      var cmpCode = data['cmpCode']??'';
-      var curCode = data['curCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var curCode = data['curCode'] ?? '';
 
-        // Check if the currency exists in Hive
-        var hiveCurrency = currenciesBox.get('$cmpCode$curCode');
+      var updatedCurrency = Currencies(
+        cmpCode: cmpCode,
+        curCode: curCode,
+        curName: data['curName'] ?? '',
+        curFName: data['curFName'] ?? '',
+        notes: data['notes'] ?? '',
+        amntDec: data['amntDec'] ?? 0,
+        rounding: data['rounding'] ?? 0,
+      );
 
-      if (hiveCurrency == null) {
-        var newCurrency = Currencies(
-          cmpCode: cmpCode,
-          curCode: curCode,
-          curName: data['curName']??'',
-          curFName: data['curFName']??'',
-          notes: data['notes']??'', 
-          amntDec: data['amntDec']??0, 
-          rounding: data['rounding']??'',
-        );
-        await currenciesBox.put('$cmpCode$curCode', newCurrency);
-      } else {
-        var updatedCurrency = Currencies(
-          cmpCode: cmpCode,
-          curCode: curCode,
-         curName: data['curName']??'',
-          curFName: data['curFName']??'',
-          notes: data['notes']??'', 
-         amntDec: data['amntDec']??0, 
-          rounding: data['rounding']??'',
-        );
-        await currenciesBox.put('$cmpCode$curCode', updatedCurrency);
-      }
+      currenciesToUpdate.add(updatedCurrency);
     }
 
-      // Check for currencies in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedCurrencyKeys = Set.from(
-          currenciesData.map((data) => '${data['cmpCode']}${data['curCode']}'));
-      Set<String> hiveCurrencyKeys = Set.from(currenciesBox.keys);
+    // Batch update currencies
+    await currenciesBox.putAll(Map.fromIterable(currenciesToUpdate, key: (currency) => '${currency.cmpCode}${currency.curCode}'));
 
-      // Identify currencies in Hive that don't exist in the fetched data
-      Set<String> currenciesToDelete =
-          hiveCurrencyKeys.difference(fetchedCurrencyKeys);
-
-      // Delete currencies in Hive that don't exist in the fetched data
-      currenciesToDelete.forEach((hiveCurrencyKey) {
-        currenciesBox.delete(hiveCurrencyKey);
-      });
-    } catch (e) {
-      print('Error synchronizing Currencies from API to Hive: $e');
-    }
+    // Delete currencies not present in the updated data
+    Set<String> updatedCurrencyKeys = currenciesToUpdate.map((currency) => '${currency.cmpCode}${currency.curCode}').toSet();
+    currenciesBox.keys.where((currencyKey) => !updatedCurrencyKeys.contains(currencyKey)).forEach((currencyKey) {
+      currenciesToDelete.add(currencyKey);
+    });
+    await currenciesBox.deleteAll(currenciesToDelete);
+  } catch (e) {
+    print('Error synchronizing Currencies from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -2407,59 +2257,45 @@ Future<void> _synchronizeCurrencies(
       print('Error synchronizing data from API to Hive for VATGroups: $e');
     }
   }
-
 Future<void> _synchronizeVATGroups(
   List<Map<String, dynamic>> vatGroupsData,
   Box<VATGroups> vatGroupsBox,
 ) async {
   try {
+    List<VATGroups> vatGroupsToUpdate = [];
+    List<String> vatGroupsToDelete = [];
+
+    // Prepare VAT groups to update and delete
     for (var data in vatGroupsData) {
-      var cmpCode = data['cmpCode']??'';
-      var vatCode = data['vatCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var vatCode = data['vatCode'] ?? '';
 
-        // Check if the VAT group exists in Hive
-        var hiveVATGroup = vatGroupsBox.get('$cmpCode$vatCode');
+      var updatedVATGroup = VATGroups(
+        cmpCode: cmpCode,
+        vatCode: vatCode,
+        vatName: data['vatName'] ?? '',
+        vatRate: data['vatRate'] ?? '',
+        baseCurCode: data['baseCurCode'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveVATGroup == null) {
-        var newVATGroup = VATGroups(
-          cmpCode: cmpCode,
-          vatCode: vatCode,
-          vatName: data['vatName']??'',
-          vatRate: data['vatRate']??'',
-          baseCurCode: data['baseCurCode']??'',
-          notes: data['notes']??'',
-        );
-        await vatGroupsBox.put('$cmpCode$vatCode', newVATGroup);
-      } else {
-        var updatedVATGroup = VATGroups(
-          cmpCode: cmpCode,
-          vatCode: vatCode,
-         vatName: data['vatName']??'',
-          vatRate: data['vatRate']??'',
-          baseCurCode: data['baseCurCode']??'',
-          notes: data['notes']??'',
-        );
-        await vatGroupsBox.put('$cmpCode$vatCode', updatedVATGroup);
-      }
+      vatGroupsToUpdate.add(updatedVATGroup);
     }
 
-      // Check for VAT groups in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedVATGroupKeys = Set.from(
-          vatGroupsData.map((data) => '${data['cmpCode']}${data['vatCode']}'));
-      Set<String> hiveVATGroupKeys = Set.from(vatGroupsBox.keys);
+    // Batch update VAT groups
+    await vatGroupsBox.putAll(Map.fromIterable(vatGroupsToUpdate, key: (vatGroup) => '${vatGroup.cmpCode}${vatGroup.vatCode}'));
 
-      // Identify VAT groups in Hive that don't exist in the fetched data
-      Set<String> vatGroupsToDelete =
-          hiveVATGroupKeys.difference(fetchedVATGroupKeys);
-
-      // Delete VAT groups in Hive that don't exist in the fetched data
-      vatGroupsToDelete.forEach((hiveVATGroupKey) {
-        vatGroupsBox.delete(hiveVATGroupKey);
-      });
-    } catch (e) {
-      print('Error synchronizing VATGroups from API to Hive: $e');
-    }
+    // Delete VAT groups not present in the updated data
+    Set<String> updatedVATGroupKeys = vatGroupsToUpdate.map((vatGroup) => '${vatGroup.cmpCode}${vatGroup.vatCode}').toSet();
+    vatGroupsBox.keys.where((vatGroupKey) => !updatedVATGroupKeys.contains(vatGroupKey)).forEach((vatGroupKey) {
+      vatGroupsToDelete.add(vatGroupKey);
+    });
+    await vatGroupsBox.deleteAll(vatGroupsToDelete);
+  } catch (e) {
+    print('Error synchronizing VATGroups from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -2508,57 +2344,44 @@ Future<void> _synchronizeVATGroups(
       print('Error synchronizing data from API to Hive for CustGroups: $e');
     }
   }
-
 Future<void> _synchronizeCustGroups(
   List<Map<String, dynamic>> custGroupsData,
   Box<CustGroups> custGroupsBox,
 ) async {
   try {
+    List<CustGroups> custGroupsToUpdate = [];
+    List<String> custGroupsToDelete = [];
+
+    // Prepare customer groups to update and delete
     for (var data in custGroupsData) {
-      var cmpCode = data['cmpCode']??'';
-      var grpCode = data['grpCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var grpCode = data['grpCode'] ?? '';
 
-        // Check if the customer group exists in Hive
-        var hiveCustGroup = custGroupsBox.get('$cmpCode$grpCode');
+      var updatedCustGroup = CustGroups(
+        cmpCode: cmpCode,
+        grpCode: grpCode,
+        grpName: data['grpName'] ?? '',
+        grpFName: data['grpFName'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveCustGroup == null) {
-        var newCustGroup = CustGroups(
-          cmpCode: cmpCode,
-          grpCode: grpCode,
-          grpName: data['grpName']??'',
-          grpFName: data['grpFName']??'',
-          notes: data['notes']??'',
-        );
-        await custGroupsBox.put('$cmpCode$grpCode', newCustGroup);
-      } else {
-        var updatedCustGroup = CustGroups(
-          cmpCode: cmpCode,
-          grpCode: grpCode,
-          grpName: data['grpName']??'',
-          grpFName: data['grpFName']??'',
-          notes: data['notes']??'',
-        );
-        await custGroupsBox.put('$cmpCode$grpCode', updatedCustGroup);
-      }
+      custGroupsToUpdate.add(updatedCustGroup);
     }
 
-      // Check for customer groups in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedCustGroupKeys = Set.from(
-          custGroupsData.map((data) => '${data['cmpCode']}${data['grpCode']}'));
-      Set<String> hiveCustGroupKeys = Set.from(custGroupsBox.keys);
+    // Batch update customer groups
+    await custGroupsBox.putAll(Map.fromIterable(custGroupsToUpdate, key: (custGroup) => '${custGroup.cmpCode}${custGroup.grpCode}'));
 
-      // Identify customer groups in Hive that don't exist in the fetched data
-      Set<String> custGroupsToDelete =
-          hiveCustGroupKeys.difference(fetchedCustGroupKeys);
-
-      // Delete customer groups in Hive that don't exist in the fetched data
-      custGroupsToDelete.forEach((hiveCustGroupKey) {
-        custGroupsBox.delete(hiveCustGroupKey);
-      });
-    } catch (e) {
-      print('Error synchronizing CustGroups from API to Hive: $e');
-    }
+    // Delete customer groups not present in the updated data
+    Set<String> updatedCustGroupKeys = custGroupsToUpdate.map((custGroup) => '${custGroup.cmpCode}${custGroup.grpCode}').toSet();
+    custGroupsBox.keys.where((custGroupKey) => !updatedCustGroupKeys.contains(custGroupKey)).forEach((custGroupKey) {
+      custGroupsToDelete.add(custGroupKey);
+    });
+    await custGroupsBox.deleteAll(custGroupsToDelete);
+  } catch (e) {
+    print('Error synchronizing CustGroups from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -2608,57 +2431,44 @@ Future<void> _synchronizeCustGroups(
       print('Error synchronizing data from API to Hive for CustProperties: $e');
     }
   }
-
 Future<void> _synchronizeCustProperties(
   List<Map<String, dynamic>> custPropertiesData,
   Box<CustProperties> custPropertiesBox,
 ) async {
   try {
+    List<CustProperties> custPropertiesToUpdate = [];
+    List<String> custPropertiesToDelete = [];
+
+    // Prepare customer properties to update and delete
     for (var data in custPropertiesData) {
-      var cmpCode = data['cmpCode']??'';
-      var propCode = data['propCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var propCode = data['propCode'] ?? '';
 
-        // Check if the customer property exists in Hive
-        var hiveCustProperty = custPropertiesBox.get('$cmpCode$propCode');
+      var updatedCustProperty = CustProperties(
+        cmpCode: cmpCode,
+        propCode: propCode,
+        propName: data['propName'] ?? '',
+        propFName: data['propFName'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveCustProperty == null) {
-        var newCustProperty = CustProperties(
-          cmpCode: cmpCode,
-          propCode: propCode,
-          propName: data['propName']??'',
-          propFName: data['propFName']??'',
-          notes: data['notes']??'',
-        );
-        await custPropertiesBox.put('$cmpCode$propCode', newCustProperty);
-      } else {
-        var updatedCustProperty = CustProperties(
-          cmpCode: cmpCode,
-          propCode: propCode,
-          propName: data['propName']??'',
-          propFName: data['propFName']??'',
-          notes: data['notes']??'',
-        );
-        await custPropertiesBox.put('$cmpCode$propCode', updatedCustProperty);
-      }
+      custPropertiesToUpdate.add(updatedCustProperty);
     }
 
-      // Check for customer properties in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedCustPropertyKeys = Set.from(custPropertiesData
-          .map((data) => '${data['cmpCode']}${data['propCode']}'));
-      Set<String> hiveCustPropertyKeys = Set.from(custPropertiesBox.keys);
+    // Batch update customer properties
+    await custPropertiesBox.putAll(Map.fromIterable(custPropertiesToUpdate, key: (custProperty) => '${custProperty.cmpCode}${custProperty.propCode}'));
 
-      // Identify customer properties in Hive that don't exist in the fetched data
-      Set<String> custPropertiesToDelete =
-          hiveCustPropertyKeys.difference(fetchedCustPropertyKeys);
-
-      // Delete customer properties in Hive that don't exist in the fetched data
-      custPropertiesToDelete.forEach((hiveCustPropertyKey) {
-        custPropertiesBox.delete(hiveCustPropertyKey);
-      });
-    } catch (e) {
-      print('Error synchronizing CustProperties from API to Hive: $e');
-    }
+    // Delete customer properties not present in the updated data
+    Set<String> updatedCustPropertyKeys = custPropertiesToUpdate.map((custProperty) => '${custProperty.cmpCode}${custProperty.propCode}').toSet();
+    custPropertiesBox.keys.where((custPropertyKey) => !updatedCustPropertyKeys.contains(custPropertyKey)).forEach((custPropertyKey) {
+      custPropertiesToDelete.add(custPropertyKey);
+    });
+    await custPropertiesBox.deleteAll(custPropertiesToDelete);
+  } catch (e) {
+    print('Error synchronizing CustProperties from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -2704,57 +2514,43 @@ Future<void> _synchronizeCustProperties(
       print('Error synchronizing data from API to Hive for Regions: $e');
     }
   }
-
 Future<void> _synchronizeRegions(
   List<Map<String, dynamic>> regionsData,
   Box<Regions> regionsBox,
 ) async {
   try {
+    List<Regions> regionsToUpdate = [];
+    List<String> regionsToDelete = [];
+
+    // Prepare regions to update and delete
     for (var data in regionsData) {
-      var cmpCode = data['cmpCode']??'';
-      var regCode = data['regCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var regCode = data['regCode'] ?? '';
 
-        // Check if the region exists in Hive
-        var hiveRegion = regionsBox.get('$cmpCode$regCode');
+      var updatedRegion = Regions(
+        cmpCode: cmpCode,
+        regCode: regCode,
+        regName: data['regName'] ?? '',
+        regFName: data['regFName'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveRegion == null) {
-        var newRegion = Regions(
-          cmpCode: cmpCode,
-          regCode: regCode,
-          regName: data['regName']??'',
-          regFName: data['regFName']??'',
-          notes: data['notes']??'',
-        );
-        await regionsBox.put('$cmpCode$regCode', newRegion);
-      } else {
-        var updatedRegion = Regions(
-          cmpCode: cmpCode,
-          regCode: regCode,
-            regName: data['regName']??'',
-          regFName: data['regFName']??'',
-          notes: data['notes']??'',
-        );
-        await regionsBox.put('$cmpCode$regCode', updatedRegion);
-      }
+      regionsToUpdate.add(updatedRegion);
     }
 
-      // Check for regions in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedRegionKeys = Set.from(
-          regionsData.map((data) => '${data['cmpCode']}${data['regCode']}'));
-      Set<String> hiveRegionKeys = Set.from(regionsBox.keys);
+    // Batch update regions
+    await regionsBox.putAll(Map.fromIterable(regionsToUpdate, key: (region) => '${region.cmpCode}${region.regCode}'));
 
-      // Identify regions in Hive that don't exist in the fetched data
-      Set<String> regionsToDelete =
-          hiveRegionKeys.difference(fetchedRegionKeys);
-
-      // Delete regions in Hive that don't exist in the fetched data
-      regionsToDelete.forEach((hiveRegionKey) {
-        regionsBox.delete(hiveRegionKey);
-      });
-    } catch (e) {
-      print('Error synchronizing Regions from API to Hive: $e');
-    }
+    // Delete regions not present in the updated data
+    Set<String> updatedRegionKeys = regionsToUpdate.map((region) => '${region.cmpCode}${region.regCode}').toSet();
+    regionsBox.keys.where((regionKey) => !updatedRegionKeys.contains(regionKey)).forEach((regionKey) {
+      regionsToDelete.add(regionKey);
+    });
+    await regionsBox.deleteAll(regionsToDelete);
+  } catch (e) {
+    print('Error synchronizing Regions from API to Hive: $e');
   }
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -2800,60 +2596,44 @@ Future<void> _synchronizeRegions(
       print('Error synchronizing data from API to Hive for Warehouses: $e');
     }
   }
-
 Future<void> _synchronizeWarehouses(
   List<Map<String, dynamic>> warehousesData,
   Box<Warehouses> warehousesBox,
 ) async {
   try {
+    List<Warehouses> warehousesToUpdate = [];
+    List<String> warehousesToDelete = [];
+
+    // Prepare warehouses to update and delete
     for (var data in warehousesData) {
-      var cmpCode = data['cmpCode']??'';
-      var whsCode = data['whsCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var whsCode = data['whsCode'] ?? '';
 
-        // Check if the warehouse exists in Hive
-        var hiveWarehouse = warehousesBox.get('$cmpCode$whsCode');
+      var updatedWarehouse = Warehouses(
+        cmpCode: cmpCode,
+        whsCode: whsCode,
+        whsName: data['whsName'] ?? '',
+        whsFName: data['whsFName'] ?? '',
+        notes: data['notes'] ?? '',
+        binActivate: data['binActivate'] == 1 ? true : false, // Convert Tinyint to Boolean
+      );
 
-      if (hiveWarehouse == null) {
-        var newWarehouse = Warehouses(
-          cmpCode: cmpCode,
-          whsCode: whsCode,
-          whsName: data['whsName']??'',
-          whsFName: data['whsFName']??'',
-          notes: data['notes']??'',
-          binActivate: data['binActivate']== 1 ? true : false, // Convert Tinyint to Boolean
-        );
-        await warehousesBox.put('$cmpCode$whsCode', newWarehouse);
-      } else {
-        var updatedWarehouse = Warehouses(
-          cmpCode: cmpCode,
-          whsCode: whsCode,
-          whsName: data['whsName']??'',
-          whsFName: data['whsFName']??'',
-          notes: data['notes']??'',
-          binActivate: data['binActivate']== 1 ? true : false, // Convert Tinyint to Boolean
-          
-        );
-        await warehousesBox.put('$cmpCode$whsCode', updatedWarehouse);
-      }
+      warehousesToUpdate.add(updatedWarehouse);
     }
 
-      // Check for warehouses in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedWarehouseKeys = Set.from(
-          warehousesData.map((data) => '${data['cmpCode']}${data['whsCode']}'));
-      Set<String> hiveWarehouseKeys = Set.from(warehousesBox.keys);
+    // Batch update warehouses
+    await warehousesBox.putAll(Map.fromIterable(warehousesToUpdate, key: (warehouse) => '${warehouse.cmpCode}${warehouse.whsCode}'));
 
-      // Identify warehouses in Hive that don't exist in the fetched data
-      Set<String> warehousesToDelete =
-          hiveWarehouseKeys.difference(fetchedWarehouseKeys);
-
-      // Delete warehouses in Hive that don't exist in the fetched data
-      warehousesToDelete.forEach((hiveWarehouseKey) {
-        warehousesBox.delete(hiveWarehouseKey);
-      });
-    } catch (e) {
-      print('Error synchronizing Warehouses from API to Hive: $e');
-    }
+    // Delete warehouses not present in the updated data
+    Set<String> updatedWarehouseKeys = warehousesToUpdate.map((warehouse) => '${warehouse.cmpCode}${warehouse.whsCode}').toSet();
+    warehousesBox.keys.where((warehouseKey) => !updatedWarehouseKeys.contains(warehouseKey)).forEach((warehouseKey) {
+      warehousesToDelete.add(warehouseKey);
+    });
+    await warehousesBox.deleteAll(warehousesToDelete);
+  } catch (e) {
+    print('Error synchronizing Warehouses from API to Hive: $e');
   }
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -2899,63 +2679,47 @@ Future<void> _synchronizeWarehouses(
       print('Error synchronizing data from API to Hive for PaymentTerms: $e');
     }
   }
-
 Future<void> _synchronizePaymentTerms(
   List<Map<String, dynamic>> paymentTermsData,
   Box<PaymentTerms> paymentTermsBox,
 ) async {
   try {
+    List<PaymentTerms> paymentTermsToUpdate = [];
+    List<String> paymentTermsToDelete = [];
+
+    // Prepare payment terms to update and delete
     for (var data in paymentTermsData) {
-      var cmpCode = data['cmpCode']??'';
-      var ptCode = data['ptCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var ptCode = data['ptCode'] ?? '';
 
-        // Check if the payment term exists in Hive
-        var hivePaymentTerm = paymentTermsBox.get('$cmpCode$ptCode');
+      var updatedPaymentTerm = PaymentTerms(
+        cmpCode: cmpCode,
+        ptCode: ptCode,
+        ptName: data['ptName'] ?? '',
+        ptFName: data['ptFName'] ?? '',
+        startFrom: data['startFrom'] ?? '',
+        nbrofDays: data['nbrofDays'] ?? '',
+        notes: data['notes'] ?? '',
+        nbrofMonths: data['nbrofMonths'] ?? 0,
+      );
 
-      if (hivePaymentTerm == null) {
-        var newPaymentTerm = PaymentTerms(
-          cmpCode: cmpCode,
-          ptCode: ptCode,
-          ptName: data['ptName']??'',
-          ptFName: data['ptFName']??'',
-          startFrom: data['startFrom']??'',
-          nbrofDays: data['nbrofDays']??'',
-          notes: data['notes']??'', 
-          nbrofMonths: data['nbrofMonths']??0,
-        );
-        await paymentTermsBox.put('$cmpCode$ptCode', newPaymentTerm);
-      } else {
-        var updatedPaymentTerm = PaymentTerms(
-          cmpCode: cmpCode,
-          ptCode: ptCode,
-         ptName: data['ptName']??'',
-          ptFName: data['ptFName']??'',
-          startFrom: data['startFrom']??'',
-          nbrofDays: data['nbrofDays']??'',
-          notes: data['notes']??'',
-          nbrofMonths: data['nbrofMonths']??0,
-        );
-        await paymentTermsBox.put('$cmpCode$ptCode', updatedPaymentTerm);
-      }
+      paymentTermsToUpdate.add(updatedPaymentTerm);
     }
 
-      // Check for payment terms in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedPaymentTermKeys = Set.from(paymentTermsData
-          .map((data) => '${data['cmpCode']}${data['ptCode']}'));
-      Set<String> hivePaymentTermKeys = Set.from(paymentTermsBox.keys);
+    // Batch update payment terms
+    await paymentTermsBox.putAll(Map.fromIterable(paymentTermsToUpdate, key: (paymentTerm) => '${paymentTerm.cmpCode}${paymentTerm.ptCode}'));
 
-      // Identify payment terms in Hive that don't exist in the fetched data
-      Set<String> paymentTermsToDelete =
-          hivePaymentTermKeys.difference(fetchedPaymentTermKeys);
-
-      // Delete payment terms in Hive that don't exist in the fetched data
-      paymentTermsToDelete.forEach((hivePaymentTermKey) {
-        paymentTermsBox.delete(hivePaymentTermKey);
-      });
-    } catch (e) {
-      print('Error synchronizing PaymentTerms from API to Hive: $e');
-    }
+    // Delete payment terms not present in the updated data
+    Set<String> updatedPaymentTermKeys = paymentTermsToUpdate.map((paymentTerm) => '${paymentTerm.cmpCode}${paymentTerm.ptCode}').toSet();
+    paymentTermsBox.keys.where((paymentTermKey) => !updatedPaymentTermKeys.contains(paymentTermKey)).forEach((paymentTermKey) {
+      paymentTermsToDelete.add(paymentTermKey);
+    });
+    await paymentTermsBox.deleteAll(paymentTermsToDelete);
+  } catch (e) {
+    print('Error synchronizing PaymentTerms from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -3007,65 +2771,48 @@ Future<void> _synchronizePaymentTerms(
     }
     return salesEmployeesData;
   }
-
 Future<void> _synchronizeSalesEmployees(
   List<Map<String, dynamic>> salesEmployeesData,
   Box<SalesEmployees> salesEmployeesBox,
 ) async {
   try {
+    List<SalesEmployees> salesEmployeesToUpdate = [];
+    List<String> salesEmployeesToDelete = [];
+
+    // Prepare sales employees to update and delete
     for (var data in salesEmployeesData) {
-      var cmpCode = data['cmpCode']??'';
-      var seCode = data['seCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var seCode = data['seCode'] ?? '';
 
-        // Check if the sales employee exists in Hive
-        var hiveSalesEmployee = salesEmployeesBox.get('$cmpCode$seCode');
+      var updatedSalesEmployee = SalesEmployees(
+        cmpCode: cmpCode,
+        seCode: seCode,
+        seName: data['seName'] ?? '',
+        seFName: data['seFName'] ?? '',
+        mobile: data['mobile'] ?? '',
+        email: data['email'] ?? '',
+        whsCode: data['whsCode'] ?? '',
+        reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveSalesEmployee == null) {
-        var newSalesEmployee = SalesEmployees(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          seName: data['seName']??'',
-          seFName: data['seFName']??'',
-          mobile: data['mobile']??'',
-          email: data['email']??'',
-          whsCode: data['whsCode']??'',
-          reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesBox.put('$cmpCode$seCode', newSalesEmployee);
-      } else {
-        var updatedSalesEmployee = SalesEmployees(
-          cmpCode: cmpCode,
-          seCode: seCode,
-              seName: data['seName']??'',
-          seFName: data['seFName']??'',
-          mobile: data['mobile']??'',
-          email: data['email']??'',
-          whsCode: data['whsCode']??'',
-          reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesBox.put('$cmpCode$seCode', updatedSalesEmployee);
-      }
+      salesEmployeesToUpdate.add(updatedSalesEmployee);
     }
 
-      // Check for sales employees in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedSalesEmployeeKeys = Set.from(salesEmployeesData
-          .map((data) => '${data['cmpCode']}${data['seCode']}'));
-      Set<String> hiveSalesEmployeeKeys = Set.from(salesEmployeesBox.keys);
+    // Batch update sales employees
+    await salesEmployeesBox.putAll(Map.fromIterable(salesEmployeesToUpdate, key: (salesEmployee) => '${salesEmployee.cmpCode}${salesEmployee.seCode}'));
 
-      // Identify sales employees in Hive that don't exist in the fetched data
-      Set<String> salesEmployeesToDelete =
-          hiveSalesEmployeeKeys.difference(fetchedSalesEmployeeKeys);
-
-      // Delete sales employees in Hive that don't exist in the fetched data
-      salesEmployeesToDelete.forEach((hiveSalesEmployeeKey) {
-        salesEmployeesBox.delete(hiveSalesEmployeeKey);
-      });
-    } catch (e) {
-      print('Error synchronizing SalesEmployees from API to Hive: $e');
-    }
+    // Delete sales employees not present in the updated data
+    Set<String> updatedSalesEmployeeKeys = salesEmployeesToUpdate.map((salesEmployee) => '${salesEmployee.cmpCode}${salesEmployee.seCode}').toSet();
+    salesEmployeesBox.keys.where((salesEmployeeKey) => !updatedSalesEmployeeKeys.contains(salesEmployeeKey)).forEach((salesEmployeeKey) {
+      salesEmployeesToDelete.add(salesEmployeeKey);
+    });
+    await salesEmployeesBox.deleteAll(salesEmployeesToDelete);
+  } catch (e) {
+    print('Error synchronizing SalesEmployees from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -3120,60 +2867,44 @@ Future<void> _synchronizeSalesEmployees(
     }
     return salesEmployeesCustomersData;
   }
-
 Future<void> _synchronizeSalesEmployeesCustomers(
   List<Map<String, dynamic>> salesEmployeesCustomersData,
   Box<SalesEmployeesCustomers> salesEmployeesCustomersBox,
 ) async {
   try {
+    List<SalesEmployeesCustomers> salesEmployeesCustomersToUpdate = [];
+    List<String> salesEmployeesCustomersToDelete = [];
+
+    // Prepare sales employee customer relationships to update and delete
     for (var data in salesEmployeesCustomersData) {
-      var cmpCode = data['cmpCode']??'';
-      var seCode = data['seCode']??'';
-      var custCode = data['custCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var seCode = data['seCode'] ?? '';
+      var custCode = data['custCode'] ?? '';
 
-        // Check if the sales employee customer relationship exists in Hive
-        var hiveSalesEmployeesCustomers =
-            salesEmployeesCustomersBox.get('$cmpCode$seCode$custCode');
+      var updatedSalesEmployeesCustomers = SalesEmployeesCustomers(
+        cmpCode: cmpCode,
+        seCode: seCode,
+        custCode: custCode,
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveSalesEmployeesCustomers == null) {
-        var newSalesEmployeesCustomers = SalesEmployeesCustomers(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          custCode: custCode,
-          notes: data['notes']??'',
-        );
-        await salesEmployeesCustomersBox.put('$cmpCode$seCode$custCode', newSalesEmployeesCustomers);
-      } else {
-        var updatedSalesEmployeesCustomers = SalesEmployeesCustomers(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          custCode: custCode,
-          notes: data['notes']??'',
-        );
-        await salesEmployeesCustomersBox.put('$cmpCode$seCode$custCode', updatedSalesEmployeesCustomers);
-      }
+      salesEmployeesCustomersToUpdate.add(updatedSalesEmployeesCustomers);
     }
 
-      // Check for sales employee customers in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedSalesEmployeesCustomersKeys = Set.from(
-          salesEmployeesCustomersData.map((data) =>
-              '${data['cmpCode']}${data['seCode']}${data['custCode']}'));
-      Set<String> hiveSalesEmployeesCustomersKeys =
-          Set.from(salesEmployeesCustomersBox.keys);
+    // Batch update sales employee customer relationships
+    await salesEmployeesCustomersBox.putAll(Map.fromIterable(salesEmployeesCustomersToUpdate, key: (salesEmployeeCustomer) => '${salesEmployeeCustomer.cmpCode}${salesEmployeeCustomer.seCode}${salesEmployeeCustomer.custCode}'));
 
-      // Identify sales employee customers relationships in Hive that don't exist in the fetched data
-      Set<String> salesEmployeesCustomersToDelete =
-          hiveSalesEmployeesCustomersKeys
-              .difference(fetchedSalesEmployeesCustomersKeys);
-
-      // Delete sales employee customers relationships in Hive that don't exist in the fetched data
-      salesEmployeesCustomersToDelete.forEach((hiveSalesEmployeesCustomersKey) {
-        salesEmployeesCustomersBox.delete(hiveSalesEmployeesCustomersKey);
-      });
-    } catch (e) {
-      print('Error synchronizing SalesEmployeesCustomers from API to Hive: $e');
-    }
+    // Delete sales employee customer relationships not present in the updated data
+    Set<String> updatedSalesEmployeesCustomersKeys = salesEmployeesCustomersToUpdate.map((salesEmployeeCustomer) => '${salesEmployeeCustomer.cmpCode}${salesEmployeeCustomer.seCode}${salesEmployeeCustomer.custCode}').toSet();
+    salesEmployeesCustomersBox.keys.where((salesEmployeeCustomerKey) => !updatedSalesEmployeesCustomersKeys.contains(salesEmployeeCustomerKey)).forEach((salesEmployeeCustomerKey) {
+      salesEmployeesCustomersToDelete.add(salesEmployeeCustomerKey);
+    });
+    await salesEmployeesCustomersBox.deleteAll(salesEmployeesCustomersToDelete);
+  } catch (e) {
+    print('Error synchronizing SalesEmployeesCustomers from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -3237,58 +2968,40 @@ Future<void> _synchronizeSalesEmployeesDepartments(
   Box<SalesEmployeesDepartements> salesEmployeesDepartmentsBox,
 ) async {
   try {
+    List<SalesEmployeesDepartements> salesEmployeesDepartmentsToUpdate = [];
+    List<String> salesEmployeesDepartmentsToDelete = [];
+
+    // Prepare sales employee department relationships to update and delete
     for (var data in salesEmployeesDepartmentsData) {
-      var cmpCode = data['cmpCode']??'';
-      var seCode = data['seCode']??'';
-      var deptCode = data['deptCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var seCode = data['seCode'] ?? '';
+      var deptCode = data['deptCode'] ?? '';
 
-        // Check if the sales employee department relationship exists in Hive
-        var hiveSalesEmployeesDepartments =
-            salesEmployeesDepartmentsBox.get('$cmpCode$seCode$deptCode');
+      var updatedSalesEmployeesDepartments = SalesEmployeesDepartements(
+        cmpCode: cmpCode,
+        seCode: seCode,
+        deptCode: deptCode,
+        reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveSalesEmployeesDepartments == null) {
-        var newSalesEmployeesDepartments = SalesEmployeesDepartements(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          deptCode: deptCode,
-          reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesDepartmentsBox.put('$cmpCode$seCode$deptCode', newSalesEmployeesDepartments);
-      } else {
-        var updatedSalesEmployeesDepartments = SalesEmployeesDepartements(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          deptCode: deptCode,
-           reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesDepartmentsBox.put('$cmpCode$seCode$deptCode', updatedSalesEmployeesDepartments);
-      }
+      salesEmployeesDepartmentsToUpdate.add(updatedSalesEmployeesDepartments);
     }
 
-      // Check for sales employee departments in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedSalesEmployeesDepartmentsKeys = Set.from(
-          salesEmployeesDepartmentsData.map((data) =>
-              '${data['cmpCode']}${data['seCode']}${data['deptCode']}'));
-      Set<String> hiveSalesEmployeesDepartmentsKeys =
-          Set.from(salesEmployeesDepartmentsBox.keys);
+    // Batch update sales employee department relationships
+    await salesEmployeesDepartmentsBox.putAll(Map.fromIterable(salesEmployeesDepartmentsToUpdate, key: (salesEmployeeDepartment) => '${salesEmployeeDepartment.cmpCode}${salesEmployeeDepartment.seCode}${salesEmployeeDepartment.deptCode}'));
 
-      // Identify sales employee departments relationships in Hive that don't exist in the fetched data
-      Set<String> salesEmployeesDepartmentsToDelete =
-          hiveSalesEmployeesDepartmentsKeys
-              .difference(fetchedSalesEmployeesDepartmentsKeys);
-
-      // Delete sales employee departments relationships in Hive that don't exist in the fetched data
-      salesEmployeesDepartmentsToDelete
-          .forEach((hiveSalesEmployeesDepartmentsKey) {
-        salesEmployeesDepartmentsBox.delete(hiveSalesEmployeesDepartmentsKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing SalesEmployeesDepartments from API to Hive: $e');
-    }
+    // Delete sales employee department relationships not present in the updated data
+    Set<String> updatedSalesEmployeesDepartmentsKeys = salesEmployeesDepartmentsToUpdate.map((salesEmployeeDepartment) => '${salesEmployeeDepartment.cmpCode}${salesEmployeeDepartment.seCode}${salesEmployeeDepartment.deptCode}').toSet();
+    salesEmployeesDepartmentsBox.keys.where((salesEmployeeDepartmentKey) => !updatedSalesEmployeesDepartmentsKeys.contains(salesEmployeeDepartmentKey)).forEach((salesEmployeeDepartmentKey) {
+      salesEmployeesDepartmentsToDelete.add(salesEmployeeDepartmentKey);
+    });
+    await salesEmployeesDepartmentsBox.deleteAll(salesEmployeesDepartmentsToDelete);
+  } catch (e) {
+    print('Error synchronizing SalesEmployeesDepartments from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -3339,64 +3052,45 @@ Future<List<Map<String, dynamic>>> _fetchSalesEmployeesItemsBrandsData(List<Stri
   return salesEmployeesItemsBrandsData;
 }
 
-
 Future<void> _synchronizeSalesEmployeesItemsBrands(
   List<Map<String, dynamic>> salesEmployeesItemsBrandsData,
   Box<SalesEmployeesItemsBrands> salesEmployeesItemsBrandsBox,
 ) async {
   try {
+    List<SalesEmployeesItemsBrands> salesEmployeesItemsBrandsToUpdate = [];
+    List<String> salesEmployeesItemsBrandsToDelete = [];
+
+    // Prepare sales employee items brands relationships to update and delete
     for (var data in salesEmployeesItemsBrandsData) {
-      var cmpCode = data['cmpCode']??'';
-      var seCode = data['seCode']??'';
-      var brandCode = data['brandCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var seCode = data['seCode'] ?? '';
+      var brandCode = data['brandCode'] ?? '';
 
-        // Check if the sales employee items brands relationship exists in Hive
-        var hiveSalesEmployeesItemsBrands =
-            salesEmployeesItemsBrandsBox.get('$cmpCode$seCode$brandCode');
+      var updatedSalesEmployeesItemsBrands = SalesEmployeesItemsBrands(
+        cmpCode: cmpCode,
+        seCode: seCode,
+        brandCode: brandCode,
+        reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveSalesEmployeesItemsBrands == null) {
-        var newSalesEmployeesItemsBrands = SalesEmployeesItemsBrands(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          brandCode: brandCode,
-          reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesItemsBrandsBox.put('$cmpCode$seCode$brandCode', newSalesEmployeesItemsBrands);
-      } else {
-        var updatedSalesEmployeesItemsBrands = SalesEmployeesItemsBrands(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          brandCode: brandCode,
-       reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesItemsBrandsBox.put('$cmpCode$seCode$brandCode', updatedSalesEmployeesItemsBrands);
-      }
+      salesEmployeesItemsBrandsToUpdate.add(updatedSalesEmployeesItemsBrands);
     }
 
-      // Check for sales employee items brands in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedSalesEmployeesItemsBrandsKeys = Set.from(
-          salesEmployeesItemsBrandsData.map((data) =>
-              '${data['cmpCode']}${data['seCode']}${data['brandCode']}'));
-      Set<String> hiveSalesEmployeesItemsBrandsKeys =
-          Set.from(salesEmployeesItemsBrandsBox.keys);
+    // Batch update sales employee items brands relationships
+    await salesEmployeesItemsBrandsBox.putAll(Map.fromIterable(salesEmployeesItemsBrandsToUpdate, key: (salesEmployeeItemsBrand) => '${salesEmployeeItemsBrand.cmpCode}${salesEmployeeItemsBrand.seCode}${salesEmployeeItemsBrand.brandCode}'));
 
-      // Identify sales employee items brands relationships in Hive that don't exist in the fetched data
-      Set<String> salesEmployeesItemsBrandsToDelete =
-          hiveSalesEmployeesItemsBrandsKeys
-              .difference(fetchedSalesEmployeesItemsBrandsKeys);
-
-      // Delete sales employee items brands relationships in Hive that don't exist in the fetched data
-      salesEmployeesItemsBrandsToDelete
-          .forEach((hiveSalesEmployeesItemsBrandsKey) {
-        salesEmployeesItemsBrandsBox.delete(hiveSalesEmployeesItemsBrandsKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing SalesEmployeesItemsBrands from API to Hive: $e');
-    }
+    // Delete sales employee items brands relationships not present in the updated data
+    Set<String> updatedSalesEmployeesItemsBrandsKeys = salesEmployeesItemsBrandsToUpdate.map((salesEmployeeItemsBrand) => '${salesEmployeeItemsBrand.cmpCode}${salesEmployeeItemsBrand.seCode}${salesEmployeeItemsBrand.brandCode}').toSet();
+    salesEmployeesItemsBrandsBox.keys.where((salesEmployeeItemsBrandKey) => !updatedSalesEmployeesItemsBrandsKeys.contains(salesEmployeeItemsBrandKey)).forEach((salesEmployeeItemsBrandKey) {
+      salesEmployeesItemsBrandsToDelete.add(salesEmployeeItemsBrandKey);
+    });
+    await salesEmployeesItemsBrandsBox.deleteAll(salesEmployeesItemsBrandsToDelete);
+  } catch (e) {
+    print('Error synchronizing SalesEmployeesItemsBrands from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -3454,65 +3148,44 @@ Future<void> _synchronizeSalesEmployeesItemsBrands(
     }
     return salesEmployeesItemsCategoriesData;
   }
-
 Future<void> _synchronizeSalesEmployeesItemsCategories(
   List<Map<String, dynamic>> salesEmployeesItemsCategoriesData,
   Box<SalesEmployeesItemsCategories> salesEmployeesItemsCategoriesBox,
 ) async {
   try {
+    List<SalesEmployeesItemsCategories> salesEmployeesItemsCategoriesToUpdate = [];
+    List<String> salesEmployeesItemsCategoriesToDelete = [];
+
+    // Prepare sales employee items categories relationships to update and delete
     for (var data in salesEmployeesItemsCategoriesData) {
-      var cmpCode = data['cmpCode']??'';
-      var seCode = data['seCode']??'';
-      var categCode = data['categCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var seCode = data['seCode'] ?? '';
+      var categCode = data['categCode'] ?? '';
 
-        // Check if the sales employee items categories relationship exists in Hive
-        var hiveSalesEmployeesItemsCategories =
-            salesEmployeesItemsCategoriesBox.get('$cmpCode$seCode$categCode');
+      var updatedSalesEmployeesItemsCategories = SalesEmployeesItemsCategories(
+        cmpCode: cmpCode,
+        seCode: seCode,
+        categCode: categCode,
+        reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveSalesEmployeesItemsCategories == null) {
-        var newSalesEmployeesItemsCategories = SalesEmployeesItemsCategories(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          categCode: categCode,
-          reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesItemsCategoriesBox.put('$cmpCode$seCode$categCode', newSalesEmployeesItemsCategories);
-      } else {
-        var updatedSalesEmployeesItemsCategories = SalesEmployeesItemsCategories(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          categCode: categCode,
-           reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesItemsCategoriesBox.put('$cmpCode$seCode$categCode', updatedSalesEmployeesItemsCategories);
-      }
+      salesEmployeesItemsCategoriesToUpdate.add(updatedSalesEmployeesItemsCategories);
     }
 
-      // Check for sales employee items categories in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedSalesEmployeesItemsCategoriesKeys = Set.from(
-          salesEmployeesItemsCategoriesData.map((data) =>
-              '${data['cmpCode']}${data['seCode']}${data['categCode']}'));
-      Set<String> hiveSalesEmployeesItemsCategoriesKeys =
-          Set.from(salesEmployeesItemsCategoriesBox.keys);
+    // Batch update sales employee items categories relationships
+    await salesEmployeesItemsCategoriesBox.putAll(Map.fromIterable(salesEmployeesItemsCategoriesToUpdate, key: (salesEmployeeItemsCategory) => '${salesEmployeeItemsCategory.cmpCode}${salesEmployeeItemsCategory.seCode}${salesEmployeeItemsCategory.categCode}'));
 
-      // Identify sales employee items categories relationships in Hive that don't exist in the fetched data
-      Set<String> salesEmployeesItemsCategoriesToDelete =
-          hiveSalesEmployeesItemsCategoriesKeys
-              .difference(fetchedSalesEmployeesItemsCategoriesKeys);
-
-      // Delete sales employee items categories relationships in Hive that don't exist in the fetched data
-      salesEmployeesItemsCategoriesToDelete
-          .forEach((hiveSalesEmployeesItemsCategoriesKey) {
-        salesEmployeesItemsCategoriesBox
-            .delete(hiveSalesEmployeesItemsCategoriesKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing SalesEmployeesItemsCategories from API to Hive: $e');
-    }
+    // Delete sales employee items categories relationships not present in the updated data
+    Set<String> updatedSalesEmployeesItemsCategoriesKeys = salesEmployeesItemsCategoriesToUpdate.map((salesEmployeeItemsCategory) => '${salesEmployeeItemsCategory.cmpCode}${salesEmployeeItemsCategory.seCode}${salesEmployeeItemsCategory.categCode}').toSet();
+    salesEmployeesItemsCategoriesBox.keys.where((salesEmployeeItemsCategoryKey) => !updatedSalesEmployeesItemsCategoriesKeys.contains(salesEmployeeItemsCategoryKey)).forEach((salesEmployeeItemsCategoryKey) {
+      salesEmployeesItemsCategoriesToDelete.add(salesEmployeeItemsCategoryKey);
+    });
+    await salesEmployeesItemsCategoriesBox.deleteAll(salesEmployeesItemsCategoriesToDelete);
+  } catch (e) {
+    print('Error synchronizing SalesEmployeesItemsCategories from API to Hive: $e');
   }
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -3569,64 +3242,45 @@ Future<void> _synchronizeSalesEmployeesItemsCategories(
     }
     return salesEmployeesItemsGroupsData;
   }
-
 Future<void> _synchronizeSalesEmployeesItemsGroups(
   List<Map<String, dynamic>> salesEmployeesItemsGroupsData,
   Box<SalesEmployeesItemsGroups> salesEmployeesItemsGroupsBox,
 ) async {
   try {
+    List<SalesEmployeesItemsGroups> salesEmployeesItemsGroupsToUpdate = [];
+    List<String> salesEmployeesItemsGroupsToDelete = [];
+
+    // Prepare sales employee items groups relationships to update and delete
     for (var data in salesEmployeesItemsGroupsData) {
-      var cmpCode = data['cmpCode']??'';
-      var seCode = data['seCode']??'';
-      var groupCode = data['groupCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var seCode = data['seCode'] ?? '';
+      var groupCode = data['groupCode'] ?? '';
 
-        // Check if the sales employee items groups relationship exists in Hive
-        var hiveSalesEmployeesItemsGroups =
-            salesEmployeesItemsGroupsBox.get('$cmpCode$seCode$groupCode');
+      var updatedSalesEmployeesItemsGroups = SalesEmployeesItemsGroups(
+        cmpCode: cmpCode,
+        seCode: seCode,
+        groupCode: groupCode,
+        reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveSalesEmployeesItemsGroups == null) {
-        var newSalesEmployeesItemsGroups = SalesEmployeesItemsGroups(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          groupCode: groupCode,
-          reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesItemsGroupsBox.put('$cmpCode$seCode$groupCode', newSalesEmployeesItemsGroups);
-      } else {
-        var updatedSalesEmployeesItemsGroups = SalesEmployeesItemsGroups(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          groupCode: groupCode,
-       reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesItemsGroupsBox.put('$cmpCode$seCode$groupCode', updatedSalesEmployeesItemsGroups);
-      }
+      salesEmployeesItemsGroupsToUpdate.add(updatedSalesEmployeesItemsGroups);
     }
 
-      // Check for sales employee items groups in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedSalesEmployeesItemsGroupsKeys = Set.from(
-          salesEmployeesItemsGroupsData.map((data) =>
-              '${data['cmpCode']}${data['seCode']}${data['groupCode']}'));
-      Set<String> hiveSalesEmployeesItemsGroupsKeys =
-          Set.from(salesEmployeesItemsGroupsBox.keys);
+    // Batch update sales employee items groups relationships
+    await salesEmployeesItemsGroupsBox.putAll(Map.fromIterable(salesEmployeesItemsGroupsToUpdate, key: (salesEmployeeItemsGroup) => '${salesEmployeeItemsGroup.cmpCode}${salesEmployeeItemsGroup.seCode}${salesEmployeeItemsGroup.groupCode}'));
 
-      // Identify sales employee items groups relationships in Hive that don't exist in the fetched data
-      Set<String> salesEmployeesItemsGroupsToDelete =
-          hiveSalesEmployeesItemsGroupsKeys
-              .difference(fetchedSalesEmployeesItemsGroupsKeys);
-
-      // Delete sales employee items groups relationships in Hive that don't exist in the fetched data
-      salesEmployeesItemsGroupsToDelete
-          .forEach((hiveSalesEmployeesItemsGroupsKey) {
-        salesEmployeesItemsGroupsBox.delete(hiveSalesEmployeesItemsGroupsKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing SalesEmployeesItemsGroups from API to Hive: $e');
-    }
+    // Delete sales employee items groups relationships not present in the updated data
+    Set<String> updatedSalesEmployeesItemsGroupsKeys = salesEmployeesItemsGroupsToUpdate.map((salesEmployeeItemsGroup) => '${salesEmployeeItemsGroup.cmpCode}${salesEmployeeItemsGroup.seCode}${salesEmployeeItemsGroup.groupCode}').toSet();
+    salesEmployeesItemsGroupsBox.keys.where((salesEmployeeItemsGroupKey) => !updatedSalesEmployeesItemsGroupsKeys.contains(salesEmployeeItemsGroupKey)).forEach((salesEmployeeItemsGroupKey) {
+      salesEmployeesItemsGroupsToDelete.add(salesEmployeeItemsGroupKey);
+    });
+    await salesEmployeesItemsGroupsBox.deleteAll(salesEmployeesItemsGroupsToDelete);
+  } catch (e) {
+    print('Error synchronizing SalesEmployeesItemsGroups from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -3680,61 +3334,45 @@ Future<void> _synchronizeSalesEmployeesItemsGroups(
     }
     return salesEmployeesItemsData;
   }
-
 Future<void> _synchronizeSalesEmployeesItems(
   List<Map<String, dynamic>> salesEmployeesItemsData,
   Box<SalesEmployeesItems> salesEmployeesItemsBox,
 ) async {
   try {
+    List<SalesEmployeesItems> salesEmployeesItemsToUpdate = [];
+    List<String> salesEmployeesItemsToDelete = [];
+
+    // Prepare sales employee items relationships to update
     for (var data in salesEmployeesItemsData) {
-      var cmpCode = data['cmpCode']??'';
-      var seCode = data['seCode']??'';
-      var itemCode = data['itemCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var seCode = data['seCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
 
-        // Check if the sales employee items relationship exists in Hive
-        var hiveSalesEmployeesItems =
-            salesEmployeesItemsBox.get('$cmpCode$seCode$itemCode');
+      var updatedSalesEmployeesItems = SalesEmployeesItems(
+        cmpCode: cmpCode,
+        seCode: seCode,
+        itemCode: itemCode,
+        reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveSalesEmployeesItems == null) {
-        var newSalesEmployeesItems = SalesEmployeesItems(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          itemCode: itemCode,
-          reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesItemsBox.put('$cmpCode$seCode$itemCode', newSalesEmployeesItems);
-      } else {
-        var updatedSalesEmployeesItems = SalesEmployeesItems(
-          cmpCode: cmpCode,
-          seCode: seCode,
-          itemCode: itemCode,
-          reqFromWhsCode: data['reqFromWhsCode']??'',
-          notes: data['notes']??'',
-        );
-        await salesEmployeesItemsBox.put('$cmpCode$seCode$itemCode', updatedSalesEmployeesItems);
-      }
+      salesEmployeesItemsToUpdate.add(updatedSalesEmployeesItems);
     }
 
-      // Check for sales employee items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedSalesEmployeesItemsKeys = Set.from(
-          salesEmployeesItemsData.map((data) =>
-              '${data['cmpCode']}${data['seCode']}${data['itemCode']}'));
-      Set<String> hiveSalesEmployeesItemsKeys =
-          Set.from(salesEmployeesItemsBox.keys);
+    // Batch update sales employee items relationships
+    await salesEmployeesItemsBox.putAll(Map.fromIterable(salesEmployeesItemsToUpdate, key: (salesEmployeeItem) => '${salesEmployeeItem.cmpCode}${salesEmployeeItem.seCode}${salesEmployeeItem.itemCode}'));
 
-      // Identify sales employee items relationships in Hive that don't exist in the fetched data
-      Set<String> salesEmployeesItemsToDelete = hiveSalesEmployeesItemsKeys
-          .difference(fetchedSalesEmployeesItemsKeys);
-
-      // Delete sales employee items relationships in Hive that don't exist in the fetched data
-      salesEmployeesItemsToDelete.forEach((hiveSalesEmployeesItemsKey) {
-        salesEmployeesItemsBox.delete(hiveSalesEmployeesItemsKey);
-      });
-    } catch (e) {
-      print('Error synchronizing SalesEmployeesItems from API to Hive: $e');
-    }
+    // Delete sales employee items relationships not present in the updated data
+    Set<String> updatedSalesEmployeesItemsKeys = salesEmployeesItemsToUpdate.map((salesEmployeeItem) => '${salesEmployeeItem.cmpCode}${salesEmployeeItem.seCode}${salesEmployeeItem.itemCode}').toSet();
+    salesEmployeesItemsBox.keys.where((salesEmployeeItemKey) => !updatedSalesEmployeesItemsKeys.contains(salesEmployeeItemKey)).forEach((salesEmployeeItemKey) {
+      salesEmployeesItemsToDelete.add(salesEmployeeItemKey);
+    });
+    await salesEmployeesItemsBox.deleteAll(salesEmployeesItemsToDelete);
+  } catch (e) {
+    print('Error synchronizing SalesEmployeesItems from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -3784,59 +3422,44 @@ Future<void> _synchronizeSalesEmployeesItems(
     }
     return userSalesEmployeesData;
   }
-
 Future<void> _synchronizeUserSalesEmployees(
   List<Map<String, dynamic>> userSalesEmployeesData,
   Box<UserSalesEmployees> userSalesEmployeesBox,
 ) async {
   try {
+    List<UserSalesEmployees> userSalesEmployeesToUpdate = [];
+    List<String> userSalesEmployeesToDelete = [];
+
+    // Prepare user sales employees relationships to update
     for (var data in userSalesEmployeesData) {
-      var userCode = data['userCode']??'';
-      var cmpCode = data['cmpCode']??'';
-      var seCode = data['seCode']??'';
+      var userCode = data['userCode'] ?? '';
+      var cmpCode = data['cmpCode'] ?? '';
+      var seCode = data['seCode'] ?? '';
 
-        // Check if the user sales employees relationship exists in Hive
-        var hiveUserSalesEmployees =
-            userSalesEmployeesBox.get('$userCode$cmpCode$seCode');
+      var updatedUserSalesEmployees = UserSalesEmployees(
+        cmpCode: cmpCode,
+        userCode: userCode,
+        seCode: seCode,
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveUserSalesEmployees == null) {
-        var newUserSalesEmployees = UserSalesEmployees(
-          cmpCode: cmpCode,
-          userCode: userCode,
-          seCode: seCode,
-          notes: data['notes']??'',
-        );
-        await userSalesEmployeesBox.put('$userCode$cmpCode$seCode', newUserSalesEmployees);
-      } else {
-        var updatedUserSalesEmployees = UserSalesEmployees(
-          cmpCode: cmpCode,
-          userCode: userCode,
-          seCode: seCode,
-          notes: data['notes']??'',
-        );
-        await userSalesEmployeesBox.put('$userCode$cmpCode$seCode', updatedUserSalesEmployees);
-      }
+      userSalesEmployeesToUpdate.add(updatedUserSalesEmployees);
     }
 
-      // Check for user sales employees in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedUserSalesEmployeesKeys = Set.from(
-          userSalesEmployeesData.map((data) =>
-              '${data['userCode']}${data['cmpCode']}${data['seCode']}'));
-      Set<String> hiveUserSalesEmployeesKeys =
-          Set.from(userSalesEmployeesBox.keys);
+    // Batch update user sales employees relationships
+    await userSalesEmployeesBox.putAll(Map.fromIterable(userSalesEmployeesToUpdate, key: (userSalesEmployee) => '${userSalesEmployee.userCode}${userSalesEmployee.cmpCode}${userSalesEmployee.seCode}'));
 
-      // Identify user sales employees relationships in Hive that don't exist in the fetched data
-      Set<String> userSalesEmployeesToDelete =
-          hiveUserSalesEmployeesKeys.difference(fetchedUserSalesEmployeesKeys);
-
-      // Delete user sales employees relationships in Hive that don't exist in the fetched data
-      userSalesEmployeesToDelete.forEach((hiveUserSalesEmployeesKey) {
-        userSalesEmployeesBox.delete(hiveUserSalesEmployeesKey);
-      });
-    } catch (e) {
-      print('Error synchronizing UserSalesEmployees from API to Hive: $e');
-    }
+    // Delete user sales employees relationships not present in the updated data
+    Set<String> updatedUserSalesEmployeesKeys = userSalesEmployeesToUpdate.map((userSalesEmployee) => '${userSalesEmployee.userCode}${userSalesEmployee.cmpCode}${userSalesEmployee.seCode}').toSet();
+    userSalesEmployeesBox.keys.where((userSalesEmployeeKey) => !updatedUserSalesEmployeesKeys.contains(userSalesEmployeeKey)).forEach((userSalesEmployeeKey) {
+      userSalesEmployeesToDelete.add(userSalesEmployeeKey);
+    });
+    await userSalesEmployeesBox.deleteAll(userSalesEmployeesToDelete);
+  } catch (e) {
+    print('Error synchronizing UserSalesEmployees from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -3915,103 +3538,66 @@ Future<List<Map<String, dynamic>>> _fetchCustomersData(List<String>custCodes) as
   }
   return customersData;
 }
-
 Future<void> _synchronizeCustomers(
   List<Map<String, dynamic>> customersData,
-  Box<Customers> customers,
+  Box<Customers> customersBox,
 ) async {
   try {
+    List<Customers> customersToUpdate = [];
+    List<String> customersToDelete = [];
+
+    // Prepare customers to update
     for (var data in customersData) {
-      var cmpCode = data['cmpCode']??'';
-      var custCode = data['custCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custCode = data['custCode'] ?? '';
 
-      // Check if the customer exists in Hive
-      var hiveCustomer = customers.get('$cmpCode$custCode');
-print(data);
-print('hii');
-      if (hiveCustomer == null) {
-        var newCustomer = Customers(
-          cmpCode: data['cmpCode']??'',
-          custCode: data['custCode']??'',
-          custName: data['custName']??'',
-          custFName: data['custFName']??'',
-          groupCode: data['groupCode']??'',
-          mofNum: data['mofNum']??'',
-          barcode: data['barcode']??'',
-          phone: data['phone']??'',
-          mobile: data['mobile']??'',
-          fax: data['fax']??'',
-          website: data['website']??'',
-          email: data['email']??'',
-          active:data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
+      var updatedCustomer = Customers(
+        cmpCode: cmpCode,
+        custCode: custCode,
+        custName: data['custName'] ?? '',
+        custFName: data['custFName'] ?? '',
+        groupCode: data['groupCode'] ?? '',
+        mofNum: data['mofNum'] ?? '',
+        barcode: data['barcode'] ?? '',
+        phone: data['phone'] ?? '',
+        mobile: data['mobile'] ?? '',
+        fax: data['fax'] ?? '',
+        website: data['website'] ?? '',
+        email: data['email'] ?? '',
+        active: data['active'] == 1 ? true : false,
+        printLayout: data['printLayout'] ?? '',
+        dfltAddressID: data['dfltAddressID'] ?? '',
+        dfltContactID: data['dfltContactID'] ?? '',
+        curCode: data['curCode'] ?? '',
+        cashClient: data['cashClient'] ?? '',
+        discType: data['discType'] ?? '',
+        vatCode: data['vatCode'] ?? '',
+        prListCode: data['prListCode'] ?? '',
+        payTermsCode: data['payTermsCode'] ?? '',
+        discount: data['discount'] ?? '',
+        creditLimit: data['creditLimit'] ?? '',
+        balance: data['balance'] ?? '',
+        balanceDue: data['balanceDue'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-          printLayout: data['printLayout']??'',
-          dfltAddressID: data['dfltAddressID']??'',
-          dfltContactID: data['dfltContactID']??'',
-          curCode: data['curCode']??'',
-          cashClient: data['cashClient']??'',
-          discType: data['discType']??'',
-          vatCode: data['vatCode']??'',
-          prListCode: data['prListCode']??'',
-          payTermsCode: data['payTermsCode']??'',
-          discount: data['discount']??'',
-          creditLimit: data['creditLimit']??'',
-          balance: data['balance']??'',
-          balanceDue: data['balanceDue']??'',
-          notes: data['notes']??'',
-        );
-        await customers.put('$cmpCode$custCode', newCustomer);
-      } else {
-        var updatedCustomer = Customers(
-          cmpCode: data['cmpCode']??'',
-          custCode: data['custCode']??'',
-          custName: data['custName']??'',
-          custFName: data['custFName']??'',
-          groupCode: data['groupCode']??'',
-          mofNum: data['mofNum']??'',
-          barcode: data['barcode']??'',
-          phone: data['phone']??'',
-          mobile: data['mobile']??'',
-          fax: data['fax']??'',
-          website: data['website']??'',
-          email: data['email']??'',
-          active:data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
-
-          printLayout: data['printLayout']??'',
-          dfltAddressID: data['dfltAddressID']??'',
-          dfltContactID: data['dfltContactID']??'',
-          curCode: data['curCode']??'',
-          cashClient: data['cashClient']??'',
-          discType: data['discType']??'',
-          vatCode: data['vatCode']??'',
-          prListCode: data['prListCode']??'',
-          payTermsCode: data['payTermsCode']??'',
-          discount: data['discount']??'',
-          creditLimit: data['creditLimit']??'',
-          balance: data['balance']??'',
-          balanceDue: data['balanceDue']??'',
-          notes: data['notes']??'',
-        );
-        await customers.put('$cmpCode$custCode', updatedCustomer);
-      }
+      customersToUpdate.add(updatedCustomer);
     }
 
-      Set<String> customersKeys = Set.from(
-          customersData.map((data) => '${data['cmpCode']}${data['custCode']}'));
-      Set<String> hiveCustomersKeys = Set.from(customers.keys);
+    // Batch update customers
+    await customersBox.putAll(Map.fromIterable(customersToUpdate, key: (customer) => '${customer.cmpCode}${customer.custCode}'));
 
-      // Identify customers in Hive that don't exist in the fetched data
-      Set<String> customersToDelete =
-          hiveCustomersKeys.difference(customersKeys);
-
-      // Delete customers in Hive that don't exist in the fetched data
-      customersToDelete.forEach((hiveCustomerKey) {
-        customers.delete(hiveCustomerKey);
-      });
-    } catch (e) {
-      print('Error synchronizing Customers from API to Hive: $e');
-    }
+    // Delete customers not present in the updated data
+    Set<String> updatedCustomersKeys = customersToUpdate.map((customer) => '${customer.cmpCode}${customer.custCode}').toSet();
+    customersBox.keys.where((customerKey) => !updatedCustomersKeys.contains(customerKey)).forEach((customerKey) {
+      customersToDelete.add(customerKey);
+    });
+    await customersBox.deleteAll(customersToDelete);
+  } catch (e) {
+    print('Error synchronizing Customers from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -4061,79 +3647,57 @@ Future<List<Map<String, dynamic>>> _fetchCustomerAddressesData(List<String> cust
   }
   return addressesData;
 }
-
 Future<void> _synchronizeCustomerAddresses(
   List<Map<String, dynamic>> addressesData,
-  Box<CustomerAddresses> addresses,
+  Box<CustomerAddresses> addressesBox,
 ) async {
   try {
+    List<CustomerAddresses> addressesToUpdate = [];
+    List<String> addressesToDelete = [];
+
+    // Prepare addresses to update
     for (var data in addressesData) {
-      var cmpCode = data['cmpCode']??'';
-      var addressID = data['addressID']??'';
-      var custCode = data['custCode']??'';
-      var addressType = data['addressType']?? '';
+      var cmpCode = data['cmpCode'] ?? '';
+      var addressID = data['addressID'] ?? '';
+      var custCode = data['custCode'] ?? '';
+      var addressType = data['addressType'] ?? '';
 
-      // Check if the address exists in Hive
-      var hiveAddress = addresses.get('$cmpCode$addressID$custCode$addressType');
+      var updatedAddress = CustomerAddresses(
+        cmpCode: cmpCode,
+        custCode: custCode,
+        addressID: addressID,
+        address: data['address'] ?? '',
+        fAddress: data['fAddress'] ?? '',
+        regCode: data['regCode'] ?? '',
+        gpslat: data['gpslat'] ?? '',
+        gpslong: data['gpslong'] ?? '',
+        notes: data['notes'] ?? '',
+        addressType: addressType,
+        countryCode: data['countryCode'] ?? '',
+        city: data['city'] ?? '',
+        block: data['block'] ?? '',
+        street: data['street'] ?? '',
+        zipCode: data['zipCode'] ?? '',
+        building: data['building'] ?? '',
+      );
 
-      if (hiveAddress == null) {
-        var newAddress = CustomerAddresses(
-          cmpCode: data['cmpCode']??'',
-          custCode: data['custCode']??'',
-          addressID: data['addressID']??'',
-          address: data['address']??'',
-          fAddress: data['fAddress']??'',
-          regCode: data['regCode']??'',
-          gpslat: data['gpslat']??'',
-          gpslong: data['gpslong']??'',
-          notes: data['notes']??'', 
-          addressType: data['addressType']??'',
-          countryCode: data['countryCode']??'', 
-          city: data['city']??'',
-          block: data['block']??'',
-          street: data['street']??'',
-          zipCode: data['zipCode']??'',
-          building: data['building']??'',
-        );
-        await addresses.put('$cmpCode$addressID$custCode$addressType', newAddress);
-      } else {
-        var updatedAddress = CustomerAddresses(
-            cmpCode: data['cmpCode']??'',
-          custCode: data['custCode']??'',
-          addressID: data['addressID']??'',
-          address: data['address']??'',
-          fAddress: data['fAddress']??'',
-          regCode: data['regCode']??'',
-          gpslat: data['gpslat']??'',
-          gpslong: data['gpslong']??'',
-          notes: data['notes']??'',
-          addressType: data['addressType']??'',
-          countryCode: data['countryCode']??'', 
-          city: data['city']??'',
-          block: data['block']??'',
-          street: data['street']??'',
-          zipCode: data['zipCode']??'',
-          building: data['building']??'',
-        );
-        await addresses.put('$cmpCode$addressID$custCode$addressType', updatedAddress);
-      }
+      addressesToUpdate.add(updatedAddress);
     }
 
-    Set<String> addressesKeys = Set.from(addressesData.map((data) => '${data['cmpCode']}${data['addressID']}${data['custCode']}${data['addressType']}'));
-    Set<String> hiveAddressesKeys = Set.from(addresses.keys);
+    // Batch update addresses
+    await addressesBox.putAll(Map.fromIterable(addressesToUpdate, key: (address) => '${address.cmpCode}${address.addressID}${address.custCode}${address.addressType}'));
 
-      // Identify addresses in Hive that don't exist in the fetched data
-      Set<String> addressesToDelete =
-          hiveAddressesKeys.difference(addressesKeys);
-
-      // Delete addresses in Hive that don't exist in the fetched data
-      addressesToDelete.forEach((hiveAddressKey) {
-        addresses.delete(hiveAddressKey);
-      });
-    } catch (e) {
-      print('Error synchronizing CustomerAddresses from API to Hive: $e');
-    }
+    // Delete addresses not present in the updated data
+    Set<String> updatedAddressesKeys = addressesToUpdate.map((address) => '${address.cmpCode}${address.addressID}${address.custCode}${address.addressType}').toSet();
+    addressesBox.keys.where((addressKey) => !updatedAddressesKeys.contains(addressKey)).forEach((addressKey) {
+      addressesToDelete.add(addressKey);
+    });
+    await addressesBox.deleteAll(addressesToDelete);
+  } catch (e) {
+    print('Error synchronizing CustomerAddresses from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -4180,66 +3744,50 @@ Future<void> _synchronizeCustomerAddresses(
     }
     return contactsData;
   }
-
 Future<void> _synchronizeCustomerContacts(
   List<Map<String, dynamic>> contactsData,
-  Box<CustomerContacts> contacts,
+  Box<CustomerContacts> contactsBox,
 ) async {
   try {
+    List<CustomerContacts> contactsToUpdate = [];
+    List<String> contactsToDelete = [];
+
+    // Prepare contacts to update
     for (var data in contactsData) {
-      var cmpCode = data['cmpCode']??'';
-      var contactID = data['contactID']??'';
-      var custCode = data['custCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var contactID = data['contactID'] ?? '';
+      var custCode = data['custCode'] ?? '';
 
-        // Check if the contact exists in Hive
-        var hiveContact = contacts.get('$cmpCode$contactID$custCode');
+      var updatedContact = CustomerContacts(
+        cmpCode: cmpCode,
+        custCode: custCode,
+        contactID: contactID,
+        contactName: data['contactName'] ?? '',
+        contactFName: data['contactFName'] ?? '',
+        phone: data['phone'] ?? '',
+        mobile: data['mobile'] ?? '',
+        email: data['email'] ?? '',
+        position: data['position'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      if (hiveContact == null) {
-        var newContact = CustomerContacts(
-          cmpCode: data['cmpCode']??'',
-          custCode: data['custCode']??'',
-          contactID: data['contactID']??'',
-          contactName: data['contactName']??'',
-          contactFName: data['contactFName']??'',
-          phone: data['phone']??'',
-          mobile: data['mobile']??'',
-          email: data['email']??'',
-          position: data['position']??'',
-          notes: data['notes']??'',
-        );
-        await contacts.put('$cmpCode$contactID$custCode', newContact);
-      } else {
-        var updatedContact = CustomerContacts(
-          cmpCode: data['cmpCode']??'',
-          custCode: data['custCode']??'',
-          contactID: data['contactID']??'',
-          contactName: data['contactName']??'',
-          contactFName: data['contactFName']??'',
-          phone: data['phone']??'',
-          mobile: data['mobile']??'',
-          email: data['email']??'',
-          position: data['position']??'',
-          notes: data['notes']??'',
-        );
-        await contacts.put('$cmpCode$contactID$custCode', updatedContact);
-      }
+      contactsToUpdate.add(updatedContact);
     }
 
-      Set<String> contactsKeys = Set.from(contactsData.map((data) =>
-          '${data['cmpCode']}${data['contactID']}${data['custCode']}'));
-      Set<String> hiveContactsKeys = Set.from(contacts.keys);
+    // Batch update contacts
+    await contactsBox.putAll(Map.fromIterable(contactsToUpdate, key: (contact) => '${contact.cmpCode}${contact.contactID}${contact.custCode}'));
 
-      // Identify contacts in Hive that don't exist in the fetched data
-      Set<String> contactsToDelete = hiveContactsKeys.difference(contactsKeys);
-
-      // Delete contacts in Hive that don't exist in the fetched data
-      contactsToDelete.forEach((hiveContactKey) {
-        contacts.delete(hiveContactKey);
-      });
-    } catch (e) {
-      print('Error synchronizing CustomerContacts from API to Hive: $e');
-    }
+    // Delete contacts not present in the updated data
+    Set<String> updatedContactsKeys = contactsToUpdate.map((contact) => '${contact.cmpCode}${contact.contactID}${contact.custCode}').toSet();
+    contactsBox.keys.where((contactKey) => !updatedContactsKeys.contains(contactKey)).forEach((contactKey) {
+      contactsToDelete.add(contactKey);
+    });
+    await contactsBox.deleteAll(contactsToDelete);
+  } catch (e) {
+    print('Error synchronizing CustomerContacts from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -4294,62 +3842,44 @@ Future<void> _synchronizeCustomerContacts(
     }
     return customerPropertiesData;
   }
-
 Future<void> _synchronizeCustomerProperties(
   List<Map<String, dynamic>> customerPropertiesData,
-  Box<CustomerProperties> properties,
+  Box<CustomerProperties> propertiesBox,
 ) async {
   try {
-    // Iterate over the retrieved data
+    List<CustomerProperties> propertiesToUpdate = [];
+    List<String> propertiesToDelete = [];
+
+    // Prepare properties to update
     for (var data in customerPropertiesData) {
-      var cmpCode = data['cmpCode']??'';
-      var custCode = data['custCode']??'';
-      var propCode = data['propCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custCode = data['custCode'] ?? '';
+      var propCode = data['propCode'] ?? '';
 
-        // Check if the property exists in Hive
-        var hiveProperty = properties.get('$cmpCode$propCode$custCode');
+      var updatedProperty = CustomerProperties(
+        cmpCode: cmpCode,
+        custCode: custCode,
+        propCode: propCode,
+        notes: data['notes'] ?? '',
+      );
 
-      // If the property doesn't exist in Hive, add it
-      if (hiveProperty == null) {
-        var newProperty = CustomerProperties(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          propCode: propCode,
-          notes: data['notes']??'',
-        );
-        await properties.put('$cmpCode$propCode$custCode', newProperty);
-      }
-      // If the property exists in Hive, update it if needed
-      else {
-        var updatedProperty = CustomerProperties(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          propCode: propCode,
-          notes: data['notes']??'',
-        );
-        // Update the property in Hive
-        await properties.put('$cmpCode$propCode$custCode', updatedProperty);
-      }
+      propertiesToUpdate.add(updatedProperty);
     }
 
-      // Check for properties in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedPropertiesKeys = Set.from(customerPropertiesData.map(
-          (data) =>
-              '${data['cmpCode']}${data['propCode']}${data['custCode']}'));
-      Set<String> hivePropertiesKeys = Set.from(properties.keys);
+    // Batch update properties
+    await propertiesBox.putAll(Map.fromIterable(propertiesToUpdate, key: (property) => '${property.cmpCode}${property.propCode}${property.custCode}'));
 
-      // Identify properties in Hive that don't exist in the fetched data
-      Set<String> propertiesToDelete =
-          hivePropertiesKeys.difference(fetchedPropertiesKeys);
-
-      // Delete properties in Hive that don't exist in the fetched data
-      propertiesToDelete.forEach((hivePropertyKey) {
-        properties.delete(hivePropertyKey);
-      });
-    } catch (e) {
-      print('Error synchronizing CustomerProperties from API to Hive: $e');
-    }
+    // Delete properties not present in the updated data
+    Set<String> updatedPropertiesKeys = propertiesToUpdate.map((property) => '${property.cmpCode}${property.propCode}${property.custCode}').toSet();
+    propertiesBox.keys.where((propertyKey) => !updatedPropertiesKeys.contains(propertyKey)).forEach((propertyKey) {
+      propertiesToDelete.add(propertyKey);
+    });
+    await propertiesBox.deleteAll(propertiesToDelete);
+  } catch (e) {
+    print('Error synchronizing CustomerProperties from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -4404,68 +3934,47 @@ Future<void> _synchronizeCustomerProperties(
     }
     return customerAttachmentsData;
   }
-
 Future<void> _synchronizeCustomerAttachments(
   List<Map<String, dynamic>> customerAttachmentsData,
-  Box<CustomerAttachments> attachments,
+  Box<CustomerAttachments> attachmentsBox,
 ) async {
   try {
-    // Iterate over the retrieved data
+    List<CustomerAttachments> attachmentsToUpdate = [];
+    List<String> attachmentsToDelete = [];
+
+    // Prepare attachments to update
     for (var data in customerAttachmentsData) {
-      var cmpCode = data['cmpCode']??'';
-      var custCode = data['custCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custCode = data['custCode'] ?? '';
 
-        // Check if the attachment exists in Hive
-        var hiveAttachment = attachments.get('$cmpCode$custCode');
+      var updatedAttachment = CustomerAttachments(
+        cmpCode: cmpCode,
+        custCode: custCode,
+        attach: data['attach'] ?? '',
+        attachType: data['attachType'] ?? '',
+        notes: data['notes'] ?? '',
+        lineID: data['lineID'] ?? '',
+        attachPath: data['attachPath'] ?? '',
+        attachFile: data['attachFile'] ?? '',
+      );
 
-      // If the attachment doesn't exist in Hive, add it
-      if (hiveAttachment == null) {
-        var newAttachment = CustomerAttachments(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          attach: data['attach']??'',
-          attachType: data['attachType']??'',
-          notes: data['notes']??'', 
-          lineID: data['lineID'], 
-          attachPath: data['attachPath'], 
-          attachFile: data['attachFile'],
-        );
-        await attachments.put('$cmpCode$custCode', newAttachment);
-      }
-      // If the attachment exists in Hive, update it if needed
-      else {
-        var updatedAttachment = CustomerAttachments(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          attach: data['attach']??'',
-          attachType: data['attachType']??'',
-          notes: data['notes']??'', 
-      lineID: data['lineID'], 
-          attachPath: data['attachPath'], 
-          attachFile: data['attachFile'],
-        );
-        // Update the attachment in Hive
-        await attachments.put('$cmpCode$custCode', updatedAttachment);
-      }
+      attachmentsToUpdate.add(updatedAttachment);
     }
 
-      // Check for attachments in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedAttachmentsKeys = Set.from(customerAttachmentsData
-          .map((data) => '${data['cmpCode']}${data['custCode']}'));
-      Set<String> hiveAttachmentsKeys = Set.from(attachments.keys);
+    // Batch update attachments
+    await attachmentsBox.putAll(Map.fromIterable(attachmentsToUpdate, key: (attachment) => '${attachment.cmpCode}${attachment.custCode}'));
 
-      // Identify attachments in Hive that don't exist in the fetched data
-      Set<String> attachmentsToDelete =
-          hiveAttachmentsKeys.difference(fetchedAttachmentsKeys);
-
-      // Delete attachments in Hive that don't exist in the fetched data
-      attachmentsToDelete.forEach((hiveAttachmentKey) {
-        attachments.delete(hiveAttachmentKey);
-      });
-    } catch (e) {
-      print('Error synchronizing CustomerAttachments from API to Hive: $e');
-    }
+    // Delete attachments not present in the updated data
+    Set<String> updatedAttachmentsKeys = attachmentsToUpdate.map((attachment) => '${attachment.cmpCode}${attachment.custCode}').toSet();
+    attachmentsBox.keys.where((attachmentKey) => !updatedAttachmentsKeys.contains(attachmentKey)).forEach((attachmentKey) {
+      attachmentsToDelete.add(attachmentKey);
+    });
+    await attachmentsBox.deleteAll(attachmentsToDelete);
+  } catch (e) {
+    print('Error synchronizing CustomerAttachments from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -4530,74 +4039,49 @@ Future<void> _synchronizeCustomerAttachments(
 
 Future<void> _synchronizeCustomerItemsSpecialPrice(
   List<Map<String, dynamic>> customerItemsSpecialPriceData,
-  Box<CustomerItemsSpecialPrice> specialPrice,
+  Box<CustomerItemsSpecialPrice> specialPriceBox,
 ) async {
   try {
-    // Iterate over the retrieved data
+    List<CustomerItemsSpecialPrice> specialPricesToUpdate = [];
+    List<String> specialPricesToDelete = [];
+
+    // Prepare special prices to update
     for (var data in customerItemsSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custCode = data['custCode']??'';
-      var itemCode = data['itemCode']??'';
-      var uom = data['uom']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custCode = data['custCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var uom = data['uom'] ?? '';
 
-        // Check if the special price exists in Hive
-        var hiveSpecialPrice =
-            specialPrice.get('$cmpCode$itemCode$custCode$uom');
+      var updatedSpecialPrice = CustomerItemsSpecialPrice(
+        cmpCode: cmpCode,
+        custCode: custCode,
+        itemCode: itemCode,
+        uom: uom,
+        basePrice: data['basePrice'] ?? '',
+        currency: data['currency'] ?? '',
+        auto: data['auto'] ?? '',
+        disc: data['disc'] ?? '',
+        price: data['price'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the special price doesn't exist in Hive, add it
-      if (hiveSpecialPrice == null) {
-        var newSpecialPrice = CustomerItemsSpecialPrice(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          itemCode: itemCode,
-          uom: uom,
-          basePrice: data['basePrice']??'',
-          currency: data['currency']??'',
-          auto: data['auto']??'',
-          disc: data['disc']??'',
-          price: data['price']??'',
-          notes: data['notes']??'',
-        );
-        await specialPrice.put('$cmpCode$itemCode$custCode$uom', newSpecialPrice);
-      }
-      // If the special price exists in Hive, update it if needed
-      else {
-        var updatedSpecialPrice = CustomerItemsSpecialPrice(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          itemCode: itemCode,
-          uom: uom,
-          basePrice: data['basePrice']??'',
-          currency: data['currency']??'',
-          auto: data['auto']??'',
-          disc: data['disc']??'',
-          price: data['price']??'',
-          notes: data['notes']??'',
-        );
-        // Update the special price in Hive
-        await specialPrice.put('$cmpCode$itemCode$custCode$uom', updatedSpecialPrice);
-      }
+      specialPricesToUpdate.add(updatedSpecialPrice);
     }
 
-      // Check for special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedSpecialPriceKeys = Set.from(
-          customerItemsSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['itemCode']}${data['custCode']}${data['uom']}'));
-      Set<String> hiveSpecialPriceKeys = Set.from(specialPrice.keys);
+    // Batch update special prices
+    await specialPriceBox.putAll(Map.fromIterable(specialPricesToUpdate, key: (specialPrice) => '${specialPrice.cmpCode}${specialPrice.itemCode}${specialPrice.custCode}${specialPrice.uom}'));
 
-      // Identify special prices in Hive that don't exist in the fetched data
-      Set<String> specialPricesToDelete =
-          hiveSpecialPriceKeys.difference(fetchedSpecialPriceKeys);
-
-      // Delete special prices in Hive that don't exist in the fetched data
-      specialPricesToDelete.forEach((hiveSpecialPriceKey) {
-        specialPrice.delete(hiveSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerItemsSpecialPrice from API to Hive: $e');
-    }
+    // Delete special prices not present in the updated data
+    Set<String> updatedSpecialPriceKeys = specialPricesToUpdate.map((specialPrice) => '${specialPrice.cmpCode}${specialPrice.itemCode}${specialPrice.custCode}${specialPrice.uom}').toSet();
+    specialPriceBox.keys.where((specialPriceKey) => !updatedSpecialPriceKeys.contains(specialPriceKey)).forEach((specialPriceKey) {
+      specialPricesToDelete.add(specialPriceKey);
+    });
+    await specialPriceBox.deleteAll(specialPricesToDelete);
+  } catch (e) {
+    print('Error synchronizing CustomerItemsSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -4656,66 +4140,56 @@ Future<List<Map<String, dynamic>>> _fetchCustomerBrandsSpecialPriceData(List<Str
   }
   return customerBrandsSpecialPriceData;
 }
-
 Future<void> _synchronizeCustomerBrandsSpecialPrice(
   List<Map<String, dynamic>> customerBrandsSpecialPriceData,
-  Box<CustomerBrandsSpecialPrice> brandsSpecialPrice,
+  Box<CustomerBrandsSpecialPrice> brandsSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerBrandsSpecialPrice> brandsSpecialPriceToUpdate = [];
+    List<String> brandsSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerBrandsSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custCode = data['custCode']??'';
-      var brandCode = data['brandCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custCode = data['custCode'] ?? '';
+      var brandCode = data['brandCode'] ?? '';
 
-        // Check if the brand special price exists in Hive
-        var hiveBrandSpecialPrice =
-            brandsSpecialPrice.get('$cmpCode$custCode$brandCode');
+      var updatedBrandSpecialPrice = CustomerBrandsSpecialPrice(
+        cmpCode: cmpCode,
+        custCode: custCode,
+        brandCode: brandCode,
+        disc: data['disc'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the brand special price doesn't exist in Hive, add it
-      if (hiveBrandSpecialPrice == null) {
-        var newBrandSpecialPrice = CustomerBrandsSpecialPrice(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          brandCode: brandCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        await brandsSpecialPrice.put('$cmpCode$custCode$brandCode', newBrandSpecialPrice);
-      }
-      // If the brand special price exists in Hive, update it if needed
-      else {
-        var updatedBrandSpecialPrice = CustomerBrandsSpecialPrice(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          brandCode: brandCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        // Update the brand special price in Hive
-        await brandsSpecialPrice.put('$cmpCode$custCode$brandCode', updatedBrandSpecialPrice);
-      }
+      brandsSpecialPriceToUpdate.add(updatedBrandSpecialPrice);
     }
 
-      // Check for brand special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedBrandSpecialPriceKeys = Set.from(
-          customerBrandsSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custCode']}${data['brandCode']}'));
-      Set<String> hiveBrandSpecialPriceKeys = Set.from(brandsSpecialPrice.keys);
+    // Batch update brand special prices
+    await brandsSpecialPriceBox.putAll(Map.fromIterable(
+      brandsSpecialPriceToUpdate,
+      key: (brandSpecialPrice) =>
+          '${brandSpecialPrice.cmpCode}${brandSpecialPrice.custCode}${brandSpecialPrice.brandCode}',
+    ));
 
-      // Identify brand special prices in Hive that don't exist in Firestore
-      Set<String> brandSpecialPricesToDelete =
-          hiveBrandSpecialPriceKeys.difference(fetchedBrandSpecialPriceKeys);
-
-      // Delete brand special prices in Hive that don't exist in the fetched data
-      brandSpecialPricesToDelete.forEach((hiveBrandSpecialPriceKey) {
-        brandsSpecialPrice.delete(hiveBrandSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerBrandsSpecialPrice from API to Hive: $e');
-    }
+    // Delete brand special prices not present in the updated data
+    Set<String> updatedBrandSpecialPriceKeys = brandsSpecialPriceToUpdate
+        .map((brandSpecialPrice) =>
+            '${brandSpecialPrice.cmpCode}${brandSpecialPrice.custCode}${brandSpecialPrice.brandCode}')
+        .toSet();
+    brandsSpecialPriceBox.keys
+        .where((brandSpecialPriceKey) =>
+            !updatedBrandSpecialPriceKeys.contains(brandSpecialPriceKey))
+        .forEach((brandSpecialPriceKey) {
+      brandsSpecialPriceToDelete.add(brandSpecialPriceKey);
+    });
+    await brandsSpecialPriceBox.deleteAll(brandsSpecialPriceToDelete);
+  } catch (e) {
+    print('Error synchronizing CustomerBrandsSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -4774,66 +4248,56 @@ Future<List<Map<String, dynamic>>> _fetchCustomerGroupsSpecialPriceData(List<Str
   }
   return customerGroupsSpecialPriceData;
 }
-
 Future<void> _synchronizeCustomerGroupsSpecialPrice(
   List<Map<String, dynamic>> customerGroupsSpecialPriceData,
-  Box<CustomerGroupsSpecialPrice> groupsSpecialPrice,
+  Box<CustomerGroupsSpecialPrice> groupsSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerGroupsSpecialPrice> groupsSpecialPriceToUpdate = [];
+    List<String> groupsSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerGroupsSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custCode = data['custCode']??'';
-      var groupCode = data['groupCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custCode = data['custCode'] ?? '';
+      var groupCode = data['groupCode'] ?? '';
 
-        // Check if the group special price exists in Hive
-        var hiveGroupSpecialPrice =
-            groupsSpecialPrice.get('$cmpCode$custCode$groupCode');
+      var updatedGroupSpecialPrice = CustomerGroupsSpecialPrice(
+        cmpCode: cmpCode,
+        custCode: custCode,
+        groupCode: groupCode,
+        disc: data['disc'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the group special price doesn't exist in Hive, add it
-      if (hiveGroupSpecialPrice == null) {
-        var newGroupSpecialPrice = CustomerGroupsSpecialPrice(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          groupCode: groupCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        await groupsSpecialPrice.put('$cmpCode$custCode$groupCode', newGroupSpecialPrice);
-      }
-      // If the group special price exists in Hive, update it if needed
-      else {
-        var updatedGroupSpecialPrice = CustomerGroupsSpecialPrice(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          groupCode: groupCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        // Update the group special price in Hive
-        await groupsSpecialPrice.put('$cmpCode$custCode$groupCode', updatedGroupSpecialPrice);
-      }
+      groupsSpecialPriceToUpdate.add(updatedGroupSpecialPrice);
     }
 
-      // Check for group special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedGroupSpecialPriceKeys = Set.from(
-          customerGroupsSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custCode']}${data['groupCode']}'));
-      Set<String> hiveGroupSpecialPriceKeys = Set.from(groupsSpecialPrice.keys);
+    // Batch update group special prices
+    await groupsSpecialPriceBox.putAll(Map.fromIterable(
+      groupsSpecialPriceToUpdate,
+      key: (groupSpecialPrice) =>
+          '${groupSpecialPrice.cmpCode}${groupSpecialPrice.custCode}${groupSpecialPrice.groupCode}',
+    ));
 
-      // Identify group special prices in Hive that don't exist in Firestore
-      Set<String> groupSpecialPricesToDelete =
-          hiveGroupSpecialPriceKeys.difference(fetchedGroupSpecialPriceKeys);
-
-      // Delete group special prices in Hive that don't exist in the fetched data
-      groupSpecialPricesToDelete.forEach((hiveGroupSpecialPriceKey) {
-        groupsSpecialPrice.delete(hiveGroupSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerGroupsSpecialPrice from API to Hive: $e');
-    }
+    // Delete group special prices not present in the updated data
+    Set<String> updatedGroupSpecialPriceKeys = groupsSpecialPriceToUpdate
+        .map((groupSpecialPrice) =>
+            '${groupSpecialPrice.cmpCode}${groupSpecialPrice.custCode}${groupSpecialPrice.groupCode}')
+        .toSet();
+    groupsSpecialPriceBox.keys
+        .where((groupSpecialPriceKey) =>
+            !updatedGroupSpecialPriceKeys.contains(groupSpecialPriceKey))
+        .forEach((groupSpecialPriceKey) {
+      groupsSpecialPriceToDelete.add(groupSpecialPriceKey);
+    });
+    await groupsSpecialPriceBox.deleteAll(groupsSpecialPriceToDelete);
+  } catch (e) {
+    print('Error synchronizing CustomerGroupsSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -4895,66 +4359,57 @@ Future<void> _synchronizeCustomerGroupsSpecialPrice(
     }
     return customerCategSpecialPriceData;
   }
-
 Future<void> _synchronizeCustomerCategSpecialPrice(
   List<Map<String, dynamic>> customerCategSpecialPriceData,
-  Box<CustomerCategSpecialPrice> categSpecialPrice,
+  Box<CustomerCategSpecialPrice> categSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerCategSpecialPrice> categSpecialPriceToUpdate = [];
+    List<String> categSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerCategSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custCode = data['custCode']??'';
-      var categCode = data['categCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custCode = data['custCode'] ?? '';
+      var categCode = data['categCode'] ?? '';
 
-        // Check if the categ special price exists in Hive
-        var hiveCategSpecialPrice =
-            categSpecialPrice.get('$cmpCode$custCode$categCode');
+      var updatedCategSpecialPrice = CustomerCategSpecialPrice(
+        cmpCode: cmpCode,
+        custCode: custCode,
+        categCode: categCode,
+        disc: data['disc'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the categ special price doesn't exist in Hive, add it
-      if (hiveCategSpecialPrice == null) {
-        var newCategSpecialPrice = CustomerCategSpecialPrice(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          categCode: categCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        await categSpecialPrice.put('$cmpCode$custCode$categCode', newCategSpecialPrice);
-      }
-      // If the categ special price exists in Hive, update it if needed
-      else {
-        var updatedCategSpecialPrice = CustomerCategSpecialPrice(
-          cmpCode: cmpCode,
-          custCode: custCode,
-          categCode: categCode,
-           disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        // Update the categ special price in Hive
-        await categSpecialPrice.put('$cmpCode$custCode$categCode', updatedCategSpecialPrice);
-      }
+      categSpecialPriceToUpdate.add(updatedCategSpecialPrice);
     }
 
-      // Check for categ special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedCategSpecialPriceKeys = Set.from(
-          customerCategSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custCode']}${data['categCode']}'));
-      Set<String> hiveCategSpecialPriceKeys = Set.from(categSpecialPrice.keys);
+    // Batch update category special prices
+    await categSpecialPriceBox.putAll(Map.fromIterable(
+      categSpecialPriceToUpdate,
+      key: (categSpecialPrice) =>
+          '${categSpecialPrice.cmpCode}${categSpecialPrice.custCode}${categSpecialPrice.categCode}',
+    ));
 
-      // Identify categ special prices in Hive that don't exist in Firestore
-      Set<String> categSpecialPricesToDelete =
-          hiveCategSpecialPriceKeys.difference(fetchedCategSpecialPriceKeys);
-
-      // Delete categ special prices in Hive that don't exist in the fetched data
-      categSpecialPricesToDelete.forEach((hiveCategSpecialPriceKey) {
-        categSpecialPrice.delete(hiveCategSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerCategSpecialPrice from API to Hive: $e');
-    }
+    // Delete category special prices not present in the updated data
+    Set<String> updatedCategSpecialPriceKeys = categSpecialPriceToUpdate
+        .map((categSpecialPrice) =>
+            '${categSpecialPrice.cmpCode}${categSpecialPrice.custCode}${categSpecialPrice.categCode}')
+        .toSet();
+    categSpecialPriceBox.keys
+        .where((categSpecialPriceKey) =>
+            !updatedCategSpecialPriceKeys.contains(categSpecialPriceKey))
+        .forEach((categSpecialPriceKey) {
+      categSpecialPriceToDelete.add(categSpecialPriceKey);
+    });
+    await categSpecialPriceBox.deleteAll(categSpecialPriceToDelete);
+  } catch (e) {
+    print(
+        'Error synchronizing CustomerCategSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -5038,79 +4493,64 @@ Future<void> _synchronizeCustomerCategSpecialPrice(
     }
     return customerGroupItemsSpecialPriceData;
   }
-
 Future<void> _synchronizeCustomerGroupItemsSpecialPrice(
   List<Map<String, dynamic>> customerGroupItemsSpecialPriceData,
-  Box<CustomerGroupItemsSpecialPrice> groupItemsSpecialPrice,
+  Box<CustomerGroupItemsSpecialPrice> groupItemsSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerGroupItemsSpecialPrice> groupItemsSpecialPriceToUpdate = [];
+    List<String> groupItemsSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerGroupItemsSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custGroupCode = data['custGroupCode']??'';
-      var itemCode = data['itemCode']??'';
-      var uom = data['uom']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custGroupCode = data['custGroupCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var uom = data['uom'] ?? '';
 
-        // Check if the group item special price exists in Hive
-        var hiveGroupItemSpecialPrice =
-            groupItemsSpecialPrice.get('$cmpCode$custGroupCode$itemCode$uom');
+      var updatedGroupItemSpecialPrice = CustomerGroupItemsSpecialPrice(
+        cmpCode: cmpCode,
+        custGroupCode: custGroupCode,
+        itemCode: itemCode,
+        uom: uom,
+        basePrice: data['basePrice'] ?? '',
+        currency: data['currency'] ?? '',
+        auto: data['auto'] ?? '',
+        disc: data['disc'] ?? '',
+        price: data['price'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the group item special price doesn't exist in Hive, add it
-      if (hiveGroupItemSpecialPrice == null) {
-        var newGroupItemSpecialPrice = CustomerGroupItemsSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          itemCode: itemCode,
-          uom: uom,
-          basePrice: data['basePrice']??'',
-          currency: data['currency']??'',
-          auto: data['auto']??'',
-          disc: data['disc']??'',
-          price: data['price']??'',
-          notes: data['notes']??'',
-        );
-        await groupItemsSpecialPrice.put('$cmpCode$custGroupCode$itemCode$uom', newGroupItemSpecialPrice);
-      }
-      // If the group item special price exists in Hive, update it if needed
-      else {
-        var updatedGroupItemSpecialPrice = CustomerGroupItemsSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          itemCode: itemCode,
-          uom: uom,
-          basePrice: data['basePrice']??'',
-          currency: data['currency']??'',
-          auto: data['auto']??'',
-          disc: data['disc']??'',
-          price: data['price']??'',
-          notes: data['notes']??'',
-        );
-        // Update the group item special price in Hive
-        await groupItemsSpecialPrice.put('$cmpCode$custGroupCode$itemCode$uom', updatedGroupItemSpecialPrice);
-      }
+      groupItemsSpecialPriceToUpdate.add(updatedGroupItemSpecialPrice);
     }
 
-      // Check for group item special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedGroupItemsSpecialPriceKeys = Set.from(
-          customerGroupItemsSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custGroupCode']}${data['itemCode']}${data['uom']}'));
-      Set<String> hiveGroupItemsSpecialPriceKeys =
-          Set.from(groupItemsSpecialPrice.keys);
+    // Batch update group item special prices
+    await groupItemsSpecialPriceBox.putAll(Map.fromIterable(
+      groupItemsSpecialPriceToUpdate,
+      key: (groupItemSpecialPrice) =>
+          '${groupItemSpecialPrice.cmpCode}${groupItemSpecialPrice.custGroupCode}${groupItemSpecialPrice.itemCode}${groupItemSpecialPrice.uom}',
+    ));
 
-      // Identify group item special prices in Hive that don't exist in Firestore
-      Set<String> groupItemsSpecialPricesToDelete =
-          hiveGroupItemsSpecialPriceKeys
-              .difference(fetchedGroupItemsSpecialPriceKeys);
-
-      // Delete group item special prices in Hive that don't exist in the fetched data
-      groupItemsSpecialPricesToDelete.forEach((hiveGroupItemSpecialPriceKey) {
-        groupItemsSpecialPrice.delete(hiveGroupItemSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerGroupItemsSpecialPrice from API to Hive: $e');
-    }
+    // Delete group item special prices not present in the updated data
+    Set<String> updatedGroupItemsSpecialPriceKeys =
+        groupItemsSpecialPriceToUpdate
+            .map((groupItemSpecialPrice) =>
+                '${groupItemSpecialPrice.cmpCode}${groupItemSpecialPrice.custGroupCode}${groupItemSpecialPrice.itemCode}${groupItemSpecialPrice.uom}')
+            .toSet();
+    groupItemsSpecialPriceBox.keys
+        .where((groupItemSpecialPriceKey) =>
+            !updatedGroupItemsSpecialPriceKeys
+                .contains(groupItemSpecialPriceKey))
+        .forEach((groupItemSpecialPriceKey) {
+      groupItemsSpecialPriceToDelete.add(groupItemSpecialPriceKey);
+    });
+    await groupItemsSpecialPriceBox.deleteAll(groupItemsSpecialPriceToDelete);
+  } catch (e) {
+    print(
+        'Error synchronizing CustomerGroupItemsSpecialPrice from API to Hive: $e');
   }
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -5169,68 +4609,59 @@ Future<void> _synchronizeCustomerGroupItemsSpecialPrice(
     }
     return customerGroupBrandSpecialPriceData;
   }
-
 Future<void> _synchronizeCustomerGroupBrandSpecialPrice(
   List<Map<String, dynamic>> customerGroupBrandSpecialPriceData,
-  Box<CustomerGroupBrandSpecialPrice> groupBrandSpecialPrice,
+  Box<CustomerGroupBrandSpecialPrice> groupBrandSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerGroupBrandSpecialPrice> groupBrandSpecialPriceToUpdate = [];
+    List<String> groupBrandSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerGroupBrandSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custGroupCode = data['custGroupCode']??'';
-      var brandCode = data['brandCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custGroupCode = data['custGroupCode'] ?? '';
+      var brandCode = data['brandCode'] ?? '';
 
-        // Check if the group brand special price exists in Hive
-        var hiveGroupBrandSpecialPrice =
-            groupBrandSpecialPrice.get('$cmpCode$custGroupCode$brandCode');
+      var updatedGroupBrandSpecialPrice = CustomerGroupBrandSpecialPrice(
+        cmpCode: cmpCode,
+        custGroupCode: custGroupCode,
+        brandCode: brandCode,
+        disc: data['disc'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the group brand special price doesn't exist in Hive, add it
-      if (hiveGroupBrandSpecialPrice == null) {
-        var newGroupBrandSpecialPrice = CustomerGroupBrandSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          brandCode: brandCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        await groupBrandSpecialPrice.put('$cmpCode$custGroupCode$brandCode', newGroupBrandSpecialPrice);
-      }
-      // If the group brand special price exists in Hive, update it if needed
-      else {
-        var updatedGroupBrandSpecialPrice = CustomerGroupBrandSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          brandCode: brandCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        // Update the group brand special price in Hive
-        await groupBrandSpecialPrice.put('$cmpCode$custGroupCode$brandCode', updatedGroupBrandSpecialPrice);
-      }
+      groupBrandSpecialPriceToUpdate.add(updatedGroupBrandSpecialPrice);
     }
 
-      // Check for group brand special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedGroupBrandSpecialPriceKeys = Set.from(
-          customerGroupBrandSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custGroupCode']}${data['brandCode']}'));
-      Set<String> hiveGroupBrandSpecialPriceKeys =
-          Set.from(groupBrandSpecialPrice.keys);
+    // Batch update group brand special prices
+    await groupBrandSpecialPriceBox.putAll(Map.fromIterable(
+      groupBrandSpecialPriceToUpdate,
+      key: (groupBrandSpecialPrice) =>
+          '${groupBrandSpecialPrice.cmpCode}${groupBrandSpecialPrice.custGroupCode}${groupBrandSpecialPrice.brandCode}',
+    ));
 
-      // Identify group brand special prices in Hive that don't exist in the fetched data
-      Set<String> groupBrandSpecialPricesToDelete =
-          hiveGroupBrandSpecialPriceKeys
-              .difference(fetchedGroupBrandSpecialPriceKeys);
-
-      // Delete group brand special prices in Hive that don't exist in the fetched data
-      groupBrandSpecialPricesToDelete.forEach((hiveGroupBrandSpecialPriceKey) {
-        groupBrandSpecialPrice.delete(hiveGroupBrandSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerGroupBrandSpecialPrice from API to Hive: $e');
-    }
+    // Delete group brand special prices not present in the updated data
+    Set<String> updatedGroupBrandSpecialPriceKeys =
+        groupBrandSpecialPriceToUpdate
+            .map((groupBrandSpecialPrice) =>
+                '${groupBrandSpecialPrice.cmpCode}${groupBrandSpecialPrice.custGroupCode}${groupBrandSpecialPrice.brandCode}')
+            .toSet();
+    groupBrandSpecialPriceBox.keys
+        .where((groupBrandSpecialPriceKey) =>
+            !updatedGroupBrandSpecialPriceKeys
+                .contains(groupBrandSpecialPriceKey))
+        .forEach((groupBrandSpecialPriceKey) {
+      groupBrandSpecialPriceToDelete.add(groupBrandSpecialPriceKey);
+    });
+    await groupBrandSpecialPriceBox.deleteAll(groupBrandSpecialPriceToDelete);
+  } catch (e) {
+    print(
+        'Error synchronizing CustomerGroupBrandSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -5289,68 +4720,59 @@ Future<void> _synchronizeCustomerGroupBrandSpecialPrice(
     }
     return customerGroupGroupSpecialPriceData;
   }
-
 Future<void> _synchronizeCustomerGroupGroupSpecialPrice(
   List<Map<String, dynamic>> customerGroupGroupSpecialPriceData,
-  Box<CustomerGroupGroupSpecialPrice> groupGroupSpecialPrice,
+  Box<CustomerGroupGroupSpecialPrice> groupGroupSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerGroupGroupSpecialPrice> groupGroupSpecialPriceToUpdate = [];
+    List<String> groupGroupSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerGroupGroupSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custGroupCode = data['custGroupCode']??'';
-      var groupCode = data['groupCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custGroupCode = data['custGroupCode'] ?? '';
+      var groupCode = data['groupCode'] ?? '';
 
-        // Check if the group group special price exists in Hive
-        var hiveGroupGroupSpecialPrice =
-            groupGroupSpecialPrice.get('$cmpCode$custGroupCode$groupCode');
+      var updatedGroupGroupSpecialPrice = CustomerGroupGroupSpecialPrice(
+        cmpCode: cmpCode,
+        custGroupCode: custGroupCode,
+        groupCode: groupCode,
+        disc: data['disc'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the group group special price doesn't exist in Hive, add it
-      if (hiveGroupGroupSpecialPrice == null) {
-        var newGroupGroupSpecialPrice = CustomerGroupGroupSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          groupCode: groupCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        await groupGroupSpecialPrice.put('$cmpCode$custGroupCode$groupCode', newGroupGroupSpecialPrice);
-      }
-      // If the group group special price exists in Hive, update it if needed
-      else {
-        var updatedGroupGroupSpecialPrice = CustomerGroupGroupSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          groupCode: groupCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        // Update the group group special price in Hive
-        await groupGroupSpecialPrice.put('$cmpCode$custGroupCode$groupCode', updatedGroupGroupSpecialPrice);
-      }
+      groupGroupSpecialPriceToUpdate.add(updatedGroupGroupSpecialPrice);
     }
 
-      // Check for group group special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedGroupGroupSpecialPriceKeys = Set.from(
-          customerGroupGroupSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custGroupCode']}${data['groupCode']}'));
-      Set<String> hiveGroupGroupSpecialPriceKeys =
-          Set.from(groupGroupSpecialPrice.keys);
+    // Batch update group group special prices
+    await groupGroupSpecialPriceBox.putAll(Map.fromIterable(
+      groupGroupSpecialPriceToUpdate,
+      key: (groupGroupSpecialPrice) =>
+          '${groupGroupSpecialPrice.cmpCode}${groupGroupSpecialPrice.custGroupCode}${groupGroupSpecialPrice.groupCode}',
+    ));
 
-      // Identify group group special prices in Hive that don't exist in the fetched data
-      Set<String> groupGroupSpecialPricesToDelete =
-          hiveGroupGroupSpecialPriceKeys
-              .difference(fetchedGroupGroupSpecialPriceKeys);
-
-      // Delete group group special prices in Hive that don't exist in the fetched data
-      groupGroupSpecialPricesToDelete.forEach((hiveGroupGroupSpecialPriceKey) {
-        groupGroupSpecialPrice.delete(hiveGroupGroupSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerGroupGroupSpecialPrice from API to Hive: $e');
-    }
+    // Delete group group special prices not present in the updated data
+    Set<String> updatedGroupGroupSpecialPriceKeys =
+        groupGroupSpecialPriceToUpdate
+            .map((groupGroupSpecialPrice) =>
+                '${groupGroupSpecialPrice.cmpCode}${groupGroupSpecialPrice.custGroupCode}${groupGroupSpecialPrice.groupCode}')
+            .toSet();
+    groupGroupSpecialPriceBox.keys
+        .where((groupGroupSpecialPriceKey) =>
+            !updatedGroupGroupSpecialPriceKeys
+                .contains(groupGroupSpecialPriceKey))
+        .forEach((groupGroupSpecialPriceKey) {
+      groupGroupSpecialPriceToDelete.add(groupGroupSpecialPriceKey);
+    });
+    await groupGroupSpecialPriceBox.deleteAll(groupGroupSpecialPriceToDelete);
+  } catch (e) {
+    print(
+        'Error synchronizing CustomerGroupGroupSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -5410,68 +4832,59 @@ Future<void> _synchronizeCustomerGroupGroupSpecialPrice(
     }
     return customerGroupCategSpecialPriceData;
   }
-
 Future<void> _synchronizeCustomerGroupCategSpecialPrice(
   List<Map<String, dynamic>> customerGroupCategSpecialPriceData,
-  Box<CustomerGroupCategSpecialPrice> groupCategSpecialPrice,
+  Box<CustomerGroupCategSpecialPrice> groupCategSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerGroupCategSpecialPrice> groupCategSpecialPriceToUpdate = [];
+    List<String> groupCategSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerGroupCategSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custGroupCode = data['custGroupCode']??'';
-      var categCode = data['categCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custGroupCode = data['custGroupCode'] ?? '';
+      var categCode = data['categCode'] ?? '';
 
-        // Check if the group categ special price exists in Hive
-        var hiveGroupCategSpecialPrice =
-            groupCategSpecialPrice.get('$cmpCode$custGroupCode$categCode');
+      var updatedGroupCategSpecialPrice = CustomerGroupCategSpecialPrice(
+        cmpCode: cmpCode,
+        custGroupCode: custGroupCode,
+        categCode: categCode,
+        disc: data['disc'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the group categ special price doesn't exist in Hive, add it
-      if (hiveGroupCategSpecialPrice == null) {
-        var newGroupCategSpecialPrice = CustomerGroupCategSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          categCode: categCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        await groupCategSpecialPrice.put('$cmpCode$custGroupCode$categCode', newGroupCategSpecialPrice);
-      }
-      // If the group categ special price exists in Hive, update it if needed
-      else {
-        var updatedGroupCategSpecialPrice = CustomerGroupCategSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          categCode: categCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        // Update the group categ special price in Hive
-        await groupCategSpecialPrice.put('$cmpCode$custGroupCode$categCode', updatedGroupCategSpecialPrice);
-      }
+      groupCategSpecialPriceToUpdate.add(updatedGroupCategSpecialPrice);
     }
 
-      // Check for group categ special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedGroupCategSpecialPriceKeys = Set.from(
-          customerGroupCategSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custGroupCode']}${data['categCode']}'));
-      Set<String> hiveGroupCategSpecialPriceKeys =
-          Set.from(groupCategSpecialPrice.keys);
+    // Batch update group categ special prices
+    await groupCategSpecialPriceBox.putAll(Map.fromIterable(
+      groupCategSpecialPriceToUpdate,
+      key: (groupCategSpecialPrice) =>
+          '${groupCategSpecialPrice.cmpCode}${groupCategSpecialPrice.custGroupCode}${groupCategSpecialPrice.categCode}',
+    ));
 
-      // Identify group categ special prices in Hive that don't exist in the fetched data
-      Set<String> groupCategSpecialPricesToDelete =
-          hiveGroupCategSpecialPriceKeys
-              .difference(fetchedGroupCategSpecialPriceKeys);
-
-      // Delete group categ special prices in Hive that don't exist in the fetched data
-      groupCategSpecialPricesToDelete.forEach((hiveGroupCategSpecialPriceKey) {
-        groupCategSpecialPrice.delete(hiveGroupCategSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerGroupCategSpecialPrice from API to Hive: $e');
-    }
+    // Delete group categ special prices not present in the updated data
+    Set<String> updatedGroupCategSpecialPriceKeys =
+        groupCategSpecialPriceToUpdate
+            .map((groupCategSpecialPrice) =>
+                '${groupCategSpecialPrice.cmpCode}${groupCategSpecialPrice.custGroupCode}${groupCategSpecialPrice.categCode}')
+            .toSet();
+    groupCategSpecialPriceBox.keys
+        .where((groupCategSpecialPriceKey) =>
+            !updatedGroupCategSpecialPriceKeys
+                .contains(groupCategSpecialPriceKey))
+        .forEach((groupCategSpecialPriceKey) {
+      groupCategSpecialPriceToDelete.add(groupCategSpecialPriceKey);
+    });
+    await groupCategSpecialPriceBox.deleteAll(groupCategSpecialPriceToDelete);
+  } catch (e) {
+    print(
+        'Error synchronizing CustomerGroupCategSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -5566,78 +4979,65 @@ Future<void> _synchronizeCustomerGroupCategSpecialPrice(
     }
     return customerPropItemsSpecialPriceData;
   }
-
 Future<void> _synchronizeCustomerPropItemsSpecialPrice(
   List<Map<String, dynamic>> customerPropItemsSpecialPriceData,
-  Box<CustomerPropItemsSpecialPrice> propItemsSpecialPrice,
+  Box<CustomerPropItemsSpecialPrice> propItemsSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerPropItemsSpecialPrice> propItemsSpecialPriceToUpdate = [];
+    List<String> propItemsSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerPropItemsSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custPropCode = data['custPropCode']??'';
-      var itemCode = data['itemCode']??'';
-      var uom = data['uom']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custPropCode = data['custPropCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var uom = data['uom'] ?? '';
 
-        // Check if the prop items special price exists in Hive
-        var hivePropItemsSpecialPrice =
-            propItemsSpecialPrice.get('$cmpCode$custPropCode$itemCode$uom');
+      var updatedPropItemsSpecialPrice = CustomerPropItemsSpecialPrice(
+        cmpCode: cmpCode,
+        custPropCode: custPropCode,
+        itemCode: itemCode,
+        uom: uom,
+        basePrice: data['basePrice'] ?? '',
+        currency: data['currency'] ?? '',
+        auto: data['auto'] ?? '',
+        disc: data['disc'] ?? '',
+        price: data['price'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the prop items special price doesn't exist in Hive, add it
-      if (hivePropItemsSpecialPrice == null) {
-        var newPropItemsSpecialPrice = CustomerPropItemsSpecialPrice(
-          cmpCode: cmpCode,
-          custPropCode: custPropCode,
-          itemCode: itemCode,
-          uom: uom,
-          basePrice: data['basePrice']??'',
-          currency: data['currency']??'',
-          auto: data['auto']??'',
-          disc: data['disc']??'',
-          price: data['price']??'',
-          notes: data['notes']??'',
-        );
-        await propItemsSpecialPrice.put('$cmpCode$custPropCode$itemCode$uom', newPropItemsSpecialPrice);
-      }
-      // If the prop items special price exists in Hive, update it if needed
-      else {
-        var updatedPropItemsSpecialPrice = CustomerPropItemsSpecialPrice(
-          cmpCode: cmpCode,
-          custPropCode: custPropCode,
-          itemCode: itemCode,
-          uom: uom,
-          basePrice: data['basePrice']??'',
-          currency: data['currency']??'',
-          auto: data['auto']??'',
-          disc: data['disc']??'',
-          price: data['price']??'',
-          notes: data['notes']??'',
-        );
-        // Update the prop items special price in Hive
-        await propItemsSpecialPrice.put('$cmpCode$custPropCode$itemCode$uom', updatedPropItemsSpecialPrice);
-      }
+      propItemsSpecialPriceToUpdate.add(updatedPropItemsSpecialPrice);
     }
 
-      // Check for prop items special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedPropItemsSpecialPriceKeys = Set.from(
-          customerPropItemsSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custPropCode']}${data['itemCode']}${data['uom']}'));
-      Set<String> hivePropItemsSpecialPriceKeys =
-          Set.from(propItemsSpecialPrice.keys);
+    // Batch update prop items special prices
+    await propItemsSpecialPriceBox.putAll(Map.fromIterable(
+      propItemsSpecialPriceToUpdate,
+      key: (propItemsSpecialPrice) =>
+          '${propItemsSpecialPrice.cmpCode}${propItemsSpecialPrice.custPropCode}${propItemsSpecialPrice.itemCode}${propItemsSpecialPrice.uom}',
+    ));
 
-      // Identify prop items special prices in Hive that don't exist in the fetched data
-      Set<String> propItemsSpecialPricesToDelete = hivePropItemsSpecialPriceKeys
-          .difference(fetchedPropItemsSpecialPriceKeys);
-
-      // Delete prop items special prices in Hive that don't exist in the fetched data
-      propItemsSpecialPricesToDelete.forEach((hivePropItemsSpecialPriceKey) {
-        propItemsSpecialPrice.delete(hivePropItemsSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerPropItemsSpecialPrice from API to Hive: $e');
-    }
+    // Delete prop items special prices not present in the updated data
+    Set<String> updatedPropItemsSpecialPriceKeys =
+        propItemsSpecialPriceToUpdate
+            .map((propItemsSpecialPrice) =>
+                '${propItemsSpecialPrice.cmpCode}${propItemsSpecialPrice.custPropCode}${propItemsSpecialPrice.itemCode}${propItemsSpecialPrice.uom}')
+            .toSet();
+    propItemsSpecialPriceBox.keys
+        .where((propItemsSpecialPriceKey) =>
+            !updatedPropItemsSpecialPriceKeys
+                .contains(propItemsSpecialPriceKey))
+        .forEach((propItemsSpecialPriceKey) {
+      propItemsSpecialPriceToDelete.add(propItemsSpecialPriceKey);
+    });
+    await propItemsSpecialPriceBox.deleteAll(propItemsSpecialPriceToDelete);
+  } catch (e) {
+    print(
+        'Error synchronizing CustomerPropItemsSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -5701,67 +5101,59 @@ Future<void> _synchronizeCustomerPropItemsSpecialPrice(
     }
     return customerPropBrandSpecialPriceData;
   }
-
 Future<void> _synchronizeCustomerPropBrandSpecialPrice(
   List<Map<String, dynamic>> customerPropBrandSpecialPriceData,
-  Box<CustomerPropBrandSpecialPrice> propBrandSpecialPrice,
+  Box<CustomerPropBrandSpecialPrice> propBrandSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerPropBrandSpecialPrice> propBrandSpecialPriceToUpdate = [];
+    List<String> propBrandSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerPropBrandSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custPropCode = data['custPropCode']??'';
-      var brandCode = data['brandCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custPropCode = data['custPropCode'] ?? '';
+      var brandCode = data['brandCode'] ?? '';
 
-        // Check if the prop brand special price exists in Hive
-        var hivePropBrandSpecialPrice =
-            propBrandSpecialPrice.get('$cmpCode$custPropCode$brandCode');
+      var updatedPropBrandSpecialPrice = CustomerPropBrandSpecialPrice(
+        cmpCode: cmpCode,
+        custPropCode: custPropCode,
+        brandCode: brandCode,
+        disc: data['disc'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the prop brand special price doesn't exist in Hive, add it
-      if (hivePropBrandSpecialPrice == null) {
-        var newPropBrandSpecialPrice = CustomerPropBrandSpecialPrice(
-          cmpCode: cmpCode,
-          custPropCode: custPropCode,
-          brandCode: brandCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        await propBrandSpecialPrice.put('$cmpCode$custPropCode$brandCode', newPropBrandSpecialPrice);
-      }
-      // If the prop brand special price exists in Hive, update it if needed
-      else {
-        var updatedPropBrandSpecialPrice = CustomerPropBrandSpecialPrice(
-          cmpCode: cmpCode,
-          custPropCode: custPropCode,
-          brandCode: brandCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        // Update the prop brand special price in Hive
-        await propBrandSpecialPrice.put('$cmpCode$custPropCode$brandCode', updatedPropBrandSpecialPrice);
-      }
+      propBrandSpecialPriceToUpdate.add(updatedPropBrandSpecialPrice);
     }
 
-      // Check for prop brand special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedPropBrandSpecialPriceKeys = Set.from(
-          customerPropBrandSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custPropCode']}${data['brandCode']}'));
-      Set<String> hivePropBrandSpecialPriceKeys =
-          Set.from(propBrandSpecialPrice.keys);
+    // Batch update prop brand special prices
+    await propBrandSpecialPriceBox.putAll(Map.fromIterable(
+      propBrandSpecialPriceToUpdate,
+      key: (propBrandSpecialPrice) =>
+          '${propBrandSpecialPrice.cmpCode}${propBrandSpecialPrice.custPropCode}${propBrandSpecialPrice.brandCode}',
+    ));
 
-      // Identify prop brand special prices in Hive that don't exist in the fetched data
-      Set<String> propBrandSpecialPricesToDelete = hivePropBrandSpecialPriceKeys
-          .difference(fetchedPropBrandSpecialPriceKeys);
-
-      // Delete prop brand special prices in Hive that don't exist in the fetched data
-      propBrandSpecialPricesToDelete.forEach((hivePropBrandSpecialPriceKey) {
-        propBrandSpecialPrice.delete(hivePropBrandSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerPropBrandSpecialPrice from API to Hive: $e');
-    }
+    // Delete prop brand special prices not present in the updated data
+    Set<String> updatedPropBrandSpecialPriceKeys =
+        propBrandSpecialPriceToUpdate
+            .map((propBrandSpecialPrice) =>
+                '${propBrandSpecialPrice.cmpCode}${propBrandSpecialPrice.custPropCode}${propBrandSpecialPrice.brandCode}')
+            .toSet();
+    propBrandSpecialPriceBox.keys
+        .where((propBrandSpecialPriceKey) =>
+            !updatedPropBrandSpecialPriceKeys
+                .contains(propBrandSpecialPriceKey))
+        .forEach((propBrandSpecialPriceKey) {
+      propBrandSpecialPriceToDelete.add(propBrandSpecialPriceKey);
+    });
+    await propBrandSpecialPriceBox.deleteAll(propBrandSpecialPriceToDelete);
+  } catch (e) {
+    print(
+        'Error synchronizing CustomerPropBrandSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -5826,67 +5218,59 @@ Future<void> _synchronizeCustomerPropBrandSpecialPrice(
     }
     return customerPropGroupSpecialPriceData;
   }
-
 Future<void> _synchronizeCustomerPropGroupSpecialPrice(
   List<Map<String, dynamic>> customerPropGroupSpecialPriceData,
-  Box<CustomerPropGroupSpecialPrice> propGroupSpecialPrice,
+  Box<CustomerPropGroupSpecialPrice> propGroupSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerPropGroupSpecialPrice> propGroupSpecialPriceToUpdate = [];
+    List<String> propGroupSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerPropGroupSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custGroupCode = data['custGroupCode']??'';
-      var propCode = data['propCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custGroupCode = data['custGroupCode'] ?? '';
+      var propCode = data['propCode'] ?? '';
 
-        // Check if the prop group special price exists in Hive
-        var hivePropGroupSpecialPrice =
-            propGroupSpecialPrice.get('$cmpCode$custGroupCode$propCode');
+      var updatedPropGroupSpecialPrice = CustomerPropGroupSpecialPrice(
+        cmpCode: cmpCode,
+        custGroupCode: custGroupCode,
+        propCode: propCode,
+        disc: data['disc'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the prop group special price doesn't exist in Hive, add it
-      if (hivePropGroupSpecialPrice == null) {
-        var newPropGroupSpecialPrice = CustomerPropGroupSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          propCode: propCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        await propGroupSpecialPrice.put('$cmpCode$custGroupCode$propCode', newPropGroupSpecialPrice);
-      }
-      // If the prop group special price exists in Hive, update it if needed
-      else {
-        var updatedPropGroupSpecialPrice = CustomerPropGroupSpecialPrice(
-          cmpCode: cmpCode,
-          custGroupCode: custGroupCode,
-          propCode: propCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        // Update the prop group special price in Hive
-        await propGroupSpecialPrice.put('$cmpCode$custGroupCode$propCode', updatedPropGroupSpecialPrice);
-      }
+      propGroupSpecialPriceToUpdate.add(updatedPropGroupSpecialPrice);
     }
 
-      // Check for prop group special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedPropGroupSpecialPriceKeys = Set.from(
-          customerPropGroupSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custGroupCode']}${data['propCode']}'));
-      Set<String> hivePropGroupSpecialPriceKeys =
-          Set.from(propGroupSpecialPrice.keys);
+    // Batch update prop group special prices
+    await propGroupSpecialPriceBox.putAll(Map.fromIterable(
+      propGroupSpecialPriceToUpdate,
+      key: (propGroupSpecialPrice) =>
+          '${propGroupSpecialPrice.cmpCode}${propGroupSpecialPrice.custGroupCode}${propGroupSpecialPrice.propCode}',
+    ));
 
-      // Identify prop group special prices in Hive that don't exist in the fetched data
-      Set<String> propGroupSpecialPricesToDelete = hivePropGroupSpecialPriceKeys
-          .difference(fetchedPropGroupSpecialPriceKeys);
-
-      // Delete prop group special prices in Hive that don't exist in the fetched data
-      propGroupSpecialPricesToDelete.forEach((hivePropGroupSpecialPriceKey) {
-        propGroupSpecialPrice.delete(hivePropGroupSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerPropGroupSpecialPrice from API to Hive: $e');
-    }
+    // Delete prop group special prices not present in the updated data
+    Set<String> updatedPropGroupSpecialPriceKeys =
+        propGroupSpecialPriceToUpdate
+            .map((propGroupSpecialPrice) =>
+                '${propGroupSpecialPrice.cmpCode}${propGroupSpecialPrice.custGroupCode}${propGroupSpecialPrice.propCode}')
+            .toSet();
+    propGroupSpecialPriceBox.keys
+        .where((propGroupSpecialPriceKey) =>
+            !updatedPropGroupSpecialPriceKeys
+                .contains(propGroupSpecialPriceKey))
+        .forEach((propGroupSpecialPriceKey) {
+      propGroupSpecialPriceToDelete.add(propGroupSpecialPriceKey);
+    });
+    await propGroupSpecialPriceBox.deleteAll(propGroupSpecialPriceToDelete);
+  } catch (e) {
+    print(
+        'Error synchronizing CustomerPropGroupSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -5950,67 +5334,59 @@ Future<void> _synchronizeCustomerPropGroupSpecialPrice(
     }
     return customerPropCategSpecialPriceData;
   }
-
 Future<void> _synchronizeCustomerPropCategSpecialPrice(
   List<Map<String, dynamic>> customerPropCategSpecialPriceData,
-  Box<CustomerPropCategSpecialPrice> propCategSpecialPrice,
+  Box<CustomerPropCategSpecialPrice> propCategSpecialPriceBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CustomerPropCategSpecialPrice> propCategSpecialPriceToUpdate = [];
+    List<String> propCategSpecialPriceToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in customerPropCategSpecialPriceData) {
-      var cmpCode = data['cmpCode']??'';
-      var custPropCode = data['custPropCode']??'';
-      var categCode = data['categCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var custPropCode = data['custPropCode'] ?? '';
+      var categCode = data['categCode'] ?? '';
 
-        // Check if the prop categ special price exists in Hive
-        var hivePropCategSpecialPrice =
-            propCategSpecialPrice.get('$cmpCode$custPropCode$categCode');
+      var updatedPropCategSpecialPrice = CustomerPropCategSpecialPrice(
+        cmpCode: cmpCode,
+        custPropCode: custPropCode,
+        categCode: categCode,
+        disc: data['disc'] ?? '',
+        notes: data['notes'] ?? '',
+      );
 
-      // If the prop categ special price doesn't exist in Hive, add it
-      if (hivePropCategSpecialPrice == null) {
-        var newPropCategSpecialPrice = CustomerPropCategSpecialPrice(
-          cmpCode: cmpCode,
-          custPropCode: custPropCode,
-          categCode: categCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        await propCategSpecialPrice.put('$cmpCode$custPropCode$categCode', newPropCategSpecialPrice);
-      }
-      // If the prop categ special price exists in Hive, update it if needed
-      else {
-        var updatedPropCategSpecialPrice = CustomerPropCategSpecialPrice(
-          cmpCode: cmpCode,
-          custPropCode: custPropCode,
-          categCode: categCode,
-          disc: data['disc']??'',
-          notes: data['notes']??'',
-        );
-        // Update the prop categ special price in Hive
-        await propCategSpecialPrice.put('$cmpCode$custPropCode$categCode', updatedPropCategSpecialPrice);
-      }
+      propCategSpecialPriceToUpdate.add(updatedPropCategSpecialPrice);
     }
 
-      // Check for prop categ special prices in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedPropCategSpecialPriceKeys = Set.from(
-          customerPropCategSpecialPriceData.map((data) =>
-              '${data['cmpCode']}${data['custPropCode']}${data['categCode']}'));
-      Set<String> hivePropCategSpecialPriceKeys =
-          Set.from(propCategSpecialPrice.keys);
+    // Batch update prop categ special prices
+    await propCategSpecialPriceBox.putAll(Map.fromIterable(
+      propCategSpecialPriceToUpdate,
+      key: (propCategSpecialPrice) =>
+          '${propCategSpecialPrice.cmpCode}${propCategSpecialPrice.custPropCode}${propCategSpecialPrice.categCode}',
+    ));
 
-      // Identify prop categ special prices in Hive that don't exist in the fetched data
-      Set<String> propCategSpecialPricesToDelete = hivePropCategSpecialPriceKeys
-          .difference(fetchedPropCategSpecialPriceKeys);
-
-      // Delete prop categ special prices in Hive that don't exist in the fetched data
-      propCategSpecialPricesToDelete.forEach((hivePropCategSpecialPriceKey) {
-        propCategSpecialPrice.delete(hivePropCategSpecialPriceKey);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing CustomerPropCategSpecialPrice from API to Hive: $e');
-    }
+    // Delete prop categ special prices not present in the updated data
+    Set<String> updatedPropCategSpecialPriceKeys =
+        propCategSpecialPriceToUpdate
+            .map((propCategSpecialPrice) =>
+                '${propCategSpecialPrice.cmpCode}${propCategSpecialPrice.custPropCode}${propCategSpecialPrice.categCode}')
+            .toSet();
+    propCategSpecialPriceBox.keys
+        .where((propCategSpecialPriceKey) =>
+            !updatedPropCategSpecialPriceKeys
+                .contains(propCategSpecialPriceKey))
+        .forEach((propCategSpecialPriceKey) {
+      propCategSpecialPriceToDelete.add(propCategSpecialPriceKey);
+    });
+    await propCategSpecialPriceBox.deleteAll(propCategSpecialPriceToDelete);
+  } catch (e) {
+    print(
+        'Error synchronizing CustomerPropCategSpecialPrice from API to Hive: $e');
   }
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -6054,7 +5430,7 @@ Future<void> _synchronizeCustomerPropCategSpecialPrice(
       await _synchronizePriceListAutho(priceListAuthoData, pricelistsauthoBox);
 
     // Close Hive box
-    await pricelistsauthoBox.close();
+    //await pricelistsauthoBox.close();
   } catch (e) {
     print('Error synchronizing data from API to Hive for price list authorizations: $e');
   }
@@ -6064,55 +5440,58 @@ Future<void> _synchronizePriceListAutho(
   Box<PriceListAuthorization> priceListAuthoBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<PriceListAuthorization> priceListAuthoToUpdate = [];
+    List<String> priceListAuthoToDelete = [];
+
+    // Iterate over the retrieved data
     for (var data in priceListAuthoData) {
-      var userCode = data['userCode'] as String??'';
-      var cmpCode = data['cmpCode'] as String??'';
-      var authoGroup = data['authoGroup'] as String??'';
-      
-      // Print the data map to inspect its structure
-      print('Data Map: $data');
+      var userCode = data['userCode'] as String ?? '';
+      var cmpCode = data['cmpCode'] as String ?? '';
+      var authoGroup = data['authoGroup'] as String ?? '';
 
-        // Check if any of the required keys are missing or null
-        if (userCode != null && cmpCode != null && authoGroup != null) {
-          var key = '$userCode$cmpCode$authoGroup';
+      // Check if any of the required keys are missing or null
+      if (userCode.isNotEmpty && cmpCode.isNotEmpty && authoGroup.isNotEmpty) {
+        var key = '$userCode$cmpCode$authoGroup';
+        
+        var updatedPriceListAutho = PriceListAuthorization(
+          userCode: userCode,
+          cmpCode: cmpCode,
+          authoGroup: authoGroup,
+        );
 
-          var hivePrice = priceListAuthoBox.get(key);
-
-          if (hivePrice == null) {
-            var newPrice = PriceListAuthorization(
-                userCode: userCode, cmpCode: cmpCode, authoGroup: authoGroup);
-            await priceListAuthoBox.put(key, newPrice);
-          } else {
-            var updatedPrice = PriceListAuthorization(
-                userCode: userCode, cmpCode: cmpCode, authoGroup: authoGroup);
-            await priceListAuthoBox.put(key, updatedPrice);
-          }
-        } else {
-          // Print a message if any of the required keys are missing or null
-          print(
-              'One or more required keys (userCode, cmpCode, authoGroup) are missing or null in the data map: $data');
-        }
+        priceListAuthoToUpdate.add(updatedPriceListAutho);
+      } else {
+        // Print a message if any of the required keys are missing or null
+        print(
+          'One or more required keys (userCode, cmpCode, authoGroup) are missing or empty in the data map: $data',
+        );
       }
-
-      // Check for price lists in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedPriceAuthoKeys = Set.from(priceListAuthoData.map(
-          (data) =>
-              '${data['userCode']}${data['cmpCode']}${data['authoGroup']}'));
-      Set<String> hivePriceAuthoKeys = Set.from(priceListAuthoBox.keys);
-
-      // Identify price lists in Hive that don't exist in the fetched data
-      Set<String> priceAuthoToDelete =
-          hivePriceAuthoKeys.difference(fetchedPriceAuthoKeys);
-
-      // Delete price lists in Hive that don't exist in the fetched data
-      priceAuthoToDelete.forEach((key) {
-        priceListAuthoBox.delete(key);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing PriceListAuthorization data from API to Hive: $e');
     }
+
+    // Batch update price list authorizations
+    await priceListAuthoBox.putAll(Map.fromIterable(
+      priceListAuthoToUpdate,
+      key: (priceListAutho) =>
+          '${priceListAutho.userCode}${priceListAutho.cmpCode}${priceListAutho.authoGroup}',
+    ));
+
+    // Delete price list authorizations not present in the updated data
+    Set<String> updatedPriceListAuthoKeys = priceListAuthoToUpdate
+        .map((priceListAutho) =>
+            '${priceListAutho.userCode}${priceListAutho.cmpCode}${priceListAutho.authoGroup}')
+        .toSet();
+    priceListAuthoBox.keys
+        .where((priceListAuthoKey) =>
+            !updatedPriceListAuthoKeys.contains(priceListAuthoKey))
+        .forEach((priceListAuthoKey) {
+      priceListAuthoToDelete.add(priceListAuthoKey);
+    });
+    await priceListAuthoBox.deleteAll(priceListAuthoToDelete);
+  } catch (e) {
+    print('Error synchronizing PriceListAuthorization data from API to Hive: $e');
   }
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -6171,60 +5550,47 @@ Future<void> _synchronizeCompaniesConnection(
   Box<CompaniesConnection> companiesConnectionBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CompaniesConnection> companiesConnectionToUpdate = [];
+    List<String> companiesConnectionToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in companiesConnectionData) {
-      var connectionID = data['connectionID']??'';
+      var connectionID = data['connectionID'] ?? '';
+      var updatedCompaniesConnection = CompaniesConnection(
+        connectionID: connectionID,
+        connDatabase: data['connDatabase'] ?? '',
+        connServer: data['connServer'] ?? '',
+        connUser: data['connUser'] ?? '',
+        connPassword: data['connPassword'] ?? '',
+        connPort: data['connPort'] ?? '',
+        typeDatabase: data['typeDatabase'] ?? '',
+      );
 
-        // Check if the item exists in Hive
-        var hiveComp = companiesConnectionBox.get('$connectionID');
-
-      // If the item doesn't exist in Hive, add it
-      if (hiveComp == null) {
-        var newComp = CompaniesConnection(
-          connectionID: connectionID,
-          connDatabase: data['connDatabase']??'',
-          connServer: data['connServer']??'',
-          connUser: data['connUser']??'',
-          connPassword: data['connPassword']??'',
-          connPort: data['connPort']??'',
-          typeDatabase: data['typeDatabase']??'',
-        );
-        await companiesConnectionBox.put('$connectionID', newComp);
-      }
-      // If the item exists in Hive, update it if needed
-      else {
-        var updatedComp = CompaniesConnection(
-          connectionID: connectionID,
-          connDatabase: data['connDatabase']??'',
-          connServer: data['connServer']??'',
-          connUser: data['connUser']??'',
-          connPassword: data['connPassword']??'',
-          connPort: data['connPort']??'',
-          typeDatabase: data['typeDatabase']??'',
-        );
-        // Update the item in Hive
-        await companiesConnectionBox.put('$connectionID', updatedComp);
-      }
+      companiesConnectionToUpdate.add(updatedCompaniesConnection);
     }
 
-      // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedConnectionIDs =
-          Set.from(companiesConnectionData.map((data) => data['connectionID']));
-      Set<String> hiveConnectionIDs = Set.from(companiesConnectionBox.keys);
+    // Batch update companies connections
+    await companiesConnectionBox.putAll(Map.fromIterable(
+      companiesConnectionToUpdate,
+      key: (companiesConnection) => companiesConnection.connectionID,
+    ));
 
-      // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete =
-          hiveConnectionIDs.difference(fetchedConnectionIDs);
-
-      // Delete items in Hive that don't exist in the fetched data
-      itemsToDelete.forEach((hiveConnectionID) {
-        companiesConnectionBox.delete(hiveConnectionID);
-      });
-    } catch (e) {
-      print(
-          'Error synchronizing Companies Connection data from API to Hive: $e');
-    }
+    // Delete companies connections not present in the updated data
+    Set<String> updatedCompaniesConnectionsKeys = companiesConnectionToUpdate
+        .map((companiesConnection) => companiesConnection.connectionID)
+        .toSet();
+    companiesConnectionBox.keys
+        .where((companiesConnectionKey) =>
+            !updatedCompaniesConnectionsKeys.contains(companiesConnectionKey))
+        .forEach((companiesConnectionKey) {
+      companiesConnectionToDelete.add(companiesConnectionKey);
+    });
+    await companiesConnectionBox.deleteAll(companiesConnectionToDelete);
+  } catch (e) {
+    print('Error synchronizing Companies Connection data from API to Hive: $e');
   }
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -6281,52 +5647,45 @@ Future<void> _synchronizeCompaniesUsers(
   Box<CompaniesUsers> companiesUsersBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<CompaniesUsers> companiesUsersToUpdate = [];
+    List<String> companiesUsersToDelete = [];
+
     // Iterate over the retrieved data
     for (var data in companiesUsersData) {
-      var userCode = data['userCode']??'';
-      var cmpCode = data['cmpCode']??'';
+      var userCode = data['userCode'] ?? '';
+      var cmpCode = data['cmpCode'] ?? '';
+      var defaultcmpCode = data['defaultcmpCode'] ?? '';
 
-        // Check if the item exists in Hive
-        var hiveComp = companiesUsersBox.get('$userCode$cmpCode');
+      var updatedCompaniesUser = CompaniesUsers(
+        userCode: userCode,
+        cmpCode: cmpCode,
+        defaultcmpCode: defaultcmpCode,
+      );
 
-      // If the item doesn't exist in Hive, add it
-      if (hiveComp == null) {
-        var newComp = CompaniesUsers(
-          userCode: userCode,
-          cmpCode: cmpCode,
-          defaultcmpCode: data['defaultcmpCode']??'',
-        );
-        await companiesUsersBox.put('$userCode$cmpCode', newComp);
-      }
-      // If the item exists in Hive, update it if needed
-      else {
-        var updatedComp = CompaniesUsers(
-          userCode: userCode,
-          cmpCode: cmpCode,
-          defaultcmpCode: data['defaultcmpCode']??'',
-        );
-        // Update the item in Hive
-        await companiesUsersBox.put('$userCode$cmpCode', updatedComp);
-      }
+      companiesUsersToUpdate.add(updatedCompaniesUser);
     }
 
-      // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedCodes = Set.from(companiesUsersData
-          .map((data) => '${data['userCode']}${data['cmpCode']}'));
-      Set<String> hiveCodes = Set.from(companiesUsersBox.keys);
+    // Batch update companies users
+    await companiesUsersBox.putAll(Map.fromIterable(
+      companiesUsersToUpdate,
+      key: (companiesUser) => '${companiesUser.userCode}${companiesUser.cmpCode}',
+    ));
 
-      // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete = hiveCodes.difference(fetchedCodes);
-
-    // Delete items in Hive that don't exist in the fetched data
-    itemsToDelete.forEach((hiveCode) {
-      companiesUsersBox.delete(hiveCode);
+    // Delete companies users not present in the updated data
+    Set<String> updatedCompaniesUsersKeys = companiesUsersToUpdate
+        .map((companiesUser) => '${companiesUser.userCode}${companiesUser.cmpCode}')
+        .toSet();
+    companiesUsersBox.keys
+        .where((companiesUserKey) => !updatedCompaniesUsersKeys.contains(companiesUserKey))
+        .forEach((companiesUserKey) {
+      companiesUsersToDelete.add(companiesUserKey);
     });
+    await companiesUsersBox.deleteAll(companiesUsersToDelete);
   } catch (e) {
     print('Error synchronizing Companies Users data from API to Hive: $e');
   }
 }
-
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -6382,48 +5741,47 @@ Future<void> _synchronizeCountries(
   Box<Countries> countriesBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<Countries> countriesToUpdate = [];
+    List<String> countriesToDelete = [];
+
+    // Iterate over the retrieved data
     for (var data in countriesData) {
-      var cmpCode = data['cmpCode']??'';
-      var countryCode = data['countryCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var countryCode = data['countryCode'] ?? '';
+      var countryName = data['countryName'] ?? '';
+      var countryFName = data['countryFName'] ?? '';
+      var addrFormatID = data['addrFormatID'] ?? '';
+      var notes = data['notes'] ?? '';
 
-      // Check if the department exists in Hive
-      var hiveCountry = countriesBox.get('$cmpCode$countryCode');
+      var updatedCountry = Countries(
+        cmpCode: cmpCode,
+        countryCode: countryCode,
+        countryName: countryName,
+        countryFName: countryFName,
+        addrFormatID: addrFormatID,
+        notes: notes,
+      );
 
-      if (hiveCountry == null) {
-        var newCountry = Countries(
-          cmpCode: cmpCode,
-          countryCode: countryCode,
-          countryName: data['countryName']??'',
-          countryFName: data['countryFName']??'',
-          addrFormatID: data['addrFormatID']??'',
-          notes: data['notes']??'',
-        );
-        await countriesBox.put('$cmpCode$countryCode', newCountry);
-      } else {
-        var updatedCountry = Countries(
-          cmpCode: cmpCode,
-          countryCode: countryCode,
-          countryName: data['countryName']??'',
-          countryFName: data['countryFName']??'',
-          addrFormatID: data['addrFormatID']??'',
-          notes: data['notes']??'',
-        );
-        await countriesBox.put('$cmpCode$countryCode', updatedCountry);
-      }
+      countriesToUpdate.add(updatedCountry);
     }
 
-    // Check for departments in Hive that don't exist in the fetched data and delete them
-    Set<String> fetchedCountriesKeys =
-        Set.from(countriesData.map((data) => '${data['cmpCode']}${data['countryCode']}'));
-    Set<String> hiveCountryKeys = Set.from(countriesBox.keys);
+    // Batch update countries
+    await countriesBox.putAll(Map.fromIterable(
+      countriesToUpdate,
+      key: (country) => '${country.cmpCode}${country.countryCode}',
+    ));
 
-    // Identify departments in Hive that don't exist in the fetched data
-    Set<String> countriesToDelete = hiveCountryKeys.difference(fetchedCountriesKeys);
-
-    // Delete departments in Hive that don't exist in the fetched data
-    countriesToDelete.forEach((hiveCountryKeys) {
-      countriesBox.delete(hiveCountryKeys);
+    // Delete countries not present in the updated data
+    Set<String> updatedCountryKeys = countriesToUpdate
+        .map((country) => '${country.cmpCode}${country.countryCode}')
+        .toSet();
+    countriesBox.keys
+        .where((countryKey) => !updatedCountryKeys.contains(countryKey))
+        .forEach((countryKey) {
+      countriesToDelete.add(countryKey);
     });
+    await countriesBox.deleteAll(countriesToDelete);
   } catch (e) {
     print('Error synchronizing countries from API to Hive: $e');
   }
@@ -6483,46 +5841,45 @@ Future<void> _synchronizeItemManu(
   Box<ItemManufacturers> itemmanuBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<ItemManufacturers> itemManufacturersToUpdate = [];
+    List<String> itemManufacturersToDelete = [];
+
+    // Iterate over the retrieved data
     for (var data in itemManuData) {
-      var cmpCode = data['cmpCode']??'';
-      var manufCode = data['manufCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var manufCode = data['manufCode'] ?? '';
+      var manufName = data['manufName'] ?? '';
+      var manufFName = data['manufFname'] ?? '';
+      var notes = data['notes'] ?? '';
 
-      // Check if the department exists in Hive
-      var hiveManu = itemmanuBox.get('$cmpCode$manufCode');
+      var updatedItemManu = ItemManufacturers(
+        cmpCode: cmpCode,
+        manufCode: manufCode,
+        manufName: manufName,
+        manufFName: manufFName,
+        notes: notes,
+      );
 
-      if (hiveManu == null) {
-        var newManu = ItemManufacturers(
-          cmpCode: cmpCode??'',
-          manufCode:manufCode??'',
-          manufName: data['manufName']??'',
-          manufFName: data['manufFname']??'',
-          notes: data['notes']??'', 
-        );
-        await itemmanuBox.put('$cmpCode$manufCode', newManu);
-      } else {
-        var updatedManu = ItemManufacturers(
-         cmpCode: cmpCode??'',
-          manufCode:manufCode??'',
-          manufName: data['manufName']??'',
-          manufFName: data['manufFname']??'',
-          notes: data['notes']??'', 
-        );
-        await itemmanuBox.put('$cmpCode$manufCode', updatedManu);
-      }
+      itemManufacturersToUpdate.add(updatedItemManu);
     }
 
-    // Check for departments in Hive that don't exist in the fetched data and delete them
-    Set<String> fetchedManufKeys =
-        Set.from(itemManuData.map((data) => '${data['cmpCode']}${data['manufCode']}'));
-    Set<String> hiveManufKeys = Set.from(itemmanuBox.keys);
+    // Batch update item manufacturers
+    await itemmanuBox.putAll(Map.fromIterable(
+      itemManufacturersToUpdate,
+      key: (itemManu) => '${itemManu.cmpCode}${itemManu.manufCode}',
+    ));
 
-    // Identify departments in Hive that don't exist in the fetched data
-    Set<String> manufToDelete = hiveManufKeys.difference(fetchedManufKeys);
-
-    // Delete departments in Hive that don't exist in the fetched data
-    manufToDelete.forEach((hiveManufKeys) {
-      itemmanuBox.delete(hiveManufKeys);
+    // Delete item manufacturers not present in the updated data
+    Set<String> updatedItemManuKeys = itemManufacturersToUpdate
+        .map((itemManu) => '${itemManu.cmpCode}${itemManu.manufCode}')
+        .toSet();
+    itemmanuBox.keys
+        .where((itemManuKey) => !updatedItemManuKeys.contains(itemManuKey))
+        .forEach((itemManuKey) {
+      itemManufacturersToDelete.add(itemManuKey);
     });
+    await itemmanuBox.deleteAll(itemManufacturersToDelete);
   } catch (e) {
     print('Error synchronizing item manu from API to Hive: $e');
   }
@@ -6589,47 +5946,47 @@ Future<void> _synchronizeItemBarcode(
   Box<ItemBarcode> itembarcodeBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<ItemBarcode> itemBarcodesToUpdate = [];
+    List<String> itemBarcodesToDelete = [];
+
+    // Iterate over the retrieved data
     for (var data in itemBarcodeData) {
-      var cmpCode = data['cmpCode']??'';
-      var itemCode = data['itemCode']??'';
-      var uomCode = data['uomCode']??'';
+      var cmpCode = data['cmpCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var uomCode = data['uomCode'] ?? '';
+      var barcode = data['barcode'] ?? '';
+      var notes = data['notes'] ?? '';
 
-      // Check if the department exists in Hive
-      var hiveItemBar = itembarcodeBox.get('$cmpCode$itemCode$uomCode');
+      var updatedItemBarcode = ItemBarcode(
+        cmpCode: cmpCode,
+        itemCode: itemCode,
+        uomCode: uomCode,
+        barcode: barcode,
+        notes: notes,
+      );
 
-      if (hiveItemBar == null) {
-        var newBar = ItemBarcode(
-          cmpCode: cmpCode??'',
-          itemCode:itemCode??'',
-          uomCode: data['uomCode']??'',
-          barcode: data['barcode']??'',
-          notes: data['notes']??'', 
-        );
-        await itembarcodeBox.put('$cmpCode$itemCode$uomCode', newBar);
-      } else {
-        var updatedBar = ItemBarcode(
-          cmpCode: cmpCode??'',
-          itemCode:itemCode??'',
-          uomCode: data['uomCode']??'',
-          barcode: data['barcode']??'',
-          notes: data['notes']??'', 
-        );
-        await itembarcodeBox.put('$cmpCode$itemCode$uomCode', updatedBar);
-      }
+      itemBarcodesToUpdate.add(updatedItemBarcode);
     }
 
-    // Check for departments in Hive that don't exist in the fetched data and delete them
-    Set<String> fetchedBarKeys =
-        Set.from(itemBarcodeData.map((data) => '${data['cmpCode']}${data['itemCode']}${data['uomCode']}'));
-    Set<String> hivebarKeys = Set.from(itembarcodeBox.keys);
+    // Batch update item barcodes
+    await itembarcodeBox.putAll(Map.fromIterable(
+      itemBarcodesToUpdate,
+      key: (itemBarcode) =>
+          '${itemBarcode.cmpCode}${itemBarcode.itemCode}${itemBarcode.uomCode}',
+    ));
 
-    // Identify departments in Hive that don't exist in the fetched data
-    Set<String> barToDelete = hivebarKeys.difference(fetchedBarKeys);
-
-    // Delete departments in Hive that don't exist in the fetched data
-    barToDelete.forEach((hivebarKeys) {
-      itembarcodeBox.delete(hivebarKeys);
+    // Delete item barcodes not present in the updated data
+    Set<String> updatedItemBarcodeKeys = itemBarcodesToUpdate
+        .map((itemBarcode) =>
+            '${itemBarcode.cmpCode}${itemBarcode.itemCode}${itemBarcode.uomCode}')
+        .toSet();
+    itembarcodeBox.keys
+        .where((itemBarcodeKey) => !updatedItemBarcodeKeys.contains(itemBarcodeKey))
+        .forEach((itemBarcodeKey) {
+      itemBarcodesToDelete.add(itemBarcodeKey);
     });
+    await itembarcodeBox.deleteAll(itemBarcodesToDelete);
   } catch (e) {
     print('Error synchronizing item barcode from API to Hive: $e');
   }
@@ -6692,48 +6049,50 @@ Future<void> _synchronizeItemProps(
   Box<ItemProp> itemPropsBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<ItemProp> itemPropsToUpdate = [];
+    List<String> itemPropsToDelete = [];
+
+    // Iterate over the retrieved data
     for (var data in itemPropsData) {
       var cmpCode = data['cmpCode'] ?? '';
       var itemCode = data['itemCode'] ?? '';
       var propCode = data['propCode'] ?? '';
+      var notes = data['notes'] ?? '';
 
-      // Check if the item property exists in Hive
-      var hiveItemProp = itemPropsBox.get('$cmpCode$itemCode$propCode');
+      var updatedItemProp = ItemProp(
+        cmpCode: cmpCode,
+        itemCode: itemCode,
+        propCode: propCode,
+        notes: notes,
+      );
 
-      if (hiveItemProp == null) {
-        var newItemProp = ItemProp(
-          cmpCode: cmpCode,
-          itemCode: itemCode,
-          propCode: propCode,
-          notes: data['notes'] ?? '',
-        );
-        await itemPropsBox.put('$cmpCode$itemCode$propCode', newItemProp);
-      } else {
-        var updatedItemProp = ItemProp(
-          cmpCode: cmpCode,
-          itemCode: itemCode,
-          propCode: propCode,
-          notes: data['notes'] ?? '',
-        );
-        await itemPropsBox.put('$cmpCode$itemCode$propCode', updatedItemProp);
-      }
+      itemPropsToUpdate.add(updatedItemProp);
     }
 
-    // Check for item properties in Hive that don't exist in the fetched data and delete them
-    Set<String> fetchedPropKeys = Set.from(itemPropsData.map((data) => '${data['cmpCode']}${data['itemCode']}${data['propCode']}'));
-    Set<String> hivePropKeys = Set.from(itemPropsBox.keys);
+    // Batch update item properties
+    await itemPropsBox.putAll(Map.fromIterable(
+      itemPropsToUpdate,
+      key: (itemProp) =>
+          '${itemProp.cmpCode}${itemProp.itemCode}${itemProp.propCode}',
+    ));
 
-    // Identify item properties in Hive that don't exist in the fetched data
-    Set<String> propsToDelete = hivePropKeys.difference(fetchedPropKeys);
-
-    // Delete item properties in Hive that don't exist in the fetched data
-    propsToDelete.forEach((hivePropKey) {
-      itemPropsBox.delete(hivePropKey);
+    // Delete item properties not present in the updated data
+    Set<String> updatedItemPropKeys = itemPropsToUpdate
+        .map((itemProp) =>
+            '${itemProp.cmpCode}${itemProp.itemCode}${itemProp.propCode}')
+        .toSet();
+    itemPropsBox.keys
+        .where((itemPropKey) => !updatedItemPropKeys.contains(itemPropKey))
+        .forEach((itemPropKey) {
+      itemPropsToDelete.add(itemPropKey);
     });
+    await itemPropsBox.deleteAll(itemPropsToDelete);
   } catch (e) {
     print('Error synchronizing item properties from API to Hive: $e');
   }
 }
+
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -6782,49 +6141,52 @@ Future<void> synchronizeAddressFormats() async {
     print('Error synchronizing data from API to Hive for Address Formats: $e');
   }
 }
-
 Future<void> _synchronizeAddressFormats(
   List<Map<String, dynamic>> addressFormatsData,
   Box<AddressFormat> addressFormatsBox,
 ) async {
   try {
+    // Prepare lists for batch operations
+    List<AddressFormat> addressFormatsToUpdate = [];
+    List<String> addressFormatsToDelete = [];
+
+    // Iterate over the retrieved data
     for (var data in addressFormatsData) {
       var cmpCode = data['cmpCode'] ?? '';
       var addrFormatID = data['addrFormatID'] ?? '';
 
-      // Check if the address format exists in Hive
-      var hiveAddressFormat = addressFormatsBox.get('$cmpCode$addrFormatID');
+      var updatedAddressFormat = AddressFormat(
+        cmpCode: cmpCode,
+        addrFormatID: addrFormatID,
+      );
 
-      if (hiveAddressFormat == null) {
-        var newAddressFormat = AddressFormat(
-          cmpCode: cmpCode,
-          addrFormatID: addrFormatID,
-        );
-        await addressFormatsBox.put('$cmpCode$addrFormatID', newAddressFormat);
-      } else {
-        var updatedAddressFormat = AddressFormat(
-          cmpCode: cmpCode,
-          addrFormatID: addrFormatID,
-        );
-        await addressFormatsBox.put('$cmpCode$addrFormatID', updatedAddressFormat);
-      }
+      addressFormatsToUpdate.add(updatedAddressFormat);
     }
 
-    // Check for address formats in Hive that don't exist in the fetched data and delete them
-    Set<String> fetchedFormatKeys = Set.from(addressFormatsData.map((data) => '${data['cmpCode']}${data['addrFormatID']}'));
-    Set<String> hiveFormatKeys = Set.from(addressFormatsBox.keys);
+    // Batch update address formats
+    await addressFormatsBox.putAll(Map.fromIterable(
+      addressFormatsToUpdate,
+      key: (addressFormat) =>
+          '${addressFormat.cmpCode}${addressFormat.addrFormatID}',
+    ));
 
-    // Identify address formats in Hive that don't exist in the fetched data
-    Set<String> formatsToDelete = hiveFormatKeys.difference(fetchedFormatKeys);
-
-    // Delete address formats in Hive that don't exist in the fetched data
-    formatsToDelete.forEach((hiveFormatKey) {
-      addressFormatsBox.delete(hiveFormatKey);
+    // Delete address formats not present in the updated data
+    Set<String> updatedAddressFormatKeys = addressFormatsToUpdate
+        .map((addressFormat) =>
+            '${addressFormat.cmpCode}${addressFormat.addrFormatID}')
+        .toSet();
+    addressFormatsBox.keys
+        .where((addressFormatKey) =>
+            !updatedAddressFormatKeys.contains(addressFormatKey))
+        .forEach((addressFormatKey) {
+      addressFormatsToDelete.add(addressFormatKey);
     });
+    await addressFormatsBox.deleteAll(addressFormatsToDelete);
   } catch (e) {
     print('Error synchronizing address formats from API to Hive: $e');
   }
 }
+
 
 
 

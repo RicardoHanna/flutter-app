@@ -37,7 +37,7 @@ class CompaniesAdapter extends TypeAdapter<Companies> {
       priceDec: fields[17] as dynamic,
       amntDec: fields[18] as dynamic,
       qtyDec: fields[19] as dynamic,
-      rounding: fields[20] as dynamic,
+      roundMethod: fields[20] as String,
       importMethod: fields[21] as String,
       time: fields[22] as TimeOfDay,
     );
@@ -88,7 +88,7 @@ class CompaniesAdapter extends TypeAdapter<Companies> {
       ..writeByte(19)
       ..write(obj.qtyDec)
       ..writeByte(20)
-      ..write(obj.rounding)
+      ..write(obj.roundMethod)
       ..writeByte(21)
       ..write(obj.importMethod)
       ..writeByte(22)

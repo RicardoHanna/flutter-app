@@ -95,7 +95,7 @@ class _ImportFormState extends State<ImportForm> {
               secCurCode: '',
               rateType: '',
               issueBatchMethod: '',
-              systemAdminID: '', priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time:noTime), // Default company when not found
+              systemAdminID: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime), // Default company when not found
         );
 
         // Retrieve the connectionID from the company
@@ -410,7 +410,7 @@ class _ImportFormState extends State<ImportForm> {
     await synchronizer.synchronizeDataItemAttach(itemCodes);
     await synchronizer.synchronizeDataItemBrand(brandCode);
     await synchronizer.synchronizeDataItemCateg(categCode);
-    await synchronizer.synchronizeDataItemGroup(groupCode);
+   await synchronizer.synchronizeDataItemGroup(groupCode);
   
     await synchronizer.synchronizeDataItemUOM(itemCodes);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -493,6 +493,7 @@ class _ImportFormState extends State<ImportForm> {
 
     await synchronizer.synchronizeDataCompaniesConnection();
     await synchronizer.synchronizeDataCompaniesUsers();
+
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

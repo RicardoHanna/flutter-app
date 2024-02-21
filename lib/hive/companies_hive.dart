@@ -66,7 +66,7 @@ class Companies extends HiveObject {
   late dynamic qtyDec;
 
   @HiveField(20)
-  late dynamic rounding;
+  late String roundMethod;
 
   @HiveField(21)
   late String importMethod;
@@ -96,7 +96,7 @@ class Companies extends HiveObject {
     required this.priceDec,
     required this.amntDec,
     required this.qtyDec,
-    required this.rounding,
+    required this.roundMethod,
     required this.importMethod,
     required this.time
   });
@@ -123,7 +123,7 @@ class Companies extends HiveObject {
       'priceDec': priceDec,
       'amntDec': amntDec,
       'qtyDec': qtyDec,
-      'rounding': rounding,
+      'rounding': roundMethod,
       'importMethod': importMethod,
       'time': time
 

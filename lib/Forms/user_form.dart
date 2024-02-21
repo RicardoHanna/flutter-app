@@ -485,7 +485,7 @@ Widget _buildTextFieldDropDownPriceListAutho() {
                 issueBatchMethod: '',
                 systemAdminID: '',
                 notes: '', 
-                priceDec: null, amntDec: null, qtyDec: null, rounding: null, importMethod: '', time: noTime,
+                priceDec: null, amntDec: null, qtyDec: null, roundMethod: 'null', importMethod: '', time: noTime,
               ));
 
       return '${pricelist.authoGroup ?? ''} - ${company.cmpName ?? ''}';

@@ -17,7 +17,7 @@ class PriceList extends HiveObject {
   late dynamic basePL;
 
   @HiveField(4)
-  late double factor;
+  late dynamic factor;
 
   @HiveField(5)
   late bool incVAT;

@@ -569,42 +569,69 @@ Widget _buildDropdown(String label, String? selectedValue, Function(String?) onC
   }
 
    void _showFilterDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(AppLocalizations.of(context)!.filteritems,style: _appTextStyleNormal,),
-              content: Column(
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(
+              AppLocalizations.of(context)!.filteritems,
+              style: _appTextStyleNormal,
+            ),
+            content: SingleChildScrollView(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildMultiSelectChip(AppLocalizations.of(context)!.groupcode, groupList, selectedGroups, setState),
-                  _buildMultiSelectChip(AppLocalizations.of(context)!.brand, brandList, selectedBrands, setState),
-                  _buildMultiSelectChip(AppLocalizations.of(context)!.categcode, categoryList, selectedCategories, setState),
+                  _buildMultiSelectChip(
+                    AppLocalizations.of(context)!.groupcode,
+                    groupList,
+                    selectedGroups,
+                    setState,
+                  ),
+                  _buildMultiSelectChip(
+                    AppLocalizations.of(context)!.brand,
+                    brandList,
+                    selectedBrands,
+                    setState,
+                  ),
+                  _buildMultiSelectChip(
+                    AppLocalizations.of(context)!.categcode,
+                    categoryList,
+                    selectedCategories,
+                    setState,
+                  ),
                 ],
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(AppLocalizations.of(context)!.cancel,style: _appTextStyleNormal,),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  AppLocalizations.of(context)!.cancel,
+                  style: _appTextStyleNormal,
                 ),
-                TextButton(
-                  onPressed: () {
-                    _applyFilters();
-                    Navigator.pop(context);
-                  },
-                  child: Text(AppLocalizations.of(context)!.apply,style: _appTextStyleNormal,),
+              ),
+              TextButton(
+                onPressed: () {
+                  _applyFilters();
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  AppLocalizations.of(context)!.apply,
+                  style: _appTextStyleNormal,
                 ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 
   Widget _buildMultiSelectChip(
     String label,
