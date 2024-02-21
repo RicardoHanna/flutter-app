@@ -55,11 +55,11 @@ class _itemsFormState extends State<ItemsForm> {
  bool? active;
  late List<Items> items;
   late List<Items> filteredItems=[];
-late List<String> groupList = [];
-  late List<String> brandList = [];
+late List<String> uomList = [];
+  late List<String> itemTypeList = [];
   late List<String> categoryList = [];
-  late List<String> selectedGroups = [];
-  late List<String> selectedBrands = [];
+  late List<String> selectedUOM = [];
+  late List<String> selectedItemType = [];
   late List<String> selectedCategories = [];
    late String selectedSortingOption = 'Alphabetic';
   late Box<Items> itemBox;
@@ -98,8 +98,8 @@ Future<void> loadCheckboxPreferences() async {
     items = await _getItems();
     filteredItems = List.from(items);
 
-    groupList = await getDistinctValuesFromBox('groupCode', itemBox);
-    brandList = await getDistinctValuesFromBox('brandCode', itemBox);
+    uomList = await getDistinctValuesFromBox('uom', itemBox);
+    itemTypeList = await getDistinctValuesFromBox('itemType', itemBox);
     categoryList = await getDistinctValuesFromBox('categCode', itemBox);
   }
 
@@ -118,10 +118,10 @@ Future<void> loadCheckboxPreferences() async {
   }
 dynamic getField(Items item, String fieldName) {
     switch (fieldName) {
-      case 'groupCode':
-        return item.groupCode;
-      case 'brandCode':
-        return item.brandCode;
+      case 'uom':
+        return item.uom;
+      case 'itemType':
+        return item.itemType;
       case 'categCode':
         return item.categCode;
       // Add cases for other fields as needed
@@ -584,23 +584,23 @@ Widget _buildDropdown(String label, String? selectedValue, Function(String?) onC
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildMultiSelectChip(
-                    AppLocalizations.of(context)!.groupcode,
-                    groupList,
-                    selectedGroups,
+                    AppLocalizations.of(context)!.uom,
+                    uomList,
+                    selectedUOM,
                     setState,
                   ),
                   _buildMultiSelectChip(
-                    AppLocalizations.of(context)!.brand,
-                    brandList,
-                    selectedBrands,
+                    AppLocalizations.of(context)!.itemtype,
+                    itemTypeList,
+                    selectedItemType,
                     setState,
                   ),
-                  _buildMultiSelectChip(
+                 /* _buildMultiSelectChip(
                     AppLocalizations.of(context)!.categcode,
                     categoryList,
                     selectedCategories,
                     setState,
-                  ),
+                  ),*/
                 ],
               ),
             ),
@@ -676,11 +676,11 @@ Widget _buildDropdown(String label, String? selectedValue, Function(String?) onC
     filteredItems = items.where((item) {
       var codeMatch = item.itemCode.contains(codeFilterController.text);
       var itemNameMatch = item.itemName.contains(itemNameFilterController.text);
-      var groupMatch = selectedGroups.isEmpty || selectedGroups.contains(item.groupCode);
-      var brandMatch = selectedBrands.isEmpty || selectedBrands.contains(item.brandCode);
+      var uomMatch = selectedUOM.isEmpty || selectedUOM.contains(item.uom);
+      var itemTypeMatch = selectedItemType.isEmpty || selectedItemType.contains(item.itemType);
       var categoryMatch = selectedCategories.isEmpty || selectedCategories.contains(item.categCode);
 
-      return codeMatch && itemNameMatch && groupMatch && brandMatch && categoryMatch;
+      return codeMatch && itemNameMatch && uomMatch && itemTypeMatch && categoryMatch;
     }).toList();
 
     setState(() {
