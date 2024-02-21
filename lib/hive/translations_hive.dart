@@ -14,4 +14,13 @@ class Translations extends HiveObject {
     required this.groupcode,
     required this.translations,
   });
+
+   // Convert UserGroup instance to JSON format
+  Map<String, dynamic> toJson() {
+    return {
+      'groupcode': groupcode,
+      'en': translations['en'],
+      'ar':translations['ar']
+    };
+  }
 }

@@ -19,4 +19,11 @@ class PriceListAuthorization extends HiveObject {
    required this.authoGroup,
   }
   );
+   Map<String, dynamic> toJson() {
+    return {
+      'userCode': userCode,
+      'cmpCode': cmpCode,
+      'authoGroup':authoGroup
+    };
+  }
 }

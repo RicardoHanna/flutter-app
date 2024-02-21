@@ -17,4 +17,11 @@ class Authorization extends HiveObject {
    required this.groupcode,
     }
   );
+  // Convert UserGroup instance to JSON format
+  Map<String, dynamic> toJson() {
+    return {
+      'menucode': menucode,
+      'groupcode': groupcode,
+    };
+  }
 }

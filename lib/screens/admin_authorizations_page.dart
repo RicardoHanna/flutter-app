@@ -373,14 +373,21 @@ var langdetec=AppLocalizations.of(context)!.language == "English" ? administrato
               TextButton(
                 onPressed: () async {
                   // Delete existing authorizations for the specified groupcode
-                  await authorizationBox.delete((key, value) => value.groupcode == groupcode);
+                  print('world');
+                 try {
+  await authorizationBox.delete(groupcode);
+  print('lopp');
+} catch (e) {
+  print('Error deleting authorizations: $e');
+}
 
+print('lopp');
                   // Add new authorizations for the selected items
                   for (var selectedItem in selectedItems) {
                     int compositeKey = _generateCompositeKey(selectedItem, groupcode);
                     authorizationBox.put(compositeKey, Authorization(menucode: selectedItem, groupcode: groupcode));
                   }
-
+print('ricop');
                   Navigator.of(context).pop(); // Close the dialog
                 },
                 child: Text(AppLocalizations.of(context)!.update, style: _appTextStyle),

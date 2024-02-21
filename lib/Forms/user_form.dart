@@ -465,12 +465,32 @@ Widget _buildTextFieldDropDownPriceListAutho() {
           var companyBox = snapshot.data![1] as Box<Companies>;
 
           List<String> priceList = priceListsBox.values
-              .map((pricelist) {
-                Companies company = companyBox.values
-                    .firstWhere((company) => company.cmpCode == pricelist.cmpCode);
-                return '${pricelist.authoGroup} - ${company.cmpName}';
-              })
-              .toList();
+    .map((pricelist) {
+      Companies company = companyBox.values
+          .firstWhere((company) => company.cmpCode == pricelist.cmpCode, orElse: () => Companies(
+                address: '',
+                cmpCode: '',
+                cmpName: '',
+                cmpFName: '',
+                tel: '',
+                mobile: '',
+                fAddress: '',
+                prHeader: '',
+                prFHeader: '',
+                prFooter: '',
+                mainCurCode: '',
+                prFFooter: '',
+                secCurCode: '',
+                rateType: '',
+                issueBatchMethod: '',
+                systemAdminID: '',
+                notes: '',
+              ));
+
+      return '${pricelist.authoGroup ?? ''} - ${company.cmpName ?? ''}';
+    })
+    .toList();
+
 
               print(priceList.toList());
            

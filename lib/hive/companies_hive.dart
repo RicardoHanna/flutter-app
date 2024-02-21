@@ -75,5 +75,29 @@ class Companies extends HiveObject {
     required this.notes,
   });
 
+    Map<String, dynamic> toJson() {
+    return {
+      'cmpCode': cmpCode,
+      'cmpName': cmpName,
+      'cmpFName': cmpFName,
+      'tel': tel,
+      'mobile': mobile,
+      'address': address,
+      'fAddress': fAddress,
+      'prHeader': prHeader,
+      'prFHeader': prFHeader,
+      'prFooter': prFooter,
+      'prFFooter': prFFooter,
+      'mainCurCode': mainCurCode,
+      'secCurCode': secCurCode,
+      'rateType': rateType,
+      'issueBatchMethod': issueBatchMethod,
+      'systemAdminID': systemAdminID,
+      'notes': notes
+
+
+    };
+  }
+
 
 }

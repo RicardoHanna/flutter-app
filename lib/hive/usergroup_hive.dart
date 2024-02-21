@@ -16,4 +16,11 @@ required this.groupcode,
   }
     
   );
+  Map<String, dynamic> toJson() {
+    return {
+      'groupcode': groupcode,
+      'groupname': groupname,
+    };
+  }
+
 }

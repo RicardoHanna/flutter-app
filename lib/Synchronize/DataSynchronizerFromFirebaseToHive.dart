@@ -62,7 +62,7 @@ import 'package:http/http.dart' as http;
 
 class DataSynchronizerFromFirebaseToHive {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  String apiurl = 'http://5.189.188.139/api/';
+  String apiurl = 'http://5.189.188.139:8080/api/';
 
   Future<List<String>> retrieveSeCodes(String usercode) async {
     List<String> seCodes = [];
@@ -164,56 +164,56 @@ class DataSynchronizerFromFirebaseToHive {
       List<dynamic> itemsData, Box<Items> itemsBox) async {
     try {
       for (var data in itemsData) {
-        var itemCode = data['itemCode'];
+        var itemCode = data['itemCode'] ?? '';
         var hiveItem = itemsBox.get(itemCode);
 
         if (hiveItem == null) {
           var newItem = Items(
-              data['itemCode'],
-              data['itemName'],
-              data['itemPrName'],
-              data['itemFName'],
-              data['itemPrFName'],
-              data['groupCode'],
-              data['categCode'],
-              data['brandCode'],
-              data['itemType'],
-              data['barCode'],
-              data['uom'],
-              data['picture'],
-              data['remark'],
-              data['brand'],
-              data['manageBy'],
-              data['vatRate'].toDouble(),
-              data['active'] == 1,
-              data['weight'].toDouble(),
-              data['charect1'],
-              data['charact2'],
-              data['cmpCode']);
+              data['itemCode'] ?? '',
+              data['itemName'] ?? '',
+              data['itemPrName'] ?? '',
+              data['itemFName'] ?? '',
+              data['itemPrFName'] ?? '',
+              data['groupCode'] ?? '',
+              data['categCode'] ?? '',
+              data['brandCode'] ?? '',
+              data['itemType'] ?? '',
+              data['barCode'] ?? '',
+              data['uom'] ?? '',
+              data['picture'] ?? '',
+              data['remark'] ?? '',
+              data['brand'] ?? '',
+              data['manageBy'] ?? '',
+              data['vatRate'].toDouble() ?? 0,
+              data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
+              data['weight'].toDouble() ?? 0,
+              data['charect1'] ?? '',
+              data['charact2'] ?? '',
+              data['cmpCode'] ?? '');
           await itemsBox.put(itemCode, newItem);
         } else {
           var updatedItem = Items(
-              data['itemCode'],
-              data['itemName'],
-              data['itemPrName'],
-              data['itemFName'],
-              data['itemPrFName'],
-              data['groupCode'],
-              data['categCode'],
-              data['brandCode'],
-              data['itemType'],
-              data['barCode'],
-              data['uom'],
-              data['picture'],
-              data['remark'],
-              data['brand'],
-              data['manageBy'],
-              data['vatRate'].toDouble(),
-              data['active'] == 1,
-              data['weight'].toDouble(),
-              data['charect1'],
-              data['charact2'],
-              data['cmpCode']);
+              data['itemCode'] ?? '',
+              data['itemName'] ?? '',
+              data['itemPrName'] ?? '',
+              data['itemFName'] ?? '',
+              data['itemPrFName'] ?? '',
+              data['groupCode'] ?? '',
+              data['categCode'] ?? '',
+              data['brandCode'] ?? '',
+              data['itemType'] ?? '',
+              data['barCode'] ?? '',
+              data['uom'] ?? '',
+              data['picture'] ?? '',
+              data['remark'] ?? '',
+              data['brand'] ?? '',
+              data['manageBy'] ?? '',
+              data['vatRate'].toDouble() ?? 0,
+              data['active'] == 1 ? true : false, // Convert Tinyint to Boolean
+              data['weight'].toDouble() ?? 0,
+              data['charect1'] ?? '',
+              data['charact2'] ?? '',
+              data['cmpCode'] ?? '');
           await itemsBox.put(itemCode, updatedItem);
         }
       }
@@ -315,32 +315,32 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in priceListData) {
-        var plCode = data['plCode'];
+        var plCode = data['plCode'] ?? '';
         var hivePrice = pricelistsBox.get(plCode);
 
         if (hivePrice == null) {
           var newPrice = PriceList(
-              data['plCode'],
-              data['plName'],
-              data['currency'],
-              data['basePL'],
-              data['factor'].toDouble(),
-              data['incVAT'] == 1,
-              data['securityGroup'],
-              data['cmpCode'],
-              data['authoGroup']);
+              data['plCode'] ?? '',
+              data['plName'] ?? '',
+              data['currency'] ?? '',
+              data['basePL'] ?? '',
+              data['factor'].toDouble() ?? 0,
+              data['incVAT'] == 1 ? true : false, // Convert Tinyint to Boolean
+              data['securityGroup'] ?? '',
+              data['cmpCode'] ?? '',
+              data['authoGroup'] ?? '');
           await pricelistsBox.put(plCode, newPrice);
         } else {
           var updatedPrice = PriceList(
-              data['plCode'],
-              data['plName'],
-              data['currency'],
-              data['basePL'],
-              data['factor'].toDouble(),
-              data['incVAT'] == 1,
-              data['securityGroup'],
-              data['cmpCode'],
-              data['authoGroup']);
+              data['plCode'] ?? '',
+              data['plName'] ?? '',
+              data['currency'] ?? '',
+              data['basePL'] ?? '',
+              data['factor'].toDouble() ?? 0,
+              data['incVAT'] == 1 ? true : false, // Convert Tinyint to Boolean
+              data['securityGroup'] ?? '',
+              data['cmpCode'] ?? '',
+              data['authoGroup'] ?? '');
           await pricelistsBox.put(plCode, updatedPrice);
         }
       }
@@ -428,8 +428,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in itemPricesData) {
-        var plCode = data['plCode'];
-        var itemCode = data['itemCode'];
+        var plCode = data['plCode'] ?? '';
+        var itemCode = data['itemCode'] ?? '';
 
         var hivePriceItem = itempriceBox.get('$plCode$itemCode');
 
@@ -437,25 +437,25 @@ class DataSynchronizerFromFirebaseToHive {
           var newPriceItem = ItemsPrices(
               plCode,
               itemCode,
-              data['uom'],
-              data['basePrice'].toDouble(),
-              data['currency'],
-              data['auto'] == 1,
-              data['disc'].toDouble(),
-              data['price'].toDouble(),
-              data['cmpCode']);
+              data['uom'] ?? '',
+              data['basePrice'].toDouble() ?? 0,
+              data['currency'] ?? '',
+              data['auto'] == 1 ? true : false, // Convert Tinyint to Boolean
+              data['disc'].toDouble() ?? 0,
+              data['price'].toDouble() ?? 0,
+              data['cmpCode'] ?? '');
           await itempriceBox.put('$plCode$itemCode', newPriceItem);
         } else {
           var updatedPriceItem = ItemsPrices(
               plCode,
               itemCode,
-              data['uom'],
-              data['basePrice'].toDouble(),
-              data['currency'],
-              data['auto'] == 1,
-              data['disc'].toDouble(),
-              data['price'].toDouble(),
-              data['cmpCode']);
+              data['uom'] ?? '',
+              data['basePrice'].toDouble() ?? 0,
+              data['currency'] ?? '',
+              data['auto'] == 1 ? true : false, // Convert Tinyint to Boolean
+              data['disc'].toDouble() ?? 0,
+              data['price'].toDouble() ?? 0,
+              data['cmpCode'] ?? '');
           await itempriceBox.put('$plCode$itemCode', updatedPriceItem);
         }
       }
@@ -541,25 +541,25 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in itemAttachData) {
-        var itemCode = data['itemCode'];
+        var itemCode = data['itemCode'] ?? '';
 
         var hiveAttachItem = itemattachBox.get(itemCode);
 
         if (hiveAttachItem == null) {
           var newAttachItem = ItemAttach(
-              data['itemCode'],
-              data['attachmentType'],
-              data['attachmentPath'],
-              data['note'],
-              data['cmpCode']);
+              data['itemCode'] ?? '',
+              data['attachmentType'] ?? '',
+              data['attachmentPath'] ?? '',
+              data['note'] ?? '',
+              data['cmpCode'] ?? '');
           await itemattachBox.put(itemCode, newAttachItem);
         } else {
           var updatedAttachItem = ItemAttach(
-              data['itemCode'],
-              data['attachmentType'],
-              data['attachmentPath'],
-              data['note'],
-              data['cmpCode']);
+              data['itemCode'] ?? '',
+              data['attachmentType'] ?? '',
+              data['attachmentPath'] ?? '',
+              data['note'] ?? '',
+              data['cmpCode'] ?? '');
           await itemattachBox.put(itemCode, updatedAttachItem);
         }
       }
@@ -676,18 +676,24 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in itemGroupData) {
-        var groupCode = data['groupCode'];
-        var cmpCode = data['cmpCode'];
+        var groupCode = data['groupCode'] ?? '';
+        var cmpCode = data['cmpCode'] ?? '';
 
         var hiveGroupItem = itemgroupBox.get('$groupCode$cmpCode');
 
         if (hiveGroupItem == null) {
-          var newGroupItem = ItemGroup(data['groupCode'], data['groupName'],
-              data['groupFName'], data['cmpCode']);
+          var newGroupItem = ItemGroup(
+              data['groupCode'] ?? '',
+              data['groupName'] ?? '',
+              data['groupFName'] ?? '',
+              data['cmpCode'] ?? '');
           await itemgroupBox.put('$groupCode$cmpCode', newGroupItem);
         } else {
-          var updatedGroupItem = ItemGroup(data['groupCode'], data['groupName'],
-              data['groupFName'], data['cmpCode']);
+          var updatedGroupItem = ItemGroup(
+              data['groupCode'] ?? '',
+              data['groupName'] ?? '',
+              data['groupFName'] ?? '',
+              data['cmpCode'] ?? '');
           await itemgroupBox.put('$groupCode$cmpCode', updatedGroupItem);
         }
       }
@@ -805,18 +811,24 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in itemCategData) {
-        var categCode = data['categCode'];
-        var cmpCode = data['cmpCode'];
+        var categCode = data['categCode'] ?? '';
+        var cmpCode = data['cmpCode'] ?? '';
 
         var hiveCategItem = itemcategBox.get('$categCode$cmpCode');
 
         if (hiveCategItem == null) {
-          var newCategItem = ItemCateg(data['categCode'], data['categName'],
-              data['categFName'], data['cmpCode']);
+          var newCategItem = ItemCateg(
+              data['categCode'] ?? '',
+              data['categName'] ?? '',
+              data['categFName'] ?? '',
+              data['cmpCode'] ?? '');
           await itemcategBox.put('$categCode$cmpCode', newCategItem);
         } else {
-          var updatedCategItem = ItemCateg(data['categCode'], data['categName'],
-              data['categFName'], data['cmpCode']);
+          var updatedCategItem = ItemCateg(
+              data['categCode'] ?? '',
+              data['categName'] ?? '',
+              data['categFName'] ?? '',
+              data['cmpCode'] ?? '');
           await itemcategBox.put('$categCode$cmpCode', updatedCategItem);
         }
       }
@@ -933,18 +945,24 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in itemBrandData) {
-        var brandCode = data['brandCode'];
-        var cmpCode = data['cmpCode'];
+        var brandCode = data['brandCode'] ?? '';
+        var cmpCode = data['cmpCode'] ?? '';
 
         var hiveBrandItem = itembrandBox.get('$brandCode$cmpCode');
 
         if (hiveBrandItem == null) {
-          var newBrandItem = ItemBrand(data['brandCode'], data['brandName'],
-              data['brandFName'], data['cmpCode']);
+          var newBrandItem = ItemBrand(
+              data['brandCode'] ?? '',
+              data['brandName'] ?? '',
+              data['brandFName'] ?? '',
+              data['cmpCode'] ?? '');
           await itembrandBox.put('$brandCode$cmpCode', newBrandItem);
         } else {
-          var updatedBrandItem = ItemBrand(data['brandCode'], data['brandName'],
-              data['brandFName'], data['cmpCode']);
+          var updatedBrandItem = ItemBrand(
+              data['brandCode'] ?? '',
+              data['brandName'] ?? '',
+              data['brandFName'] ?? '',
+              data['cmpCode'] ?? '');
           await itembrandBox.put('$brandCode$cmpCode', updatedBrandItem);
         }
       }
@@ -1032,19 +1050,27 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in itemUOMData) {
-        var uom = data['uom'];
-        var itemCode = data['itemCode'];
-        var cmpCode = data['cmpCode'];
+        var uom = data['uom'] ?? '';
+        var itemCode = data['itemCode'] ?? '';
+        var cmpCode = data['cmpCode'] ?? '';
 
         var hiveUOMItem = itemuomBox.get('$uom$itemCode$cmpCode');
 
         if (hiveUOMItem == null) {
-          var newUOMItem = ItemUOM(data['itemCode'], data['uom'],
-              data['qtyperUOM'].toDouble(), data['barCode'], data['cmpCode']);
+          var newUOMItem = ItemUOM(
+              data['itemCode'] ?? '',
+              data['uom'] ?? '',
+              data['qtyperUOM'].toDouble() ?? 0,
+              data['barCode'] ?? '',
+              data['cmpCode'] ?? '');
           await itemuomBox.put('$uom$itemCode$cmpCode', newUOMItem);
         } else {
-          var updatedUOMItem = ItemUOM(data['itemCode'], data['uom'],
-              data['qtyperUOM'].toDouble(), data['barCode'], data['cmpCode']);
+          var updatedUOMItem = ItemUOM(
+              data['itemCode'] ?? '',
+              data['uom'] ?? '',
+              data['qtyperUOM'].toDouble() ?? 0,
+              data['barCode'] ?? '',
+              data['cmpCode'] ?? '');
           await itemuomBox.put('$uom$itemCode$cmpCode', updatedUOMItem);
         }
       }
@@ -1118,20 +1144,20 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in userPLData) {
-        var userCode = data['userCode'];
+        var userCode = data['userCode'] ?? '';
 
         var hiveUserPL = userplBox.get(userCode);
 
         if (hiveUserPL == null) {
           var newUserPL = UserPL(
-            data['userCode'],
-            data['plSecGroup'],
+            data['userCode'] ?? '',
+            data['plSecGroup'] ?? '',
           );
           await userplBox.put(userCode, newUserPL);
         } else {
           var updatedUserPL = UserPL(
-            data['userCode'],
-            data['plSecGroup'],
+            data['userCode'] ?? '',
+            data['plSecGroup'] ?? '',
           );
           await userplBox.put(userCode, updatedUserPL);
         }
@@ -1213,6 +1239,12 @@ class DataSynchronizerFromFirebaseToHive {
       for (var data in userData) {
         var usercode = data['usercode'];
 
+        // Convert the active field to a boolean
+        bool active = data['active'] == 1 ? true : false;
+
+        // Update the data with the converted active field
+        data['active'] = active;
+
         // If the user code doesn't exist in Hive, add it
         if (!hiveUserCodes.contains(usercode)) {
           await userBox.put(usercode, data);
@@ -1287,21 +1319,21 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over API response
       for (var data in userGroupData) {
-        var groupcode = data['groupcode'];
+        var groupcode = data['groupcode'] ?? '';
 
         // If the item doesn't exist in Hive, add it
         if (!usersGroup.containsKey(groupcode)) {
           var newUserGroup = UserGroup(
-            groupcode: data['groupcode'],
-            groupname: data['groupname'],
+            groupcode: data['groupcode'] ?? '',
+            groupname: data['groupname'] ?? '',
           );
           await usersGroup.put(groupcode, newUserGroup);
         }
         // If the item exists in Hive, update it if needed
         else {
           var updatedUserGroup = UserGroup(
-            groupcode: data['groupcode'],
-            groupname: data['groupname'],
+            groupcode: data['groupcode'] ?? '',
+            groupname: data['groupname'] ?? '',
           );
           // Update the item in Hive
           await usersGroup.put(groupcode, updatedUserGroup);
@@ -1386,13 +1418,13 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over MySQL data
       for (var data in mysqlData) {
-        var groupcode = data['groupcode'];
+        var groupcode = data['groupcode'] ?? '';
 
         // If the item doesn't exist in Hive, add it
         if (!translationBox.containsKey(groupcode)) {
           var newTranslations = Translations(
             groupcode: groupcode,
-            translations: {'en': data['en'], 'ar': data['ar']},
+            translations: {'en': data['en'] ?? '', 'ar': data['ar'] ?? ''},
           );
           await translationBox.put(groupcode, newTranslations);
         }
@@ -1400,7 +1432,7 @@ class DataSynchronizerFromFirebaseToHive {
         else {
           var updatedTranslations = Translations(
             groupcode: groupcode,
-            translations: {'en': data['en'], 'ar': data['ar']},
+            translations: {'en': data['en'] ?? '', 'ar': data['ar'] ?? ''},
           );
           // Update the item in Hive
           await translationBox.put(groupcode, updatedTranslations);
@@ -1546,7 +1578,7 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over API response data
       for (var data in apiResponse) {
-        var menucode = data['menucode'];
+        var menucode = data['menucode'] ?? '';
 
         // Check if the menu item exists in Hive
         var hiveMenu = menuBox.get(menucode);
@@ -1554,17 +1586,17 @@ class DataSynchronizerFromFirebaseToHive {
         // If the menu item doesn't exist in Hive, add it
         if (hiveMenu == null) {
           var newMenu = Menu(
-            menucode: data['menucode'],
-            menuname: data['menuname'],
-            menuarname: data['menuarname'],
+            menucode: data['menucode'] ?? '',
+            menuname: data['menuname'] ?? '',
+            menuarname: data['menuarname'] ?? '',
           );
           await menuBox.put(menucode, newMenu);
         } else {
           // If the menu item exists in Hive, update it if needed
           var updatedMenu = Menu(
-            menucode: data['menucode'],
-            menuname: data['menuname'],
-            menuarname: data['menuarname'],
+            menucode: data['menucode'] ?? '',
+            menuname: data['menuname'] ?? '',
+            menuarname: data['menuarname'] ?? '',
           );
           // Update the item in Hive
           await menuBox.put(menucode, updatedMenu);
@@ -1593,7 +1625,7 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over subMenuData
       for (var subMenu in subMenuData) {
-        var groupcode = subMenu['groupcode'];
+        var groupcode = subMenu['groupcode'] ?? '';
 
         // Check if the usergroup/syncgroup exists in Hive
         var hiveGroup = groupBox.get(groupcode);
@@ -1601,17 +1633,17 @@ class DataSynchronizerFromFirebaseToHive {
         // If the usergroup/syncgroup doesn't exist in Hive, add it
         if (hiveGroup == null) {
           var newGroup = AdminSubMenu(
-            groupcode: subMenu['groupcode'],
-            groupname: subMenu['groupname'],
-            grouparname: subMenu['grouparname'],
+            groupcode: subMenu['groupcode'] ?? '',
+            groupname: subMenu['groupname'] ?? '',
+            grouparname: subMenu['grouparname'] ?? '',
           );
           await groupBox.put(groupcode, newGroup);
         } else {
           // If the usergroup/syncgroup exists in Hive, update it if needed
           var updatedGroup = AdminSubMenu(
-            groupcode: subMenu['groupcode'],
-            groupname: subMenu['groupname'],
-            grouparname: subMenu['grouparname'],
+            groupcode: subMenu['groupcode'] ?? '',
+            groupname: subMenu['groupname'] ?? '',
+            grouparname: subMenu['grouparname'] ?? '',
           );
           // Update the item in Hive
           await groupBox.put(groupcode, updatedGroup);
@@ -1627,7 +1659,7 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over subMenuData
       for (var subMenu in subSyncData) {
-        var syncronizecode = subMenu['syncronizecode'];
+        var syncronizecode = subMenu['syncronizecode'] ?? '';
 
         // Check if the usergroup/syncgroup exists in Hive
         var hiveGroup = syncGroupBox.get(syncronizecode);
@@ -1635,20 +1667,20 @@ class DataSynchronizerFromFirebaseToHive {
         // If the usergroup/syncgroup doesn't exist in Hive, add it
         if (hiveGroup == null) {
           var newGroup = SynchronizeSubMenu(
-            syncronizecode: subMenu['syncronizecode'],
-            syncronizename: subMenu['syncronizename'],
-            syncronizearname: subMenu['syncronizearname'],
+            syncronizecode: subMenu['syncronizecode'] ?? '',
+            syncronizename: subMenu['syncronizename'] ?? '',
+            syncronizearname: subMenu['syncronizearname'] ?? '',
           );
           await syncGroupBox.put(syncronizecode, newGroup);
         } else {
           // If the usergroup/syncgroup exists in Hive, update it if needed
           var updatedGroup = SynchronizeSubMenu(
-            syncronizecode: subMenu['syncronizecode'],
-            syncronizename: subMenu['syncronizename'],
-            syncronizearname: subMenu['syncronizearname'],
+            syncronizecode: subMenu['syncronizecode'] ?? '',
+            syncronizename: subMenu['syncronizename'] ?? '',
+            syncronizearname: subMenu['syncronizearname'] ?? '',
           );
           // Update the item in Hive
-          await syncGroupBox.put(syncGroupBox, updatedGroup);
+          await syncGroupBox.put(syncronizecode, updatedGroup);
         }
       }
     } catch (e) {
@@ -1660,8 +1692,8 @@ class DataSynchronizerFromFirebaseToHive {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-  Future<List<Map<String, dynamic>>> _fetchAuthorizationData() async {
-    List<Map<String, dynamic>> authorizationData = [];
+  Future<List<Map<int, dynamic>>> _fetchAuthorizationData() async {
+    List<Map<int, dynamic>> authorizationData = [];
     try {
       // Perform HTTP GET request to fetch authorization data from the API endpoint
       final response = await http.get(Uri.parse('${apiurl}getAuthorization'));
@@ -1670,11 +1702,11 @@ class DataSynchronizerFromFirebaseToHive {
         if (responseData is List) {
           // If the response is a list, append each authorization data to the authorizationData list
           for (var authData in responseData) {
-            if (authData is Map<String, dynamic>) {
+            if (authData is Map<int, dynamic>) {
               authorizationData.add(authData);
             }
           }
-        } else if (responseData is Map<String, dynamic>) {
+        } else if (responseData is Map<int, dynamic>) {
           // If the response is a map, directly append it to the authorizationData list
           authorizationData.add(responseData);
         } else {
@@ -1692,7 +1724,7 @@ class DataSynchronizerFromFirebaseToHive {
   Future<void> synchronizeDataAuthorization() async {
     try {
       // Fetch data from API endpoint
-      List<Map<String, dynamic>> apiResponse = await _fetchAuthorizationData();
+      List<Map<int, dynamic>> apiResponse = await _fetchAuthorizationData();
 
       // Open Hive box
       var authoBox = await Hive.openBox<Authorization>('authorizationBox');
@@ -1711,13 +1743,13 @@ class DataSynchronizerFromFirebaseToHive {
   }
 
   Future<void> _synchronizeAutho(
-    List<Map<String, dynamic>> authorizationData,
+    List<Map<int, dynamic>> authorizationData,
     Box<Authorization> authoBox,
   ) async {
     try {
       for (var data in authorizationData) {
-        var menucode = data['menucode'];
-        var groupcode = data['groupcode'];
+        var menucode = data['menucode'] ?? '';
+        var groupcode = data['groupcode'] ?? '';
 
         // Check if the item exists in Hive
         var hiveAutho = authoBox.get('$menucode$groupcode');
@@ -1740,19 +1772,6 @@ class DataSynchronizerFromFirebaseToHive {
           await authoBox.put('$menucode$groupcode', updatedAutho);
         }
       }
-
-      // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedAuthoCodes = Set.from(authorizationData
-          .map((data) => '${data['menucode']}${data['groupcode']}'));
-      Set<String> hiveAuthoCodes = Set.from(authoBox.keys);
-
-      // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete = hiveAuthoCodes.difference(fetchedAuthoCodes);
-
-      // Delete items in Hive that don't exist in the fetched data
-      itemsToDelete.forEach((hiveAuthoCode) {
-        authoBox.delete(hiveAuthoCode);
-      });
     } catch (e) {
       print('Error synchronizing Authorization from API to Hive: $e');
     }
@@ -1761,8 +1780,8 @@ class DataSynchronizerFromFirebaseToHive {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-  Future<List<Map<String, dynamic>>> _fetchGeneralSettingsData() async {
-    List<Map<String, dynamic>> generalSettingsData = [];
+  Future<List<Map<int, dynamic>>> _fetchGeneralSettingsData() async {
+    List<Map<int, dynamic>> generalSettingsData = [];
     try {
       // Perform HTTP GET request to fetch general settings data from the API endpoint
       final response = await http.get(Uri.parse('${apiurl}getSystemAdmin'));
@@ -1771,11 +1790,11 @@ class DataSynchronizerFromFirebaseToHive {
         if (responseData is List) {
           // If the response is a list, append each general settings data to the generalSettingsData list
           for (var settingsData in responseData) {
-            if (settingsData is Map<String, dynamic>) {
+            if (settingsData is Map<int, dynamic>) {
               generalSettingsData.add(settingsData);
             }
           }
-        } else if (responseData is Map<String, dynamic>) {
+        } else if (responseData is Map<int, dynamic>) {
           // If the response is a map, directly append it to the generalSettingsData list
           generalSettingsData.add(responseData);
         } else {
@@ -1794,8 +1813,7 @@ class DataSynchronizerFromFirebaseToHive {
   Future<void> synchronizeDataGeneralSettings() async {
     try {
       // Fetch data from API endpoint
-      List<Map<String, dynamic>> apiResponse =
-          await _fetchGeneralSettingsData();
+      List<Map<int, dynamic>> apiResponse = await _fetchGeneralSettingsData();
 
       // Open Hive box
       var systemAdminBox = await Hive.openBox<SystemAdmin>('systemAdminBox');
@@ -1814,12 +1832,12 @@ class DataSynchronizerFromFirebaseToHive {
   }
 
   Future<void> _synchronizeSystem(
-    List<Map<String, dynamic>> generalSettingsData,
+    List<Map<int, dynamic>> generalSettingsData,
     Box<SystemAdmin> systemAdminBox,
   ) async {
     try {
       for (var data in generalSettingsData) {
-        var groupcode = data['groupcode'];
+        var groupcode = data['groupcode'] ?? '';
 
         // Check if the item exists in Hive
         var hiveSystem = systemAdminBox.get(groupcode);
@@ -1827,20 +1845,24 @@ class DataSynchronizerFromFirebaseToHive {
         // If the item doesn't exist in Hive, add it
         if (hiveSystem == null) {
           var newSystem = SystemAdmin(
-            autoExport: data['autoExport'],
-            groupcode: data['groupcode'],
-            importFromErpToMobile: data['importFromErpToMobile'],
-            importFromBackendToMobile: data['importFromBackendToMobile'],
+            autoExport: data['autoExport'] == 1 ? true : false,
+            groupcode: data['groupcode'] ?? '',
+            importFromErpToMobile:
+                data['importFromErpToMobile'] == 1 ? true : false,
+            importFromBackendToMobile:
+                data['importFromBackendToMobile'] == 1 ? true : false,
           );
           await systemAdminBox.put(groupcode, newSystem);
         }
         // If the item exists in Hive, update it if needed
         else {
           var updatedSystem = SystemAdmin(
-            autoExport: data['autoExport'],
-            groupcode: data['groupcode'],
-            importFromErpToMobile: data['importFromErpToMobile'],
-            importFromBackendToMobile: data['importFromBackendToMobile'],
+            autoExport: data['autoExport'] == 1 ? true : false,
+            groupcode: data['groupcode'] ?? '',
+            importFromErpToMobile:
+                data['importFromErpToMobile'] == 1 ? true : false,
+            importFromBackendToMobile:
+                data['importFromBackendToMobile'] == 1 ? true : false,
           );
           // Update the item in Hive
           await systemAdminBox.put(groupcode, updatedSystem);
@@ -1848,13 +1870,12 @@ class DataSynchronizerFromFirebaseToHive {
       }
 
       // Check for items in Hive that don't exist in the fetched data and delete them
-      Set<String> fetchedSystemCodes =
+      Set<int> fetchedSystemCodes =
           Set.from(generalSettingsData.map((data) => data['groupcode']));
-      Set<String> hiveSystemCodes = Set.from(systemAdminBox.keys);
+      Set<int> hiveSystemCodes = Set.from(systemAdminBox.keys);
 
       // Identify items in Hive that don't exist in the fetched data
-      Set<String> itemsToDelete =
-          hiveSystemCodes.difference(fetchedSystemCodes);
+      Set<int> itemsToDelete = hiveSystemCodes.difference(fetchedSystemCodes);
 
       // Delete items in Hive that don't exist in the fetched data
       itemsToDelete.forEach((hiveSystemCode) {
@@ -1925,44 +1946,44 @@ class DataSynchronizerFromFirebaseToHive {
 
         if (hiveCompany == null) {
           var newCompany = Companies(
-            cmpCode: data['cmpCode'],
-            cmpName: data['cmpName'],
-            cmpFName: data['cmpFName'],
-            tel: data['tel'],
-            mobile: data['mobile'],
-            address: data['address'],
-            fAddress: data['fAddress'],
-            prHeader: data['prHeader'],
-            prFHeader: data['prFHeader'],
-            prFooter: data['prFooter'],
-            prFFooter: data['prFFooter'],
-            mainCurCode: data['mainCurCode'],
-            secCurCode: data['secCurCode'],
-            rateType: data['rateType'],
-            issueBatchMethod: data['issueBatchMethod'],
-            systemAdminID: data['systemAdminID'],
-            notes: data['notes'],
+            cmpCode: data['cmpCode'] ?? '',
+            cmpName: data['cmpName'] ?? '',
+            cmpFName: data['cmpFName'] ?? '',
+            tel: data['tel'] ?? '',
+            mobile: data['mobile'] ?? '',
+            address: data['address'] ?? '',
+            fAddress: data['fAddress'] ?? '',
+            prHeader: data['prHeader'] ?? '',
+            prFHeader: data['prFHeader'] ?? '',
+            prFooter: data['prFooter'] ?? '',
+            prFFooter: data['prFFooter'] ?? '',
+            mainCurCode: data['mainCurCode'] ?? '',
+            secCurCode: data['secCurCode'] ?? '',
+            rateType: data['rateType'] ?? '',
+            issueBatchMethod: data['issueBatchMethod'] ?? '',
+            systemAdminID: data['systemAdminID'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await companiesBox.put(cmpCode, newCompany);
         } else {
           var updatedCompany = Companies(
-            cmpCode: data['cmpCode'],
-            cmpName: data['cmpName'],
-            cmpFName: data['cmpFName'],
-            tel: data['tel'],
-            mobile: data['mobile'],
-            address: data['address'],
-            fAddress: data['fAddress'],
-            prHeader: data['prHeader'],
-            prFHeader: data['prFHeader'],
-            prFooter: data['prFooter'],
-            prFFooter: data['prFFooter'],
-            mainCurCode: data['mainCurCode'],
-            secCurCode: data['secCurCode'],
-            rateType: data['rateType'],
-            issueBatchMethod: data['issueBatchMethod'],
-            systemAdminID: data['systemAdminID'],
-            notes: data['notes'],
+            cmpCode: data['cmpCode'] ?? '',
+            cmpName: data['cmpName'] ?? '',
+            cmpFName: data['cmpFName'] ?? '',
+            tel: data['tel'] ?? '',
+            mobile: data['mobile'] ?? '',
+            address: data['address'] ?? '',
+            fAddress: data['fAddress'] ?? '',
+            prHeader: data['prHeader'] ?? '',
+            prFHeader: data['prFHeader'] ?? '',
+            prFooter: data['prFooter'] ?? '',
+            prFFooter: data['prFFooter'] ?? '',
+            mainCurCode: data['mainCurCode'] ?? '',
+            secCurCode: data['secCurCode'] ?? '',
+            rateType: data['rateType'] ?? '',
+            issueBatchMethod: data['issueBatchMethod'] ?? '',
+            systemAdminID: data['systemAdminID'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await companiesBox.put(cmpCode, updatedCompany);
         }
@@ -2040,8 +2061,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in departmentsData) {
-        var cmpCode = data['cmpCode'];
-        var depCode = data['depCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var depCode = data['depCode'] ?? '';
 
         // Check if the department exists in Hive
         var hiveDepartment = departmentsBox.get('$cmpCode$depCode');
@@ -2050,18 +2071,18 @@ class DataSynchronizerFromFirebaseToHive {
           var newDepartment = Departements(
             cmpCode: cmpCode,
             depCode: depCode,
-            depName: data['depName'],
-            depFName: data['depFName'],
-            notes: data['notes'],
+            depName: data['depName'] ?? '',
+            depFName: data['depFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await departmentsBox.put('$cmpCode$depCode', newDepartment);
         } else {
           var updatedDepartment = Departements(
             cmpCode: cmpCode,
             depCode: depCode,
-            depName: data['depName'],
-            depFName: data['depFName'],
-            notes: data['notes'],
+            depName: data['depName'] ?? '',
+            depFName: data['depFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await departmentsBox.put('$cmpCode$depCode', updatedDepartment);
         }
@@ -2138,8 +2159,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in exchangeRatesData) {
-        var cmpCode = data['cmpCode'];
-        var curCode = data['curCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var curCode = data['curCode'] ?? '';
 
         // Check if the exchange rate exists in Hive
         var hiveExchangeRate = exchangeRatesBox.get('$cmpCode$curCode');
@@ -2150,7 +2171,7 @@ class DataSynchronizerFromFirebaseToHive {
             curCode: curCode,
             fDate: DateTime.parse(data['fDate']),
             tDate: DateTime.parse(data['tDate']),
-            rate: data['rate'],
+            rate: data['rate'] ?? '',
           );
           await exchangeRatesBox.put('$cmpCode$curCode', newExchangeRate);
         } else {
@@ -2159,7 +2180,7 @@ class DataSynchronizerFromFirebaseToHive {
             curCode: curCode,
             fDate: DateTime.parse(data['fDate']),
             tDate: DateTime.parse(data['tDate']),
-            rate: data['rate'],
+            rate: data['rate'] ?? '',
           );
           await exchangeRatesBox.put('$cmpCode$curCode', updatedExchangeRate);
         }
@@ -2236,8 +2257,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in currenciesData) {
-        var cmpCode = data['cmpCode'];
-        var curCode = data['curCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var curCode = data['curCode'] ?? '';
 
         // Check if the currency exists in Hive
         var hiveCurrency = currenciesBox.get('$cmpCode$curCode');
@@ -2246,18 +2267,18 @@ class DataSynchronizerFromFirebaseToHive {
           var newCurrency = Currencies(
             cmpCode: cmpCode,
             curCode: curCode,
-            curName: data['curName'],
-            curFName: data['curFName'],
-            notes: data['notes'],
+            curName: data['curName'] ?? '',
+            curFName: data['curFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await currenciesBox.put('$cmpCode$curCode', newCurrency);
         } else {
           var updatedCurrency = Currencies(
             cmpCode: cmpCode,
             curCode: curCode,
-            curName: data['curName'],
-            curFName: data['curFName'],
-            notes: data['notes'],
+            curName: data['curName'] ?? '',
+            curFName: data['curFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await currenciesBox.put('$cmpCode$curCode', updatedCurrency);
         }
@@ -2334,8 +2355,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in vatGroupsData) {
-        var cmpCode = data['cmpCode'];
-        var vatCode = data['vatCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var vatCode = data['vatCode'] ?? '';
 
         // Check if the VAT group exists in Hive
         var hiveVATGroup = vatGroupsBox.get('$cmpCode$vatCode');
@@ -2344,20 +2365,20 @@ class DataSynchronizerFromFirebaseToHive {
           var newVATGroup = VATGroups(
             cmpCode: cmpCode,
             vatCode: vatCode,
-            vatName: data['vatName'],
-            vatRate: data['vatRate'],
-            baseCurCode: data['baseCurCode'],
-            notes: data['notes'],
+            vatName: data['vatName'] ?? '',
+            vatRate: data['vatRate'] ?? '',
+            baseCurCode: data['baseCurCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await vatGroupsBox.put('$cmpCode$vatCode', newVATGroup);
         } else {
           var updatedVATGroup = VATGroups(
             cmpCode: cmpCode,
             vatCode: vatCode,
-            vatName: data['vatName'],
-            vatRate: data['vatRate'],
-            baseCurCode: data['baseCurCode'],
-            notes: data['notes'],
+            vatName: data['vatName'] ?? '',
+            vatRate: data['vatRate'] ?? '',
+            baseCurCode: data['baseCurCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await vatGroupsBox.put('$cmpCode$vatCode', updatedVATGroup);
         }
@@ -2435,8 +2456,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in custGroupsData) {
-        var cmpCode = data['cmpCode'];
-        var grpCode = data['grpCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var grpCode = data['grpCode'] ?? '';
 
         // Check if the customer group exists in Hive
         var hiveCustGroup = custGroupsBox.get('$cmpCode$grpCode');
@@ -2445,18 +2466,18 @@ class DataSynchronizerFromFirebaseToHive {
           var newCustGroup = CustGroups(
             cmpCode: cmpCode,
             grpCode: grpCode,
-            grpName: data['grpName'],
-            grpFName: data['grpFName'],
-            notes: data['notes'],
+            grpName: data['grpName'] ?? '',
+            grpFName: data['grpFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await custGroupsBox.put('$cmpCode$grpCode', newCustGroup);
         } else {
           var updatedCustGroup = CustGroups(
             cmpCode: cmpCode,
             grpCode: grpCode,
-            grpName: data['grpName'],
-            grpFName: data['grpFName'],
-            notes: data['notes'],
+            grpName: data['grpName'] ?? '',
+            grpFName: data['grpFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await custGroupsBox.put('$cmpCode$grpCode', updatedCustGroup);
         }
@@ -2535,8 +2556,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in custPropertiesData) {
-        var cmpCode = data['cmpCode'];
-        var propCode = data['propCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var propCode = data['propCode'] ?? '';
 
         // Check if the customer property exists in Hive
         var hiveCustProperty = custPropertiesBox.get('$cmpCode$propCode');
@@ -2545,18 +2566,18 @@ class DataSynchronizerFromFirebaseToHive {
           var newCustProperty = CustProperties(
             cmpCode: cmpCode,
             propCode: propCode,
-            propName: data['propName'],
-            propFName: data['propFName'],
-            notes: data['notes'],
+            propName: data['propName'] ?? '',
+            propFName: data['propFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await custPropertiesBox.put('$cmpCode$propCode', newCustProperty);
         } else {
           var updatedCustProperty = CustProperties(
             cmpCode: cmpCode,
             propCode: propCode,
-            propName: data['propName'],
-            propFName: data['propFName'],
-            notes: data['notes'],
+            propName: data['propName'] ?? '',
+            propFName: data['propFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await custPropertiesBox.put('$cmpCode$propCode', updatedCustProperty);
         }
@@ -2631,8 +2652,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in regionsData) {
-        var cmpCode = data['cmpCode'];
-        var regCode = data['regCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var regCode = data['regCode'] ?? '';
 
         // Check if the region exists in Hive
         var hiveRegion = regionsBox.get('$cmpCode$regCode');
@@ -2641,18 +2662,18 @@ class DataSynchronizerFromFirebaseToHive {
           var newRegion = Regions(
             cmpCode: cmpCode,
             regCode: regCode,
-            regName: data['regName'],
-            regFName: data['regFName'],
-            notes: data['notes'],
+            regName: data['regName'] ?? '',
+            regFName: data['regFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await regionsBox.put('$cmpCode$regCode', newRegion);
         } else {
           var updatedRegion = Regions(
             cmpCode: cmpCode,
             regCode: regCode,
-            regName: data['regName'],
-            regFName: data['regFName'],
-            notes: data['notes'],
+            regName: data['regName'] ?? '',
+            regFName: data['regFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await regionsBox.put('$cmpCode$regCode', updatedRegion);
         }
@@ -2727,8 +2748,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in warehousesData) {
-        var cmpCode = data['cmpCode'];
-        var whsCode = data['whsCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var whsCode = data['whsCode'] ?? '';
 
         // Check if the warehouse exists in Hive
         var hiveWarehouse = warehousesBox.get('$cmpCode$whsCode');
@@ -2737,18 +2758,18 @@ class DataSynchronizerFromFirebaseToHive {
           var newWarehouse = Warehouses(
             cmpCode: cmpCode,
             whsCode: whsCode,
-            whsName: data['whsName'],
-            whsFName: data['whsFName'],
-            notes: data['notes'],
+            whsName: data['whsName'] ?? '',
+            whsFName: data['whsFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await warehousesBox.put('$cmpCode$whsCode', newWarehouse);
         } else {
           var updatedWarehouse = Warehouses(
             cmpCode: cmpCode,
             whsCode: whsCode,
-            whsName: data['whsName'],
-            whsFName: data['whsFName'],
-            notes: data['notes'],
+            whsName: data['whsName'] ?? '',
+            whsFName: data['whsFName'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await warehousesBox.put('$cmpCode$whsCode', updatedWarehouse);
         }
@@ -2823,8 +2844,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in paymentTermsData) {
-        var cmpCode = data['cmpCode'];
-        var ptCode = data['ptCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var ptCode = data['ptCode'] ?? '';
 
         // Check if the payment term exists in Hive
         var hivePaymentTerm = paymentTermsBox.get('$cmpCode$ptCode');
@@ -2833,22 +2854,22 @@ class DataSynchronizerFromFirebaseToHive {
           var newPaymentTerm = PaymentTerms(
             cmpCode: cmpCode,
             ptCode: ptCode,
-            ptName: data['ptName'],
-            ptFName: data['ptFName'],
-            startFrom: data['startFrom'],
-            nbrofDays: data['nbrofDays'],
-            notes: data['notes'],
+            ptName: data['ptName'] ?? '',
+            ptFName: data['ptFName'] ?? '',
+            startFrom: data['startFrom'] ?? '',
+            nbrofDays: data['nbrofDays'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await paymentTermsBox.put('$cmpCode$ptCode', newPaymentTerm);
         } else {
           var updatedPaymentTerm = PaymentTerms(
             cmpCode: cmpCode,
             ptCode: ptCode,
-            ptName: data['ptName'],
-            ptFName: data['ptFName'],
-            startFrom: data['startFrom'],
-            nbrofDays: data['nbrofDays'],
-            notes: data['notes'],
+            ptName: data['ptName'] ?? '',
+            ptFName: data['ptFName'] ?? '',
+            startFrom: data['startFrom'] ?? '',
+            nbrofDays: data['nbrofDays'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await paymentTermsBox.put('$cmpCode$ptCode', updatedPaymentTerm);
         }
@@ -2929,8 +2950,8 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in salesEmployeesData) {
-        var cmpCode = data['cmpCode'];
-        var seCode = data['seCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var seCode = data['seCode'] ?? '';
 
         // Check if the sales employee exists in Hive
         var hiveSalesEmployee = salesEmployeesBox.get('$cmpCode$seCode');
@@ -2939,26 +2960,26 @@ class DataSynchronizerFromFirebaseToHive {
           var newSalesEmployee = SalesEmployees(
             cmpCode: cmpCode,
             seCode: seCode,
-            seName: data['seName'],
-            seFName: data['seFName'],
-            mobile: data['mobile'],
-            email: data['email'],
-            whsCode: data['whsCode'],
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            seName: data['seName'] ?? '',
+            seFName: data['seFName'] ?? '',
+            mobile: data['mobile'] ?? '',
+            email: data['email'] ?? '',
+            whsCode: data['whsCode'] ?? '',
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesBox.put('$cmpCode$seCode', newSalesEmployee);
         } else {
           var updatedSalesEmployee = SalesEmployees(
             cmpCode: cmpCode,
             seCode: seCode,
-            seName: data['seName'],
-            seFName: data['seFName'],
-            mobile: data['mobile'],
-            email: data['email'],
-            whsCode: data['whsCode'],
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            seName: data['seName'] ?? '',
+            seFName: data['seFName'] ?? '',
+            mobile: data['mobile'] ?? '',
+            email: data['email'] ?? '',
+            whsCode: data['whsCode'] ?? '',
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesBox.put('$cmpCode$seCode', updatedSalesEmployee);
         }
@@ -3042,9 +3063,9 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in salesEmployeesCustomersData) {
-        var cmpCode = data['cmpCode'];
-        var seCode = data['seCode'];
-        var custCode = data['custCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var seCode = data['seCode'] ?? '';
+        var custCode = data['custCode'] ?? '';
 
         // Check if the sales employee customer relationship exists in Hive
         var hiveSalesEmployeesCustomers =
@@ -3055,7 +3076,7 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             custCode: custCode,
-            notes: data['notes'],
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesCustomersBox.put(
               '$cmpCode$seCode$custCode', newSalesEmployeesCustomers);
@@ -3064,7 +3085,7 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             custCode: custCode,
-            notes: data['notes'],
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesCustomersBox.put(
               '$cmpCode$seCode$custCode', updatedSalesEmployeesCustomers);
@@ -3155,9 +3176,9 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in salesEmployeesDepartmentsData) {
-        var cmpCode = data['cmpCode'];
-        var seCode = data['seCode'];
-        var deptCode = data['deptCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var seCode = data['seCode'] ?? '';
+        var deptCode = data['deptCode'] ?? '';
 
         // Check if the sales employee department relationship exists in Hive
         var hiveSalesEmployeesDepartments =
@@ -3168,8 +3189,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             deptCode: deptCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesDepartmentsBox.put(
               '$cmpCode$seCode$deptCode', newSalesEmployeesDepartments);
@@ -3178,8 +3199,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             deptCode: deptCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesDepartmentsBox.put(
               '$cmpCode$seCode$deptCode', updatedSalesEmployeesDepartments);
@@ -3271,9 +3292,9 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in salesEmployeesItemsBrandsData) {
-        var cmpCode = data['cmpCode'];
-        var seCode = data['seCode'];
-        var brandCode = data['brandCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var seCode = data['seCode'] ?? '';
+        var brandCode = data['brandCode'] ?? '';
 
         // Check if the sales employee items brands relationship exists in Hive
         var hiveSalesEmployeesItemsBrands =
@@ -3284,8 +3305,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             brandCode: brandCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesItemsBrandsBox.put(
               '$cmpCode$seCode$brandCode', newSalesEmployeesItemsBrands);
@@ -3294,8 +3315,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             brandCode: brandCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesItemsBrandsBox.put(
               '$cmpCode$seCode$brandCode', updatedSalesEmployeesItemsBrands);
@@ -3388,9 +3409,9 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in salesEmployeesItemsCategoriesData) {
-        var cmpCode = data['cmpCode'];
-        var seCode = data['seCode'];
-        var categCode = data['categCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var seCode = data['seCode'] ?? '';
+        var categCode = data['categCode'] ?? '';
 
         // Check if the sales employee items categories relationship exists in Hive
         var hiveSalesEmployeesItemsCategories =
@@ -3401,8 +3422,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             categCode: categCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesItemsCategoriesBox.put(
               '$cmpCode$seCode$categCode', newSalesEmployeesItemsCategories);
@@ -3412,8 +3433,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             categCode: categCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesItemsCategoriesBox.put(
               '$cmpCode$seCode$categCode',
@@ -3507,9 +3528,9 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in salesEmployeesItemsGroupsData) {
-        var cmpCode = data['cmpCode'];
-        var seCode = data['seCode'];
-        var groupCode = data['groupCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var seCode = data['seCode'] ?? '';
+        var groupCode = data['groupCode'] ?? '';
 
         // Check if the sales employee items groups relationship exists in Hive
         var hiveSalesEmployeesItemsGroups =
@@ -3520,8 +3541,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             groupCode: groupCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesItemsGroupsBox.put(
               '$cmpCode$seCode$groupCode', newSalesEmployeesItemsGroups);
@@ -3530,8 +3551,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             groupCode: groupCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesItemsGroupsBox.put(
               '$cmpCode$seCode$groupCode', updatedSalesEmployeesItemsGroups);
@@ -3620,9 +3641,9 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in salesEmployeesItemsData) {
-        var cmpCode = data['cmpCode'];
-        var seCode = data['seCode'];
-        var itemCode = data['itemCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var seCode = data['seCode'] ?? '';
+        var itemCode = data['itemCode'] ?? '';
 
         // Check if the sales employee items relationship exists in Hive
         var hiveSalesEmployeesItems =
@@ -3633,8 +3654,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             itemCode: itemCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesItemsBox.put(
               '$cmpCode$seCode$itemCode', newSalesEmployeesItems);
@@ -3643,8 +3664,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             seCode: seCode,
             itemCode: itemCode,
-            reqFromWhsCode: data['reqFromWhsCode'],
-            notes: data['notes'],
+            reqFromWhsCode: data['reqFromWhsCode'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await salesEmployeesItemsBox.put(
               '$cmpCode$seCode$itemCode', updatedSalesEmployeesItems);
@@ -3726,9 +3747,9 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in userSalesEmployeesData) {
-        var userCode = data['userCode'];
-        var cmpCode = data['cmpCode'];
-        var seCode = data['seCode'];
+        var userCode = data['userCode'] ?? '';
+        var cmpCode = data['cmpCode'] ?? '';
+        var seCode = data['seCode'] ?? '';
 
         // Check if the user sales employees relationship exists in Hive
         var hiveUserSalesEmployees =
@@ -3739,7 +3760,7 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             userCode: userCode,
             seCode: seCode,
-            notes: data['notes'],
+            notes: data['notes'] ?? '',
           );
           await userSalesEmployeesBox.put(
               '$userCode$cmpCode$seCode', newUserSalesEmployees);
@@ -3748,7 +3769,7 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             userCode: userCode,
             seCode: seCode,
-            notes: data['notes'],
+            notes: data['notes'] ?? '',
           );
           await userSalesEmployeesBox.put(
               '$userCode$cmpCode$seCode', updatedUserSalesEmployees);
@@ -3809,9 +3830,8 @@ class DataSynchronizerFromFirebaseToHive {
   Future<void> synchronizeCustomers(List<String> custCodes) async {
     try {
       // Fetch data from API endpoint using custCodes
-      List<Map<String, dynamic>> apiResponse =
-          await _fetchCustomersData(custCodes);
-
+      //List<Map<String, dynamic>> apiResponse = await _fetchCustomersData(custCodes);
+      List<Map<String, dynamic>> apiResponse = await _fetchCustomersData();
       // Open Hive box
       var customersBox = await Hive.openBox<Customers>('customersBox');
 
@@ -3822,25 +3842,24 @@ class DataSynchronizerFromFirebaseToHive {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchCustomersData(
-      List<String> custCodes) async {
+  Future<List<Map<String, dynamic>>> _fetchCustomersData() async {
     List<Map<String, dynamic>> customersData = [];
     try {
-      for (String custCode in custCodes) {
-        final response = await http
-            .get(Uri.parse('${apiurl}getCustomers?custCode=$custCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is Map<String, dynamic>) {
-            customersData.add(responseData);
-          } else {
-            print('Invalid response format for customer data');
-          }
+      //List<String> custCodes
+      //  for (String custCode in custCodes) {
+      final response = await http.get(Uri.parse('${apiurl}getCustomers'));
+      if (response.statusCode == 200) {
+        dynamic responseData = jsonDecode(response.body);
+        if (responseData is Map<String, dynamic>) {
+          customersData.add(responseData);
         } else {
-          print(
-              'Failed to retrieve customer data for custCode $custCode: ${response.statusCode}');
+          print('Invalid response format for customer data');
         }
+      } else {
+        print(
+            'Failed to retrieve customer data for custCode : ${response.statusCode}');
       }
+      // }
     } catch (e) {
       print('Error fetching customer data: $e');
     }
@@ -3853,72 +3872,73 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in customersData) {
-        var cmpCode = data['cmpCode'];
-        var custCode = data['custCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custCode = data['custCode'] ?? '';
 
         // Check if the customer exists in Hive
         var hiveCustomer = customers.get('$cmpCode$custCode');
-
+        print(data);
+        print('hii');
         if (hiveCustomer == null) {
           var newCustomer = Customers(
-            cmpCode: data['cmpCode'],
-            custCode: data['custCode'],
-            custName: data['custName'],
-            custFName: data['custFName'],
-            groupCode: data['groupCode'],
-            mofNum: data['mofNum'],
-            barcode: data['barcode'],
-            phone: data['phone'],
-            mobile: data['mobile'],
-            fax: data['fax'],
-            website: data['website'],
-            email: data['email'],
-            active: data['active'],
-            printLayout: data['printLayout'],
-            dfltAddressID: data['dfltAddressID'],
-            dfltContactID: data['dfltContactID'],
-            curCode: data['curCode'],
-            cashClient: data['cashClient'],
-            discType: data['discType'],
-            vatCode: data['vatCode'],
-            prListCode: data['prListCode'],
-            payTermsCode: data['payTermsCode'],
-            discount: data['discount'],
-            creditLimit: data['creditLimit'],
-            balance: data['balance'],
-            balanceDue: data['balanceDue'],
-            notes: data['notes'],
+            cmpCode: data['cmpCode'] ?? '',
+            custCode: data['custCode'] ?? '',
+            custName: data['custName'] ?? '',
+            custFName: data['custFName'] ?? '',
+            groupCode: data['groupCode'] ?? '',
+            mofNum: data['mofNum'] ?? '',
+            barcode: data['barcode'] ?? '',
+            phone: data['phone'] ?? '',
+            mobile: data['mobile'] ?? '',
+            fax: data['fax'] ?? '',
+            website: data['website'] ?? '',
+            email: data['email'] ?? '',
+            active: data['active'] ?? '',
+            printLayout: data['printLayout'] ?? '',
+            dfltAddressID: data['dfltAddressID'] ?? '',
+            dfltContactID: data['dfltContactID'] ?? '',
+            curCode: data['curCode'] ?? '',
+            cashClient: data['cashClient'] ?? '',
+            discType: data['discType'] ?? '',
+            vatCode: data['vatCode'] ?? '',
+            prListCode: data['prListCode'] ?? '',
+            payTermsCode: data['payTermsCode'] ?? '',
+            discount: data['discount'] ?? '',
+            creditLimit: data['creditLimit'] ?? '',
+            balance: data['balance'] ?? '',
+            balanceDue: data['balanceDue'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await customers.put('$cmpCode$custCode', newCustomer);
         } else {
           var updatedCustomer = Customers(
-            cmpCode: data['cmpCode'],
-            custCode: data['custCode'],
-            custName: data['custName'],
-            custFName: data['custFName'],
-            groupCode: data['groupCode'],
-            mofNum: data['mofNum'],
-            barcode: data['barcode'],
-            phone: data['phone'],
-            mobile: data['mobile'],
-            fax: data['fax'],
-            website: data['website'],
-            email: data['email'],
-            active: data['active'],
-            printLayout: data['printLayout'],
-            dfltAddressID: data['dfltAddressID'],
-            dfltContactID: data['dfltContactID'],
-            curCode: data['curCode'],
-            cashClient: data['cashClient'],
-            discType: data['discType'],
-            vatCode: data['vatCode'],
-            prListCode: data['prListCode'],
-            payTermsCode: data['payTermsCode'],
-            discount: data['discount'],
-            creditLimit: data['creditLimit'],
-            balance: data['balance'],
-            balanceDue: data['balanceDue'],
-            notes: data['notes'],
+            cmpCode: data['cmpCode'] ?? '',
+            custCode: data['custCode'] ?? '',
+            custName: data['custName'] ?? '',
+            custFName: data['custFName'] ?? '',
+            groupCode: data['groupCode'] ?? '',
+            mofNum: data['mofNum'] ?? '',
+            barcode: data['barcode'] ?? '',
+            phone: data['phone'] ?? '',
+            mobile: data['mobile'] ?? '',
+            fax: data['fax'] ?? '',
+            website: data['website'] ?? '',
+            email: data['email'] ?? '',
+            active: data['active'] ?? '',
+            printLayout: data['printLayout'] ?? '',
+            dfltAddressID: data['dfltAddressID'] ?? '',
+            dfltContactID: data['dfltContactID'] ?? '',
+            curCode: data['curCode'] ?? '',
+            cashClient: data['cashClient'] ?? '',
+            discType: data['discType'] ?? '',
+            vatCode: data['vatCode'] ?? '',
+            prListCode: data['prListCode'] ?? '',
+            payTermsCode: data['payTermsCode'] ?? '',
+            discount: data['discount'] ?? '',
+            creditLimit: data['creditLimit'] ?? '',
+            balance: data['balance'] ?? '',
+            balanceDue: data['balanceDue'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await customers.put('$cmpCode$custCode', updatedCustomer);
         }
@@ -3993,37 +4013,37 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in addressesData) {
-        var cmpCode = data['cmpCode'];
-        var addressID = data['addressID'];
-        var custCode = data['custCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var addressID = data['addressID'] ?? '';
+        var custCode = data['custCode'] ?? '';
 
         // Check if the address exists in Hive
         var hiveAddress = addresses.get('$cmpCode$addressID$custCode');
 
         if (hiveAddress == null) {
           var newAddress = CustomerAddresses(
-            cmpCode: data['cmpCode'],
-            custCode: data['custCode'],
-            addressID: data['addressID'],
-            address: data['address'],
-            fAddress: data['fAddress'],
-            regCode: data['regCode'],
-            gpslat: data['gpslat'],
-            gpslong: data['gpslong'],
-            notes: data['notes'],
+            cmpCode: data['cmpCode'] ?? '',
+            custCode: data['custCode'] ?? '',
+            addressID: data['addressID'] ?? '',
+            address: data['address'] ?? '',
+            fAddress: data['fAddress'] ?? '',
+            regCode: data['regCode'] ?? '',
+            gpslat: data['gpslat'] ?? '',
+            gpslong: data['gpslong'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await addresses.put('$cmpCode$addressID$custCode', newAddress);
         } else {
           var updatedAddress = CustomerAddresses(
-            cmpCode: data['cmpCode'],
-            custCode: data['custCode'],
-            addressID: data['addressID'],
-            address: data['address'],
-            fAddress: data['fAddress'],
-            regCode: data['regCode'],
-            gpslat: data['gpslat'],
-            gpslong: data['gpslong'],
-            notes: data['notes'],
+            cmpCode: data['cmpCode'] ?? '',
+            custCode: data['custCode'] ?? '',
+            addressID: data['addressID'] ?? '',
+            address: data['address'] ?? '',
+            fAddress: data['fAddress'] ?? '',
+            regCode: data['regCode'] ?? '',
+            gpslat: data['gpslat'] ?? '',
+            gpslong: data['gpslong'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await addresses.put('$cmpCode$addressID$custCode', updatedAddress);
         }
@@ -4098,39 +4118,39 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in contactsData) {
-        var cmpCode = data['cmpCode'];
-        var contactID = data['contactID'];
-        var custCode = data['custCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var contactID = data['contactID'] ?? '';
+        var custCode = data['custCode'] ?? '';
 
         // Check if the contact exists in Hive
         var hiveContact = contacts.get('$cmpCode$contactID$custCode');
 
         if (hiveContact == null) {
           var newContact = CustomerContacts(
-            cmpCode: data['cmpCode'],
-            custCode: data['custCode'],
-            contactID: data['contactID'],
-            contactName: data['contactName'],
-            contactFName: data['contactFName'],
-            phone: data['phone'],
-            mobile: data['mobile'],
-            email: data['email'],
-            position: data['position'],
-            notes: data['notes'],
+            cmpCode: data['cmpCode'] ?? '',
+            custCode: data['custCode'] ?? '',
+            contactID: data['contactID'] ?? '',
+            contactName: data['contactName'] ?? '',
+            contactFName: data['contactFName'] ?? '',
+            phone: data['phone'] ?? '',
+            mobile: data['mobile'] ?? '',
+            email: data['email'] ?? '',
+            position: data['position'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await contacts.put('$cmpCode$contactID$custCode', newContact);
         } else {
           var updatedContact = CustomerContacts(
-            cmpCode: data['cmpCode'],
-            custCode: data['custCode'],
-            contactID: data['contactID'],
-            contactName: data['contactName'],
-            contactFName: data['contactFName'],
-            phone: data['phone'],
-            mobile: data['mobile'],
-            email: data['email'],
-            position: data['position'],
-            notes: data['notes'],
+            cmpCode: data['cmpCode'] ?? '',
+            custCode: data['custCode'] ?? '',
+            contactID: data['contactID'] ?? '',
+            contactName: data['contactName'] ?? '',
+            contactFName: data['contactFName'] ?? '',
+            phone: data['phone'] ?? '',
+            mobile: data['mobile'] ?? '',
+            email: data['email'] ?? '',
+            position: data['position'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await contacts.put('$cmpCode$contactID$custCode', updatedContact);
         }
@@ -4213,9 +4233,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerPropertiesData) {
-        var cmpCode = data['cmpCode'];
-        var custCode = data['custCode'];
-        var propCode = data['propCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custCode = data['custCode'] ?? '';
+        var propCode = data['propCode'] ?? '';
 
         // Check if the property exists in Hive
         var hiveProperty = properties.get('$cmpCode$propCode$custCode');
@@ -4226,7 +4246,7 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custCode: custCode,
             propCode: propCode,
-            notes: data['notes'],
+            notes: data['notes'] ?? '',
           );
           await properties.put('$cmpCode$propCode$custCode', newProperty);
         }
@@ -4236,7 +4256,7 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custCode: custCode,
             propCode: propCode,
-            notes: data['notes'],
+            notes: data['notes'] ?? '',
           );
           // Update the property in Hive
           await properties.put('$cmpCode$propCode$custCode', updatedProperty);
@@ -4323,8 +4343,8 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerAttachmentsData) {
-        var cmpCode = data['cmpCode'];
-        var custCode = data['custCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custCode = data['custCode'] ?? '';
 
         // Check if the attachment exists in Hive
         var hiveAttachment = attachments.get('$cmpCode$custCode');
@@ -4334,9 +4354,9 @@ class DataSynchronizerFromFirebaseToHive {
           var newAttachment = CustomerAttachments(
             cmpCode: cmpCode,
             custCode: custCode,
-            attach: data['attach'],
-            attachType: data['attachType'],
-            notes: data['notes'],
+            attach: data['attach'] ?? '',
+            attachType: data['attachType'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await attachments.put('$cmpCode$custCode', newAttachment);
         }
@@ -4345,9 +4365,9 @@ class DataSynchronizerFromFirebaseToHive {
           var updatedAttachment = CustomerAttachments(
             cmpCode: cmpCode,
             custCode: custCode,
-            attach: data['attach'],
-            attachType: data['attachType'],
-            notes: data['notes'],
+            attach: data['attach'] ?? '',
+            attachType: data['attachType'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the attachment in Hive
           await attachments.put('$cmpCode$custCode', updatedAttachment);
@@ -4440,10 +4460,10 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerItemsSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custCode = data['custCode'];
-        var itemCode = data['itemCode'];
-        var uom = data['uom'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custCode = data['custCode'] ?? '';
+        var itemCode = data['itemCode'] ?? '';
+        var uom = data['uom'] ?? '';
 
         // Check if the special price exists in Hive
         var hiveSpecialPrice =
@@ -4456,12 +4476,12 @@ class DataSynchronizerFromFirebaseToHive {
             custCode: custCode,
             itemCode: itemCode,
             uom: uom,
-            basePrice: data['basePrice'],
-            currency: data['currency'],
-            auto: data['auto'],
-            disc: data['disc'],
-            price: data['price'],
-            notes: data['notes'],
+            basePrice: data['basePrice'] ?? '',
+            currency: data['currency'] ?? '',
+            auto: data['auto'] ?? '',
+            disc: data['disc'] ?? '',
+            price: data['price'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await specialPrice.put(
               '$cmpCode$itemCode$custCode$uom', newSpecialPrice);
@@ -4473,12 +4493,12 @@ class DataSynchronizerFromFirebaseToHive {
             custCode: custCode,
             itemCode: itemCode,
             uom: uom,
-            basePrice: data['basePrice'],
-            currency: data['currency'],
-            auto: data['auto'],
-            disc: data['disc'],
-            price: data['price'],
-            notes: data['notes'],
+            basePrice: data['basePrice'] ?? '',
+            currency: data['currency'] ?? '',
+            auto: data['auto'] ?? '',
+            disc: data['disc'] ?? '',
+            price: data['price'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the special price in Hive
           await specialPrice.put(
@@ -4575,9 +4595,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerBrandsSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custCode = data['custCode'];
-        var brandCode = data['brandCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custCode = data['custCode'] ?? '';
+        var brandCode = data['brandCode'] ?? '';
 
         // Check if the brand special price exists in Hive
         var hiveBrandSpecialPrice =
@@ -4589,8 +4609,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custCode: custCode,
             brandCode: brandCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await brandsSpecialPrice.put(
               '$cmpCode$custCode$brandCode', newBrandSpecialPrice);
@@ -4601,8 +4621,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custCode: custCode,
             brandCode: brandCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the brand special price in Hive
           await brandsSpecialPrice.put(
@@ -4699,9 +4719,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerGroupsSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custCode = data['custCode'];
-        var groupCode = data['groupCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custCode = data['custCode'] ?? '';
+        var groupCode = data['groupCode'] ?? '';
 
         // Check if the group special price exists in Hive
         var hiveGroupSpecialPrice =
@@ -4713,8 +4733,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custCode: custCode,
             groupCode: groupCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await groupsSpecialPrice.put(
               '$cmpCode$custCode$groupCode', newGroupSpecialPrice);
@@ -4725,8 +4745,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custCode: custCode,
             groupCode: groupCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the group special price in Hive
           await groupsSpecialPrice.put(
@@ -4822,9 +4842,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerCategSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custCode = data['custCode'];
-        var categCode = data['categCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custCode = data['custCode'] ?? '';
+        var categCode = data['categCode'] ?? '';
 
         // Check if the categ special price exists in Hive
         var hiveCategSpecialPrice =
@@ -4836,8 +4856,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custCode: custCode,
             categCode: categCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await categSpecialPrice.put(
               '$cmpCode$custCode$categCode', newCategSpecialPrice);
@@ -4848,8 +4868,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custCode: custCode,
             categCode: categCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the categ special price in Hive
           await categSpecialPrice.put(
@@ -4967,10 +4987,10 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerGroupItemsSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custGroupCode = data['custGroupCode'];
-        var itemCode = data['itemCode'];
-        var uom = data['uom'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custGroupCode = data['custGroupCode'] ?? '';
+        var itemCode = data['itemCode'] ?? '';
+        var uom = data['uom'] ?? '';
 
         // Check if the group item special price exists in Hive
         var hiveGroupItemSpecialPrice =
@@ -4983,12 +5003,12 @@ class DataSynchronizerFromFirebaseToHive {
             custGroupCode: custGroupCode,
             itemCode: itemCode,
             uom: uom,
-            basePrice: data['basePrice'],
-            currency: data['currency'],
-            auto: data['auto'],
-            disc: data['disc'],
-            price: data['price'],
-            notes: data['notes'],
+            basePrice: data['basePrice'] ?? '',
+            currency: data['currency'] ?? '',
+            auto: data['auto'] ?? '',
+            disc: data['disc'] ?? '',
+            price: data['price'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await groupItemsSpecialPrice.put(
               '$cmpCode$custGroupCode$itemCode$uom', newGroupItemSpecialPrice);
@@ -5000,12 +5020,12 @@ class DataSynchronizerFromFirebaseToHive {
             custGroupCode: custGroupCode,
             itemCode: itemCode,
             uom: uom,
-            basePrice: data['basePrice'],
-            currency: data['currency'],
-            auto: data['auto'],
-            disc: data['disc'],
-            price: data['price'],
-            notes: data['notes'],
+            basePrice: data['basePrice'] ?? '',
+            currency: data['currency'] ?? '',
+            auto: data['auto'] ?? '',
+            disc: data['disc'] ?? '',
+            price: data['price'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the group item special price in Hive
           await groupItemsSpecialPrice.put(
@@ -5101,9 +5121,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerGroupBrandSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custGroupCode = data['custGroupCode'];
-        var brandCode = data['brandCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custGroupCode = data['custGroupCode'] ?? '';
+        var brandCode = data['brandCode'] ?? '';
 
         // Check if the group brand special price exists in Hive
         var hiveGroupBrandSpecialPrice =
@@ -5115,8 +5135,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custGroupCode: custGroupCode,
             brandCode: brandCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await groupBrandSpecialPrice.put(
               '$cmpCode$custGroupCode$brandCode', newGroupBrandSpecialPrice);
@@ -5127,8 +5147,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custGroupCode: custGroupCode,
             brandCode: brandCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the group brand special price in Hive
           await groupBrandSpecialPrice.put('$cmpCode$custGroupCode$brandCode',
@@ -5223,9 +5243,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerGroupGroupSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custGroupCode = data['custGroupCode'];
-        var groupCode = data['groupCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custGroupCode = data['custGroupCode'] ?? '';
+        var groupCode = data['groupCode'] ?? '';
 
         // Check if the group group special price exists in Hive
         var hiveGroupGroupSpecialPrice =
@@ -5237,8 +5257,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custGroupCode: custGroupCode,
             groupCode: groupCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await groupGroupSpecialPrice.put(
               '$cmpCode$custGroupCode$groupCode', newGroupGroupSpecialPrice);
@@ -5249,8 +5269,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custGroupCode: custGroupCode,
             groupCode: groupCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the group group special price in Hive
           await groupGroupSpecialPrice.put('$cmpCode$custGroupCode$groupCode',
@@ -5346,9 +5366,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerGroupCategSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custGroupCode = data['custGroupCode'];
-        var categCode = data['categCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custGroupCode = data['custGroupCode'] ?? '';
+        var categCode = data['categCode'] ?? '';
 
         // Check if the group categ special price exists in Hive
         var hiveGroupCategSpecialPrice =
@@ -5360,8 +5380,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custGroupCode: custGroupCode,
             categCode: categCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await groupCategSpecialPrice.put(
               '$cmpCode$custGroupCode$categCode', newGroupCategSpecialPrice);
@@ -5372,8 +5392,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custGroupCode: custGroupCode,
             categCode: categCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the group categ special price in Hive
           await groupCategSpecialPrice.put('$cmpCode$custGroupCode$categCode',
@@ -5504,10 +5524,10 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerPropItemsSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custPropCode = data['custPropCode'];
-        var itemCode = data['itemCode'];
-        var uom = data['uom'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custPropCode = data['custPropCode'] ?? '';
+        var itemCode = data['itemCode'] ?? '';
+        var uom = data['uom'] ?? '';
 
         // Check if the prop items special price exists in Hive
         var hivePropItemsSpecialPrice =
@@ -5520,12 +5540,12 @@ class DataSynchronizerFromFirebaseToHive {
             custPropCode: custPropCode,
             itemCode: itemCode,
             uom: uom,
-            basePrice: data['basePrice'],
-            currency: data['currency'],
-            auto: data['auto'],
-            disc: data['disc'],
-            price: data['price'],
-            notes: data['notes'],
+            basePrice: data['basePrice'] ?? '',
+            currency: data['currency'] ?? '',
+            auto: data['auto'] ?? '',
+            disc: data['disc'] ?? '',
+            price: data['price'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await propItemsSpecialPrice.put(
               '$cmpCode$custPropCode$itemCode$uom', newPropItemsSpecialPrice);
@@ -5537,12 +5557,12 @@ class DataSynchronizerFromFirebaseToHive {
             custPropCode: custPropCode,
             itemCode: itemCode,
             uom: uom,
-            basePrice: data['basePrice'],
-            currency: data['currency'],
-            auto: data['auto'],
-            disc: data['disc'],
-            price: data['price'],
-            notes: data['notes'],
+            basePrice: data['basePrice'] ?? '',
+            currency: data['currency'] ?? '',
+            auto: data['auto'] ?? '',
+            disc: data['disc'] ?? '',
+            price: data['price'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the prop items special price in Hive
           await propItemsSpecialPrice.put('$cmpCode$custPropCode$itemCode$uom',
@@ -5641,9 +5661,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerPropBrandSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custPropCode = data['custPropCode'];
-        var brandCode = data['brandCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custPropCode = data['custPropCode'] ?? '';
+        var brandCode = data['brandCode'] ?? '';
 
         // Check if the prop brand special price exists in Hive
         var hivePropBrandSpecialPrice =
@@ -5655,8 +5675,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custPropCode: custPropCode,
             brandCode: brandCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await propBrandSpecialPrice.put(
               '$cmpCode$custPropCode$brandCode', newPropBrandSpecialPrice);
@@ -5667,8 +5687,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custPropCode: custPropCode,
             brandCode: brandCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the prop brand special price in Hive
           await propBrandSpecialPrice.put(
@@ -5768,9 +5788,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerPropGroupSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custGroupCode = data['custGroupCode'];
-        var propCode = data['propCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custGroupCode = data['custGroupCode'] ?? '';
+        var propCode = data['propCode'] ?? '';
 
         // Check if the prop group special price exists in Hive
         var hivePropGroupSpecialPrice =
@@ -5782,8 +5802,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custGroupCode: custGroupCode,
             propCode: propCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await propGroupSpecialPrice.put(
               '$cmpCode$custGroupCode$propCode', newPropGroupSpecialPrice);
@@ -5794,8 +5814,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custGroupCode: custGroupCode,
             propCode: propCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the prop group special price in Hive
           await propGroupSpecialPrice.put(
@@ -5894,9 +5914,9 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in customerPropCategSpecialPriceData) {
-        var cmpCode = data['cmpCode'];
-        var custPropCode = data['custPropCode'];
-        var categCode = data['categCode'];
+        var cmpCode = data['cmpCode'] ?? '';
+        var custPropCode = data['custPropCode'] ?? '';
+        var categCode = data['categCode'] ?? '';
 
         // Check if the prop categ special price exists in Hive
         var hivePropCategSpecialPrice =
@@ -5908,8 +5928,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custPropCode: custPropCode,
             categCode: categCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           await propCategSpecialPrice.put(
               '$cmpCode$custPropCode$categCode', newPropCategSpecialPrice);
@@ -5920,8 +5940,8 @@ class DataSynchronizerFromFirebaseToHive {
             cmpCode: cmpCode,
             custPropCode: custPropCode,
             categCode: categCode,
-            disc: data['disc'],
-            notes: data['notes'],
+            disc: data['disc'] ?? '',
+            notes: data['notes'] ?? '',
           );
           // Update the prop categ special price in Hive
           await propCategSpecialPrice.put(
@@ -6005,9 +6025,9 @@ class DataSynchronizerFromFirebaseToHive {
   ) async {
     try {
       for (var data in priceListAuthoData) {
-        var userCode = data['userCode'] as String?;
-        var cmpCode = data['cmpCode'] as String?;
-        var authoGroup = data['authoGroup'] as String?;
+        var userCode = data['userCode'] as String ?? '';
+        var cmpCode = data['cmpCode'] as String ?? '';
+        var authoGroup = data['authoGroup'] as String ?? '';
 
         // Print the data map to inspect its structure
         print('Data Map: $data');
@@ -6113,7 +6133,7 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in companiesConnectionData) {
-        var connectionID = data['connectionID'];
+        var connectionID = data['connectionID'] ?? '';
 
         // Check if the item exists in Hive
         var hiveComp = companiesConnectionBox.get('$connectionID');
@@ -6122,12 +6142,12 @@ class DataSynchronizerFromFirebaseToHive {
         if (hiveComp == null) {
           var newComp = CompaniesConnection(
             connectionID: connectionID,
-            connDatabase: data['connDatabase'],
-            connServer: data['connServer'],
-            connUser: data['connUser'],
-            connPassword: data['connPassword'],
-            connPort: data['connPort'],
-            typeDatabase: data['typeDatabase'],
+            connDatabase: data['connDatabase'] ?? '',
+            connServer: data['connServer'] ?? '',
+            connUser: data['connUser'] ?? '',
+            connPassword: data['connPassword'] ?? '',
+            connPort: data['connPort'] ?? '',
+            typeDatabase: data['typeDatabase'] ?? '',
           );
           await companiesConnectionBox.put('$connectionID', newComp);
         }
@@ -6135,12 +6155,12 @@ class DataSynchronizerFromFirebaseToHive {
         else {
           var updatedComp = CompaniesConnection(
             connectionID: connectionID,
-            connDatabase: data['connDatabase'],
-            connServer: data['connServer'],
-            connUser: data['connUser'],
-            connPassword: data['connPassword'],
-            connPort: data['connPort'],
-            typeDatabase: data['typeDatabase'],
+            connDatabase: data['connDatabase'] ?? '',
+            connServer: data['connServer'] ?? '',
+            connUser: data['connUser'] ?? '',
+            connPassword: data['connPassword'] ?? '',
+            connPort: data['connPort'] ?? '',
+            typeDatabase: data['typeDatabase'] ?? '',
           );
           // Update the item in Hive
           await companiesConnectionBox.put('$connectionID', updatedComp);
@@ -6223,8 +6243,8 @@ class DataSynchronizerFromFirebaseToHive {
     try {
       // Iterate over the retrieved data
       for (var data in companiesUsersData) {
-        var userCode = data['userCode'];
-        var cmpCode = data['cmpCode'];
+        var userCode = data['userCode'] ?? '';
+        var cmpCode = data['cmpCode'] ?? '';
 
         // Check if the item exists in Hive
         var hiveComp = companiesUsersBox.get('$userCode$cmpCode');
@@ -6234,7 +6254,7 @@ class DataSynchronizerFromFirebaseToHive {
           var newComp = CompaniesUsers(
             userCode: userCode,
             cmpCode: cmpCode,
-            defaultcmpCode: data['defaultcmpCode'],
+            defaultcmpCode: data['defaultcmpCode'] ?? '',
           );
           await companiesUsersBox.put('$userCode$cmpCode', newComp);
         }
@@ -6243,7 +6263,7 @@ class DataSynchronizerFromFirebaseToHive {
           var updatedComp = CompaniesUsers(
             userCode: userCode,
             cmpCode: cmpCode,
-            defaultcmpCode: data['defaultcmpCode'],
+            defaultcmpCode: data['defaultcmpCode'] ?? '',
           );
           // Update the item in Hive
           await companiesUsersBox.put('$userCode$cmpCode', updatedComp);

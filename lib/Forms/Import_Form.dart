@@ -536,24 +536,6 @@ class _ImportFormState extends State<ImportForm> {
           });
         },
       ),
-       SizedBox(height:200),
-      Column(
-         crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ElevatedButton(
-               onPressed: () async {
-  LoadingHelper.configureLoading();
-  LoadingHelper.showLoading(); // Show loading indicator
-  await importData();
-  LoadingHelper.dismissLoading(); // Dismiss loading indicator
-},
-child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
-
-              ),
-            ],
-          
-        ),
-      
     ];
   } else if (widget.title == AppLocalizations.of(context)!.importFromBackendToMobile) {
     return [
@@ -594,24 +576,6 @@ child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
           });
         },
       ),
-      SizedBox(height:200),
-         Column(
-         crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-  LoadingHelper.configureLoading();
-  LoadingHelper.showLoading(); // Show loading indicator
-  await _synchronizeAll();
-  LoadingHelper.dismissLoading(); // Dismiss loading indicator
-},
-child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
-
-              ),
-            ],
-          
-        ),
-
     ];
   }
   return [];

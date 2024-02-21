@@ -54,4 +54,21 @@ class User extends HiveObject {
     this.languages,
     this.font,
   );
+
+   Map<String, dynamic> toJson() {
+    return {
+      'usercode': usercode,
+      'username': username,
+      'userFname': userFname,
+      'email': email,
+      'password': password,
+      'phonenumber': phonenumber,
+      'imeicode': imeicode,
+      'active': active,
+      'imageLink': imageLink,
+      'usergroup': usergroup,
+      'languages': languages,
+      'font': font,
+    };
+  }
 }

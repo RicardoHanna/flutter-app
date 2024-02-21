@@ -738,6 +738,7 @@ Widget _buildTextFieldDropDownPriceListAutho() {
         if (snapshot.connectionState == ConnectionState.done) {
           var priceListsBox = snapshot.data![0] as Box<PriceList>;
           var companyBox = snapshot.data![1] as Box<Companies>;
+          print('looo');
 print(priceListsBox.values.toList());
 print(companyBox.values.toList());
 for(var l in companyBox.values.toList()){
@@ -748,12 +749,32 @@ for(var y in priceListsBox.values.toList()){
   print(y.authoGroup);
 }
           List<String> priceList = priceListsBox.values
-              .map((pricelist) {
-                Companies company = companyBox.values
-                    .firstWhere((company) => company.cmpCode == pricelist.cmpCode);
-                return '${pricelist.authoGroup} - ${company.cmpName}';
-              })
-              .toList();
+    .map((pricelist) {
+      Companies company = companyBox.values
+          .firstWhere((company) => company.cmpCode == pricelist.cmpCode, orElse: () => Companies(
+                address: '',
+                cmpCode: '',
+                cmpName: '',
+                cmpFName: '',
+                tel: '',
+                mobile: '',
+                fAddress: '',
+                prHeader: '',
+                prFHeader: '',
+                prFooter: '',
+                mainCurCode: '',
+                prFFooter: '',
+                secCurCode: '',
+                rateType: '',
+                issueBatchMethod: '',
+                systemAdminID: '',
+                notes: '',
+              ));
+
+      return '${pricelist.authoGroup ?? ''} - ${company.cmpName ?? ''}';
+    })
+    .toList();
+
 
           return Theme(
             data: Theme.of(context).copyWith(
