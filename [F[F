@@ -1,0 +1,23 @@
+[33me887457[m[33m ([m[1;36mHEAD -> [m[1;32melie_branch[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to HEAD@{10}
+[33me887457[m[33m ([m[1;36mHEAD -> [m[1;32melie_branch[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: merge origin: Fast-forward
+[33m8eff638[m HEAD@{2}: reset: moving to HEAD@{10}
+[33me887457[m[33m ([m[1;36mHEAD -> [m[1;32melie_branch[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{3}: pull origin master: Fast-forward
+[33mec4a09b[m HEAD@{4}: reset: moving to HEAD@{10}
+[33me887457[m[33m ([m[1;36mHEAD -> [m[1;32melie_branch[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{5}: reset: moving to HEAD@{4}
+[33me887457[m[33m ([m[1;36mHEAD -> [m[1;32melie_branch[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{6}: reset: moving to HEAD@{4}
+[33m5d8a371[m[33m ([m[1;31morigin/elie_branch[m[33m)[m HEAD@{7}: reset: moving to HEAD@{4}
+[33m587fd98[m HEAD@{8}: reset: moving to HEAD
+[33m587fd98[m HEAD@{9}: reset: moving to HEAD^
+[33me887457[m[33m ([m[1;36mHEAD -> [m[1;32melie_branch[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{10}: rebase (finish): returning to refs/heads/elie_branch
+[33me887457[m[33m ([m[1;36mHEAD -> [m[1;32melie_branch[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{11}: rebase (start): checkout origin/master
+[33m5d8a371[m[33m ([m[1;31morigin/elie_branch[m[33m)[m HEAD@{12}: commit (merge): MMMM
+[33m8eff638[m HEAD@{13}: checkout: moving from elie_branch to elie_branch
+[33m8eff638[m HEAD@{14}: commit (merge): update sync
+[33mec4a09b[m HEAD@{15}: commit: Last Update Elie Branch
+[33me6b9b36[m HEAD@{16}: commit: importCustomerFromERP
+[33mfcf5f04[m HEAD@{17}: commit (merge): Merge branch 'master' into elie_branch
+[33m2c0968b[m HEAD@{18}: commit: importCustomerFromERP
+[33m31b5903[m HEAD@{19}: checkout: moving from elie_branch to elie_branch
+[33m31b5903[m HEAD@{20}: commit: Import Button
+[33mf01e244[m HEAD@{21}: checkout: moving from master to elie_branch
+[33mf01e244[m HEAD@{22}: clone: from https://github.com/RicardoHanna/flutter-app.git
