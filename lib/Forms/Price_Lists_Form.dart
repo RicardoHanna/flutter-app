@@ -61,6 +61,18 @@ final TextEditingController codeFilterController = TextEditingController();
     super.initState();
          pricelistBox = Hive.box<PriceList>('pricelists');
     initializeData();
+   Select();
+    
+  }
+
+  Future<void> Select() async{
+     print('hi');
+       var authBox = await Hive.openBox<PriceList>('pricelists');
+       var o=authBox.values.toList();
+       for(var l in o){
+       // print(l.cmpCode+l.authoGroup);
+       }
+
   }
 
   Future<void> initializeData() async {
@@ -102,23 +114,24 @@ dynamic getField(PriceList item, String fieldName) {
 
 
 
-
- Future<List<PriceList>> _getPriceLists(String usercode) async {
+Future<List<PriceList>> _getPriceLists(String usercode) async {
   // Open both boxes
   var authBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
   var priceListsBox = await Hive.openBox<PriceList>('pricelists');
 
   // Retrieve authoGroup value based on usercode
-  PriceListAuthorization? authorization = authBox.values.firstWhere(
+  var authorizations = authBox.values.where(
     (auth) => auth.userCode == usercode,
+  ).toList();
 
-  );
-
-  if (authorization != null) {
+  if (authorizations.isNotEmpty) {
     // Use authoGroup to filter priceLists
-    var filteredPriceLists = priceListsBox.values.where(
-      (priceList) => priceList.authoGroup == authorization.authoGroup,
-    ).toList();
+    var filteredPriceLists = <PriceList>[];
+    for (var authorization in authorizations) {
+      filteredPriceLists.addAll(priceListsBox.values.where(
+        (priceList) => priceList.authoGroup == authorization.authoGroup,
+      ));
+    }
 
     return filteredPriceLists;
   } else {
@@ -126,6 +139,7 @@ dynamic getField(PriceList item, String fieldName) {
     return [];
   }
 }
+
 
 
     void _applySorting() {

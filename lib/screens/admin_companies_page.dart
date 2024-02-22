@@ -83,13 +83,14 @@ bool _obscureText = true;
   }
 
   Future<void> printUserDataTranslations() async {
- var itemsBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
+ var itemsBox = await Hive.openBox<Companies>('companiesBox');
 
     print('Printing Users:');
     for (var item in itemsBox.values) {
-      print('Menu Code: ${item.connectionID}');
-      print('Grp Code: ${item.connPort}');
-      print(item.connServer);
+      print('Menu Code: ${item.cmpCode}');
+      print(item.cmpName);
+      print('Grp Code: ${item.systemAdminID}');
+
 
       print('-------------------------');
     }

@@ -631,6 +631,8 @@ print(apiComp);
         // Iterate through each user to determine if it should be added, updated, or deleted
         for (Companies cmpCode in companies) {
           var userGroupData = companiesBox.get(cmpCode.cmpCode);
+          print('hi');
+          print(userGroupData);
           var existingUserGroup;
           if(apiComp!=null){
                existingUserGroup = apiComp.firstWhere((user) => user['cmpCode'] == cmpCode.cmpCode, orElse: () => null);

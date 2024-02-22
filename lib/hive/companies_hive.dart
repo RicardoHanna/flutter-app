@@ -123,9 +123,9 @@ class Companies extends HiveObject {
       'priceDec': priceDec,
       'amntDec': amntDec,
       'qtyDec': qtyDec,
-      'rounding': roundMethod,
+      'roundMethod': roundMethod,
       'importMethod': importMethod,
-      'time': time
+    'time': '${time.hour}:${time.minute}', // Convert TimeOfDay to HH:mm string
 
 
 

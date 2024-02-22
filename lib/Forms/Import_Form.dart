@@ -43,7 +43,7 @@ class _ImportFormState extends State<ImportForm> {
   String companyCode = '';
   String connectionID = '';
  TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
-
+String baseUrl = 'http://5.189.188.139:8080/api';
   @override
   void initState() {
     super.initState();
@@ -151,6 +151,207 @@ class _ImportFormState extends State<ImportForm> {
     }
   }
 
+  Future<void> importSystemFromERP() async {
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+
+    // defaul cmpcode from cmpuser
+    // system admin id companies
+    // configuration companiesconnection
+
+
+    // await getCompaniesConnectionId(widget.usercode);
+    // print(companyCode);
+    String cmpCode = 'AlBina_Qatar';
+    String connectionID = '1708605295476_901';
+
+    try {
+      final response = await http.post(
+          Uri.parse('$baseUrl/ImportSystemDataFromERP'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
+
+      if (response.statusCode == 200) {
+        print('Data migration complete');
+        print(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Data synchronized successfully', style: _appTextStyle),
+          ),
+        );
+      } else {
+        print('Failed to import data. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Failed to import data. Status code: ${response.statusCode}',
+                style: _appTextStyle),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error during data import: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during data import: $e', style: _appTextStyle),
+        ),
+      );
+    }
+  }
+
+  Future<void> importCustomersData() async {
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+
+    // defaul cmpcode from cmpuser
+    // system admin id companies
+    // configuration companiesconnection
+
+    // await getCompaniesConnectionId(widget.usercode);
+    // print(companyCode);
+    String cmpCode = 'AlBina_Qatar';
+    String connectionID = '1708605295476_901';
+
+    try {
+      final response = await http.post(
+          Uri.parse('$baseUrl/ImportCustomersDataFromERP'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
+
+      if (response.statusCode == 200) {
+        print('Data migration complete');
+        print(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Data synchronized successfully', style: _appTextStyle),
+          ),
+        );
+      } else {
+        print('Failed to import data. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Failed to import data. Status code: ${response.statusCode}',
+                style: _appTextStyle),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error during data import: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during data import: $e', style: _appTextStyle),
+        ),
+      );
+    }
+  }
+
+  Future<void> importItemsDataFromERP() async {
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+
+    // defaul cmpcode from cmpuser
+    // system admin id companies
+    // configuration companiesconnection
+
+    // await getCompaniesConnectionId(widget.usercode);
+    // print(companyCode);
+    String cmpCode = 'AlBina_Qatar';
+    String connectionID = '1708605295476_901';
+
+    try {
+      final response = await http.post(
+          Uri.parse('$baseUrl/ImportItemsDataFromERP'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
+
+      if (response.statusCode == 200) {
+        print('Data migration complete');
+        print(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Data synchronized successfully', style: _appTextStyle),
+          ),
+        );
+      } else {
+        print('Failed to import data. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Failed to import data. Status code: ${response.statusCode}',
+                style: _appTextStyle),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error during data import: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during data import: $e', style: _appTextStyle),
+        ),
+      );
+    }
+  }
+
+  Future<void> importPriceListsDataFromErp() async {
+    TextStyle _appTextStyle =
+        TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+
+    // defaul cmpcode from cmpuser
+    // system admin id companies
+    // configuration companiesconnection
+
+    // await getCompaniesConnectionId(widget.usercode);
+    // print(companyCode);
+    String cmpCode = 'AlBina_Qatar';
+    String connectionID = '1708605295476_901';
+
+    try {
+      final response = await http.post(
+          Uri.parse('$baseUrl/ImportItemsDataFromERP'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
+
+      if (response.statusCode == 200) {
+        print('Data migration complete');
+        print(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Data synchronized successfully', style: _appTextStyle),
+          ),
+        );
+      } else {
+        print('Failed to import data. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Failed to import data. Status code: ${response.statusCode}',
+                style: _appTextStyle),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error during data import: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during data import: $e', style: _appTextStyle),
+        ),
+      );
+    }
+  }
+
   bool _importItems = false;
   bool _importPriceLists = false;
   bool _importSystem = false;
@@ -223,39 +424,58 @@ class _ImportFormState extends State<ImportForm> {
       ),
     );
   }
-
   Widget _buildImportButton() {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     if (widget.title == AppLocalizations.of(context)!.importFromErpToMobile) {
-      return isThereData()? ElevatedButton(
-        onPressed: () async {
-          LoadingHelper.configureLoading();
-          LoadingHelper.showLoading(); // Show loading indicator
-          await importData();
-          LoadingHelper.dismissLoading(); // Dismiss loading indicator
-        },
-        style: ButtonStyle(
-          fixedSize: MaterialStateProperty.all(
-              Size(280, 10)), // Set the width and height
-        ),
-        child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
-      ):SizedBox(width: 0,height: 0,);
+      return isThereData()
+          ? ElevatedButton(
+              onPressed: () async {
+                LoadingHelper.configureLoading();
+                LoadingHelper.showLoading(); // Show loading indicator
+                if (_importCustomers) {
+                  await importCustomersData();
+                }
+                if(_importSystem){
+                  await importSystemFromERP();
+                }
+                if(_importItems){
+                  await importItemsDataFromERP();
+                }
+                LoadingHelper.dismissLoading(); // Dismiss loading indicator
+              },
+              style: ButtonStyle(
+                fixedSize: MaterialStateProperty.all(
+                    Size(280, 10)), // Set the width and height
+              ),
+              child: Text(AppLocalizations.of(context)!.import,
+                  style: _appTextStyle),
+            )
+          : SizedBox(
+              width: 0,
+              height: 0,
+            );
     } else if (widget.title ==
         AppLocalizations.of(context)!.importFromBackendToMobile) {
-      return isThereData()?ElevatedButton(
-        onPressed: () async {
-          LoadingHelper.configureLoading();
-          LoadingHelper.showLoading(); // Show loading indicator
-          await _synchronizeAll();
-          LoadingHelper.dismissLoading(); // Dismiss loading indicator
-        },
-        style: ButtonStyle(
-          fixedSize: MaterialStateProperty.all(
-              Size(280, 10)), // Set the width and height
-        ),
-        child: Text(AppLocalizations.of(context)!.import, style: _appTextStyle),
-      ):SizedBox(width: 0,height: 0,);
+      return isThereData()
+          ? ElevatedButton(
+              onPressed: () async {
+                LoadingHelper.configureLoading();
+                LoadingHelper.showLoading(); // Show loading indicator
+                await _synchronizeAll();
+                LoadingHelper.dismissLoading(); // Dismiss loading indicator
+              },
+              style: ButtonStyle(
+                fixedSize: MaterialStateProperty.all(
+                    Size(280, 10)), // Set the width and height
+              ),
+              child: Text(AppLocalizations.of(context)!.import,
+                  style: _appTextStyle),
+            )
+          : SizedBox(
+              width: 0,
+              height: 0,
+            );
     } else {
       return Container(); // Placeholder for other scenarios
     }
