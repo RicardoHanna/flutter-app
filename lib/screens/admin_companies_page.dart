@@ -47,7 +47,7 @@ TextStyle _appTextStyle=TextStyle();
   late List<CompaniesClass> users = [];
   late List<CompaniesClass> filteredUsers = [];
 List<CompaniesClass> additionalCompanies = []; // Define additionalCompanies
-
+ String connectionID='';
   late StreamController<List<CompaniesClass>> _userStreamController;
   Stream<List<CompaniesClass>> get _usersStream => _userStreamController.stream;
   late List<CompaniesClass> offlineUsers = []; // Add this line
@@ -174,55 +174,72 @@ Future<bool> _performConnectionTest(CompaniesConnection connection) async {
 
 void _deleteSpecificCompany(String cmpCode, String connId) {
   var companiesBox = Hive.box<Companies>('companiesBox');
-    var companiesConnectionBox = Hive.box<CompaniesConnection>('companiesConnectionBox');
+  var companiesConnectionBox = Hive.box<CompaniesConnection>('companiesConnectionBox');
 
-  Companies? company = companiesBox.values.firstWhere((element) => element.systemAdminID==connId);
-    CompaniesConnection? companyConnection = companiesConnectionBox.get(connId);
+  Companies? company = companiesBox.values.firstWhere((element) => element.systemAdminID == connId);
+  CompaniesConnection? companyConnection = companiesConnectionBox.get(connId);
 
-   _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-  // Show the confirmation dialog
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("Confirm Deletion"),
-        content: Text("Are you sure you want to delete this company?",style:_appTextStyle),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
-            },
-            child: Text("No",style: _appTextStyle,),
-          ),
-          TextButton(
-            onPressed: () {
-              // Check the condition before deleting the company
-              if (company?.cmpFName == '' && company?.mainCurCode == '') {
-                // Delete the company if the condition is met
-                companiesBox.delete(cmpCode);
-                companiesConnectionBox.delete(connId);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Company deleted successfully",style: _appTextStyle,),
-                  ),
-                );
-              } else {
-                // Show a snackbar indicating that the company cannot be deleted
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("You cannot delete this company",style: _appTextStyle,),
-                  ),
-                );
-              }
-              Navigator.of(context).pop(); // Close the dialog
-            },
-            child: Text("Yes",style: _appTextStyle,),
-          ),
-        ],
-      );
-    },
-  );
+  _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+
+  if (company != null && companyConnection != null) {
+    // Show the confirmation dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Confirm Deletion"),
+          content: Text("Are you sure you want to delete this company?", style: _appTextStyle),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text("No", style: _appTextStyle),
+            ),
+            TextButton(
+              onPressed: () {
+                // Check the condition before deleting the company
+                if (company.cmpFName == '' && company.mainCurCode == '') {
+                  // Delete the company if the condition is met
+                  companiesBox.delete(cmpCode);
+                  companiesConnectionBox.delete(connId);
+
+                  // Update the UI by removing the deleted company from filteredUsers list
+                  setState(() {
+                    filteredUsers.removeWhere((user) => user.cmpCode == cmpCode);
+                  });
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Company deleted successfully", style: _appTextStyle),
+                    ),
+                  );
+                } else {
+                  // Show a snackbar indicating that the company cannot be deleted
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("You cannot delete this company", style: _appTextStyle),
+                    ),
+                  );
+                }
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text("Yes", style: _appTextStyle),
+            ),
+          ],
+        );
+      },
+    );
+  } else {
+    // Show a snackbar indicating that the company details are not found
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Company details not found", style: _appTextStyle),
+      ),
+    );
+  }
 }
+
 
 
 
@@ -252,17 +269,25 @@ void _fillFormDataForUser(String cmpCode) {
     var companiesConnectionBox = Hive.box<CompaniesConnection>('companiesConnectionBox');
 
     CompaniesConnection? companyConnection = companiesConnectionBox.get(company?.systemAdminID);
-
+for(var l in companiesConnectionBox.values.toList()){
+  print(l.connectionID);
+  print(l.connPort);
+}
     print(cmpCode);
+    print('hellooo');
+    print(company?.systemAdminID);
     // Update connectionId outside of setState
     connectionId = systemAdminID;
     print(connectionId);
 
     // Add debug prints
+    print(connectionId);
     print('systemAdminID: $systemAdminID');
     print('Keys in companiesConnectionBox: ${companiesConnectionBox.keys}');
     print('companyConnection: $companyConnection');
-
+print('sdsdssdsdds');
+print(connectionId.isNotEmpty);
+print(companyConnection?.connPort);
     // Fill in the data if available
     if (companyConnection != null && connectionId.isNotEmpty) {
       setState(() {
@@ -496,13 +521,13 @@ Future<void> _saveDataToHive(String name) async {
      // Save companies data to Hive
     var companiesBox = await Hive.openBox<Companies>('companiesBox');
     
-String  compCode=_generateCompanyCode();
-    String connectionID = _generateConnectionID(); // You may need to adjust this based on your logic
+String  compCode=name;
+   connectionId = _generateConnectionID(); // You may need to adjust this based on your logic
     Companies companies =  Companies(
-  cmpCode: compCode,
+  cmpCode: name,
         cmpName: name, cmpFName: '', tel: '', mobile: '', address: '', fAddress: '',
          prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '',
-          rateType: '', issueBatchMethod: '', systemAdminID: connectionID, notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time: noTime,
+          rateType: '', issueBatchMethod: '', systemAdminID: connectionId, notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time: noTime,
 
     );
 
@@ -518,9 +543,12 @@ String  compCode=_generateCompanyCode();
     int connPort = 0;
     String typeDatabase = '';
 
+    print('hiiii');
+    print(connectionId);
+   
     // Create a new CompaniesConnection object
     CompaniesConnection updatedCompaniesConnection = CompaniesConnection(
-      connectionID: connectionID,
+      connectionID: connectionId,
       connDatabase: connDatabase,
       connServer: connServer,
       connUser: connUser,
@@ -530,10 +558,15 @@ String  compCode=_generateCompanyCode();
     );
 
     // Save the updated connection details to Hive
-    companiesConnectionBox.put(connectionID, updatedCompaniesConnection);
-
+    
+    companiesConnectionBox.put(connectionId, updatedCompaniesConnection);
+print('@@@@@@@@@@@@@@@@@@@@@');
     // Save generated ID and name to SharedPreferences
-   
+   for(var l in companiesConnectionBox.values.toList()){
+
+    print(l.connPort);
+    print(l.connectionID);
+   }
 
   } catch (e) {
     // Handle errors appropriately
@@ -709,65 +742,64 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                                   child: Text(AppLocalizations.of(context)!.cancel),
                                 ),
                         ElevatedButton(
-  onPressed: () async {
+onPressed: () async {
+  CompaniesConnection? updatedCompaniesConnection;
 
- CompaniesConnection updatedCompaniesConnection;
-
-if (connectionId == '') {
-  // Create a new SystemAdmin object with the updated values
-  updatedCompaniesConnection = CompaniesConnection(
-    connectionID: _generateConnectionID(),
-    connDatabase: _connDatabaseController.text,
-    connServer: _connServerController.text,
-    connUser: _connUserController.text,
-    connPassword: _connPasswordController.text,
-    connPort: int.tryParse(_connPortController.text) ?? 0,
-    typeDatabase: _typeDatabaseController.text,
-  );
-} else {
-  updatedCompaniesConnection = CompaniesConnection(
-    connectionID: connectionId,
-    connDatabase: _connDatabaseController.text,
-    connServer: _connServerController.text,
-    connUser: _connUserController.text,
-    connPassword: _connPasswordController.text,
-    connPort: int.tryParse(_connPortController.text) ?? 0,
-    typeDatabase: _typeDatabaseController.text,
-  );
-}
-    // Open the systemAdminBox
+  // Check if connectionId is not empty
+  if (connectionId != '') {
+    // Retrieve the existing record from the companiesConnectionBox
     var systemAdminBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
+    if (systemAdminBox.containsKey(connectionId)) {
+      // Get the existing CompaniesConnection object
+      CompaniesConnection? existingConnection = systemAdminBox.get(connectionId);
 
-    // Check if the user already exists in the box
-    if (systemAdminBox.containsKey(user.systemAdminID)) {
-      // Update the existing SystemAdmin object
-      systemAdminBox.put(user.systemAdminID, updatedCompaniesConnection);
-    } else {
-      // Insert the new SystemAdmin object
-      systemAdminBox.put(user.systemAdminID, updatedCompaniesConnection);
+      // Update the fields you want to change
+      existingConnection?.connDatabase = _connDatabaseController.text;
+      existingConnection?.connServer = _connServerController.text;
+      existingConnection?.connUser = _connUserController.text;
+      existingConnection?.connPassword = _connPasswordController.text;
+      existingConnection?.connPort = int.tryParse(_connPortController.text) ?? 0;
+      existingConnection?.typeDatabase = _typeDatabaseController.text;
+
+      // Save the updated object back to the box
+      systemAdminBox.put(connectionId, existingConnection!);
+
+      // Assign the updatedCompaniesConnection variable here for further use
+      updatedCompaniesConnection = existingConnection!;
     }
+  } else {
+    // If connectionId is empty, create a new CompaniesConnection object
+    updatedCompaniesConnection = CompaniesConnection(
+      connectionID: _generateConnectionID(),
+      connDatabase: _connDatabaseController.text,
+      connServer: _connServerController.text,
+      connUser: _connUserController.text,
+      connPassword: _connPasswordController.text,
+      connPort: int.tryParse(_connPortController.text) ?? 0,
+      typeDatabase: _typeDatabaseController.text,
+    );
 
-    // Retrieve the connectionID
-    String connectionID = updatedCompaniesConnection.connectionID;
+    // Save the new object to the companiesConnectionBox
+    var systemAdminBox = await Hive.openBox<CompaniesConnection>('companiesConnectionBox');
+    systemAdminBox.put(updatedCompaniesConnection.connectionID, updatedCompaniesConnection);
+  }
 
-    // Open the companiesBox
-    var companiesBox = await Hive.openBox<Companies>('companiesBox');
+  // Update the Companies box
+  var companiesBox = await Hive.openBox<Companies>('companiesBox');
+  if (companiesBox.containsKey(user.cmpCode)) {
+    // Retrieve the existing Companies object
+    Companies? company = companiesBox.get(user.cmpCode);
 
-    // Check if the user exists in the box
-    if (companiesBox.containsKey(user.cmpCode)) {
-      // Retrieve the existing Companies object
-      Companies? company = companiesBox.get(user.cmpCode);
+    // Update the systemAdminID field with the new connectionID
+    company?.systemAdminID = updatedCompaniesConnection!.connectionID;
 
-      // Update the systemAdminID field with the new connectionID
-      company?.systemAdminID = connectionID;
+    // Put the updated Companies object back into the box
+    companiesBox.put(user.cmpCode, company!);
+  }
 
-      // Put the updated Companies object back into the box
-      companiesBox.put(user.cmpCode, company!);
-    }
-
-    // Optionally, you can close the current screen or perform other actions
-    _toggleAssignMenuExpansion(user.cmpCode);
-  },
+  // Optionally, you can close the current screen or perform other actions
+  _toggleAssignMenuExpansion(user.cmpCode);
+},
   child: Text(AppLocalizations.of(context)!.update),
 ),
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +15,7 @@ import 'package:project/screens/welcome_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:http/http.dart' as http; 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:project/app_notifier.dart';
@@ -413,78 +414,66 @@ print('kopl');
    }
  else {
       print('kooo');
-      // User not found in the local database, fetch from Firebase
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        try {
-          QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-              .collection('Users')
-              .where(identifierField, isEqualTo: identifier)
-              .where('password', isEqualTo: password)
-              .get();
-print(identifier);
-print(password);
-          if (querySnapshot.docs.isNotEmpty) {
-            print('hisxa');
-            DocumentSnapshot userDoc = querySnapshot.docs.first;
+  var connectivityResult = await Connectivity().checkConnectivity();
+if (connectivityResult != ConnectivityResult.none) {
+  try {
+    var response = await http.get(
+      Uri.parse('http://5.189.188.139:8080/api/getUsers?identifier=$identifier&password=$password'),
+    );
 
-            var userData = {
-              'usercode': userDoc.get('usercode'),
-              'username': userDoc.get('username'),
-              'userFname': userDoc.get('userFname'),
-              'email': userDoc.get('email'),
-              'password': userDoc.get('password'),
-              'phonenumber': userDoc.get('phonenumber'),
-              'imeicode': userDoc.get('imeicode'),
-              'usergroup': userDoc.get('usergroup'),
-              'font': userDoc.get('font'),
-              'languages': userDoc.get('languages'),
-              'active': userDoc.get('active'),
-            };
-String userkey=userDoc.get('usercode');
-String _emailkey=userDoc.get('email');
-            // Add the user to the local Hive box
-            userBox.put(userkey, userData);
-await _synchronizeDatatoHive();
-            // Proceed with login for the new user
-            String userLanguage = userData['languages'];
-            int userFont = userData['font'];
+    if (response.statusCode == 200) {
+      var userData = jsonDecode(response.body);
+      print('User data: $userData');
+      String usercode = userData[0]['usercode'].toString(); // Ensure usercode is a string
+      print('lk');
+      String email = userData[0]['email'].toString(); // Ensure email is a string
+      print('lkop');
+      bool active = userData[0]['active'] == 1 ? true : false; // Convert '1' to true, '0' to false
+      userData[0]['active'] = active;
 
-            if (userLanguage == 'English') {
-              Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('en'));
-            } else {
-              Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('ar'));
-            }
+      // Put the user data into Hive
+      userBox.put(usercode, userData);
+      await _synchronizeDatatoHive();
 
-            Provider.of<AppNotifier>(context, listen: false).updateFontSize(userFont);
-            
+      String userLanguage = userData[0]['languages'].toString(); // Ensure languages is a string
+      int userFont = int.parse(userData[0]['font'].toString()); // Ensure font is parsed as an integer
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => welcomePage(
-                  identifier: identifier,
-                  password: password,
-                  appNotifier: widget.appNotifier,
-                  email: _emailkey,
-                ),
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.invalidEmail),
-              ),
-            );
-          }
-        } catch (e) {
-          print("Error: $e");
-        }
+      if (userLanguage == 'English') {
+        Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('en'));
       } else {
-        // Handle the case when there is no internet connection
-        print('No internet connection. Cannot fetch user from Firebase.');
-        // You may want to display a message to the user or handle this case differently
+        Provider.of<AppNotifier>(context, listen: false).updateLocale(Locale('ar'));
       }
+
+      Provider.of<AppNotifier>(context, listen: false).updateFontSize(userFont);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => welcomePage(
+            identifier: identifier, // Use usercode instead of identifier
+            password: password,
+            appNotifier: widget.appNotifier,
+            email: email,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid email or password.'),
+        ),
+      );
+    }
+  } catch (e) {
+    print("Error: $e");
+  }
+} else {
+  // Handle the case when there is no internet connection
+  print('No internet connection. Cannot fetch user from API.');
+  // You may want to display a message to the user or handle this case differently
+}
+
+
     }
 }
 
