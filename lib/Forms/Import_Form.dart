@@ -4,6 +4,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:project/Synchronize/DataSynchronizerFromFirebaseToHive.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/LoadingHelper.dart';
@@ -42,19 +44,33 @@ class _ImportFormState extends State<ImportForm> {
   // Track the selected checkboxes
   String companyCode = '';
   String connectionID = '';
- TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
-String baseUrl = 'http://5.189.188.139:8080/api';
+  List<Map<String, dynamic>> companies = [];
+  TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
+  String baseUrl = 'http://5.189.188.139:8080/api';
+  String selectedCompany = "";
+  List<bool> checkedCompanies = [];
   @override
   void initState() {
+    waitinggetCompanies();
     super.initState();
     waitingGetCmpCode();
     print(isThereData());
   }
 
+  Future<void> waitinggetCompanies() async {
+    List<Map<String, dynamic>> cmps = await getCompanies();
+
+    setState(() {
+      this.companies = cmps;
+      checkedCompanies = List<bool>.filled(cmps.length, false);
+    });
+    print(companies);
+    print(checkedCompanies);
+  }
+
   Future<void> waitingGetCmpCode() async {
     await getCompaniesConnectionId(widget.usercode);
     print(connectionID);
-
   }
 
   Future<String?> getCompaniesConnectionId(String usercode) async {
@@ -95,7 +111,13 @@ String baseUrl = 'http://5.189.188.139:8080/api';
               secCurCode: '',
               rateType: '',
               issueBatchMethod: '',
-              systemAdminID: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime), // Default company when not found
+              systemAdminID: '',
+              priceDec: null,
+              amntDec: null,
+              qtyDec: null,
+              roundMethod: '',
+              importMethod: '',
+              time: noTime), // Default company when not found
         );
 
         // Retrieve the connectionID from the company
@@ -151,7 +173,7 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     }
   }
 
-  Future<void> importSystemFromERP() async {
+  Future<void> importSystemFromERP(String cmpCode, String connectionID) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
 
@@ -159,17 +181,16 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     // system admin id companies
     // configuration companiesconnection
 
-
     // await getCompaniesConnectionId(widget.usercode);
     // print(companyCode);
-    String cmpCode = 'AlBina_Qatar';
-    String connectionID = '1708605295476_901';
+    // String cmpCode = 'AlBina_Qatar';
+    // String connectionID = '1708605295476_901';
 
     try {
       final response = await http.post(
           Uri.parse('$baseUrl/ImportSystemDataFromERP'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
+          body: jsonEncode({'connectionID': connectionID, 'cmpCode': cmpCode}));
 
       if (response.statusCode == 200) {
         print('Data migration complete');
@@ -202,7 +223,7 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     }
   }
 
-  Future<void> importCustomersData() async {
+  Future<void> importCustomersData(String cmpCode, String connectionID) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
 
@@ -212,14 +233,14 @@ String baseUrl = 'http://5.189.188.139:8080/api';
 
     // await getCompaniesConnectionId(widget.usercode);
     // print(companyCode);
-    String cmpCode = 'AlBina_Qatar';
-    String connectionID = '1708605295476_901';
+    // String cmpCode = 'AlBina_Qatar';
+    // String connectionID = '1708605295476_901';
 
     try {
       final response = await http.post(
           Uri.parse('$baseUrl/ImportCustomersDataFromERP'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
+          body: jsonEncode({'connectionID': connectionID, 'cmpCode': cmpCode}));
 
       if (response.statusCode == 200) {
         print('Data migration complete');
@@ -252,7 +273,8 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     }
   }
 
-  Future<void> importItemsDataFromERP() async {
+  Future<void> importItemsDataFromERP(
+      String cmpCode, String connectionID) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
 
@@ -262,14 +284,14 @@ String baseUrl = 'http://5.189.188.139:8080/api';
 
     // await getCompaniesConnectionId(widget.usercode);
     // print(companyCode);
-    String cmpCode = 'AlBina_Qatar';
-    String connectionID = '1708605295476_901';
+    // String cmpCode = 'AlBina_Qatar';
+    // String connectionID = '1708605295476_901';
 
     try {
       final response = await http.post(
           Uri.parse('$baseUrl/ImportItemsDataFromERP'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
+          body: jsonEncode({'connectionID': connectionID, 'cmpCode': cmpCode}));
 
       if (response.statusCode == 200) {
         print('Data migration complete');
@@ -302,7 +324,8 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     }
   }
 
-  Future<void> importPriceListsDataFromErp() async {
+  Future<void> importPriceListsDataFromErp(
+      String cmpCode, String connectionID) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
 
@@ -312,14 +335,14 @@ String baseUrl = 'http://5.189.188.139:8080/api';
 
     // await getCompaniesConnectionId(widget.usercode);
     // print(companyCode);
-    String cmpCode = 'AlBina_Qatar';
-    String connectionID = '1708605295476_901';
+    // String cmpCode = 'AlBina_Qatar';
+    // String connectionID = '1708605295476_901';
 
     try {
       final response = await http.post(
-          Uri.parse('$baseUrl/ImportItemsDataFromERP'),
+          Uri.parse('$baseUrl/ImportPriceListDataFromERP'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'connectionID': connectionID,'cmpCode':cmpCode}));
+          body: jsonEncode({'connectionID': connectionID, 'cmpCode': cmpCode}));
 
       if (response.statusCode == 200) {
         print('Data migration complete');
@@ -350,6 +373,21 @@ String baseUrl = 'http://5.189.188.139:8080/api';
         ),
       );
     }
+  }
+
+  Future<List<Map<String, dynamic>>> getCompanies() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/getCompanies'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(json.decode(response.body));
+      }
+    } catch (e) {
+      print(e);
+    }
+    return [];
   }
 
   bool _importItems = false;
@@ -366,8 +404,11 @@ String baseUrl = 'http://5.189.188.139:8080/api';
   bool _selectAll = false;
   bool _loading = false; // Track loading state
 
-  bool isThereData(){
-    if(_importCustomers==false&&_importSystem==false&&_importPriceLists==false&&_importItems==false){
+  bool isThereData() {
+    if (_importCustomers == false &&
+        _importSystem == false &&
+        _importPriceLists == false &&
+        _importItems == false) {
       return false;
     }
     return true;
@@ -380,9 +421,54 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [],
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Text('Companies:'),
+                DropdownButton(
+                  style: TextStyle(color: Colors.blue, fontSize: 18),
+                  icon: Icon(Icons.arrow_drop_down, color: Colors.blue),
+                  iconSize: 24,
+                  elevation: 16,
+                  isExpanded: true,
+                  underline: Container(
+                    height: 2,
+                    color: Colors.blue,
+                  ),
+                  items: companies.map((company) {
+                    int index = companies.indexOf(company);
+                    return DropdownMenuItem<int>(
+                      value: index,
+                      child: Row(
+                        children: [
+                          Text(company['cmpName'] ?? ''),
+                          StatefulBuilder(
+                            builder:
+                                (BuildContext context, StateSetter setState) {
+                              return Checkbox(
+                                value: checkedCompanies[index],
+                                onChanged: (value) {
+                                  setState(() {
+                                    checkedCompanies[index] = value ?? false;
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {},
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: Padding(
               padding: EdgeInsets.all(16),
@@ -424,6 +510,7 @@ String baseUrl = 'http://5.189.188.139:8080/api';
       ),
     );
   }
+
   Widget _buildImportButton() {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
@@ -433,14 +520,35 @@ String baseUrl = 'http://5.189.188.139:8080/api';
               onPressed: () async {
                 LoadingHelper.configureLoading();
                 LoadingHelper.showLoading(); // Show loading indicator
-                if (_importCustomers) {
-                  await importCustomersData();
-                }
-                if(_importSystem){
-                  await importSystemFromERP();
-                }
-                if(_importItems){
-                  await importItemsDataFromERP();
+                // if (_importCustomers) {
+                //   await importCustomersData();
+                // }
+                // if (_importSystem) {
+                //   await importSystemFromERP();
+                // }
+                // if (_importItems) {
+                //   await importItemsDataFromERP();
+                // }
+                // if (_importPriceLists) {
+                //   await importPriceListsDataFromErp();
+                // }
+                for (var c in checkedCompanies) {
+                  if (c == true) {
+                    int index = checkedCompanies.indexOf(c);
+                    if (_importCustomers) {
+                      await importCustomersData(companies[index]['cmpCode'],companies[index]['systemAdminID']);
+                    }
+                    if (_importSystem) {
+                      await importSystemFromERP(companies[index]['cmpCode'],companies[index]['systemAdminID']);
+                    }
+                    if (_importItems) {
+                      await importItemsDataFromERP(companies[index]['cmpCode'],companies[index]['systemAdminID']);
+                    }
+                    if (_importPriceLists) {
+                      await importPriceListsDataFromErp(companies[index]['cmpCode'],companies[index]['systemAdminID']);
+                    }
+                    print(companies[index]['systemAdminID']);
+                  }
                 }
                 LoadingHelper.dismissLoading(); // Dismiss loading indicator
               },
@@ -588,29 +696,35 @@ String baseUrl = 'http://5.189.188.139:8080/api';
   }
 
   Future<void> _synchronizeAll() async {
+      for (var c in checkedCompanies) {
+                  if (c == true) {
+                    int index = checkedCompanies.indexOf(c);
+                   
     if (_selectAll) {
-      await _synchronizeDatatoHive();
+      await _synchronizeDatatoHive(companies[index]['cmpCode']);
     } else {
       // Synchronize all selected options
       if (_importItems) {
-        await _synchronizeItems();
+        await _synchronizeItems(companies[index]['cmpCode']);
       }
 
       if (_importPriceLists) {
-        await _synchronizePriceLists();
+        await _synchronizePriceLists(companies[index]['cmpCode']);
       }
 
       if (_importSystem) {
-        await _synchronizeSystem();
+        await _synchronizeSystem(companies[index]['cmpCode']);
       }
 
       if (_importCustomers) {
-        await _synchronizeCustomers();
+        await _synchronizeCustomers(companies[index]['cmpCode']);
       }
     }
+                  }
+      }
   }
 
-  Future<void> _synchronizeItems() async {
+  Future<void> _synchronizeItems(String cmpCode) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     DataSynchronizerFromFirebaseToHive synchronizer =
@@ -620,18 +734,18 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
-    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
-    List<String> categCode = await synchronizer.retrieveItemCateg(seCodes);
-    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
+    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
+    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes,cmpCode);
+    List<String> categCode = await synchronizer.retrieveItemCateg(seCodes,cmpCode);
+    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes,cmpCode);
 
     // Step 3: Synchronize items based on the retrieved itemCodes
     await synchronizer.synchronizeData(itemCodes);
     await synchronizer.synchronizeDataItemAttach(itemCodes);
     await synchronizer.synchronizeDataItemBrand(brandCode);
     await synchronizer.synchronizeDataItemCateg(categCode);
-   await synchronizer.synchronizeDataItemGroup(groupCode);
-  
+    await synchronizer.synchronizeDataItemGroup(groupCode);
+
     await synchronizer.synchronizeDataItemUOM(itemCodes);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -644,7 +758,7 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     print('Items synchronized successfully');
   }
 
-  Future<void> _synchronizePriceLists() async {
+  Future<void> _synchronizePriceLists(String cmpCode) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     DataSynchronizerFromFirebaseToHive synchronizer =
@@ -652,10 +766,10 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
+    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
     print(itemCodes.toList());
     List<String> priceListsCodes =
-        await synchronizer.retrievePriceList(itemCodes);
+        await synchronizer.retrievePriceList(itemCodes,cmpCode);
     print(priceListsCodes.toList());
     await synchronizer.synchronizeDataPriceLists(priceListsCodes);
     await synchronizer.synchronizeDataPriceListsAutho();
@@ -670,7 +784,7 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     print('PriceLists synchronized successfully');
   }
 
-  Future<void> _synchronizeSystem() async {
+  Future<void> _synchronizeSystem(String cmpCode) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     DataSynchronizerFromFirebaseToHive synchronizer =
@@ -678,10 +792,10 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
-    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
-    List<String> categCode = await synchronizer.retrieveItemCateg(seCodes);
-    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
+    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
+    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes,cmpCode);
+    List<String> categCode = await synchronizer.retrieveItemCateg(seCodes,cmpCode);
+    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes,cmpCode);
 
     await synchronizer.synchronizeDataUser();
     await synchronizer.synchronizeDataUserGroup();
@@ -714,7 +828,6 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     await synchronizer.synchronizeDataCompaniesConnection();
     await synchronizer.synchronizeDataCompaniesUsers();
 
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -726,7 +839,7 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     print('System synchronized successfully');
   }
 
-  Future<void> _synchronizeCustomers() async {
+  Future<void> _synchronizeCustomers(String cmpCode) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     DataSynchronizerFromFirebaseToHive synchronizer =
@@ -734,15 +847,15 @@ String baseUrl = 'http://5.189.188.139:8080/api';
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes);
-    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes);
-    List<String> categCode = await synchronizer.retrieveItemCateg(seCodes);
-    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes);
-    List<String> custCode = await synchronizer.retrieveCustCodes(seCodes);
-    List<String> itemCode = await synchronizer.retrieveItemCodes(seCodes);
+    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
+    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes,cmpCode);
+    List<String> categCode = await synchronizer.retrieveItemCateg(seCodes,cmpCode);
+    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes,cmpCode);
+    List<String> custCode = await synchronizer.retrieveCustCodes(seCodes,cmpCode);
+    List<String> itemCode = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
     List<String> custGroupCodes =
-        await synchronizer.retrieveItemCodes(custCode);
-print('lo');
+        await synchronizer.retrieveItemCodes(custCode,cmpCode);
+    print('lo');
     await synchronizer.synchronizeCustomers(custCode);
     print('l');
     await synchronizer.synchronizeCustomerAddresses(custCode);
@@ -787,7 +900,7 @@ print('lo');
     print('Customers synchronized successfully');
   }
 
-  Future<void> _synchronizeDatatoHive() async {
+  Future<void> _synchronizeDatatoHive(String cmpCode) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     try {
@@ -801,11 +914,32 @@ print('lo');
           DataSynchronizerFromFirebaseToHive();
 
       // Run the synchronization process
-      await _synchronizeSystem();
-      await _synchronizeItems();
-      await _synchronizePriceLists();
+       for (var c in checkedCompanies) {
+                  if (c == true) {
+                    int index = checkedCompanies.indexOf(c);
+                   
+    if (_selectAll) {
+      await _synchronizeDatatoHive(companies[index]['cmpCode']);
+    } else {
+      // Synchronize all selected options
+      if (_importItems) {
+        await _synchronizeItems(companies[index]['cmpCode']);
+      }
 
-      await _synchronizeCustomers();
+      if (_importPriceLists) {
+        await _synchronizePriceLists(companies[index]['cmpCode']);
+      }
+
+      if (_importSystem) {
+        await _synchronizeSystem(companies[index]['cmpCode']);
+      }
+
+      if (_importCustomers) {
+        await _synchronizeCustomers(companies[index]['cmpCode']);
+      }
+    }
+                  }
+       }
       // Simulate a delay for demonstration purposes (remove in production)
       await Future.delayed(Duration(seconds: 3));
 
@@ -838,5 +972,68 @@ print('lo');
     }
 
     return Container();
+  }
+}
+
+class DropDownCompanies extends StatefulWidget {
+  const DropDownCompanies({
+    super.key,
+    required this.companies,
+    required this.checkedCompanies,
+  });
+
+  final List<Map<String, dynamic>> companies;
+  final List<bool> checkedCompanies;
+
+  @override
+  State<DropDownCompanies> createState() => _DropDownCompaniesState();
+}
+
+class _DropDownCompaniesState extends State<DropDownCompanies> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Text('Companies:'),
+          DropdownButton(
+            style: TextStyle(color: Colors.blue, fontSize: 18),
+            icon: Icon(Icons.arrow_drop_down, color: Colors.blue),
+            iconSize: 24,
+            elevation: 16,
+            isExpanded: true,
+            underline: Container(
+              height: 2,
+              color: Colors.blue,
+            ),
+            items: widget.companies.map((company) {
+              int index = widget.companies.indexOf(company);
+              return DropdownMenuItem<int>(
+                value: index,
+                child: Row(
+                  children: [
+                    Text(company['cmpName'] ?? ''),
+                    StatefulBuilder(
+                      builder: (BuildContext context, StateSetter setState) {
+                        return Checkbox(
+                          value: widget.checkedCompanies[index],
+                          onChanged: (value) {
+                            setState(() {
+                              widget.checkedCompanies[index] = value ?? false;
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            onChanged: (newValue) {},
+          ),
+        ],
+      ),
+    );
   }
 }

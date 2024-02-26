@@ -97,12 +97,14 @@ Future<List<String>> retrieveSeCodes(String usercode) async {
 
 
   
-Future<List<String>> retrieveItemCodes(List<String> seCodes) async {
+Future<List<String>> retrieveItemCodes(List<String> seCodes,String cmpCode) async {
   List<String> itemCodes = [];
   try {
     for (String seCode in seCodes) {
       // Send HTTP GET request to fetch item codes from the server
-      final response = await http.get(Uri.parse('${apiurl}getSalesItems?seCode=$seCode'));
+      String url = '${apiurl}getSalesEmployeesItems?seCode=$seCode&cmpCode=$cmpCode';
+      print('Request URL: $url'); // Print the URL for debugging
+      final response = await http.get(Uri.parse('${apiurl}getSalesEmployeesItems?seCode=$seCode&cmpCode=$cmpCode'));
       if (response.statusCode == 200) {
         // Parse response body using jsonDecode
         List<dynamic> responseData = jsonDecode(response.body);
@@ -229,12 +231,12 @@ Future<void> _synchronizeItems(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-  Future<List<String>> retrievePriceList(List<String> itemCodes) async {
+  Future<List<String>> retrievePriceList(List<String> itemCodes,String cmpCode) async {
     List<String> priceLists = [];
     try {
       for (String itemCode in itemCodes) {
         final response = await http
-            .get(Uri.parse('${apiurl}getItemPrice?itemCode=$itemCode'));
+            .get(Uri.parse('${apiurl}getItemPrice?itemCode=$itemCode&cmpCode=$cmpCode'));
         if (response.statusCode == 200) {
           List<dynamic> responseData = jsonDecode(response.body);
           for (var data in responseData) {
@@ -549,13 +551,13 @@ Future<void> _synchronizeItemAttach(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-  Future<List<String>> retrieveItemGroupCodes(List<String> seCodes) async {
+  Future<List<String>> retrieveItemGroupCodes(List<String> seCodes,String cmpCode) async {
     List<String> itemGroupCodes = [];
     try {
       for (String seCode in seCodes) {
         // Make API call to retrieve item group codes for the given sales employee code
         var response = await http.get(
-            Uri.parse('${apiurl}getSalesEmployeesItemsGroups?seCode=$seCode'));
+            Uri.parse('${apiurl}getSalesEmployeesItemsGroups?seCode=$seCode&cmpCode=$cmpCode'));
         if (response.statusCode == 200) {
           // Parse the response data
           dynamic responseData = jsonDecode(response.body);
@@ -676,13 +678,13 @@ Future<void> _synchronizeItemGroup(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-  Future<List<String>> retrieveItemCateg(List<String> seCodes) async {
+  Future<List<String>> retrieveItemCateg(List<String> seCodes,String cmpCode) async {
     List<String> itemCategCodes = [];
     try {
       for (String seCode in seCodes) {
         // Make API call to retrieve item category codes for the given sales employee code
         var response = await http.get(Uri.parse(
-            '${apiurl}getSalesEmployeesItemsCategories?seCode=$seCode'));
+            '${apiurl}getSalesEmployeesItemsCategories?seCode=$seCode&cmpCode=$cmpCode'));
         if (response.statusCode == 200) {
           // Parse the response data
           dynamic responseData = jsonDecode(response.body);
@@ -803,13 +805,13 @@ Future<void> _synchronizeItemCateg(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-  Future<List<String>> retrieveItemBrand(List<String> seCodes) async {
+  Future<List<String>> retrieveItemBrand(List<String> seCodes,String cmpCode) async {
     List<String> itemBrandCodes = [];
     try {
       for (String seCode in seCodes) {
         // Make API call to retrieve item brand codes for the given sales employee code
         var response = await http.get(
-            Uri.parse('${apiurl}getSalesEmployeesItemsBrands?seCode=$seCode'));
+            Uri.parse('${apiurl}getSalesEmployeesItemsBrands?seCode=$seCode&cmpCode=$cmpCode'));
         if (response.statusCode == 200) {
           // Parse the response data
           dynamic responseData = jsonDecode(response.body);
@@ -1865,6 +1867,12 @@ Future<void> _synchronizeSystem(
       print('Error synchronizing data from API to Hive for Companies: $e');
     }
   }
+TimeOfDay parseTime(String timeString) {
+  List<String> parts = timeString.split(':');
+  int hour = int.parse(parts[0]);
+  int minute = int.parse(parts[1]);
+  return TimeOfDay(hour: hour, minute: minute);
+}
 
   Future<void> _synchronizeCompanies(
     List<Map<String, dynamic>> companiesData,
@@ -1901,7 +1909,7 @@ Future<void> _synchronizeSystem(
           qtyDec: data['qtyDec']??0,
           roundMethod: data['roundMethod']??'',
           importMethod: data['importMethod']??'',
-          time: data['time']??noTime,
+time: data['time'] != null ? parseTime(data['time']) : noTime,
         );
         await companiesBox.put(cmpCode, newCompany);
       } else {
@@ -1928,7 +1936,7 @@ Future<void> _synchronizeSystem(
           qtyDec: data['qtyDec']??0,
           roundMethod: data['roundMethod']??'',
           importMethod: data['importMethod']??'',
-          time: data['time']??noTime,
+        time: data['time'] != null ? parseTime(data['time']) : noTime,
         );
         await companiesBox.put(cmpCode, updatedCompany);
       }
@@ -3464,12 +3472,12 @@ Future<void> _synchronizeUserSalesEmployees(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-Future<List<String>> retrieveCustCodes(List<String> seCodes) async {
+Future<List<String>> retrieveCustCodes(List<String> seCodes,String cmpCode) async {
  print('ksdpds'); print(seCodes);print('ksdps');
   List<String> custCodes = [];
   try {
     for (String seCode in seCodes) {
-      final response = await http.get(Uri.parse('${apiurl}getSalesEmployeesCustomers?seCode=$seCode'));
+      final response = await http.get(Uri.parse('${apiurl}getSalesEmployeesCustomers?seCode=$seCode&cmpCode=$cmpCode'));
       print(response.body);
       if (response.statusCode == 200) {
         dynamic responseData = jsonDecode(response.body);
