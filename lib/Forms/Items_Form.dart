@@ -242,35 +242,43 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
             },
           ),
           // Add the barcode scan icon here
-          IconButton(
-            icon: Icon(Icons.camera),
-            onPressed: () async {
-              String barcode = await scanBarcode();
-              if (barcode.isNotEmpty) {
-                // Perform logic to check if the scanned barcode exists in the items
-                // and display the corresponding item details.
-                // You can use a method similar to how you display items in the list.
-                // For example:
-                var scannedItem = items.firstWhere((item) => item.barCode == barcode, orElse: null);
-                if (scannedItem != null) {
-                  // Show item details for the scanned item
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ItemsInfoForm(item: scannedItem,appNotifier: widget.appNotifier,),
-                    ),
-                  );
-                } else {
-                  // Display a message indicating that the scanned item was not found
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Scanned item not found'),
-                    ),
-                  );
-                }
-              }
-            },
+        IconButton(
+  icon: Icon(Icons.camera),
+  onPressed: () async {
+    String barcode = await scanBarcode();
+    if (barcode.isNotEmpty) {
+      // Perform logic to check if the scanned barcode exists in the items
+      // and display the corresponding item details.
+      // You can use a method similar to how you display items in the list.
+   
+      // For example:
+      bool itemFound = false;
+      for (var item in filteredItems) {
+
+        if (item.barCode == barcode) {
+          itemFound = true;
+          // Show item details for the scanned item
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ItemsInfoForm(item: item, appNotifier: widget.appNotifier,),
+            ),
+          );
+          break; // Exit the loop since the item is found
+        }
+      }
+      if (!itemFound) {
+        // Display a message indicating that the scanned item was not found
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Scanned item not found'),
           ),
+        );
+      }
+    }
+  },
+),
+
         ],
       ),
   body: Padding(
@@ -691,7 +699,9 @@ Widget _buildDropdown(String label, String? selectedValue, Function(String?) onC
 Future<String> scanBarcode() async {
   try {
     ScanResult result = await BarcodeScanner.scan();
-    String barcode = result.rawContent;
+    String barcode = result.rawContent.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
+    // This regular expression removes control characters from the string.
+    print(barcode);
     return barcode;
   } on PlatformException catch (e) {
     if (e.code == BarcodeScanner.cameraAccessDenied) {
@@ -704,7 +714,6 @@ Future<String> scanBarcode() async {
     return '';
   }
 }
-
 
 }
 
