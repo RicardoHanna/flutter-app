@@ -102,13 +102,7 @@ await _loadUserLangFontPreferences();
   });
 }
 
-void _initializeConnectivity() {
-  Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-    if (result != ConnectivityResult.none) {
-      _syncChangesWithFirestore();
-    }
-  });
-}
+
 
 
 
@@ -665,65 +659,6 @@ Future<bool> _showDiscardChangesDialog() async {
 
 
 
-Future<void> _syncChangesWithFirestore() async {
-  var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult != ConnectivityResult.none) {
-    try {
-      // Retrieve changes from the local database
-      var userBox = await Hive.openBox('userBox');
-      String? newUsername = userBox.get('username');
-      String? newEmail = userBox.get('email');
-      String? newPassword = userBox.get('password');
-      String? newPhoneNumber = userBox.get('phonenumber');
-      String? newImeiCode = userBox.get('imeicode');
-
-      bool? newIsActive = userBox.get('active');
-
-      print('Local Changes:');
-      print('Username: $newUsername');
-      print('Email: $newEmail');
-      print('Password: $newPassword');
-      print('Phone Number: $newPhoneNumber');
-      print('IMEI Code: $newImeiCode');
-
-      print('Is Active: $newIsActive');
-
-      // Update Firestore with the changes based on email and password
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Users')
-          .where('email', isEqualTo: newEmail)
-          .where('password', isEqualTo: newPassword)
-          .limit(1)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        String documentId = querySnapshot.docs.first.id;
-
-        // Update Firestore using a batch to ensure atomicity
-        WriteBatch batch = FirebaseFirestore.instance.batch();
-        batch.update(FirebaseFirestore.instance.collection('Users').doc(documentId), {
-          'username': newUsername,
-          'email': newEmail,
-          'password': newPassword,
-          'phonenumber': newPhoneNumber,
-          'imeicode': newImeiCode,
-          'active': newIsActive,
-        });
-
-        // Commit the batch
-        await batch.commit();
-
-    
-
-        print('Changes synced with Firestore.');
-      } else {
-        print('Document not found for email: $newEmail and password: $newPassword');
-      }
-    } catch (e) {
-      print('Error syncing changes with Firestore: $e');
-    }
-  }
-}
  
 
 

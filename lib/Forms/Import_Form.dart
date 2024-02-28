@@ -48,7 +48,7 @@ class _ImportFormState extends State<ImportForm> {
   TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
   String baseUrl = 'http://5.189.188.139:8080/api';
   String selectedCompany = "";
-  List<bool> checkedCompanies = [];
+  Map<int, bool> checkedCompanies = {};
   @override
   void initState() {
     waitinggetCompanies();
@@ -62,7 +62,13 @@ class _ImportFormState extends State<ImportForm> {
 
     setState(() {
       this.companies = cmps;
-      checkedCompanies = List<bool>.filled(cmps.length, false);
+      Map<int, bool> cCompanies = Map.fromIterable(
+        companies,
+        key: (item) => companies.indexOf(item),
+        value: (item) => false,
+      );
+    this.checkedCompanies = cCompanies;
+    print(cCompanies);
     });
     print(companies);
     print(checkedCompanies);
@@ -454,6 +460,7 @@ class _ImportFormState extends State<ImportForm> {
                                 value: checkedCompanies[index],
                                 onChanged: (value) {
                                   setState(() {
+                                    print(checkedCompanies);
                                     checkedCompanies[index] = value ?? false;
                                   });
                                 },
@@ -532,24 +539,34 @@ class _ImportFormState extends State<ImportForm> {
                 // if (_importPriceLists) {
                 //   await importPriceListsDataFromErp();
                 // }
-                for (var c in checkedCompanies) {
-                  if (c == true) {
-                    int index = checkedCompanies.indexOf(c);
+                print("################################################");
+                print(checkedCompanies);
+                for (var c in checkedCompanies.keys) {
+                  if (checkedCompanies[c] == true) {
                     if (_importCustomers) {
-                      await importCustomersData(companies[index]['cmpCode'],companies[index]['systemAdminID']);
+                      await importCustomersData(companies[c]['cmpCode'],
+                          companies[c]['systemAdminID']);
                     }
                     if (_importSystem) {
-                      await importSystemFromERP(companies[index]['cmpCode'],companies[index]['systemAdminID']);
+                      await importSystemFromERP(companies[c]['cmpCode'],
+                          companies[c]['systemAdminID']);
                     }
                     if (_importItems) {
-                      await importItemsDataFromERP(companies[index]['cmpCode'],companies[index]['systemAdminID']);
+                      await importItemsDataFromERP(companies[c]['cmpCode'],
+                          companies[c]['systemAdminID']);
                     }
                     if (_importPriceLists) {
-                      await importPriceListsDataFromErp(companies[index]['cmpCode'],companies[index]['systemAdminID']);
+                      await importPriceListsDataFromErp(
+                          companies[c]['cmpCode'],
+                          companies[c]['systemAdminID']);
                     }
-                    print(companies[index]['systemAdminID']);
+                    print("######################################################################");
+                    print(companies[c]['cmpCode']);
+                    print(companies[c]['systemAdminID']);
+
                   }
                 }
+                print(checkedCompanies);
                 LoadingHelper.dismissLoading(); // Dismiss loading indicator
               },
               style: ButtonStyle(
@@ -696,32 +713,30 @@ class _ImportFormState extends State<ImportForm> {
   }
 
   Future<void> _synchronizeAll() async {
-      for (var c in checkedCompanies) {
-                  if (c == true) {
-                    int index = checkedCompanies.indexOf(c);
-                   
-    if (_selectAll) {
-      await _synchronizeDatatoHive(companies[index]['cmpCode']);
-    } else {
-      // Synchronize all selected options
-      if (_importItems) {
-        await _synchronizeItems(companies[index]['cmpCode']);
-      }
+    for (var c in checkedCompanies.keys) {
+      if (checkedCompanies[c] == true) {
+        if (_selectAll) {
+          await _synchronizeDatatoHive(companies[c]['cmpCode']);
+        } else {
+          // Synchronize all selected options
+          if (_importItems) {
+            await _synchronizeItems(companies[c]['cmpCode']);
+          }
 
-      if (_importPriceLists) {
-        await _synchronizePriceLists(companies[index]['cmpCode']);
-      }
+          if (_importPriceLists) {
+            await _synchronizePriceLists(companies[c]['cmpCode']);
+          }
 
-      if (_importSystem) {
-        await _synchronizeSystem(companies[index]['cmpCode']);
-      }
+          if (_importSystem) {
+            await _synchronizeSystem(companies[c]['cmpCode']);
+          }
 
-      if (_importCustomers) {
-        await _synchronizeCustomers(companies[index]['cmpCode']);
+          if (_importCustomers) {
+            await _synchronizeCustomers(companies[c]['cmpCode']);
+          }
+        }
       }
     }
-                  }
-      }
   }
 
   Future<void> _synchronizeItems(String cmpCode) async {
@@ -734,10 +749,14 @@ class _ImportFormState extends State<ImportForm> {
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
-    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes,cmpCode);
-    List<String> categCode = await synchronizer.retrieveItemCateg(seCodes,cmpCode);
-    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes,cmpCode);
+    List<String> itemCodes =
+        await synchronizer.retrieveItemCodes(seCodes, cmpCode);
+    List<String> brandCode =
+        await synchronizer.retrieveItemBrand(seCodes, cmpCode);
+    List<String> categCode =
+        await synchronizer.retrieveItemCateg(seCodes, cmpCode);
+    List<String> groupCode =
+        await synchronizer.retrieveItemGroupCodes(seCodes, cmpCode);
 
     // Step 3: Synchronize items based on the retrieved itemCodes
     await synchronizer.synchronizeData(itemCodes);
@@ -766,10 +785,11 @@ class _ImportFormState extends State<ImportForm> {
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
+    List<String> itemCodes =
+        await synchronizer.retrieveItemCodes(seCodes, cmpCode);
     print(itemCodes.toList());
     List<String> priceListsCodes =
-        await synchronizer.retrievePriceList(itemCodes,cmpCode);
+        await synchronizer.retrievePriceList(itemCodes, cmpCode);
     print(priceListsCodes.toList());
     await synchronizer.synchronizeDataPriceLists(priceListsCodes);
     await synchronizer.synchronizeDataPriceListsAutho();
@@ -792,10 +812,14 @@ class _ImportFormState extends State<ImportForm> {
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
-    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes,cmpCode);
-    List<String> categCode = await synchronizer.retrieveItemCateg(seCodes,cmpCode);
-    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes,cmpCode);
+    List<String> itemCodes =
+        await synchronizer.retrieveItemCodes(seCodes, cmpCode);
+    List<String> brandCode =
+        await synchronizer.retrieveItemBrand(seCodes, cmpCode);
+    List<String> categCode =
+        await synchronizer.retrieveItemCateg(seCodes, cmpCode);
+    List<String> groupCode =
+        await synchronizer.retrieveItemGroupCodes(seCodes, cmpCode);
 
     await synchronizer.synchronizeDataUser();
     await synchronizer.synchronizeDataUserGroup();
@@ -847,14 +871,20 @@ class _ImportFormState extends State<ImportForm> {
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-    List<String> itemCodes = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
-    List<String> brandCode = await synchronizer.retrieveItemBrand(seCodes,cmpCode);
-    List<String> categCode = await synchronizer.retrieveItemCateg(seCodes,cmpCode);
-    List<String> groupCode = await synchronizer.retrieveItemGroupCodes(seCodes,cmpCode);
-    List<String> custCode = await synchronizer.retrieveCustCodes(seCodes,cmpCode);
-    List<String> itemCode = await synchronizer.retrieveItemCodes(seCodes,cmpCode);
+    List<String> itemCodes =
+        await synchronizer.retrieveItemCodes(seCodes, cmpCode);
+    List<String> brandCode =
+        await synchronizer.retrieveItemBrand(seCodes, cmpCode);
+    List<String> categCode =
+        await synchronizer.retrieveItemCateg(seCodes, cmpCode);
+    List<String> groupCode =
+        await synchronizer.retrieveItemGroupCodes(seCodes, cmpCode);
+    List<String> custCode =
+        await synchronizer.retrieveCustCodes(seCodes, cmpCode);
+    List<String> itemCode =
+        await synchronizer.retrieveItemCodes(seCodes, cmpCode);
     List<String> custGroupCodes =
-        await synchronizer.retrieveItemCodes(custCode,cmpCode);
+        await synchronizer.retrieveItemCodes(custCode, cmpCode);
     print('lo');
     await synchronizer.synchronizeCustomers(custCode);
     print('l');
@@ -914,32 +944,30 @@ class _ImportFormState extends State<ImportForm> {
           DataSynchronizerFromFirebaseToHive();
 
       // Run the synchronization process
-       for (var c in checkedCompanies) {
-                  if (c == true) {
-                    int index = checkedCompanies.indexOf(c);
-                   
-    if (_selectAll) {
-      await _synchronizeDatatoHive(companies[index]['cmpCode']);
-    } else {
-      // Synchronize all selected options
-      if (_importItems) {
-        await _synchronizeItems(companies[index]['cmpCode']);
-      }
+      for (var c in checkedCompanies.keys) {
+        if (checkedCompanies[c] == true) {
+          if (_selectAll) {
+            await _synchronizeDatatoHive(companies[c]['cmpCode']);
+          } else {
+            // Synchronize all selected options
+            if (_importItems) {
+              await _synchronizeItems(companies[c]['cmpCode']);
+            }
 
-      if (_importPriceLists) {
-        await _synchronizePriceLists(companies[index]['cmpCode']);
-      }
+            if (_importPriceLists) {
+              await _synchronizePriceLists(companies[c]['cmpCode']);
+            }
 
-      if (_importSystem) {
-        await _synchronizeSystem(companies[index]['cmpCode']);
-      }
+            if (_importSystem) {
+              await _synchronizeSystem(companies[c]['cmpCode']);
+            }
 
-      if (_importCustomers) {
-        await _synchronizeCustomers(companies[index]['cmpCode']);
+            if (_importCustomers) {
+              await _synchronizeCustomers(companies[c]['cmpCode']);
+            }
+          }
+        }
       }
-    }
-                  }
-       }
       // Simulate a delay for demonstration purposes (remove in production)
       await Future.delayed(Duration(seconds: 3));
 

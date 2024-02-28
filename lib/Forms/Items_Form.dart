@@ -715,5 +715,23 @@ Future<String> scanBarcode() async {
   }
 }
 
+/*Future<String> scanBarcode() async {
+  try {
+    ScanResult result = await BarcodeScanner.scan();
+    String barcode = result.rawContent;
+    print(barcode);
+    return barcode;
+  } on PlatformException catch (e) {
+    if (e.code == BarcodeScanner.cameraAccessDenied) {
+      // Handle camera permission denied
+      print('Camera permission denied');
+    } else {
+      // Handle other exceptions
+      print('Error: $e');
+    }
+    return '';
+  }
+}*/
+
 }
 

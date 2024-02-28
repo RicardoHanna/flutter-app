@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:sqflite/sqflite.dart';
+import 'package:mysql1/mysql1.dart';
+
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +30,8 @@ import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path/path.dart' as path;
+
 
 class CompaniesSettings extends StatefulWidget {
     final AppNotifier appNotifier;
@@ -712,24 +716,24 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                               decoration: InputDecoration(labelText: AppLocalizations.of(context)!.connectionPort),
                             
                             ),
-                             DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.typeDatabase,
-      ),
-      value: 'Sql Server', // Set the initial value to 'Sql Server'
-      onChanged: (newValue) {
-        setState(() {
-          _typeDatabaseController.text = newValue!;
-        });
-      },
-      items: <String>['Sql Server'].map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    ),
-                     
+          DropdownButtonFormField<String>(
+  decoration: InputDecoration(
+    labelText: AppLocalizations.of(context)!.typeDatabase,
+  ),
+  value: _typeDatabaseController.text.isNotEmpty ? _typeDatabaseController.text : null, // Set the initial value to 'Sql Server' if not empty
+  onChanged: (newValue) {
+    setState(() {
+      _typeDatabaseController.text = newValue!;
+    });
+  },
+  items: <String>['Sql Server'].map<DropdownMenuItem<String>>((String value) {
+    return DropdownMenuItem<String>(
+      value: value,
+      child: Text(value),
+    );
+  }).toList(),
+),
+  
                           
                             SizedBox(height: 16.0),
                             Row(
@@ -743,8 +747,17 @@ int selectedImportSource = 1; // 1 for 'Import from ERP to Mobile', 2 for 'Impor
                                 ),
                         ElevatedButton(
 onPressed: () async {
-  CompaniesConnection? updatedCompaniesConnection;
 
+  CompaniesConnection? updatedCompaniesConnection;
+if(_connDatabaseController.text=='' || _connPasswordController.text=='' || _connPortController.text=='' || _connServerController.text=='' || _connUserController.text==''){
+  ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('All Credentials Must be required', style: _appTextStyle),
+        ),
+      );
+return;
+}
+else {
   // Check if connectionId is not empty
   if (connectionId != '') {
     // Retrieve the existing record from the companiesConnectionBox
@@ -797,8 +810,10 @@ onPressed: () async {
     companiesBox.put(user.cmpCode, company!);
   }
 
+
   // Optionally, you can close the current screen or perform other actions
   _toggleAssignMenuExpansion(user.cmpCode);
+}
 },
   child: Text(AppLocalizations.of(context)!.update),
 ),
