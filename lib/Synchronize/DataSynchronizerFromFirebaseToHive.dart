@@ -211,10 +211,10 @@ Future<void> _synchronizeItems(
     }
 
     // Batch update items
-    await itemsBox.putAll(Map.fromIterable(itemsToUpdate, key: (item) => item.itemCode));
+    await itemsBox.putAll(Map.fromIterable(itemsToUpdate, key: (item) => '${item.itemCode}${item.cmpCode}'));
 
     // Delete items not present in the updated data
-    Set<String> updatedItemCodes = itemsToUpdate.map((item) => item.itemCode).toSet();
+    Set<String> updatedItemCodes = itemsToUpdate.map((item) => '${item.itemCode}${item.cmpCode}').toSet();
     itemsBox.keys.where((itemCode) => !updatedItemCodes.contains(itemCode)).forEach((itemCode) {
       itemsToDelete.add(itemCode);
     });
@@ -337,10 +337,10 @@ Future<void> _synchronizePriceList(
     }
 
     // Batch update price lists
-    await pricelistsBox.putAll(Map.fromIterable(priceListsToUpdate, key: (priceList) => priceList.plCode));
+    await pricelistsBox.putAll(Map.fromIterable(priceListsToUpdate, key: (priceList) => '${priceList.plCode}${priceList.cmpCode}'));
 
     // Delete price lists not present in the updated data
-    Set<String> updatedPriceListCodes = priceListsToUpdate.map((priceList) => priceList.plCode).toSet();
+    Set<String> updatedPriceListCodes = priceListsToUpdate.map((priceList) => '${priceList.plCode}${priceList.cmpCode}').toSet();
     pricelistsBox.keys.where((plCode) => !updatedPriceListCodes.contains(plCode)).forEach((plCode) {
       priceListsToDelete.add(plCode);
     });
@@ -438,10 +438,10 @@ Future<void> _synchronizeItemPrice(
     }
 
     // Batch update item prices
-    await itempriceBox.putAll(Map.fromIterable(itemPricesToUpdate, key: (itemPrice) => '${itemPrice.plCode}${itemPrice.itemCode}'));
+    await itempriceBox.putAll(Map.fromIterable(itemPricesToUpdate, key: (itemPrice) => '${itemPrice.plCode}${itemPrice.itemCode}${itemPrice.cmpCode}'));
 
     // Delete item prices not present in the updated data
-    Set<String> updatedItemPriceKeys = itemPricesToUpdate.map((itemPrice) => '${itemPrice.plCode}${itemPrice.itemCode}').toSet();
+    Set<String> updatedItemPriceKeys = itemPricesToUpdate.map((itemPrice) => '${itemPrice.plCode}${itemPrice.itemCode}${itemPrice.cmpCode}').toSet();
     itempriceBox.keys.where((itemPriceKey) => !updatedItemPriceKeys.contains(itemPriceKey)).forEach((itemPriceKey) {
       itemPricesToDelete.add(itemPriceKey);
     });
@@ -533,10 +533,10 @@ Future<void> _synchronizeItemAttach(
     }
 
     // Batch update item attachments
-    await itemattachBox.putAll(Map.fromIterable(itemAttachsToUpdate, key: (itemAttach) => itemAttach.itemCode));
+    await itemattachBox.putAll(Map.fromIterable(itemAttachsToUpdate, key: (itemAttach) => '${itemAttach.itemCode}${itemAttach.cmpCode}'));
 
     // Delete item attachments not present in the updated data
-    Set<String> updatedItemAttachCodes = itemAttachsToUpdate.map((itemAttach) => itemAttach.itemCode).toSet();
+    Set<String> updatedItemAttachCodes = itemAttachsToUpdate.map((itemAttach) => '${itemAttach.itemCode}${itemAttach.cmpCode}').toSet();
     itemattachBox.keys.where((itemAttachCode) => !updatedItemAttachCodes.contains(itemAttachCode)).forEach((itemAttachCode) {
       itemAttachsToDelete.add(itemAttachCode);
     });

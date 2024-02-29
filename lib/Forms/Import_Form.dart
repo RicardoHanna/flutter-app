@@ -204,7 +204,7 @@ class _ImportFormState extends State<ImportForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content:
-                Text('Data synchronized successfully', style: _appTextStyle),
+                Text('System synchronized successfully for ${cmpCode}', style: _appTextStyle),
           ),
         );
       } else {
@@ -254,7 +254,7 @@ class _ImportFormState extends State<ImportForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content:
-                Text('Data synchronized successfully', style: _appTextStyle),
+                Text('Customers synchronized successfully for ${cmpCode}', style: _appTextStyle),
           ),
         );
       } else {
@@ -305,7 +305,7 @@ class _ImportFormState extends State<ImportForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content:
-                Text('Data synchronized successfully', style: _appTextStyle),
+                Text('Items synchronized successfully for ${cmpCode}', style: _appTextStyle),
           ),
         );
       } else {
@@ -356,7 +356,7 @@ class _ImportFormState extends State<ImportForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content:
-                Text('Data synchronized successfully', style: _appTextStyle),
+                Text('Price Lists synchronized successfully for ${cmpCode}', style: _appTextStyle),
           ),
         );
       } else {
@@ -774,7 +774,7 @@ class _ImportFormState extends State<ImportForm> {
         ),
       ),
     );
-    print('Items synchronized successfully');
+    print('Items synchronized successfully for ${cmpCode}');
   }
 
   Future<void> _synchronizePriceLists(String cmpCode) async {
@@ -801,7 +801,7 @@ class _ImportFormState extends State<ImportForm> {
         ),
       ),
     );
-    print('PriceLists synchronized successfully');
+    print('PriceLists synchronized successfully for ${cmpCode}');
   }
 
   Future<void> _synchronizeSystem(String cmpCode) async {
@@ -860,7 +860,7 @@ class _ImportFormState extends State<ImportForm> {
         ),
       ),
     );
-    print('System synchronized successfully');
+    print('System synchronized successfully for ${cmpCode}');
   }
 
   Future<void> _synchronizeCustomers(String cmpCode) async {
@@ -927,7 +927,7 @@ class _ImportFormState extends State<ImportForm> {
         ),
       ),
     );
-    print('Customers synchronized successfully');
+    print('Customers synchronized successfully for ${cmpCode}');
   }
 
   Future<void> _synchronizeDatatoHive(String cmpCode) async {
