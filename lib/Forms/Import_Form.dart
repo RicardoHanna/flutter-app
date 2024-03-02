@@ -521,91 +521,112 @@ class _ImportFormState extends State<ImportForm> {
   Widget _buildImportButton() {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
-    if (widget.title == AppLocalizations.of(context)!.importFromErpToMobile) {
-      return isThereData()
-          ? ElevatedButton(
-              onPressed: () async {
-                LoadingHelper.configureLoading();
-                LoadingHelper.showLoading(); // Show loading indicator
-                // if (_importCustomers) {
-                //   await importCustomersData();
-                // }
-                // if (_importSystem) {
-                //   await importSystemFromERP();
-                // }
-                // if (_importItems) {
-                //   await importItemsDataFromERP();
-                // }
-                // if (_importPriceLists) {
-                //   await importPriceListsDataFromErp();
-                // }
-                print("################################################");
-                print(checkedCompanies);
-                for (var c in checkedCompanies.keys) {
-                  if (checkedCompanies[c] == true) {
-                    if (_importCustomers) {
-                      await importCustomersData(companies[c]['cmpCode'],
-                          companies[c]['systemAdminID']);
-                    }
-                    if (_importSystem) {
-                      await importSystemFromERP(companies[c]['cmpCode'],
-                          companies[c]['systemAdminID']);
-                    }
-                    if (_importItems) {
-                      await importItemsDataFromERP(companies[c]['cmpCode'],
-                          companies[c]['systemAdminID']);
-                    }
-                    if (_importPriceLists) {
-                      await importPriceListsDataFromErp(
-                          companies[c]['cmpCode'],
-                          companies[c]['systemAdminID']);
-                    }
-                    print("######################################################################");
-                    print(companies[c]['cmpCode']);
-                    print(companies[c]['systemAdminID']);
+   if (widget.title == AppLocalizations.of(context)!.importFromErpToMobile) {
+  return isThereData()
+      ? ElevatedButton(
+          onPressed: () async {
+            _showLoadingOverlay(context); // Show loading overlay
 
+            try {
+              // Your existing synchronization logic goes here
+              LoadingHelper.configureLoading();
+              LoadingHelper.showLoading(); // Show loading indicator
+              print("################################################");
+              print(checkedCompanies);
+              for (var c in checkedCompanies.keys) {
+                if (checkedCompanies[c] == true) {
+                  if (_importCustomers) {
+                    await importCustomersData(
+                      companies[c]['cmpCode'],
+                      companies[c]['systemAdminID'],
+                    );
                   }
+                  if (_importSystem) {
+                    await importSystemFromERP(
+                      companies[c]['cmpCode'],
+                      companies[c]['systemAdminID'],
+                    );
+                  }
+                  if (_importItems) {
+                    await importItemsDataFromERP(
+                      companies[c]['cmpCode'],
+                      companies[c]['systemAdminID'],
+                    );
+                  }
+                  if (_importPriceLists) {
+                    await importPriceListsDataFromErp(
+                      companies[c]['cmpCode'],
+                      companies[c]['systemAdminID'],
+                    );
+                  }
+                  print("######################################################################");
+                  print(companies[c]['cmpCode']);
+                  print(companies[c]['systemAdminID']);
                 }
-                print(checkedCompanies);
-                LoadingHelper.dismissLoading(); // Dismiss loading indicator
-              },
-              style: ButtonStyle(
-                fixedSize: MaterialStateProperty.all(
-                    Size(280, 10)), // Set the width and height
-              ),
-              child: Text(AppLocalizations.of(context)!.import,
-                  style: _appTextStyle),
-            )
-          : SizedBox(
-              width: 0,
-              height: 0,
-            );
-    } else if (widget.title ==
+              }
+              print(checkedCompanies);
+            } catch (e) {
+              // Handle errors and display an error message or update UI accordingly
+              print('Error synchronizing data: $e');
+            } finally {
+              // Hide loading overlay
+              _hideLoadingOverlay(context);
+              LoadingHelper.dismissLoading(); // Dismiss loading indicator
+            }
+          },
+          style: ButtonStyle(
+            fixedSize: MaterialStateProperty.all(
+              Size(280, 10)), // Set the width and height
+          ),
+          child: Text(
+            AppLocalizations.of(context)!.import,
+            style: _appTextStyle,
+          ),
+        )
+      : SizedBox(
+          width: 0,
+          height: 0,
+        );
+} 
+ else if (widget.title ==
         AppLocalizations.of(context)!.importFromBackendToMobile) {
-      return isThereData()
-          ? ElevatedButton(
-              onPressed: () async {
-                LoadingHelper.configureLoading();
-                LoadingHelper.showLoading(); // Show loading indicator
-                await _synchronizeAll();
-                LoadingHelper.dismissLoading(); // Dismiss loading indicator
-              },
-              style: ButtonStyle(
-                fixedSize: MaterialStateProperty.all(
-                    Size(280, 10)), // Set the width and height
-              ),
-              child: Text(AppLocalizations.of(context)!.import,
-                  style: _appTextStyle),
-            )
-          : SizedBox(
-              width: 0,
-              height: 0,
-            );
-    } else {
+     return isThereData()
+    ? ElevatedButton(
+        onPressed: () async {
+          _showLoadingOverlay(context); // Show loading overlay
+
+          try {
+            // Your existing synchronization logic goes here
+            LoadingHelper.configureLoading();
+            LoadingHelper.showLoading(); // Show loading indicator
+            await _synchronizeAll();
+            LoadingHelper.dismissLoading(); // Dismiss loading indicator
+          } catch (e) {
+            // Handle errors and display an error message or update UI accordingly
+            print('Error synchronizing data: $e');
+          } finally {
+            // Hide loading overlay
+            _hideLoadingOverlay(context);
+          }
+        },
+        style: ButtonStyle(
+          fixedSize: MaterialStateProperty.all(
+              Size(280, 10)), // Set the width and height
+        ),
+        child: Text(
+          AppLocalizations.of(context)!.import,
+          style: _appTextStyle,
+        ),
+      )
+    : SizedBox(
+        width: 0,
+        height: 0,
+      );
+
+ } else {
       return Container(); // Placeholder for other scenarios
     }
   }
-
   List<Widget> _buildSwitchList() {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
@@ -769,7 +790,7 @@ class _ImportFormState extends State<ImportForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          AppLocalizations.of(context)!.itemssynchronizedsuccessfully,
+          AppLocalizations.of(context)!.itemssynchronizedsuccessfully+' for ${cmpCode}',
           style: _appTextStyle,
         ),
       ),
@@ -796,7 +817,7 @@ class _ImportFormState extends State<ImportForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          AppLocalizations.of(context)!.pricelistsynchronizedsuccessfully,
+          AppLocalizations.of(context)!.pricelistsynchronizedsuccessfully+' for ${cmpCode}' ,
           style: _appTextStyle,
         ),
       ),
@@ -855,7 +876,7 @@ class _ImportFormState extends State<ImportForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          AppLocalizations.of(context)!.systemsynchronizedsuccessfully,
+          AppLocalizations.of(context)!.systemsynchronizedsuccessfully+' for ${cmpCode}',
           style: _appTextStyle,
         ),
       ),
@@ -922,7 +943,7 @@ class _ImportFormState extends State<ImportForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          AppLocalizations.of(context)!.customerssynchronizedsuccessfully,
+          AppLocalizations.of(context)!.customerssynchronizedsuccessfully+' for ${cmpCode}',
           style: _appTextStyle,
         ),
       ),
@@ -930,7 +951,7 @@ class _ImportFormState extends State<ImportForm> {
     print('Customers synchronized successfully for ${cmpCode}');
   }
 
-  Future<void> _synchronizeDatatoHive(String cmpCode) async {
+Future<void> _synchronizeDatatoHive(String cmpCode) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     try {
@@ -944,30 +965,11 @@ class _ImportFormState extends State<ImportForm> {
           DataSynchronizerFromFirebaseToHive();
 
       // Run the synchronization process
-      for (var c in checkedCompanies.keys) {
-        if (checkedCompanies[c] == true) {
-          if (_selectAll) {
-            await _synchronizeDatatoHive(companies[c]['cmpCode']);
-          } else {
-            // Synchronize all selected options
-            if (_importItems) {
-              await _synchronizeItems(companies[c]['cmpCode']);
-            }
+      await _synchronizeSystem(cmpCode);
+      await _synchronizeItems(cmpCode);
+      await _synchronizePriceLists(cmpCode);
 
-            if (_importPriceLists) {
-              await _synchronizePriceLists(companies[c]['cmpCode']);
-            }
-
-            if (_importSystem) {
-              await _synchronizeSystem(companies[c]['cmpCode']);
-            }
-
-            if (_importCustomers) {
-              await _synchronizeCustomers(companies[c]['cmpCode']);
-            }
-          }
-        }
-      }
+      await _synchronizeCustomers(cmpCode);
       // Simulate a delay for demonstration purposes (remove in production)
       await Future.delayed(Duration(seconds: 3));
 
@@ -975,7 +977,7 @@ class _ImportFormState extends State<ImportForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.dataissynchronized,
+            AppLocalizations.of(context)!.dataissynchronized+' for ${cmpCode}',
             style: _appTextStyle,
           ),
         ),
@@ -990,6 +992,22 @@ class _ImportFormState extends State<ImportForm> {
       });
     }
   }
+  void _showLoadingOverlay(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        //content: CircularProgressIndicator(),
+      );
+    },
+  );
+}
+
+void _hideLoadingOverlay(BuildContext context) {
+  Navigator.of(context, rootNavigator: true).pop();
+}
+
 
 // Add this function to show a loading indicator using FutureBuilder
   Widget _buildLoadingIndicator() {

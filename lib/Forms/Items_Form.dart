@@ -16,6 +16,7 @@ import 'package:project/app_notifier.dart';
 import 'package:project/classes/DataSearch.dart';
 import 'package:project/classes/UserPreferences.dart';
 import 'package:project/hive/adminsubmenu_hive.dart';
+import 'package:project/hive/companiesusers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/itemuom_hive.dart';
@@ -154,9 +155,17 @@ Future<List<Items>> _getItems() async {
   var salesEmployeesItemsBox = await Hive.openBox<SalesEmployeesItems>('salesEmployeesItemsBox');
   var itemsBox = await Hive.openBox<Items>('items');
  List<Items> allItems = [];
+ var compusers = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+ var user = compusers.values.firstWhere(
+    (user) => user.userCode == widget.userCode,
+  );
+ var defaultCmpCode='';
+  if (user != null) {
+    defaultCmpCode= user.defaultcmpCode;
+  }
   /*try {
     // Find the UserSalesEmployees objects with matching userCode
-    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode && userSalesEmployee.cmpCode == widget.defltCompanyCode);
+    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode && userSalesEmployee.cmpCode == defaultCmpCode);
 
     List<Items> allItems = [];
 

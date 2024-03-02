@@ -257,9 +257,11 @@ Future<void> _synchronizeItems(
       List<String> priceLists) async {
     List<Map<String, dynamic>> priceListData = [];
     try {
-      for (String plCode in priceLists) {
+     // for (String plCode in priceLists) {
         final response = await http.get(Uri.parse('${apiurl}getPriceList'));
          //   await http.get(Uri.parse('${apiurl}getPriceList?plCode=$plCode'));
+         print(response.body);
+         print('hjjjj');
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -273,13 +275,13 @@ Future<void> _synchronizeItems(
             // If the response is a map, directly append it to the priceListData list
             priceListData.add(responseData);
           } else {
-            print('Invalid response format for plCode $plCode');
+            print('Invalid response format for plCode ');
           }
         } else {
           print(
-              'Failed to retrieve price list data for plCode $plCode: ${response.statusCode}');
+              'Failed to retrieve price list data for plCode : ${response.statusCode}');
         }
-      }
+      //}
     } catch (e) {
       print('Error fetching price list data: $e');
     }
@@ -315,7 +317,7 @@ Future<void> _synchronizePriceList(
   try {
     List<PriceList> priceListsToUpdate = [];
     List<String> priceListsToDelete = [];
-
+print(priceListData);
     // Prepare price lists to update and delete
     for (var data in priceListData) {
       var plCode = data['plCode'] ?? '';
@@ -323,7 +325,7 @@ Future<void> _synchronizePriceList(
          data['plCode']??'',
           data['plName']??'',
           data['currency']??'',
-          data['basePL']??'',
+          data['basePL']??0,
           data['factor']??0,
           data['incVAT']== 1 ? true : false, // Convert Tinyint to Boolean
           data['cmpCode']??'',
@@ -338,7 +340,8 @@ Future<void> _synchronizePriceList(
 
     // Batch update price lists
     await pricelistsBox.putAll(Map.fromIterable(priceListsToUpdate, key: (priceList) => '${priceList.plCode}${priceList.cmpCode}'));
-
+print('%%%%%');
+print(pricelistsBox.values.toList());
     // Delete price lists not present in the updated data
     Set<String> updatedPriceListCodes = priceListsToUpdate.map((priceList) => '${priceList.plCode}${priceList.cmpCode}').toSet();
     pricelistsBox.keys.where((plCode) => !updatedPriceListCodes.contains(plCode)).forEach((plCode) {
@@ -1003,18 +1006,19 @@ Future<void> _synchronizeItemUOM(
         data['itemCode'] ?? '',
         data['uom'] ?? '',
         data['qtyperUOM'] ?? 0,
-        data['barCode'] ?? '',
+        data['docType'] ?? '',
         data['cmpCode'] ?? '',
+        data['notes']??'',
       );
 
       itemUOMsToUpdate.add(updatedItemUOM);
     }
 
     // Batch update item UOMs
-    await itemuomBox.putAll(Map.fromIterable(itemUOMsToUpdate, key: (itemUOM) => '${itemUOM.uom}${itemUOM.itemCode}${itemUOM.cmpCode}'));
+    await itemuomBox.putAll(Map.fromIterable(itemUOMsToUpdate, key: (itemUOM) => '${itemUOM.uom}${itemUOM.itemCode}${itemUOM.cmpCode}${itemUOM.docType}'));
 
     // Delete item UOMs not present in the updated data
-    Set<String> updatedItemUOMCodes = itemUOMsToUpdate.map((itemUOM) => '${itemUOM.uom}${itemUOM.itemCode}${itemUOM.cmpCode}').toSet();
+    Set<String> updatedItemUOMCodes = itemUOMsToUpdate.map((itemUOM) => '${itemUOM.uom}${itemUOM.itemCode}${itemUOM.cmpCode}${itemUOM.docType}').toSet();
     itemuomBox.keys.where((itemUOMCode) => !updatedItemUOMCodes.contains(itemUOMCode)).forEach((itemUOMCode) {
       itemUOMsToDelete.add(itemUOMCode);
     });
@@ -5426,14 +5430,15 @@ Future<void> _synchronizeCustomerPropCategSpecialPrice(
 
   Future<void> synchronizeDataPriceListsAutho() async {
     try {
+      print('hello');
       // Fetch data from the API endpoint
       List<Map<String, dynamic>> priceListAuthoData =
           await _fetchPriceListAuthoData();
-
+print('kooo');
       // Open Hive box
       var pricelistsauthoBox = await Hive.openBox<PriceListAuthorization>(
           'pricelistAuthorizationBox');
-
+print('vvb');
       // Synchronize data
       await _synchronizePriceListAutho(priceListAuthoData, pricelistsauthoBox);
 
@@ -5483,7 +5488,8 @@ Future<void> _synchronizePriceListAutho(
       key: (priceListAutho) =>
           '${priceListAutho.userCode}${priceListAutho.cmpCode}${priceListAutho.authoGroup}',
     ));
-
+    print('#######');
+print(priceListAuthoBox.values.toList());
     // Delete price list authorizations not present in the updated data
     Set<String> updatedPriceListAuthoKeys = priceListAuthoToUpdate
         .map((priceListAutho) =>

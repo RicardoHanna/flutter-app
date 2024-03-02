@@ -19,6 +19,7 @@ import 'package:project/classes/validations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:project/classes/Languages.dart';
+import 'package:collection/collection.dart';
 
 class EditUserForm extends StatefulWidget {
   final String usercode;
@@ -205,8 +206,7 @@ defaultCompanyCode=company.cmpCode;
             orElse: () => Companies(cmpCode: pricelist.cmpCode, cmpName: 'Unknown Company', cmpFName: '', tel: '', mobile: '', address: '', fAddress: '', prHeader: '', prFHeader: '', prFooter: '', prFFooter: '', mainCurCode: '', secCurCode: '', rateType: '', issueBatchMethod: '', systemAdminID: '', notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time: noTime));
 
 
-          return '${pricelist.authoGroup} - ${company.cmpName}';
-        })
+ return '${company.cmpName ?? ''} - ${'Group'+' '+pricelist.authoGroup ?? ''}';        })
         .toList();
 
     setState(() {
@@ -740,39 +740,45 @@ Widget _buildTextFieldDropDownPriceListAutho() {
           var priceListsBox = snapshot.data![0] as Box<PriceList>;
           var companyBox = snapshot.data![1] as Box<Companies>;
           print('looo');
-print(priceListsBox.values.toList());
-print(companyBox.values.toList());
-for(var l in companyBox.values.toList()){
-  print(l.cmpCode);
-}
-for(var y in priceListsBox.values.toList()){
-  print(y.cmpCode);
-  print(y.authoGroup);
-}
-          List<String> priceList = priceListsBox.values
-    .map((pricelist) {
-      Companies company = companyBox.values
-          .firstWhere((company) => company.cmpCode == pricelist.cmpCode, orElse: () => Companies(
-                address: '',
-                cmpCode: '',
-                cmpName: '',
-                cmpFName: '',
-                tel: '',
-                mobile: '',
-                fAddress: '',
-                prHeader: '',
-                prFHeader: '',
-                prFooter: '',
-                mainCurCode: '',
-                prFFooter: '',
-                secCurCode: '',
-                rateType: '',
-                issueBatchMethod: '',
-                systemAdminID: '',
-                notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime,
-              ));
+          print(priceListsBox.values.toList());
+          print(companyBox.values.toList());
+          for(var l in companyBox.values.toList()){
+            print(l.cmpCode);
+          }
+          for(var y in priceListsBox.values.toList()){
+            print(y.cmpCode);
+            print(y.authoGroup);
+          }
+        List<String> priceList = groupBy(
+    priceListsBox.values,
+    (pricelist) => [pricelist.cmpCode, pricelist.authoGroup],
+  ).entries
+    .map((entry) {
+      String cmpCode = entry.key[0];
+      String authoGroup = entry.key[1];
 
-      return '${pricelist.authoGroup ?? ''} - ${company.cmpName ?? ''}';
+      Companies company = companyBox.values
+          .firstWhere((company) => company.cmpCode == cmpCode, orElse: () => Companies(
+        address: '',
+        cmpCode: '',
+        cmpName: '',
+        cmpFName: '',
+        tel: '',
+        mobile: '',
+        fAddress: '',
+        prHeader: '',
+        prFHeader: '',
+        prFooter: '',
+        mainCurCode: '',
+        prFFooter: '',
+        secCurCode: '',
+        rateType: '',
+        issueBatchMethod: '',
+        systemAdminID: '',
+        notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime,
+      ));
+
+      return '${company.cmpName ?? ''} - ${'Group'+' '+authoGroup ?? ''}';
     })
     .toList();
 
@@ -804,36 +810,42 @@ for(var y in priceListsBox.values.toList()){
                         .map((authoGroup) => MultiSelectItem<String>(authoGroup, authoGroup))
                         .toList(),
                     initialValue: selectedPriceList,
-                  onConfirm: (List<String?> values) {
-  setState(() {
-    selectedPriceList = values;
-_formChanged=true;
-isDeletedAutho=true;
-    // Retrieve cmpCode and seCode based on selected values
-    selectedCmpCodesPriceList = [];
-    selectedAuthoGroup = [];
+                    onConfirm: (List<String?> values) {
+                      setState(() {
+                        selectedPriceList = values;
+                        _formChanged=true;
+                        isDeletedAutho=true;
+                        // Retrieve cmpCode and seCode based on selected values
+                        selectedCmpCodesPriceList = [];
+                        selectedAuthoGroup = [];
 
-    values.forEach((selectedSalesEmployee) {
-      if (selectedSalesEmployee != null) {
-        List<String> parts = selectedSalesEmployee.split(' - ');
+                        values.forEach((selectedSalesEmployee) {
+                          if (selectedSalesEmployee != null) {
+                 List<String> parts = selectedSalesEmployee.split(' - ');
+var group = parts[1].replaceAll('Group', '').trim();
 
-        // Find Company based on cmpName
-        Companies selectedCompany = companyBox.values
-            .firstWhere((company) => company.cmpName == parts[1]);
+print(group);
+print(parts[0]);
+                            print('##################');
 
-        // Assign cmpCode and seCode to lists
-        selectedCmpCodesPriceList.add(selectedCompany.cmpCode);
-        selectedAuthoGroup.add(priceListsBox.values
-            .firstWhere((se) => se.authoGroup == parts[0])
-            .authoGroup);
-      }
-    });
-
-    print(selectedCmpCodesPriceList);
-    print(selectedAuthoGroup);
-  });
-},
-
+                            // Find Company based on cmpName
+                            Companies selectedCompany = companyBox.values
+                                .firstWhere((company) => company.cmpName == parts[0]);
+print('hiiiii');
+                            // Assign cmpCode and seCode to lists
+                            selectedCmpCodesPriceList.add(selectedCompany.cmpCode);
+                            print('vvv');
+                            selectedAuthoGroup.add(priceListsBox.values
+                                .firstWhere((se) => se.authoGroup == group)
+                                .authoGroup);
+                                print('ooop');
+                          }
+                        });
+                     print('@@@@@@@@@@@@@@@@@@@@@@@@@@');
+                        print(selectedCmpCodesPriceList);
+                        print(selectedAuthoGroup);
+                      });
+                    },
                   ),
                 ),
               ],
@@ -846,6 +858,7 @@ isDeletedAutho=true;
     ),
   );
 }
+
 
   
 Future<bool> _showDiscardChangesDialog() async {

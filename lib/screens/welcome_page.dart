@@ -112,7 +112,7 @@ class _welcomePageState extends State<welcomePage> {
           userCode: usercode,
           defltCompanyCode: companyCodeDefltPassedToPages),
       AppLocalizations.of(context)!.pricelists:
-          PriceLists(appNotifier: widget.appNotifier, usercode: usercode),
+          PriceLists(appNotifier: widget.appNotifier, usercode: usercode,defltCompanyCode: companyCodeDefltPassedToPages,),
       AppLocalizations.of(context)!.customers: CustomersForm(
         appNotifier: widget.appNotifier,
         userCode: usercode,

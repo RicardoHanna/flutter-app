@@ -19,11 +19,17 @@ class ItemUOM extends HiveObject {
   @HiveField(4)
   late String cmpCode;
 
+  @HiveField(5)
+  late String notes;
+
+
+
   ItemUOM(
     this.itemCode,
     this.uom,
     this.qtyperUOM,
     this.docType,
-    this.cmpCode
+    this.cmpCode,
+    this.notes
   );
 }

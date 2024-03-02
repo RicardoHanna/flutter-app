@@ -12,6 +12,7 @@ import 'package:project/Forms/Items_Info_Form.dart';
 import 'package:project/Forms/Price_Lists_Items_Form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/classes/DataSearchPriceLists.dart';
+import 'package:project/hive/companiesusers_hive.dart';
 import 'package:project/hive/hiveuser.dart';
 import 'package:project/hive/items_hive.dart';
 import 'package:project/hive/pricelist_hive.dart';
@@ -30,8 +31,10 @@ import 'package:project/Synchronize/DataSynchronizer.dart';
 class PriceLists extends StatefulWidget {
   final AppNotifier appNotifier;
   final String usercode;
+  final String defltCompanyCode;
 
-  PriceLists({required this.appNotifier,required this.usercode});
+
+  PriceLists({required this.appNotifier,required this.usercode,required this.defltCompanyCode});
 
   @override
   State<PriceLists> createState() => _PriceListsState();
@@ -61,19 +64,21 @@ final TextEditingController codeFilterController = TextEditingController();
     super.initState();
          pricelistBox = Hive.box<PriceList>('pricelists');
     initializeData();
-   Select();
+   select();
     
   }
 
-  Future<void> Select() async{
-     print('hi');
-       var authBox = await Hive.openBox<PriceList>('pricelists');
-       var o=authBox.values.toList();
-       for(var l in o){
-       // print(l.cmpCode+l.authoGroup);
-       }
-
+Future<void> select() async {
+  print('hisss');
+  var authBox = await Hive.openBox<PriceList>('pricelists');
+  var o = authBox.values.toList();
+  print('dsdsdsd');
+  print(o);
+  for (var l in o) {
+    print('hiii');
+    print(l.cmpCode + l.authoGroup);
   }
+}
 
   Future<void> initializeData() async {
   //  await insertSamplePriceLists();
@@ -116,12 +121,20 @@ dynamic getField(PriceList item, String fieldName) {
 
 Future<List<PriceList>> _getPriceLists(String usercode) async {
   // Open both boxes
+var compusers = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
   var authBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
   var priceListsBox = await Hive.openBox<PriceList>('pricelists');
 
+ var user = compusers.values.firstWhere(
+    (user) => user.userCode == widget.usercode,
+  );
+ var defaultCmpCode='';
+  if (user != null) {
+    defaultCmpCode= user.defaultcmpCode;
+  }
   // Retrieve authoGroup value based on usercode
   var authorizations = authBox.values.where(
-    (auth) => auth.userCode == usercode,
+    (auth) => auth.userCode == usercode && auth.cmpCode==defaultCmpCode,
   ).toList();
 
   if (authorizations.isNotEmpty) {
@@ -129,7 +142,7 @@ Future<List<PriceList>> _getPriceLists(String usercode) async {
     var filteredPriceLists = <PriceList>[];
     for (var authorization in authorizations) {
       filteredPriceLists.addAll(priceListsBox.values.where(
-        (priceList) => priceList.authoGroup == authorization.authoGroup,
+        (priceList) => priceList.authoGroup == authorization.authoGroup && priceList.cmpCode==defaultCmpCode,
       ));
     }
 
