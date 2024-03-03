@@ -750,37 +750,39 @@ Widget _buildTextFieldDropDownPriceListAutho() {
             print(y.authoGroup);
           }
         List<String> priceList = groupBy(
-    priceListsBox.values,
-    (pricelist) => [pricelist.cmpCode, pricelist.authoGroup],
-  ).entries
-    .map((entry) {
-      String cmpCode = entry.key[0];
-      String authoGroup = entry.key[1];
+  priceListsBox.values,
+  (pricelist) => [pricelist.cmpCode, pricelist.authoGroup],
+).entries
+  .map((entry) {
+    String cmpCode = entry.key[0];
+    String authoGroup = entry.key[1];
 
-      Companies company = companyBox.values
-          .firstWhere((company) => company.cmpCode == cmpCode, orElse: () => Companies(
-        address: '',
-        cmpCode: '',
-        cmpName: '',
-        cmpFName: '',
-        tel: '',
-        mobile: '',
-        fAddress: '',
-        prHeader: '',
-        prFHeader: '',
-        prFooter: '',
-        mainCurCode: '',
-        prFFooter: '',
-        secCurCode: '',
-        rateType: '',
-        issueBatchMethod: '',
-        systemAdminID: '',
-        notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime,
-      ));
+    Companies company = companyBox.values
+        .firstWhere((company) => company.cmpCode == cmpCode, orElse: () => Companies(
+      address: '',
+      cmpCode: '',
+      cmpName: '',
+      cmpFName: '',
+      tel: '',
+      mobile: '',
+      fAddress: '',
+      prHeader: '',
+      prFHeader: '',
+      prFooter: '',
+      mainCurCode: '',
+      prFFooter: '',
+      secCurCode: '',
+      rateType: '',
+      issueBatchMethod: '',
+      systemAdminID: '',
+      notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime,
+    ));
 
-      return '${company.cmpName ?? ''} - ${'Group'+' '+authoGroup ?? ''}';
-    })
-    .toList();
+    return '${company.cmpName ?? ''} - ${'Group'+' '+authoGroup ?? ''}';
+  })
+  .toSet() // Convert to set to remove duplicates
+  .toList(); // Convert back to list
+
 
 
           return Theme(

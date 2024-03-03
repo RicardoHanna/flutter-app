@@ -258,15 +258,16 @@ var compusers = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
   }
 
  void _showFilterDialog(BuildContext context) {
-       TextStyle   _appTextStyle = TextStyle(fontSize:widget.appNotifier.fontSize.toDouble());
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(AppLocalizations.of(context)!.filterpricelists,style: _appTextStyle,),
-              content: Column(
+  TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(AppLocalizations.of(context)!.filterpricelists, style: _appTextStyle,),
+            content: SingleChildScrollView( // Wrap the Column with SingleChildScrollView
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildMultiSelectChip(AppLocalizations.of(context)!.plcode, priceCodeList, selectedPriceCode, setState),
@@ -274,27 +275,29 @@ var compusers = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
                   _buildMultiSelectChip(AppLocalizations.of(context)!.securitygroup, securityGroupList, selectedSecurityGroup, setState),
                 ],
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(AppLocalizations.of(context)!.cancel,style: _appTextStyle,),
-                ),
-                TextButton(
-                  onPressed: () {
-                    _applyFilters();
-                    Navigator.pop(context);
-                  },
-                  child: Text(AppLocalizations.of(context)!.apply,style: _appTextStyle,),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(AppLocalizations.of(context)!.cancel, style: _appTextStyle,),
+              ),
+              TextButton(
+                onPressed: () {
+                  _applyFilters();
+                  Navigator.pop(context);
+                },
+                child: Text(AppLocalizations.of(context)!.apply, style: _appTextStyle,),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 
   Widget _buildMultiSelectChip(
     String label,

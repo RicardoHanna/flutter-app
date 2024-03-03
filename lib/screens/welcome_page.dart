@@ -29,6 +29,7 @@ import 'package:project/screens/admin_page.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/screens/synchronize_data_page.dart';
 import 'package:project/utils.dart';
+import 'package:project/wms/Receiving_Form.dart';
 import 'settings_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:project/resources/add_data.dart';
@@ -118,6 +119,7 @@ class _welcomePageState extends State<welcomePage> {
         userCode: usercode,
         defltCompanyCode: companyCodeDefltPassedToPages,
       ),
+      'Receiving':ReceivingScreen(),
       AppLocalizations.of(context)!.report:
           ReportForm(appNotifier: widget.appNotifier, usercode: usercode),
     };
@@ -126,6 +128,7 @@ class _welcomePageState extends State<welcomePage> {
       AppLocalizations.of(context)!.items: Menu.ITEMS_MENU_CODE,
       AppLocalizations.of(context)!.pricelists: Menu.PRICELISTS_MENU_CODE,
       AppLocalizations.of(context)!.customers: Menu.CUSTOMERS_MENU_CODE,
+      'Receiving': Menu.ITEMS_MENU_CODE,
       AppLocalizations.of(context)!.report: Menu.REPORT_MENU_CODE
       // Add other menu items and their menu codes
     };
@@ -133,6 +136,7 @@ class _welcomePageState extends State<welcomePage> {
       AppLocalizations.of(context)!.items,
       AppLocalizations.of(context)!.pricelists,
       AppLocalizations.of(context)!.customers,
+      'Receiving',
       AppLocalizations.of(context)!.report
     ];
 
@@ -140,6 +144,7 @@ class _welcomePageState extends State<welcomePage> {
       AppLocalizations.of(context)!.items: Icons.shopping_cart,
       AppLocalizations.of(context)!.pricelists: Icons.attach_money,
       AppLocalizations.of(context)!.customers: Icons.people_outline_outlined,
+      'Receiving':Icons.call_received,
       AppLocalizations.of(context)!.report: Icons.report
     };
 

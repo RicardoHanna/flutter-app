@@ -84,43 +84,118 @@ class CustomersInfoForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTitleText(AppLocalizations.of(context)!.customerCode, customer.custCode ?? ''),
-                    _buildTitleText(AppLocalizations.of(context)!.customerName, customer.custName ?? ''),
-                    _buildTitleText(AppLocalizations.of(context)!.customerFName, customer.custFName ?? ''),
-                  ],
-                ),
-              ],
-            ),
-          
-            _buildTitleText(AppLocalizations.of(context)!.cmpCode, customer.cmpCode ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.currency, customer.curCode ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.groupcode, customer.groupCode ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.mofNum, customer.mofNum ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.barcode, customer.barcode ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.phoneNumber, customer.phone ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.mobile, customer.mobile ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.fax, customer.fax ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.website, customer.website ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.email, customer.email ?? ''),
-            _buildTitleTextNumber(AppLocalizations.of(context)!.active, customer.active),
-          _buildTitleText(AppLocalizations.of(context)!.printLayout, customer.printLayout ?? ''),
-          _buildTitleText(AppLocalizations.of(context)!.defaultAddressID, customer.dfltAddressID ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.cashClient, customer.cashClient ?? ''),
-             _buildTitleText(AppLocalizations.of(context)!.discountType, customer.discType ?? ''),
-             _buildTitleText(AppLocalizations.of(context)!.vatCode, customer.vatCode ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.prListCode, customer.prListCode ?? ''),
-             _buildTitleText(AppLocalizations.of(context)!.payTermsCode, customer.payTermsCode ?? ''),
-            _buildTitleTextNumber(AppLocalizations.of(context)!.discount, customer.discount ?? ''),
-            _buildTitleTextNumber(AppLocalizations.of(context)!.creditLimit, customer.creditLimit ?? ''),
-            _buildTitleTextNumber(AppLocalizations.of(context)!.balance, customer.balance ?? ''),
-            _buildTitleTextNumber(AppLocalizations.of(context)!.balanceDue, customer.balanceDue ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.note, customer.notes ?? ''),
-            Divider(),
+              ListTile(
+                      title: Text(AppLocalizations.of(context)!.customerCode),
+                    subtitle: Text(customer.custCode ?? ''),
+                    ),
+                      ListTile(
+                      title: Text(AppLocalizations.of(context)!.customerName),
+                    subtitle: Text(customer.custName ?? ''),
+                    ),
+                      ListTile(
+                      title: Text(AppLocalizations.of(context)!.customerFName),
+                    subtitle: Text(customer.custFName ?? ''),
+                    ),
+  
+                ListTile(
+                      title: Text(AppLocalizations.of(context)!.cmpCode),
+                    subtitle: Text(customer.cmpCode ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.curCode),
+                    subtitle: Text(customer.curCode ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.groupcode),
+                    subtitle: Text(customer.groupCode ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.mofNum),
+                    subtitle: Text(customer.mofNum ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.barcode),
+                    subtitle: Text(customer.barcode ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.phoneNumber),
+                    subtitle: Text(customer.phone ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.mobile),
+                    subtitle: Text(customer.mobile ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.fax),
+                    subtitle: Text(customer.cmpCode ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.website),
+                    subtitle: Text(customer.website ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.email),
+                    subtitle: Text(customer.email ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.active),
+                    subtitle: Text(customer.active.toString() ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.printLayout),
+                    subtitle: Text(customer.printLayout ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.defaultAddressID),
+                    subtitle: Text(customer.dfltAddressID ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.cashClient),
+                    subtitle: Text(customer.cashClient ?? ''),
+                    ),
+                    ListTile(
+                      title: Text(AppLocalizations.of(context)!.discountType),
+                    subtitle: Text(customer.discType ?? ''),
+                    ),
+       ListTile(
+                      title: Text(AppLocalizations.of(context)!.vatCode),
+                    subtitle: Text(customer.vatCode ?? ''),
+                    ),
+ ListTile(
+                      title: Text(AppLocalizations.of(context)!.prListCode),
+                    subtitle: Text(customer.prListCode ?? ''),
+                    ),
+
+ ListTile(
+                      title: Text(AppLocalizations.of(context)!.payTermsCode),
+                    subtitle: Text(customer.payTermsCode ?? ''),
+                    ),
+
+                     ListTile(
+                      title: Text(AppLocalizations.of(context)!.discount),
+                    subtitle: Text(customer.discount.toString() ?? ''),
+                    ),
+
+                     ListTile(
+                      title: Text(AppLocalizations.of(context)!.creditLimit),
+                    subtitle: Text(customer.creditLimit.toString() ?? ''),
+                    ),
+
+                     ListTile(
+                      title: Text(AppLocalizations.of(context)!.balance),
+                    subtitle: Text(customer.vatCode ?? ''),
+                    ),
+
+                     ListTile(
+                      title: Text(AppLocalizations.of(context)!.balanceDue),
+                    subtitle: Text(customer.balanceDue.toString() ?? ''),
+                    ),
+
+                     ListTile(
+                      title: Text(AppLocalizations.of(context)!.note),
+                    subtitle: Text(customer.notes ?? ''),
+                    ),
+           
           ],
           ),
         ),
@@ -151,20 +226,41 @@ class CustomersInfoForm extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(addresses.length, (index) {
                   CustomerAddresses address = addresses[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText(AppLocalizations.of(context)!.address+'${index + 1}', address.address ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.addressId,address.addressID ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.fAddress,address.fAddress ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.gpslat, address.gpslat ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.gpslong, address.gpslong ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.regCode, address.regCode ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.note, address.notes ?? 'N/A'),
-                      // Add more fields as needed
-                     Divider(),
-                    ],
-                  );
+                   return Card(
+                      child: ListTile(
+                        title: Text(AppLocalizations.of(context)!.address + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.addressId,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.addressID ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.fAddress,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.fAddress ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.gpslat,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.gpslat ?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.gpslong,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.gpslong ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.regCode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.regCode ?? 'N/A'),
+                             Text('Address Type',style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.addressType ?? 'N/A'),
+                             Text('Country Code',style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.countryCode ?? 'N/A'),
+                                Text('City',style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.city ?? 'N/A'),
+                            Text('Street',style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.street ?? 'N/A'),
+                            Text('Building',style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.building ?? 'N/A'),
+                                  Text('Zip Code',style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.zipCode ?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(address.notes ?? 'N/A'),
+                          ],
+                        ),
+                      ),
+                    );
+               
                 }),
               ),
             ),
@@ -204,22 +300,35 @@ class CustomersInfoForm extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
       children: List.generate(contact.length, (index) {
                   CustomerContacts contacts = contact[index];
-                     return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  // Display fetched data with null-aware operator
-                  _buildTitleText(AppLocalizations.of(context)!.contactId+'${index + 1}', contacts?.contactID ?? 'N/A'),
-                
-                  _buildTitleText(AppLocalizations.of(context)!.contactName, contacts?.contactName ?? 'N/A'),
-                  _buildTitleText(AppLocalizations.of(context)!.contactFName, contacts?.contactFName ?? 'N/A'),
-                  _buildTitleText(AppLocalizations.of(context)!.fAddress, contacts?.phone ?? 'N/A'),
-                  _buildTitleText(AppLocalizations.of(context)!.mobile, contacts?.mobile ?? 'N/A'),
-                   _buildTitleText(AppLocalizations.of(context)!.email, contacts?.email ?? 'N/A'),
-                  _buildTitleText(AppLocalizations.of(context)!.position, contacts?.position ?? 'N/A'),
-                    _buildTitleText(AppLocalizations.of(context)!.note, contacts?.notes ?? 'N/A'),
-                  // ... add more fields based on your 'CustomerAddresses' class
-Divider(),
-                    ]);
+                   return Card(
+                      child: ListTile(
+                        title: Text('Contact' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.contactId,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(contacts.contactID ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.contactFName,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(contacts.contactName ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.contactFName,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(contacts.contactFName ?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.phoneNumber,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(contacts.phone ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.mobile,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(contacts.mobile ?? 'N/A'),
+                             Text(AppLocalizations.of(context)!.email,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(contacts.email ?? 'N/A'),
+                             Text(AppLocalizations.of(context)!.position,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(contacts.position ?? 'N/A'),
+                        
+                     
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(contacts.notes ?? 'N/A'),
+                          ],
+                        ),
+                      ),
+                    );
+                    
       }),
               ),
             ),
@@ -259,16 +368,21 @@ Divider(),
                 crossAxisAlignment: CrossAxisAlignment.start,
                children: List.generate(property.length, (index) {
                   CustomerProperties properties = property[index];
-                     return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  // Display fetched data with null-aware operator
-                  _buildTitleText(AppLocalizations.of(context)!.propCode+'${index+1}', properties?.propCode ?? 'N/A'),
-                
-                  _buildTitleText(AppLocalizations.of(context)!.note, properties?.notes ?? 'N/A'),
-               Divider(),
-                 
-                ]);
+                      return Card(
+                      child: ListTile(
+                        title: Text('Property' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.propCode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(properties.propCode ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(properties.notes ?? 'N/A'),
+                            
+                          ],
+                        ),
+                      ),
+                    );
       }),
               ),
             ),
@@ -362,22 +476,32 @@ Widget _buildBoxWidgetItemSpecial(String boxName) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(itemspecial.length, (index) {
                   CustomerItemsSpecialPrice itemspecials = itemspecial[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText(AppLocalizations.of(context)!.itemcode, itemspecials?.itemCode ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.uom, itemspecials?.uom ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.baseprice, itemspecials?.basePrice ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.currency, itemspecials?.currency ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.auto, itemspecials?.auto ?? 'N/A'),
-                       _buildTitleTextNumber(AppLocalizations.of(context)!.disc, itemspecials?.disc ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.price, itemspecials?.price ?? 'N/A'),
-                        _buildTitleText(AppLocalizations.of(context)!.note, itemspecials?.notes ?? 'N/A'),
-                          Divider(),
-                      
-                      // Add more fields as needed
-                    ],
-                  );
+                  return Card(
+                      child: ListTile(
+                        title: Text('Item Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.itemcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(itemspecials.itemCode ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.uom,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(itemspecials.uom ?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.baseprice,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(itemspecials.basePrice ?? 'N/A'),
+                               Text(AppLocalizations.of(context)!.auto,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(itemspecials.auto.toString() ?? 'N/A'),
+                               Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(itemspecials.disc.toString() ?? 'N/A'),
+                               Text(AppLocalizations.of(context)!.price,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(itemspecials.price.toString() ?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(itemspecials.notes?? 'N/A'),
+                          ],
+                        ),
+                      ),
+                    );
+                  
+              
                 }),
               ),
             ),
@@ -462,16 +586,24 @@ Widget _buildBoxWidgetGroupSpecial(String boxName) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(groupspecials.length, (index) {
                   CustomerGroupsSpecialPrice grouppecials = groupspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText(AppLocalizations.of(context)!.fAddress, grouppecials?.groupCode ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.disc, grouppecials?.disc ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.note, grouppecials?.notes ?? 'N/A'),
-                      Divider(),
-                      // Add more fields as needed
-                    ],
-                  );
+                   return Card(
+                      child: ListTile(
+                        title: Text('Group Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.groupcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(grouppecials.groupCode ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(grouppecials.disc ?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(grouppecials.notes ?? 'N/A'),
+                               
+                          ],
+                        ),
+                      ),
+                    );
+                  
                 }),
               ),
             ),
@@ -509,16 +641,24 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(categspecials.length, (index) {
                   CustomerCategSpecialPrice categpecials = categspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText(AppLocalizations.of(context)!.categcode, categpecials?.categCode ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.disc, categpecials?.disc ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.note, categpecials?.notes ?? 'N/A'),
-                      Divider(),
-                      // Add more fields as needed
-                    ],
-                  );
+                    return Card(
+                      child: ListTile(
+                        title: Text('Categ Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.categcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.categCode ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.disc ?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.notes ?? 'N/A'),
+                               
+                          ],
+                        ),
+                      ),
+                    );
+                  
                 }),
               ),
             ),
@@ -556,21 +696,34 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(categspecials.length, (index) {
                   CustomerGroupItemsSpecialPrice categpecials = categspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText(AppLocalizations.of(context)!.groupcode, categpecials?.custGroupCode ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.itemcode, categpecials?.itemCode ?? 'N/A'),
-                      _buildTitleText(AppLocalizations.of(context)!.uom, categpecials?.uom ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.baseprice, categpecials?.basePrice ?? 'N/A'),
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.auto, categpecials?.auto ?? 'N/A'),
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.disc, categpecials?.disc ?? 'N/A'),
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.price, categpecials?.price ?? 'N/A'),
-                     _buildTitleTextNumber(AppLocalizations.of(context)!.note, categpecials?.notes ?? 'N/A'),
-                     Divider(),
-                      // Add more fields as needed
-                    ],
-                  );
+
+                   return Card(
+                      child: ListTile(
+                        title: Text('Group Item Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.groupcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.custGroupCode ?? 'N/A'),
+                            Text(AppLocalizations.of(context)!.itemcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.itemCode ?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.uom,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.uom ?? 'N/A'),
+                               Text(AppLocalizations.of(context)!.baseprice,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.basePrice ?? 'N/A'),
+                             Text(AppLocalizations.of(context)!.auto,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.auto.toString() ?? 'N/A'),
+                             Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.disc.toString() ?? 'N/A'),
+                               Text(AppLocalizations.of(context)!.price,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.price.toString() ?? 'N/A'),
+                               Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.notes ?? 'N/A'),
+                          ],
+                        ),
+                      ),
+                    );
+                  
                 }),
               ),
             ),
@@ -607,17 +760,24 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(brandspecials.length, (index) {
                   CustomerGroupBrandSpecialPrice brandpecials = brandspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                    
-                      _buildTitleText(AppLocalizations.of(context)!.brandcode, brandpecials?.brandCode ?? 'N/A'),
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.disc, brandpecials?.disc ?? 'N/A'),
-                     _buildTitleTextNumber(AppLocalizations.of(context)!.note, brandpecials?.notes ?? 'N/A'),
-                     Divider(),
-                      // Add more fields as needed
-                    ],
-                  );
+                   return Card(
+                      child: ListTile(
+                        title: Text('Group Brand Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.brandcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(brandpecials.brandCode?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(brandpecials.disc.toString()?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(brandpecials.notes ?? 'N/A'),
+                        
+                          ],
+                        ),
+                      ),
+                    );
+                 
                 }),
               ),
             ),
@@ -655,16 +815,24 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(groupspecials.length, (index) {
                   CustomerGroupGroupSpecialPrice brandpecials = groupspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText(AppLocalizations.of(context)!.groupcode, brandpecials?.custGroupCode ?? 'N/A'),
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.disc, brandpecials?.disc ?? 'N/A'),
-                     _buildTitleTextNumber(AppLocalizations.of(context)!.note, brandpecials?.notes ?? 'N/A'),
-                     Divider(),
-                      // Add more fields as needed
-                    ],
-                  );
+                    return Card(
+                      child: ListTile(
+                        title: Text('Group Group Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.groupcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(brandpecials.groupCode?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(brandpecials.disc.toString()?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(brandpecials.notes ?? 'N/A'),
+                        
+                          ],
+                        ),
+                      ),
+                    );
+      
                 }),
               ),
             ),
@@ -701,16 +869,24 @@ Widget _buildBoxWidgetCategSpecial(String boxName) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(categspecials.length, (index) {
                   CustomerGroupCategSpecialPrice categpecials = categspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText(AppLocalizations.of(context)!.categcode, categpecials?.categCode ?? 'N/A'),
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.disc, categpecials?.disc ?? 'N/A'),
-                     _buildTitleTextNumber(AppLocalizations.of(context)!.note, categpecials?.notes ?? 'N/A'),
-                     Divider(),
-                      // Add more fields as needed
-                    ],
-                  );
+                    return Card(
+                      child: ListTile(
+                        title: Text('Group Categ Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.categcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.categCode?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.disc.toString()?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(categpecials.notes ?? 'N/A'),
+                        
+                          ],
+                        ),
+                      ),
+                    );
+                
                 }),
               ),
             ),
@@ -766,21 +942,28 @@ String getKey1FromCustomerProperties() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(propitemspecials.length, (index) {
                   CustomerPropItemsSpecialPrice propitemspecialss = propitemspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTitleText(AppLocalizations.of(context)!.propCode, propitemspecialss?.custPropCode ?? 'N/A'),
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.itemcode, propitemspecialss?.itemCode ?? 'N/A'),
-                     _buildTitleTextNumber(AppLocalizations.of(context)!.baseprice, propitemspecialss?.basePrice ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.currency, propitemspecialss?.currency ?? 'N/A'),
-                             _buildTitleTextNumber(AppLocalizations.of(context)!.auto, propitemspecialss?.auto ?? 'N/A'),
-                                _buildTitleTextNumber(AppLocalizations.of(context)!.disc, propitemspecialss?.disc ?? 'N/A'),
-                           _buildTitleTextNumber(AppLocalizations.of(context)!.note, propitemspecialss?.auto ?? 'N/A'),
-                           Divider(),
-
-                      // Add more fields as needed
-                    ],
-                  );
+                   return Card(
+                      child: ListTile(
+                        title: Text('Prop Item Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.propCode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.custPropCode?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.itemcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.itemCode?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.baseprice,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.basePrice ?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.currency,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.currency ?? 'N/A'),
+                               Text(AppLocalizations.of(context)!.auto,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.auto.toString() ?? 'N/A'),
+                        
+                          ],
+                        ),
+                      ),
+                    );
+                 
                 }),
               ),
             ),
@@ -817,19 +1000,26 @@ String getKey1FromCustomerProperties() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(propbrandspecials.length, (index) {
                   CustomerPropBrandSpecialPrice propitemspecialss = propbrandspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.brandcode, propitemspecialss?.brandCode ?? 'N/A'),
-                     _buildTitleTextNumber(AppLocalizations.of(context)!.disc, propitemspecialss?.disc ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.note, propitemspecialss?.notes ?? 'N/A'),
-                      Divider(),
-                          
 
-                      // Add more fields as needed
-                    ],
-                  );
+                    return Card(
+                      child: ListTile(
+                        title: Text('Prop Brand Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.brandcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.brandCode?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.disc.toString()?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.notes ?? 'N/A'),
+                           
+                        
+                          ],
+                        ),
+                      ),
+                    );
+            
                 }),
               ),
             ),
@@ -866,19 +1056,25 @@ String getKey1FromCustomerProperties() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(propgroupspecials.length, (index) {
                   CustomerPropGroupSpecialPrice propitemspecialss = propgroupspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.groupcode, propitemspecialss?.custGroupCode ?? 'N/A'),
-                     _buildTitleTextNumber(AppLocalizations.of(context)!.disc, propitemspecialss?.disc ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.note, propitemspecialss?.notes ?? 'N/A'),
-                      Divider(),
-                          
-
-                      // Add more fields as needed
-                    ],
-                  );
+                    return Card(
+                      child: ListTile(
+                        title: Text('Prop Group Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.groupcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.custGroupCode?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.disc.toString()?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.notes ?? 'N/A'),
+                           
+                        
+                          ],
+                        ),
+                      ),
+                    );
+           
                 }),
               ),
             ),
@@ -915,19 +1111,26 @@ String getKey1FromCustomerProperties() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(propcategspecials.length, (index) {
                   CustomerPropCategSpecialPrice propitemspecialss = propcategspecials[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                
-                    _buildTitleTextNumber(AppLocalizations.of(context)!.categcode, propitemspecialss?.categCode ?? 'N/A'),
-                     _buildTitleTextNumber(AppLocalizations.of(context)!.disc, propitemspecialss?.disc ?? 'N/A'),
-                      _buildTitleTextNumber(AppLocalizations.of(context)!.note, propitemspecialss?.notes ?? 'N/A'),
-                      Divider(),
-                          
 
-                      // Add more fields as needed
-                    ],
-                  );
+                   return Card(
+                      child: ListTile(
+                        title: Text('Prop Categ Special' + '${index + 1}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.categcode,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.categCode?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.disc,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.disc.toString()?? 'N/A'),
+                              Text(AppLocalizations.of(context)!.note,style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(propitemspecialss.notes ?? 'N/A'),
+                           
+                        
+                          ],
+                        ),
+                      ),
+                    );
+                
                 }),
               ),
             ),

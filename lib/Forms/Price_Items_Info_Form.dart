@@ -26,15 +26,40 @@ class PriceItemsInfo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildTitleText(AppLocalizations.of(context)!.plcode, itemsPrices.plCode ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.itemcode,itemsPrices.itemCode ?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.uom,itemsPrices.uom?? ''),
-            _buildTitleNumber(AppLocalizations.of(context)!.baseprice,itemsPrices.basePrice?? ''),
-            _buildTitleText(AppLocalizations.of(context)!.currency,itemsPrices.currency?? ''),
-            _buildTitleNumber(AppLocalizations.of(context)!.auto,itemsPrices.auto?? ''),
-            _buildTitleNumber(AppLocalizations.of(context)!.disc,itemsPrices.disc?? ''),
-            _buildTitleNumber(AppLocalizations.of(context)!.price,itemsPrices.price?? ''),
-            // Add more details if needed
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.plcode),
+              subtitle:Text(itemsPrices.plCode ?? 'N/A') ,
+            ),
+              ListTile(
+              title: Text(AppLocalizations.of(context)!.itemcode),
+              subtitle:Text(itemsPrices.itemCode ?? 'N/A') ,
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.uom),
+              subtitle:Text(itemsPrices.uom ?? 'N/A') ,
+            ),
+              ListTile(
+              title: Text(AppLocalizations.of(context)!.baseprice),
+              subtitle:Text(itemsPrices.basePrice ?? 'N/A') ,
+            ),
+               ListTile(
+              title: Text(AppLocalizations.of(context)!.currency),
+              subtitle:Text(itemsPrices.currency ?? 'N/A') ,
+            ),
+              ListTile(
+              title: Text(AppLocalizations.of(context)!.authorizations),
+              subtitle:Text(itemsPrices.auto.toString() ?? 'N/A') ,
+            ),
+             ListTile(
+              title: Text(AppLocalizations.of(context)!.disc),
+              subtitle:Text(itemsPrices.disc ?? 'N/A') ,
+            ),
+               ListTile(
+              title: Text(AppLocalizations.of(context)!.price),
+              subtitle:Text(itemsPrices.price ?? 'N/A') ,
+            ),
+           
+      
           ],
         ),
       ),

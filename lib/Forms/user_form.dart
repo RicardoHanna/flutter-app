@@ -20,6 +20,8 @@ import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
   import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:collection/collection.dart';
+
 class UserForm extends StatefulWidget {
 
   final AppNotifier appNotifier;
@@ -463,38 +465,51 @@ Widget _buildTextFieldDropDownPriceListAutho() {
         if (snapshot.connectionState == ConnectionState.done) {
           var priceListsBox = snapshot.data![0] as Box<PriceList>;
           var companyBox = snapshot.data![1] as Box<Companies>;
+          print('looo');
+          print(priceListsBox.values.toList());
+          print(companyBox.values.toList());
+          for(var l in companyBox.values.toList()){
+            print(l.cmpCode);
+          }
+          for(var y in priceListsBox.values.toList()){
+            print(y.cmpCode);
+            print(y.authoGroup);
+          }
+        List<String> priceList = groupBy(
+  priceListsBox.values,
+  (pricelist) => [pricelist.cmpCode, pricelist.authoGroup],
+).entries
+  .map((entry) {
+    String cmpCode = entry.key[0];
+    String authoGroup = entry.key[1];
 
-          List<String> priceList = priceListsBox.values
-    .map((pricelist) {
-      Companies company = companyBox.values
-          .firstWhere((company) => company.cmpCode == pricelist.cmpCode, orElse: () => Companies(
-                address: '',
-                cmpCode: '',
-                cmpName: '',
-                cmpFName: '',
-                tel: '',
-                mobile: '',
-                fAddress: '',
-                prHeader: '',
-                prFHeader: '',
-                prFooter: '',
-                mainCurCode: '',
-                prFFooter: '',
-                secCurCode: '',
-                rateType: '',
-                issueBatchMethod: '',
-                systemAdminID: '',
-                notes: '', 
-                priceDec: null, amntDec: null, qtyDec: null, roundMethod: 'null', importMethod: '', time: noTime,
-              ));
+    Companies company = companyBox.values
+        .firstWhere((company) => company.cmpCode == cmpCode, orElse: () => Companies(
+      address: '',
+      cmpCode: '',
+      cmpName: '',
+      cmpFName: '',
+      tel: '',
+      mobile: '',
+      fAddress: '',
+      prHeader: '',
+      prFHeader: '',
+      prFooter: '',
+      mainCurCode: '',
+      prFFooter: '',
+      secCurCode: '',
+      rateType: '',
+      issueBatchMethod: '',
+      systemAdminID: '',
+      notes: '', priceDec: null, amntDec: null, qtyDec: null, roundMethod: '', importMethod: '', time:noTime,
+    ));
 
-      return '${pricelist.authoGroup ?? ''} - ${company.cmpName ?? ''}';
-    })
-    .toList();
+    return '${company.cmpName ?? ''} - ${'Group'+' '+authoGroup ?? ''}';
+  })
+  .toSet() // Convert to set to remove duplicates
+  .toList(); // Convert back to list
 
 
-              print(priceList.toList());
-           
 
           return Theme(
             data: Theme.of(context).copyWith(
@@ -523,35 +538,41 @@ Widget _buildTextFieldDropDownPriceListAutho() {
                         .map((authoGroup) => MultiSelectItem<String>(authoGroup, authoGroup))
                         .toList(),
                     initialValue: selectedPriceList,
-                  onConfirm: (List<String?> values) {
-  setState(() {
-    selectedPriceList = values;
+                    onConfirm: (List<String?> values) {
+                      setState(() {
+                        selectedPriceList = values;
+                  
+                        // Retrieve cmpCode and seCode based on selected values
+                        selectedCmpCodesPriceList = [];
+                        selectedAuthoGroup = [];
 
-    // Retrieve cmpCode and seCode based on selected values
-    selectedCmpCodesPriceList = [];
-    selectedAuthoGroup = [];
+                        values.forEach((selectedSalesEmployee) {
+                          if (selectedSalesEmployee != null) {
+                 List<String> parts = selectedSalesEmployee.split(' - ');
+var group = parts[1].replaceAll('Group', '').trim();
 
-    values.forEach((selectedSalesEmployee) {
-      if (selectedSalesEmployee != null) {
-        List<String> parts = selectedSalesEmployee.split(' - ');
+print(group);
+print(parts[0]);
+                            print('##################');
 
-        // Find Company based on cmpName
-        Companies selectedCompany = companyBox.values
-            .firstWhere((company) => company.cmpName == parts[1]);
-
-        // Assign cmpCode and seCode to lists
-        selectedCmpCodesPriceList.add(selectedCompany.cmpCode);
-        selectedAuthoGroup.add(priceListsBox.values
-            .firstWhere((se) => se.authoGroup == parts[0])
-            .authoGroup);
-      }
-    });
-
-    print(selectedCmpCodesPriceList);
-    print(selectedAuthoGroup);
-  });
-},
-
+                            // Find Company based on cmpName
+                            Companies selectedCompany = companyBox.values
+                                .firstWhere((company) => company.cmpName == parts[0]);
+print('hiiiii');
+                            // Assign cmpCode and seCode to lists
+                            selectedCmpCodesPriceList.add(selectedCompany.cmpCode);
+                            print('vvv');
+                            selectedAuthoGroup.add(priceListsBox.values
+                                .firstWhere((se) => se.authoGroup == group)
+                                .authoGroup);
+                                print('ooop');
+                          }
+                        });
+                     print('@@@@@@@@@@@@@@@@@@@@@@@@@@');
+                        print(selectedCmpCodesPriceList);
+                        print(selectedAuthoGroup);
+                      });
+                    },
                   ),
                 ),
               ],
