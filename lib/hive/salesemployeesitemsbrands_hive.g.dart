@@ -21,7 +21,7 @@ class SalesEmployeesItemsBrandsAdapter
       cmpCode: fields[0] as String,
       seCode: fields[1] as String,
       brandCode: fields[2] as String,
-      reqFromWhsCode: fields[3] as int,
+      reqFromWhsCode: fields[3] as dynamic,
       notes: fields[4] as String,
     );
   }

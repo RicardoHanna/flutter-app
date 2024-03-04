@@ -14,7 +14,7 @@ class SalesEmployeesItemsBrands extends HiveObject {
   late String brandCode;
 
   @HiveField(3)
-  late int reqFromWhsCode;
+  late dynamic reqFromWhsCode;
 
   @HiveField(4)
   late String notes;

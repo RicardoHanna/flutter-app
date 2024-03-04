@@ -154,7 +154,7 @@ Future<void> fetchSalesEmployeesAndCompanies(String selectedUserGroup) async {
 
               SalesEmployees salesemployees = salesEmployeesBox.values
               .firstWhere((salesemployees) => salesemployees.seCode == userSalesEmployee.seCode,
-              orElse: () => SalesEmployees(cmpCode: '', seCode: '', seName: '', seFName: '', mobile: '', email: '', whsCode: '', reqFromWhsCode: 0 , notes: ''));
+              orElse: () => SalesEmployees(cmpCode: '', seCode: '', seName: '', seFName: '', mobile: '', email: '', whsCode: '', reqFromWhsCode: 0 , notes: '', cashSalesCustCode: '', allowUpdDisc: false, maxDiscPerc: null, allowFreeItm: false, allowFreeInv: false));
 
           return '${salesemployees.seName} - ${company.cmpName}';
         })

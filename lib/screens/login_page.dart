@@ -77,6 +77,10 @@ Future<void> _synchronizeDatatoHive() async {
     await synchronizer.synchronizeDataUserGroup();
   await synchronizer.synchronizeDataUserGroupTranslations();
  await synchronizer.synchronizeDataGeneralSettings(); 
+ await synchronizer.synchronizeUserSalesEmployees();
+ await synchronizer.synchronizeDataPriceListsAutho();
+ await synchronizer.synchronizeCompanies();
+ await synchronizer.synchronizeDataCompaniesUsers();
     // Simulate a delay for demonstration purposes (remove in production)
     await Future.delayed(Duration(seconds: 3));
 

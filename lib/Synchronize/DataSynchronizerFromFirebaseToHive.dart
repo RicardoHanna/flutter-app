@@ -40,8 +40,13 @@ import 'package:project/hive/itemgroup_hive.dart';
 import 'package:project/hive/itemmanufacturers_hive.dart';
 import 'package:project/hive/itemprop_hive.dart';
 import 'package:project/hive/items_hive.dart';
+import 'package:project/hive/itemsbatches_hive.dart';
 import 'package:project/hive/itemsprices_hive.dart';
 import 'package:project/hive/itemattach_hive.dart';
+import 'package:project/hive/itemsserials_hive.dart';
+import 'package:project/hive/itemswhses_hive.dart';
+import 'package:project/hive/itemswhsesbatches_hive.dart';
+import 'package:project/hive/itemswhsesserials_hive.dart';
 import 'package:project/hive/itemuom_hive.dart';
 import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/paymentterms_hive.dart';
@@ -82,7 +87,7 @@ Future<List<String>> retrieveSeCodes(String usercode) async {
       List<dynamic> responseBody = jsonDecode(response.body);
       for (var item in responseBody) {
         if (item['seCode'] != null) {
-          String seCode = item['seCode'];
+          String seCode = item['seCode'].toString();
           seCodes.add(seCode); // Add seCode to the list
         }
       }
@@ -127,8 +132,8 @@ Future<List<String>> retrieveItemCodes(List<String> seCodes,String cmpCode) asyn
     List<Map<String, dynamic>> itemsData = [];
     try {
       for (String itemCode in itemCodes) {
-        final response =await http.get(Uri.parse('${apiurl}getItems'));
-            //await http.get(Uri.parse('${apiurl}getItems?itemCode=$itemCode'));
+        final response =//await http.get(Uri.parse('${apiurl}getItems'));
+            await http.get(Uri.parse('${apiurl}getItems?itemCode=$itemCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -204,6 +209,7 @@ Future<void> _synchronizeItems(
             data['salesItem']??'',
             data['purchItem']??'',
             data['invntItem']??'',
+            data['depCode']??''
         // Populate other fields similarly
       );
 
@@ -257,7 +263,7 @@ Future<void> _synchronizeItems(
       List<String> priceLists) async {
     List<Map<String, dynamic>> priceListData = [];
     try {
-     // for (String plCode in priceLists) {
+    //  for (String plCode in priceLists) {
         final response = await http.get(Uri.parse('${apiurl}getPriceList'));
          //   await http.get(Uri.parse('${apiurl}getPriceList?plCode=$plCode'));
          print(response.body);
@@ -281,7 +287,7 @@ Future<void> _synchronizeItems(
           print(
               'Failed to retrieve price list data for plCode : ${response.statusCode}');
         }
-      //}
+   //   }
     } catch (e) {
       print('Error fetching price list data: $e');
     }
@@ -435,6 +441,7 @@ Future<void> _synchronizeItemPrice(
         data['disc'] ?? 0,
         data['price'] ?? 0,
         data['cmpCode'] ?? '',
+        data['basePlCode']??''
       );
 
       itemPricesToUpdate.add(updatedItemPrice);
@@ -588,8 +595,8 @@ Future<void> _synchronizeItemAttach(
     List<Map<String, dynamic>> itemGroupData = [];
     try {
       for (String groupCode in itemGroupCodes) {
-        final response = await http.get(Uri.parse('${apiurl}getItemGroup'));
-      //     await http.get(Uri.parse('${apiurl}getItemGroup?groupCode=$groupCode'));
+        final response = //await http.get(Uri.parse('${apiurl}getItemGroup'));
+          await http.get(Uri.parse('${apiurl}getItemGroup?groupCode=$groupCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -716,8 +723,8 @@ Future<void> _synchronizeItemGroup(
     List<Map<String, dynamic>> itemCategData = [];
     try {
       for (String categCode in itemCateg) {
-        final response =await http.get(Uri.parse('${apiurl}getItemCateg'));
-           // await http.get(Uri.parse('${apiurl}getItemCateg?categCode=$categCode'));
+        final response =//await http.get(Uri.parse('${apiurl}getItemCateg'));
+            await http.get(Uri.parse('${apiurl}getItemCateg?categCode=$categCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -842,8 +849,8 @@ Future<void> _synchronizeItemCateg(
     List<Map<String, dynamic>> itemBrandData = [];
     try {
       for (String brandCode in itemBrand) {
-        final response = await http .get(Uri.parse('${apiurl}getItemBrand'));
-           //= await http .get(Uri.parse('${apiurl}getItemBrand?brandCode=$brandCode'));
+        final response = //await http .get(Uri.parse('${apiurl}getItemBrand'));
+            await http .get(Uri.parse('${apiurl}getItemBrand?brandCode=$brandCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -938,8 +945,8 @@ Future<void> _synchronizeItemBrand(
     List<Map<String, dynamic>> itemUOMData = [];
     try {
       for (String itemCode in itemCodes) {
-        final response =await http.get(Uri.parse('${apiurl}getItemUOM'));
-           // await http.get(Uri.parse('${apiurl}getItemUOM?itemCode=$itemCode'));
+        final response =//await http.get(Uri.parse('${apiurl}getItemUOM'));
+            await http.get(Uri.parse('${apiurl}getItemUOM?itemCode=$itemCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -2736,11 +2743,11 @@ Future<void> _synchronizePaymentTerms(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-  Future<void> synchronizeSalesEmployees(List<String> seCodes) async {
+  Future<void> synchronizeSalesEmployees(String cmpCode) async {
     try {
       // Fetch data from API endpoint using seCodes
       List<Map<String, dynamic>> apiResponse =
-          await _fetchSalesEmployeesData(seCodes);
+          await _fetchSalesEmployeesData(cmpCode);
 
       // Open Hive box
       var salesEmployeesBox =
@@ -2754,13 +2761,13 @@ Future<void> _synchronizePaymentTerms(
   }
 
   Future<List<Map<String, dynamic>>> _fetchSalesEmployeesData(
-      List<String> seCodes) async {
+      String cmpCode) async {
     List<Map<String, dynamic>> salesEmployeesData = [];
     try {
       // Iterate over each seCode and fetch data for each one
-      for (String seCode in seCodes) {
+     
         final response = await http
-            .get(Uri.parse('${apiurl}getSalesEmployees?seCode=$seCode'));
+            .get(Uri.parse('${apiurl}getSalesEmployees?cmpCode=$cmpCode'));
         if (response.statusCode == 200) {
           dynamic responseData = jsonDecode(response.body);
           if (responseData is List) {
@@ -2775,9 +2782,9 @@ Future<void> _synchronizePaymentTerms(
           }
         } else {
           print(
-              'Failed to retrieve sales employees data for seCode $seCode: ${response.statusCode}');
+              'Failed to retrieve sales employees data for seCode $cmpCode: ${response.statusCode}');
         }
-      }
+      
     } catch (e) {
       print('Error fetching sales employees data: $e');
     }
@@ -2798,7 +2805,7 @@ Future<void> _synchronizeSalesEmployees(
 
       var updatedSalesEmployee = SalesEmployees(
         cmpCode: cmpCode,
-        seCode: seCode,
+        seCode: seCode.toString(),
         seName: data['seName'] ?? '',
         seFName: data['seFName'] ?? '',
         mobile: data['mobile'] ?? '',
@@ -2806,6 +2813,11 @@ Future<void> _synchronizeSalesEmployees(
         whsCode: data['whsCode'] ?? '',
         reqFromWhsCode: data['reqFromWhsCode'] ?? '',
         notes: data['notes'] ?? '',
+        cashSalesCustCode: data['cashSalesCustCode'] ??'',
+        allowUpdDisc: data['allowUpdDisc']==1?true:false,
+        maxDiscPerc: data['maxDiscPerc'],
+        allowFreeItm: data['allowFreeItm']==1?true:false,
+        allowFreeInv: data['allowFreeInv']==1?true:false,
       );
 
       salesEmployeesToUpdate.add(updatedSalesEmployee);
@@ -2895,7 +2907,7 @@ Future<void> _synchronizeSalesEmployeesCustomers(
 
       var updatedSalesEmployeesCustomers = SalesEmployeesCustomers(
         cmpCode: cmpCode,
-        seCode: seCode,
+        seCode: seCode.toString(),
         custCode: custCode,
         notes: data['notes'] ?? '',
       );
@@ -2991,7 +3003,7 @@ Future<void> _synchronizeSalesEmployeesDepartments(
 
       var updatedSalesEmployeesDepartments = SalesEmployeesDepartements(
         cmpCode: cmpCode,
-        seCode: seCode,
+        seCode: seCode.toString(),
         deptCode: deptCode,
         reqFromWhsCode: data['reqFromWhsCode'] ?? '',
         notes: data['notes'] ?? '',
@@ -3080,7 +3092,7 @@ Future<void> _synchronizeSalesEmployeesItemsBrands(
 
       var updatedSalesEmployeesItemsBrands = SalesEmployeesItemsBrands(
         cmpCode: cmpCode,
-        seCode: seCode,
+        seCode: seCode.toString(),
         brandCode: brandCode,
         reqFromWhsCode: data['reqFromWhsCode'] ?? '',
         notes: data['notes'] ?? '',
@@ -3176,7 +3188,7 @@ Future<void> _synchronizeSalesEmployeesItemsCategories(
 
       var updatedSalesEmployeesItemsCategories = SalesEmployeesItemsCategories(
         cmpCode: cmpCode,
-        seCode: seCode,
+        seCode: seCode.toString(),
         categCode: categCode,
         reqFromWhsCode: data['reqFromWhsCode'] ?? '',
         notes: data['notes'] ?? '',
@@ -3270,7 +3282,7 @@ Future<void> _synchronizeSalesEmployeesItemsGroups(
 
       var updatedSalesEmployeesItemsGroups = SalesEmployeesItemsGroups(
         cmpCode: cmpCode,
-        seCode: seCode,
+        seCode: seCode.toString(),
         groupCode: groupCode,
         reqFromWhsCode: data['reqFromWhsCode'] ?? '',
         notes: data['notes'] ?? '',
@@ -3362,7 +3374,7 @@ Future<void> _synchronizeSalesEmployeesItems(
 
       var updatedSalesEmployeesItems = SalesEmployeesItems(
         cmpCode: cmpCode,
-        seCode: seCode,
+        seCode: seCode.toString(),
         itemCode: itemCode,
         reqFromWhsCode: data['reqFromWhsCode'] ?? '',
         notes: data['notes'] ?? '',
@@ -3476,33 +3488,40 @@ Future<void> _synchronizeUserSalesEmployees(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-Future<List<String>> retrieveCustCodes(List<String> seCodes,String cmpCode) async {
- print('ksdpds'); print(seCodes);print('ksdps');
+Future<List<String>> retrieveCustCodes(List<String> seCodes, String cmpCode) async {
   List<String> custCodes = [];
   try {
-    for (String seCode in seCodes) {
-      final response = await http.get(Uri.parse('${apiurl}getSalesEmployeesCustomers?seCode=$seCode&cmpCode=$cmpCode'));
-      print(response.body);
-      if (response.statusCode == 200) {
-        dynamic responseData = jsonDecode(response.body);
-        if (responseData is List) {
-          responseData.forEach((item) {
-            if (item is Map<String, dynamic>) {
-              custCodes.add(item['custCode']);
-            }
-          });
-        } else {
-          print('Invalid response format for customer codes data');
-        }
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode': cmpCode,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesCustomers'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+print(response.body);
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // Extract custCodes from the response
+        custCodes = responseData.map((item) => item['custCode'].toString()).toList();
       } else {
-        print('Failed to retrieve customer codes data for seCode $seCode: ${response.statusCode}');
+        print('Invalid response format for customer codes data');
       }
+    } else {
+      print('Failed to retrieve customer codes data: ${response.statusCode}');
     }
   } catch (e) {
     print('Error retrieving customer codes: $e');
   }
   return custCodes;
 }
+
 
 Future<void> synchronizeCustomers(List<String> custCodes) async {
   try {
@@ -3520,36 +3539,37 @@ List<Map<String, dynamic>> apiResponse = await _fetchCustomersData(custCodes);
     }
   }
 
-
-
-Future<List<Map<String, dynamic>>> _fetchCustomersData(List<String>custCodes) async {
+Future<List<Map<String, dynamic>>> _fetchCustomersData(List<String> custCodes) async {
   List<Map<String, dynamic>> customersData = [];
   try {
-    for (String custCode in custCodes) {
-      final response = await http.get(Uri.parse('${apiurl}getCustomers?custCode=$custCode'));
-      if (response.statusCode == 200) {
-                dynamic responseData = jsonDecode(response.body);
+    // Convert custCodes to a JSON array
+    String custCodesJson = jsonEncode(custCodes);
 
+    // Make a POST request with the custCodes in the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getCustomers'),
+      headers: {"Content-Type": "application/json"},
+      body: custCodesJson,
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
       if (responseData is List) {
-          // If the response is a list, append each item to the itemsData list
-          for (var item in responseData) {
-            if (item is Map<String, dynamic>) {
-              customersData.add(item);
-            }
-          }
-        } else if (responseData is Map<String, dynamic>) {
-          // If the response is a map, directly append it to the itemsData list
-          customersData.add(responseData);
-        }
+        // If the response is a list, directly append it to the customersData list
+        customersData.addAll(responseData.whereType<Map<String, dynamic>>());
       } else {
-        print('Failed to retrieve customer data for custCode : ${response.statusCode}');
+        print('Invalid response format for customer data');
       }
+    } else {
+      print('Failed to retrieve customer data: ${response.statusCode}');
     }
   } catch (e) {
     print('Error fetching customer data: $e');
   }
   return customersData;
 }
+
 Future<void> _synchronizeCustomers(
   List<Map<String, dynamic>> customersData,
   Box<Customers> customersBox,
@@ -3631,34 +3651,40 @@ Future<void> _synchronizeCustomers(
           'Error synchronizing data from API to Hive for CustomerAddresses: $e');
     }
   }
-
 Future<List<Map<String, dynamic>>> _fetchCustomerAddressesData(List<String> custCodes) async {
   List<Map<String, dynamic>> addressesData = [];
   try {
-    for (String custCode in custCodes) {
-      final response = await http.get(Uri.parse('${apiurl}getCustomerAddresses?custCode=$custCode'));
-      if (response.statusCode == 200) {
-     dynamic responseData = jsonDecode(response.body);
-        if (responseData is List) {
-          // If the response is a list, append each item to the itemsData list
-          for (var item in responseData) {
-            if (item is Map<String, dynamic>) {
-              addressesData.add(item);
-            }
-          }
-        } else if (responseData is Map<String, dynamic>) {
-          // If the response is a map, directly append it to the itemsData list
-          addressesData.add(responseData);
-        }
-      } else {
-        print('Failed to retrieve customer addresses data for custCode $custCode: ${response.statusCode}');
+    // Convert custCodes to a JSON array
+    String custCodesJson = jsonEncode(custCodes);
+
+    // Make a POST request with the custCodes in the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getCustomerAddresses'),
+      headers: {"Content-Type": "application/json"},
+      body: custCodesJson,
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, directly append it to the addressesData list
+        addressesData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, append it to the addressesData list
+        addressesData.add(responseData);
       }
+    } else {
+      print('Failed to retrieve customer addresses data: ${response.statusCode}');
     }
   } catch (e) {
     print('Error fetching customer addresses data: $e');
   }
   return addressesData;
 }
+
+
 Future<void> _synchronizeCustomerAddresses(
   List<Map<String, dynamic>> addressesData,
   Box<CustomerAddresses> addressesBox,
@@ -3731,31 +3757,39 @@ Future<void> _synchronizeCustomerAddresses(
           'Error synchronizing data from API to Hive for CustomerContacts: $e');
     }
   }
+Future<List<Map<String, dynamic>>> _fetchCustomerContactsData(List<String> custCodes) async {
+  List<Map<String, dynamic>> contactsData = [];
+  try {
+    // Convert custCodes to a JSON array
+    String custCodesJson = jsonEncode(custCodes);
 
-  Future<List<Map<String, dynamic>>> _fetchCustomerContactsData(
-      List<String> custCodes) async {
-    List<Map<String, dynamic>> contactsData = [];
-    try {
-      for (String custCode in custCodes) {
-        final response = await http
-            .get(Uri.parse('${apiurl}getCustomerContacts?custCode=$custCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            contactsData.addAll(responseData.cast<Map<String, dynamic>>());
-          } else {
-            print('Invalid response format for customer contacts data');
-          }
-        } else {
-          print(
-              'Failed to retrieve customer contacts data for custCode $custCode: ${response.statusCode}');
-        }
+    // Make a POST request with the custCodes in the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getCustomerContacts'),
+      headers: {"Content-Type": "application/json"},
+      body: custCodesJson,
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, directly append it to the contactsData list
+        contactsData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else {
+        print('Invalid response format for customer contacts data');
       }
-    } catch (e) {
-      print('Error fetching customer contacts data: $e');
+    } else {
+      print('Failed to retrieve customer contacts data: ${response.statusCode}');
     }
-    return contactsData;
+  } catch (e) {
+    print('Error fetching customer contacts data: $e');
   }
+  return contactsData;
+}
+
+
 Future<void> _synchronizeCustomerContacts(
   List<Map<String, dynamic>> contactsData,
   Box<CustomerContacts> contactsBox,
@@ -3822,38 +3856,39 @@ Future<void> _synchronizeCustomerContacts(
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchCustomerPropertiesData(
-      List<String> custCodes) async {
-    List<Map<String, dynamic>> customerPropertiesData = [];
-    try {
-      // Iterate over each custCode and fetch data for each one
-      for (String custCode in custCodes) {
-        // Make API call to fetch customer properties data
-        var response = await http.get(
-            Uri.parse('${apiurl}getCustomerProperties?custCode=$custCode'));
-        if (response.statusCode == 200) {
-          // Parse the response data
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each customer properties data to the customerPropertiesData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                customerPropertiesData.add(item);
-              }
-            }
-          } else {
-            print('Invalid response format for customer properties data');
-          }
-        } else {
-          print(
-              'Failed to retrieve customer properties data for custCode $custCode: ${response.statusCode}');
-        }
+ Future<List<Map<String, dynamic>>> _fetchCustomerPropertiesData(List<String> custCodes) async {
+  List<Map<String, dynamic>> customerPropertiesData = [];
+  try {
+    // Convert custCodes to a JSON array
+    String custCodesJson = jsonEncode(custCodes);
+
+    // Make a POST request with the custCodes in the request body
+    var response = await http.post(
+      Uri.parse('${apiurl}getCustomerProperties'),
+      headers: {"Content-Type": "application/json"},
+      body: custCodesJson,
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response data
+      dynamic responseData = jsonDecode(response.body);
+      
+      if (responseData is List) {
+        // If the response is a list, directly append it to the customerPropertiesData list
+        customerPropertiesData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else {
+        print('Invalid response format for customer properties data');
       }
-    } catch (e) {
-      print('Error fetching customer properties data: $e');
+    } else {
+      print('Failed to retrieve customer properties data: ${response.statusCode}');
     }
-    return customerPropertiesData;
+  } catch (e) {
+    print('Error fetching customer properties data: $e');
   }
+  return customerPropertiesData;
+}
+
+
 Future<void> _synchronizeCustomerProperties(
   List<Map<String, dynamic>> customerPropertiesData,
   Box<CustomerProperties> propertiesBox,
@@ -3913,39 +3948,39 @@ Future<void> _synchronizeCustomerProperties(
           'Error synchronizing data from API to Hive for CustomerAttachments: $e');
     }
   }
+Future<List<Map<String, dynamic>>> _fetchCustomerAttachmentsData(List<String> custCodes) async {
+  List<Map<String, dynamic>> customerAttachmentsData = [];
+  try {
+    // Convert custCodes to a JSON array
+    String custCodesJson = jsonEncode(custCodes);
 
-  Future<List<Map<String, dynamic>>> _fetchCustomerAttachmentsData(
-      List<String> custCodes) async {
-    List<Map<String, dynamic>> customerAttachmentsData = [];
-    try {
-      // Iterate over each custCode and fetch data for each one
-      for (String custCode in custCodes) {
-        // Make API call to fetch customer attachments data
-        var response = await http.get(
-            Uri.parse('${apiurl}getCustomerAttachments?custCode=$custCode'));
-        if (response.statusCode == 200) {
-          // Parse the response data
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each customer attachments data to the customerAttachmentsData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                customerAttachmentsData.add(item);
-              }
-            }
-          } else {
-            print('Invalid response format for customer attachments data');
-          }
-        } else {
-          print(
-              'Failed to retrieve customer attachments data for custCode $custCode: ${response.statusCode}');
-        }
+    // Make a POST request with the custCodes in the request body
+    var response = await http.post(
+      Uri.parse('${apiurl}getCustomerAttachments'),
+      headers: {"Content-Type": "application/json"},
+      body: custCodesJson,
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response data
+      dynamic responseData = jsonDecode(response.body);
+      
+      if (responseData is List) {
+        // If the response is a list, directly append it to the customerAttachmentsData list
+        customerAttachmentsData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else {
+        print('Invalid response format for customer attachments data');
       }
-    } catch (e) {
-      print('Error fetching customer attachments data: $e');
+    } else {
+      print('Failed to retrieve customer attachments data: ${response.statusCode}');
     }
-    return customerAttachmentsData;
+  } catch (e) {
+    print('Error fetching customer attachments data: $e');
   }
+  return customerAttachmentsData;
+}
+
+
 Future<void> _synchronizeCustomerAttachments(
   List<Map<String, dynamic>> customerAttachmentsData,
   Box<CustomerAttachments> attachmentsBox,
@@ -6202,6 +6237,524 @@ Future<void> _synchronizeAddressFormats(
 }
 
 
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+Future<List<Map<String, dynamic>>> _fetchItemsWhses(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemsWhsesData = [];
+  try {
+    // Perform HTTP GET request to fetch address formats data from the API endpoint
+    final response = await http.get(Uri.parse('${apiurl}getItemsWhses?itemCode=$itemCodes'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each address format data to the addressFormatsData list
+        for (var formatData in responseData) {
+          if (formatData is Map<String, dynamic>) {
+            itemsWhsesData.add(formatData);
+          }
+        }
+      } else {
+        print('Invalid response format for Items Whses data');
+      }
+    } else {
+      print('Failed to retrieve Items Whses data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching Items Whses data: $e');
+  }
+  return itemsWhsesData;
+}
+
+Future<void> synchronizeItemsWhses(List<String>itemCodes) async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchItemsWhses(itemCodes);
+
+    // Open Hive box
+    var itemsWhsesBox = await Hive.openBox<ItemsWhses>('itemsWhsesBox');
+
+    // Synchronize data
+    await _synchronizeItemsWhses(apiResponse, itemsWhsesBox);
+
+    // Close Hive box
+    // await addressFormatsBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Items Whses: $e');
+  }
+}
+Future<void> _synchronizeItemsWhses(
+  List<Map<String, dynamic>> itemsWhsesData,
+  Box<ItemsWhses> itemsWhsesBox,
+) async {
+  try {
+    // Prepare lists for batch operations
+    List<ItemsWhses> itemsWhsesToUpdate = [];
+    List<String> itemsWhsesToDelete = [];
+
+    // Iterate over the retrieved data
+    for (var data in itemsWhsesData) {
+      var cmpCode = data['cmpCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var whsCode = data['whsCode'] ?? '';
+
+      var updatedItemsWhses = ItemsWhses(
+        data['cmpCode'],
+        data['itemCode'],
+        data['whsCode'],
+        data['qty'],
+      );
+
+      itemsWhsesToUpdate.add(updatedItemsWhses);
+    }
+
+    // Batch update address formats
+    await itemsWhsesBox.putAll(Map.fromIterable(
+      itemsWhsesToUpdate,
+      key: (itemswhses) =>
+          '${itemswhses.cmpCode}${itemswhses.itemCode}${itemswhses.whsCode}',
+    ));
+
+    // Delete address formats not present in the updated data
+    Set<String> updatedItemsWhsesKeys = itemsWhsesToUpdate
+        .map((itemswhses) =>
+            '${itemswhses.cmpCode}${itemswhses.itemCode}${itemswhses.whsCode}')
+        .toSet();
+    itemsWhsesBox.keys
+        .where((itemswhsesKey) =>
+            !updatedItemsWhsesKeys.contains(itemswhsesKey))
+        .forEach((itemswhsesKey) {
+      itemsWhsesToDelete.add(itemswhsesKey);
+    });
+    await itemsWhsesBox.deleteAll(itemsWhsesToDelete);
+  } catch (e) {
+    print('Error synchronizing items whses from API to Hive: $e');
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+Future<List<Map<String, dynamic>>> _fetchItemsWhsesSerials(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemsWhsesSerialsData = [];
+  try {
+    // Perform HTTP GET request to fetch data from the API endpoint
+    final response = await http.get(Uri.parse('${apiurl}getItemsWhsesSerials?itemCode=$itemCodes'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each data to the itemsWhsesSerialsData list
+        for (var serialData in responseData) {
+          if (serialData is Map<String, dynamic>) {
+            itemsWhsesSerialsData.add(serialData);
+          }
+        }
+      } else {
+        print('Invalid response format for Items Whses Serials data');
+      }
+    } else {
+      print('Failed to retrieve Items Whses Serials data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching Items Whses Serials data: $e');
+  }
+  return itemsWhsesSerialsData;
+}
+
+Future<void> synchronizeItemsWhsesSerials(List<String> itemCodes) async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchItemsWhsesSerials(itemCodes);
+
+    // Open Hive box
+    var itemsWhsesSerialsBox = await Hive.openBox<ItemsWhsesSerials>('itemsWhsesSerialsBox');
+
+    // Synchronize data
+    await _synchronizeItemsWhsesSerials(apiResponse, itemsWhsesSerialsBox);
+
+    // Close Hive box
+    // await itemsWhsesSerialsBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Items Whses Serials: $e');
+  }
+}
+
+Future<void> _synchronizeItemsWhsesSerials(
+  List<Map<String, dynamic>> itemsWhsesSerialsData,
+  Box<ItemsWhsesSerials> itemsWhsesSerialsBox,
+) async {
+  try {
+    // Prepare lists for batch operations
+    List<ItemsWhsesSerials> itemsWhsesSerialsToUpdate = [];
+    List<String> itemsWhsesSerialsToDelete = [];
+
+    // Iterate over the retrieved data
+    for (var data in itemsWhsesSerialsData) {
+      var cmpCode = data['cmpCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var whsCode = data['whsCode'] ?? '';
+      var quantity = data['quantity'] ?? '';
+      var serialID = data['serialID'] ?? '';
+
+      var updatedItemsWhsesSerials = ItemsWhsesSerials(
+        cmpCode,
+        itemCode,
+        whsCode,
+        quantity,
+        serialID,
+      );
+
+      itemsWhsesSerialsToUpdate.add(updatedItemsWhsesSerials);
+    }
+
+    // Batch update itemsWhsesSerials
+    await itemsWhsesSerialsBox.putAll(Map.fromIterable(
+      itemsWhsesSerialsToUpdate,
+      key: (itemsWhsesSerials) =>
+          '${itemsWhsesSerials.cmpCode}${itemsWhsesSerials.itemCode}${itemsWhsesSerials.whsCode}${itemsWhsesSerials.serialID}',
+    ));
+
+    // Delete itemsWhsesSerials not present in the updated data
+    Set<String> updatedItemsWhsesSerialsKeys = itemsWhsesSerialsToUpdate
+        .map((itemsWhsesSerials) =>
+            '${itemsWhsesSerials.cmpCode}${itemsWhsesSerials.itemCode}${itemsWhsesSerials.whsCode}${itemsWhsesSerials.serialID}')
+        .toSet();
+    itemsWhsesSerialsBox.keys
+        .where((itemsWhsesSerialsKey) =>
+            !updatedItemsWhsesSerialsKeys.contains(itemsWhsesSerialsKey))
+        .forEach((itemsWhsesSerialsKey) {
+      itemsWhsesSerialsToDelete.add(itemsWhsesSerialsKey);
+    });
+    await itemsWhsesSerialsBox.deleteAll(itemsWhsesSerialsToDelete);
+  } catch (e) {
+    print('Error synchronizing items whses serials from API to Hive: $e');
+  }
+}
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+Future<List<Map<String, dynamic>>> _fetchItemsSerials(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemsSerialsData = [];
+  try {
+    // Perform HTTP GET request to fetch data from the API endpoint
+    final response = await http.get(Uri.parse('${apiurl}getItemsSerials?itemCode=$itemCodes'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each data to the itemsSerialsData list
+        for (var serialData in responseData) {
+          if (serialData is Map<String, dynamic>) {
+            itemsSerialsData.add(serialData);
+          }
+        }
+      } else {
+        print('Invalid response format for Items Serials data');
+      }
+    } else {
+      print('Failed to retrieve Items Serials data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching Items Serials data: $e');
+  }
+  return itemsSerialsData;
+}
+
+Future<void> synchronizeItemsSerials(List<String> itemCodes) async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchItemsSerials(itemCodes);
+
+    // Open Hive box
+    var itemsSerialsBox = await Hive.openBox<ItemsSerials>('itemsSerialsBox');
+
+    // Synchronize data
+    await _synchronizeItemsSerials(apiResponse, itemsSerialsBox);
+
+    // Close Hive box
+    // await itemsSerialsBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Items Serials: $e');
+  }
+}
+
+Future<void> _synchronizeItemsSerials(
+  List<Map<String, dynamic>> itemsSerialsData,
+  Box<ItemsSerials> itemsSerialsBox,
+) async {
+  try {
+    // Prepare lists for batch operations
+    List<ItemsSerials> itemsSerialsToUpdate = [];
+    List<String> itemsSerialsToDelete = [];
+
+    // Iterate over the retrieved data
+    for (var data in itemsSerialsData) {
+      var cmpCode = data['cmpCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var serialID = data['serialID'] ?? '';
+      var sysNumber = data['sysNumber'] ?? 0;
+      var serialNumber = data['serialNumber'] ?? '';
+      var mnfSerial = data['mnfSerial'] ?? '';
+      var lotNumber = data['lotNumber'] ?? '';
+      var mnfDate = DateTime.parse(data['mnfDate']);
+      var expDate = DateTime.parse(data['expDate']);
+      var notes = data['notes'] ?? '';
+
+      var updatedItemsSerials = ItemsSerials(
+        cmpCode,
+        itemCode,
+        serialID,
+        sysNumber,
+        serialNumber,
+        mnfSerial,
+        lotNumber,
+        mnfDate,
+        expDate,
+        notes,
+      );
+
+      itemsSerialsToUpdate.add(updatedItemsSerials);
+    }
+
+    // Batch update itemsSerials
+    await itemsSerialsBox.putAll(Map.fromIterable(
+      itemsSerialsToUpdate,
+      key: (itemsSerials) =>
+          '${itemsSerials.cmpCode}${itemsSerials.itemCode}${itemsSerials.serialID}',
+    ));
+
+    // Delete itemsSerials not present in the updated data
+    Set<String> updatedItemsSerialsKeys = itemsSerialsToUpdate
+        .map((itemsSerials) =>
+            '${itemsSerials.cmpCode}${itemsSerials.itemCode}${itemsSerials.serialID}')
+        .toSet();
+    itemsSerialsBox.keys
+        .where((itemsSerialsKey) =>
+            !updatedItemsSerialsKeys.contains(itemsSerialsKey))
+        .forEach((itemsSerialsKey) {
+      itemsSerialsToDelete.add(itemsSerialsKey);
+    });
+    await itemsSerialsBox.deleteAll(itemsSerialsToDelete);
+  } catch (e) {
+    print('Error synchronizing items serials from API to Hive: $e');
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
+Future<List<Map<String, dynamic>>> _fetchItemsWhsesBatches(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemsWhsesBatchesData = [];
+  try {
+    // Perform HTTP GET request to fetch data from the API endpoint
+    final response = await http.get(Uri.parse('${apiurl}getItemsWhsesBatches?itemCode=$itemCodes'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each data to the itemsWhsesBatchesData list
+        for (var batchData in responseData) {
+          if (batchData is Map<String, dynamic>) {
+            itemsWhsesBatchesData.add(batchData);
+          }
+        }
+      } else {
+        print('Invalid response format for Items Whses Batches data');
+      }
+    } else {
+      print('Failed to retrieve Items Whses Batches data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching Items Whses Batches data: $e');
+  }
+  return itemsWhsesBatchesData;
+}
+
+Future<void> synchronizeItemsWhsesBatches(List<String> itemCodes) async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchItemsWhsesBatches(itemCodes);
+
+    // Open Hive box
+    var itemsWhsesBatchesBox = await Hive.openBox<ItemsWhsesBatches>('itemsWhsesBatchesBox');
+
+    // Synchronize data
+    await _synchronizeItemsWhsesBatches(apiResponse, itemsWhsesBatchesBox);
+
+    // Close Hive box
+    // await itemsWhsesBatchesBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Items Whses Batches: $e');
+  }
+}
+
+Future<void> _synchronizeItemsWhsesBatches(
+  List<Map<String, dynamic>> itemsWhsesBatchesData,
+  Box<ItemsWhsesBatches> itemsWhsesBatchesBox,
+) async {
+  try {
+    // Prepare lists for batch operations
+    List<ItemsWhsesBatches> itemsWhsesBatchesToUpdate = [];
+    List<String> itemsWhsesBatchesToDelete = [];
+
+    // Iterate over the retrieved data
+    for (var data in itemsWhsesBatchesData) {
+      var cmpCode = data['cmpCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var whsCode = data['whsCode'] ?? '';
+      var quantity = data['quantity'] ?? '';
+      var batchID = data['batchID'] ?? '';
+
+      var updatedItemsWhsesBatches = ItemsWhsesBatches(
+        cmpCode,
+        itemCode,
+        whsCode,
+        quantity,
+        batchID,
+      );
+
+      itemsWhsesBatchesToUpdate.add(updatedItemsWhsesBatches);
+    }
+
+    // Batch update itemsWhsesBatches
+    await itemsWhsesBatchesBox.putAll(Map.fromIterable(
+      itemsWhsesBatchesToUpdate,
+      key: (itemsWhsesBatches) =>
+          '${itemsWhsesBatches.cmpCode}${itemsWhsesBatches.itemCode}${itemsWhsesBatches.whsCode}${itemsWhsesBatches.batchID}',
+    ));
+
+    // Delete itemsWhsesBatches not present in the updated data
+    Set<String> updatedItemsWhsesBatchesKeys = itemsWhsesBatchesToUpdate
+        .map((itemsWhsesBatches) =>
+            '${itemsWhsesBatches.cmpCode}${itemsWhsesBatches.itemCode}${itemsWhsesBatches.whsCode}${itemsWhsesBatches.batchID}')
+        .toSet();
+    itemsWhsesBatchesBox.keys
+        .where((itemsWhsesBatchesKey) =>
+            !updatedItemsWhsesBatchesKeys.contains(itemsWhsesBatchesKey))
+        .forEach((itemsWhsesBatchesKey) {
+      itemsWhsesBatchesToDelete.add(itemsWhsesBatchesKey);
+    });
+    await itemsWhsesBatchesBox.deleteAll(itemsWhsesBatchesToDelete);
+  } catch (e) {
+    print('Error synchronizing items whses batches from API to Hive: $e');
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
+Future<List<Map<String, dynamic>>> _fetchItemsBatches(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemsBatchesData = [];
+  try {
+    // Perform HTTP GET request to fetch data from the API endpoint
+    final response = await http.get(Uri.parse('${apiurl}getItemsBatches?itemCode=$itemCodes'));
+    if (response.statusCode == 200) {
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // If the response is a list, append each data to the itemsBatchesData list
+        for (var batchData in responseData) {
+          if (batchData is Map<String, dynamic>) {
+            itemsBatchesData.add(batchData);
+          }
+        }
+      } else {
+        print('Invalid response format for Items Batches data');
+      }
+    } else {
+      print('Failed to retrieve Items Batches data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching Items Batches data: $e');
+  }
+  return itemsBatchesData;
+}
+
+Future<void> synchronizeItemsBatches(List<String> itemCodes) async {
+  try {
+    // Fetch data from API endpoint
+    List<Map<String, dynamic>> apiResponse = await _fetchItemsBatches(itemCodes);
+
+    // Open Hive box
+    var itemsBatchesBox = await Hive.openBox<ItemsBatches>('itemsBatchesBox');
+
+    // Synchronize data
+    await _synchronizeItemsBatches(apiResponse, itemsBatchesBox);
+
+    // Close Hive box
+    // await itemsBatchesBox.close();
+  } catch (e) {
+    print('Error synchronizing data from API to Hive for Items Batches: $e');
+  }
+}
+
+Future<void> _synchronizeItemsBatches(
+  List<Map<String, dynamic>> itemsBatchesData,
+  Box<ItemsBatches> itemsBatchesBox,
+) async {
+  try {
+    // Prepare lists for batch operations
+    List<ItemsBatches> itemsBatchesToUpdate = [];
+    List<String> itemsBatchesToDelete = [];
+
+    // Iterate over the retrieved data
+    for (var data in itemsBatchesData) {
+      var cmpCode = data['cmpCode'] ?? '';
+      var itemCode = data['itemCode'] ?? '';
+      var batchID = data['batchID'] ?? '';
+      var sysNumber = data['sysNumber'] ?? 0;
+      var batchNumber = data['batchNumber'] ?? '';
+      var mnfSerial = data['mnfSerial'] ?? '';
+      var lotNumber = data['lotNumber'] ?? '';
+      var mnfDate = DateTime.parse(data['mnfDate']);
+      var expDate = DateTime.parse(data['expDate']);
+      var notes = data['notes'] ?? '';
+
+      var updatedItemsBatches = ItemsBatches(
+        cmpCode,
+        itemCode,
+        batchID,
+        sysNumber,
+        batchNumber,
+        mnfSerial,
+        lotNumber,
+        mnfDate,
+        expDate,
+        notes,
+      );
+
+      itemsBatchesToUpdate.add(updatedItemsBatches);
+    }
+
+    // Batch update itemsBatches
+    await itemsBatchesBox.putAll(Map.fromIterable(
+      itemsBatchesToUpdate,
+      key: (itemsBatches) =>
+          '${itemsBatches.cmpCode}${itemsBatches.itemCode}${itemsBatches.batchID}',
+    ));
+
+    // Delete itemsBatches not present in the updated data
+    Set<String> updatedItemsBatchesKeys = itemsBatchesToUpdate
+        .map((itemsBatches) =>
+            '${itemsBatches.cmpCode}${itemsBatches.itemCode}${itemsBatches.batchID}')
+        .toSet();
+    itemsBatchesBox.keys
+        .where((itemsBatchesKey) =>
+            !updatedItemsBatchesKeys.contains(itemsBatchesKey))
+        .forEach((itemsBatchesKey) {
+      itemsBatchesToDelete.add(itemsBatchesKey);
+    });
+    await itemsBatchesBox.deleteAll(itemsBatchesToDelete);
+  } catch (e) {
+    print('Error synchronizing items batches from API to Hive: $e');
+  }
+}
 
 
 

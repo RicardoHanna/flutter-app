@@ -67,6 +67,9 @@ class Items extends HiveObject {
   @HiveField(20)
   late String invntItem;
 
+  @HiveField(21)
+  late String depCode;
+
   Items(
     this.itemCode,
     this.itemName,
@@ -88,6 +91,7 @@ class Items extends HiveObject {
     this.wUOMCode,
     this.salesItem,
     this.purchItem,
-    this.invntItem
+    this.invntItem,
+    this.depCode
   );
 }

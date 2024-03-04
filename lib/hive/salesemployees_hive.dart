@@ -31,6 +31,20 @@ class SalesEmployees extends HiveObject {
   @HiveField(8)
   late String notes;
 
+  @HiveField(9)
+  late String cashSalesCustCode;
+
+  @HiveField(10)
+  late bool allowUpdDisc;
+
+  @HiveField(11)
+  late dynamic maxDiscPerc;
+
+  @HiveField(12)
+  late bool allowFreeItm;
+
+  @HiveField(13)
+  late bool allowFreeInv;
 
   SalesEmployees({
     required this.cmpCode,
@@ -41,7 +55,12 @@ class SalesEmployees extends HiveObject {
     required this.email,
     required this.whsCode,
     required this.reqFromWhsCode,
-    required this.notes
+    required this.notes,
+    required this.cashSalesCustCode,
+    required this.allowUpdDisc,
+    required this.maxDiscPerc,
+    required this.allowFreeItm,
+    required this.allowFreeInv
   });
 
 

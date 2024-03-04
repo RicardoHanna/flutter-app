@@ -9,6 +9,11 @@ import 'package:project/hive/countries_hive.dart';
 import 'package:project/hive/itembarcode_hive.dart';
 import 'package:project/hive/itemmanufacturers_hive.dart';
 import 'package:project/hive/itemprop_hive.dart';
+import 'package:project/hive/itemsbatches_hive.dart';
+import 'package:project/hive/itemsserials_hive.dart';
+import 'package:project/hive/itemswhses_hive.dart';
+import 'package:project/hive/itemswhsesbatches_hive.dart';
+import 'package:project/hive/itemswhsesserials_hive.dart';
 import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/hive/translations_hive.dart';
@@ -135,7 +140,12 @@ Future<void> initializeHive() async {
     ..registerAdapter(CompaniesUsersAdapter())
     ..registerAdapter(AddressFormatAdapter())
     ..registerAdapter(ItemManufacturersAdapter())
-    ..registerAdapter(TimeOfDayAdapter());
+    ..registerAdapter(TimeOfDayAdapter())
+    ..registerAdapter(ItemsWhsesAdapter())
+    ..registerAdapter(ItemsWhsesSerialsAdapter())
+    ..registerAdapter(ItemsSerialsAdapter())
+    ..registerAdapter(ItemsWhsesBatchesAdapter())
+    ..registerAdapter(ItemsBatchesAdapter());
 }
 
 Future<void> openHiveBoxes() async {
@@ -209,6 +219,11 @@ await Hive.openBox<Countries>('countriesBox');
 await Hive.openBox<ItemManufacturers>('itemManufacturersBox');
 await Hive.openBox<ItemBarcode>('itemBarcodeBox');
 await Hive.openBox<ItemProp>('itemPropBox');
+await Hive.openBox<ItemsWhses>('itemsWhsesBox');
+await Hive.openBox<ItemsWhsesSerials>('itemsWhsesSerialsBox');
+await Hive.openBox<ItemsSerials>('itemsSerialsBox');
+await Hive.openBox<ItemsWhsesBatches>('itemsWhsesBatchesBox');
+await Hive.openBox<ItemsBatches>('itemsBatchesBox');
 
 
 

@@ -31,6 +31,9 @@ class ItemsPrices extends HiveObject {
   @HiveField(8)
   late String cmpCode;
 
+  @HiveField(9)
+  late String basePlCode;
+
 
   ItemsPrices(
     this.plCode,
@@ -41,6 +44,7 @@ class ItemsPrices extends HiveObject {
     this.auto,
     this.disc,
     this.price,
-    this.cmpCode
+    this.cmpCode,
+    this.basePlCode
   );
 }

@@ -13,7 +13,8 @@ import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart'; // Replace with your actual Hive user class
-import 'package:http/http.dart' as http; 
+import 'package:http/http.dart' as http;
+import 'package:project/hive/userssalesemployees_hive.dart'; 
 
 
 class DataSynchronizer {
@@ -51,6 +52,9 @@ String baseUrl='http://5.189.188.139:8080';
       var companiesBox = await Hive.openBox<Companies>('companiesBox');
       List<Companies>companies = companiesBox.values.toList();
 
+            var usersSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('usersSalesEmployeesBox');
+      List<UserSalesEmployees>userssalesemployees = usersSalesEmployeesBox.values.toList();
+
       // Check for an internet connection
       if (await hasInternetConnection()) {
         // If there's an internet connection, update or add data to Firestore
@@ -63,6 +67,7 @@ String baseUrl='http://5.189.188.139:8080';
         await _updateFirestoreCompaniesUsers(companyusers);
          await _updateFirestorePriceListAutho(pricelistautho);
          await _updateFirestoreCompanies(companies);
+         await _updateFirestoreUsersSalesEmployees(userssalesemployees);
         // Update or add other data to Firestore if needed
 
       }
@@ -689,6 +694,86 @@ for (dynamic apiComps in apiComp) {
     }
   }
 
+
+
+Future<void> _updateFirestoreUsersSalesEmployees(List<UserSalesEmployees> usersalesemployees) async {
+ try {
+  print('mbvcccc');
+      var userSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
+
+
+
+      // Fetch user data from the API
+      var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/userssalesemployees'));
+      print(response.body);
+      if (response.statusCode == 200) {
+        List<dynamic> apiUser = jsonDecode(response.body);
+ 
+print(apiUser);
+        // Iterate through each user to determine if it should be added, updated, or deleted
+        print('?????');
+        for (UserSalesEmployees userSales in userSalesEmployeesBox.values) {
+          print('####');
+          var userGroupData = userSalesEmployeesBox.get('${userSales.userCode}${userSales.cmpCode}${userSales.seCode}');
+          print('hi');
+          print(userGroupData);
+          var existingUserGroup;
+          if(apiUser!=null){
+               existingUserGroup = apiUser.firstWhere((user) => user['userCode'] == userSales.userCode && user['cmpCode']==userSales.cmpCode && user['seCode']==userSales.seCode, orElse: () => null);
+          }
+                     print('jelo');
+print(userGroupData?.cmpCode);
+          if (userGroupData != null) {
+            // Check if user exists in API response
+            print('fomocs');
+print(existingUserGroup);
+            if (existingUserGroup != null) {
+              // User exists, update user data
+              final response = await http.put(
+                Uri.parse('http://5.189.188.139:8080/api/userssalesemployees/updateUsersSalesEmployees/${existingUserGroup['userCode']}/${existingUserGroup['cmpCode']}/${existingUserGroup['seCode']}'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print(response.statusCode);
+              print(response.body);
+              print('Companies  Group updated: $userGroupData');
+            } else {
+              print('riccc');
+              // User does not exist, add new user
+              await http.post(
+                Uri.parse('http://5.189.188.139:8080/api/userssalesemployees/insertUsersSalesEmployees'),
+                body: jsonEncode(userGroupData.toJson()),
+                headers: {'Content-Type': 'application/json'},
+              );
+              print('Companies   added: $usersalesemployees');
+            }
+          } 
+
+  List<String> hivUsersSalesEmployees= userSalesEmployeesBox.keys.cast<String>().toList();
+print(hivUsersSalesEmployees);
+// Compare the list of users from Hive with the list of users from the API
+for (dynamic apiUsers in apiUser) {
+    String apiCmpCode = apiUsers['cmpCode'];
+    String apiUserCode = apiUsers['userCode'];
+    String apiSeCode = apiUsers['seCode'];
+String apiKey = '${apiUserCode}${apiCmpCode}${apiSeCode}';
+    // Check if the user exists in Hive
+    if (!hivUsersSalesEmployees.contains(apiKey)) {
+        // User exists in the API but not in Hive, delete from API
+              await http.delete(Uri.parse('http://5.189.188.139:8080/api/userssalesemployees/deleteUsersSalesEmployees/$apiUserCode/$apiCmpCode/$apiSeCode'));
+        print('Users Sales Employees deleted from API: $apiCmpCode');
+    }
+}
+         
+          
+        }
+      } else {
+        print('Failed to fetch Users Sales EMployees  from API');
+      }
+    } catch (e) {
+      print('Error updating API Users Sales Employees   group: $e');
+    }
+  }
 
   Future<bool> hasInternetConnection() async {
     try {

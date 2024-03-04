@@ -26,13 +26,18 @@ class SalesEmployeesAdapter extends TypeAdapter<SalesEmployees> {
       whsCode: fields[6] as String,
       reqFromWhsCode: fields[7] as dynamic,
       notes: fields[8] as String,
+      cashSalesCustCode: fields[9] as String,
+      allowUpdDisc: fields[10] as bool,
+      maxDiscPerc: fields[11] as dynamic,
+      allowFreeItm: fields[12] as bool,
+      allowFreeInv: fields[13] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, SalesEmployees obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.cmpCode)
       ..writeByte(1)
@@ -50,7 +55,17 @@ class SalesEmployeesAdapter extends TypeAdapter<SalesEmployees> {
       ..writeByte(7)
       ..write(obj.reqFromWhsCode)
       ..writeByte(8)
-      ..write(obj.notes);
+      ..write(obj.notes)
+      ..writeByte(9)
+      ..write(obj.cashSalesCustCode)
+      ..writeByte(10)
+      ..write(obj.allowUpdDisc)
+      ..writeByte(11)
+      ..write(obj.maxDiscPerc)
+      ..writeByte(12)
+      ..write(obj.allowFreeItm)
+      ..writeByte(13)
+      ..write(obj.allowFreeInv);
   }
 
   @override

@@ -859,7 +859,7 @@ class _ImportFormState extends State<ImportForm> {
     await synchronizer.synchronizeRegions();
     await synchronizer.synchronizeWarehouses();
     await synchronizer.synchronizePaymentTerms();
-    await synchronizer.synchronizeSalesEmployees(seCodes);
+    await synchronizer.synchronizeSalesEmployees(cmpCode);
     await synchronizer.synchronizeSalesEmployeesCustomers(seCodes);
 
     await synchronizer.synchronizeSalesEmployeesDepartments(seCodes);
@@ -892,20 +892,20 @@ class _ImportFormState extends State<ImportForm> {
     List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
-    List<String> itemCodes =
+  /*  List<String> itemCodes =
         await synchronizer.retrieveItemCodes(seCodes, cmpCode);
     List<String> brandCode =
-        await synchronizer.retrieveItemBrand(seCodes, cmpCode);
-    List<String> categCode =
-        await synchronizer.retrieveItemCateg(seCodes, cmpCode);
-    List<String> groupCode =
-        await synchronizer.retrieveItemGroupCodes(seCodes, cmpCode);
+        await synchronizer.retrieveItemBrand(seCodes, cmpCode);*/
+    /*List<String> categCode =
+        await synchronizer.retrieveItemCateg(seCodes, cmpCode);*/
+  /*  List<String> groupCode =
+        await synchronizer.retrieveItemGroupCodes(seCodes, cmpCode);*/
     List<String> custCode =
         await synchronizer.retrieveCustCodes(seCodes, cmpCode);
-    List<String> itemCode =
-        await synchronizer.retrieveItemCodes(seCodes, cmpCode);
-    List<String> custGroupCodes =
-        await synchronizer.retrieveItemCodes(custCode, cmpCode);
+   /* List<String> itemCode =
+        await synchronizer.retrieveItemCodes(seCodes, cmpCode);*/
+    /*List<String> custGroupCodes =
+        await synchronizer.retrieveItemCodes(custCode, cmpCode);*/
     print('lo');
     await synchronizer.synchronizeCustomers(custCode);
     print('l');
@@ -914,7 +914,7 @@ class _ImportFormState extends State<ImportForm> {
     await synchronizer.synchronizeCustomerProperties(custCode);
     await synchronizer.synchronizeCustomerAttachments(custCode);
 
-    await synchronizer.synchronizeCustomerItemsSpecialPrice(custCode, itemCode);
+   /* await synchronizer.synchronizeCustomerItemsSpecialPrice(custCode, itemCode);
     await synchronizer.synchronizeCustomerBrandsSpecialPrice(
         custCode, brandCode);
     await synchronizer.synchronizeCustomerGroupsSpecialPrice(
@@ -939,7 +939,7 @@ class _ImportFormState extends State<ImportForm> {
         custGroupCodes, custCode);
     await synchronizer.synchronizeCustomerPropCategSpecialPrice(
         categCode, custCode);
-
+*/
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(

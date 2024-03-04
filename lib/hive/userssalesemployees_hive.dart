@@ -24,5 +24,13 @@ class UserSalesEmployees extends HiveObject {
     required this.notes,
   });
 
+   Map<String, dynamic> toJson() {
+    return {
+      'cmpCode': cmpCode,
+      'userCode': userCode,
+      'seCode': seCode,
+      'notes': notes
+    };
+  }
 
 }
