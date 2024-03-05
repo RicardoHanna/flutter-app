@@ -79,7 +79,7 @@ void initState() {
   itemBox = Hive.box<Items>('items');
   initializeData();
   loadCheckboxPreferences();
-  printUserDataTranslations();
+  //printUserDataTranslations();
 }
 
 Future<void> loadCheckboxPreferences() async {

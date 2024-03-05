@@ -101,25 +101,33 @@ Future<List<String>> retrieveSeCodes(String usercode) async {
 }
 
 
-  
-Future<List<String>> retrieveItemCodes(List<String> seCodes,String cmpCode) async {
+  Future<List<String>> retrieveItemCodes(List<String> seCodes, String cmpCode) async {
   List<String> itemCodes = [];
   try {
-    for (String seCode in seCodes) {
-      // Send HTTP GET request to fetch item codes from the server
-      String url = '${apiurl}getSalesEmployeesItems?seCode=$seCode&cmpCode=$cmpCode';
-      print('Request URL: $url'); // Print the URL for debugging
-      final response = await http.get(Uri.parse('${apiurl}getSalesEmployeesItems?seCode=$seCode&cmpCode=$cmpCode'));
-      if (response.statusCode == 200) {
-        // Parse response body using jsonDecode
-        List<dynamic> responseData = jsonDecode(response.body);
-        // Extract item codes from each object
-        for (var data in responseData) {
-          itemCodes.add(data['itemCode']);
-        }
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode': cmpCode,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesItems'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // Extract item codes from the response
+        itemCodes = responseData.map((item) => item['itemCode'].toString()).toList();
       } else {
-        print('Failed to retrieve item codes: ${response.statusCode}');
+        print('Invalid response format for item codes data');
       }
+    } else {
+      print('Failed to retrieve item codes data: ${response.statusCode}');
     }
   } catch (e) {
     print('Error retrieving item codes: $e');
@@ -127,38 +135,44 @@ Future<List<String>> retrieveItemCodes(List<String> seCodes,String cmpCode) asyn
   return itemCodes;
 }
 
-  Future<List<Map<String, dynamic>>> _fetchItemsData(
-      List<String> itemCodes) async {
-    List<Map<String, dynamic>> itemsData = [];
-    try {
-      for (String itemCode in itemCodes) {
-        final response =//await http.get(Uri.parse('${apiurl}getItems'));
-            await http.get(Uri.parse('${apiurl}getItems?itemCode=$itemCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each item to the itemsData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                itemsData.add(item);
-              }
-            }
-          } else if (responseData is Map<String, dynamic>) {
-            // If the response is a map, directly append it to the itemsData list
-            itemsData.add(responseData);
-          } else {
-            print('Invalid response format for item code $itemCode');
-          }
-        } else {
-          print(
-              'Failed to retrieve item details for item code $itemCode: ${response.statusCode}');
-        }
+Future<List<Map<String, dynamic>>> _fetchItemsData(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemsData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'itemCodes': itemCodes,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItems'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+print(response.body);
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each item to the itemsData list
+        itemsData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, directly append it to the itemsData list
+        itemsData.add(responseData);
+      } else {
+        print('Invalid response format for items data');
       }
-    } catch (e) {
-      print('Error fetching item data: $e');
+    } else {
+      print('Failed to retrieve items data: ${response.statusCode}');
     }
-    return itemsData;
+  } catch (e) {
+    print('Error fetching item data: $e');
   }
+  return itemsData;
+}
+
+
 
   Future<void> synchronizeData(List<String> itemCodes) async {
     try {
@@ -237,62 +251,77 @@ Future<void> _synchronizeItems(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-  Future<List<String>> retrievePriceList(List<String> itemCodes,String cmpCode) async {
-    List<String> priceLists = [];
-    try {
-      for (String itemCode in itemCodes) {
-        final response = await http
-            .get(Uri.parse('${apiurl}getItemPrice?itemCode=$itemCode&cmpCode=$cmpCode'));
-        if (response.statusCode == 200) {
-          List<dynamic> responseData = jsonDecode(response.body);
-          for (var data in responseData) {
-            priceLists.add(data['plCode']);
-          }
-        } else {
-          print(
-              'Failed to retrieve price list Codes for item code $itemCode: ${response.statusCode}');
-        }
-      }
-    } catch (e) {
-      print('Error retrieving price list Codes: $e');
-    }
-    return priceLists;
-  }
+ Future<List<String>> retrievePriceList(List<String> itemCodes, String cmpCode) async {
+  List<String> priceLists = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'itemCodes': itemCodes,
+      'cmpCode': cmpCode,
+    };
 
-  Future<List<Map<String, dynamic>>> _fetchPriceListData(
-      List<String> priceLists) async {
-    List<Map<String, dynamic>> priceListData = [];
-    try {
-    //  for (String plCode in priceLists) {
-        final response = await http.get(Uri.parse('${apiurl}getPriceList'));
-         //   await http.get(Uri.parse('${apiurl}getPriceList?plCode=$plCode'));
-         print(response.body);
-         print('hjjjj');
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each item to the priceListData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                priceListData.add(item);
-              }
-            }
-          } else if (responseData is Map<String, dynamic>) {
-            // If the response is a map, directly append it to the priceListData list
-            priceListData.add(responseData);
-          } else {
-            print('Invalid response format for plCode ');
-          }
-        } else {
-          print(
-              'Failed to retrieve price list data for plCode : ${response.statusCode}');
-        }
-   //   }
-    } catch (e) {
-      print('Error fetching price list data: $e');
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemPrice'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // Extract price list codes from the response
+        priceLists = responseData.map((item) => item['plCode'].toString()).toList();
+      } else {
+        print('Invalid response format for price list codes data');
+      }
+    } else {
+      print('Failed to retrieve price list codes data: ${response.statusCode}');
     }
-    return priceListData;
+  } catch (e) {
+    print('Error retrieving price list codes: $e');
   }
+  return priceLists;
+}
+
+Future<List<Map<String, dynamic>>> _fetchPriceListData(List<String> priceLists) async {
+  List<Map<String, dynamic>> priceListData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'priceLists': priceLists,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getPriceList'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each item to the priceListData list
+        priceListData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, directly append it to the priceListData list
+        priceListData.add(responseData);
+      } else {
+        print('Invalid response format for price list data');
+      }
+    } else {
+      print('Failed to retrieve price list data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching price list data: $e');
+  }
+  return priceListData;
+}
+
 
   Future<void> synchronizeDataPriceLists(List<String> priceLists) async {
     try {
@@ -364,38 +393,42 @@ print(pricelistsBox.values.toList());
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-  Future<List<Map<String, dynamic>>> _fetchItemPricesData(
-      List<String> itemCodes) async {
-    List<Map<String, dynamic>> itemPricesData = [];
-    try {
-      for (String itemCode in itemCodes) {
-        final response = await http
-            .get(Uri.parse('${apiurl}getItemPrice?itemCode=$itemCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each item price to the itemPricesData list
-            for (var itemPrice in responseData) {
-              if (itemPrice is Map<String, dynamic>) {
-                itemPricesData.add(itemPrice);
-              }
-            }
-          } else if (responseData is Map<String, dynamic>) {
-            // If the response is a map, directly append it to the itemPricesData list
-            itemPricesData.add(responseData);
-          } else {
-            print('Invalid response format for item code $itemCode');
-          }
-        } else {
-          print(
-              'Failed to retrieve item prices for item code $itemCode: ${response.statusCode}');
-        }
+ Future<List<Map<String, dynamic>>> _fetchItemPricesData(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemPricesData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'itemCodes': itemCodes,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemPrice'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each item price to the itemPricesData list
+        itemPricesData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, directly append it to the itemPricesData list
+        itemPricesData.add(responseData);
+      } else {
+        print('Invalid response format for item prices data');
       }
-    } catch (e) {
-      print('Error fetching item prices data: $e');
+    } else {
+      print('Failed to retrieve item prices data: ${response.statusCode}');
     }
-    return itemPricesData;
+  } catch (e) {
+    print('Error fetching item prices data: $e');
   }
+  return itemPricesData;
+}
 
   Future<void> synchronizeDataItemPrice(List<String> itemCodes) async {
     try {
@@ -464,38 +497,43 @@ Future<void> _synchronizeItemPrice(
 
 //---------------------------------------
 
-  Future<List<Map<String, dynamic>>> _fetchItemAttachData(
-      List<String> itemCodes) async {
-    List<Map<String, dynamic>> itemAttachData = [];
-    try {
-      for (String itemCode in itemCodes) {
-        final response = await http
-            .get(Uri.parse('${apiurl}getItemAttach?itemCode=$itemCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each item attach data to the itemAttachData list
-            for (var itemAttach in responseData) {
-              if (itemAttach is Map<String, dynamic>) {
-                itemAttachData.add(itemAttach);
-              }
-            }
-          } else if (responseData is Map<String, dynamic>) {
-            // If the response is a map, directly append it to the itemAttachData list
-            itemAttachData.add(responseData);
-          } else {
-            print('Invalid response format for item code $itemCode');
-          }
-        } else {
-          print(
-              'Failed to retrieve item attach for item code $itemCode: ${response.statusCode}');
-        }
+ Future<List<Map<String, dynamic>>> _fetchItemAttachData(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemAttachData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'itemCodes': itemCodes,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemAttach'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each item attach data to the itemAttachData list
+        itemAttachData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, directly append it to the itemAttachData list
+        itemAttachData.add(responseData);
+      } else {
+        print('Invalid response format for item attach data');
       }
-    } catch (e) {
-      print('Error fetching item attach data: $e');
+    } else {
+      print('Failed to retrieve item attach data: ${response.statusCode}');
     }
-    return itemAttachData;
+  } catch (e) {
+    print('Error fetching item attach data: $e');
   }
+  return itemAttachData;
+}
+
 
   Future<void> synchronizeDataItemAttach(List<String> itemCodes) async {
     try {
@@ -561,67 +599,75 @@ Future<void> _synchronizeItemAttach(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-  Future<List<String>> retrieveItemGroupCodes(List<String> seCodes,String cmpCode) async {
-    List<String> itemGroupCodes = [];
-    try {
-      for (String seCode in seCodes) {
-        // Make API call to retrieve item group codes for the given sales employee code
-        var response = await http.get(
-            Uri.parse('${apiurl}getSalesEmployeesItemsGroups?seCode=$seCode&cmpCode=$cmpCode'));
-        if (response.statusCode == 200) {
-          // Parse the response data
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                itemGroupCodes.add(item['groupCode']);
-              }
-            }
-          } else {
-            print('Invalid response format for item group codes');
-          }
-        } else {
-          print('Failed to retrieve item group codes: ${response.statusCode}');
-        }
-      }
-    } catch (e) {
-      print('Error retrieving item group codes: $e');
-    }
-    return itemGroupCodes;
-  }
+ Future<List<String>> retrieveItemGroupCodes(List<String> seCodes, String cmpCode) async {
+  List<String> itemGroupCodes = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode': cmpCode,
+    };
 
-  Future<List<Map<String, dynamic>>> _fetchItemGroupData(
-      List<String> itemGroupCodes) async {
-    List<Map<String, dynamic>> itemGroupData = [];
-    try {
-      for (String groupCode in itemGroupCodes) {
-        final response = //await http.get(Uri.parse('${apiurl}getItemGroup'));
-          await http.get(Uri.parse('${apiurl}getItemGroup?groupCode=$groupCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each item group data to the itemGroupData list
-            for (var itemGroup in responseData) {
-              if (itemGroup is Map<String, dynamic>) {
-                itemGroupData.add(itemGroup);
-              }
-            }
-          } else if (responseData is Map<String, dynamic>) {
-            // If the response is a map, directly append it to the itemGroupData list
-            itemGroupData.add(responseData);
-          } else {
-            print('Invalid response format for group code $groupCode');
-          }
-        } else {
-          print(
-              'Failed to retrieve item group for group code $groupCode: ${response.statusCode}');
-        }
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesItemsGroups'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // Extract item group codes from the response
+        itemGroupCodes = responseData.map((item) => item['groupCode'].toString()).toList();
+      } else {
+        print('Invalid response format for item group codes data');
       }
-    } catch (e) {
-      print('Error fetching item group data: $e');
+    } else {
+      print('Failed to retrieve item group codes data: ${response.statusCode}');
     }
-    return itemGroupData;
+  } catch (e) {
+    print('Error retrieving item group codes: $e');
   }
+  return itemGroupCodes;
+}
+Future<List<Map<String, dynamic>>> _fetchItemGroupData(List<String> groupCodes) async {
+  List<Map<String, dynamic>> itemGroupData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'groupCodes': groupCodes,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemGroup'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each item group data to the itemGroupData list
+        itemGroupData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, directly append it to the itemGroupData list
+        itemGroupData.add(responseData);
+      } else {
+        print('Invalid response format for item group data');
+      }
+    } else {
+      print('Failed to retrieve item group data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching item group data: $e');
+  }
+  return itemGroupData;
+}
 
   Future<void> synchronizeDataItemGroup(List<String> itemGroupCodes) async {
     try {
@@ -687,69 +733,77 @@ Future<void> _synchronizeItemGroup(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
+Future<List<String>> retrieveItemCateg(List<String> seCodes, String cmpCode) async {
+  List<String> itemCategCodes = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode': cmpCode,
+    };
 
-  Future<List<String>> retrieveItemCateg(List<String> seCodes,String cmpCode) async {
-    List<String> itemCategCodes = [];
-    try {
-      for (String seCode in seCodes) {
-        // Make API call to retrieve item category codes for the given sales employee code
-        var response = await http.get(Uri.parse(
-            '${apiurl}getSalesEmployeesItemsCategories?seCode=$seCode&cmpCode=$cmpCode'));
-        if (response.statusCode == 200) {
-          // Parse the response data
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                itemCategCodes.add(item['categCode']);
-              }
-            }
-          } else {
-            print('Invalid response format for item category codes');
-          }
-        } else {
-          print(
-              'Failed to retrieve item category codes: ${response.statusCode}');
-        }
-      }
-    } catch (e) {
-      print('Error retrieving item category codes: $e');
-    }
-    return itemCategCodes;
-  }
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesItemsCategories'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
 
-  Future<List<Map<String, dynamic>>> _fetchItemCategData(
-      List<String> itemCateg) async {
-    List<Map<String, dynamic>> itemCategData = [];
-    try {
-      for (String categCode in itemCateg) {
-        final response =//await http.get(Uri.parse('${apiurl}getItemCateg'));
-            await http.get(Uri.parse('${apiurl}getItemCateg?categCode=$categCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each item categ data to the itemCategData list
-            for (var itemCateg in responseData) {
-              if (itemCateg is Map<String, dynamic>) {
-                itemCategData.add(itemCateg);
-              }
-            }
-          } else if (responseData is Map<String, dynamic>) {
-            // If the response is a map, directly append it to the itemCategData list
-            itemCategData.add(responseData);
-          } else {
-            print('Invalid response format for category code $categCode');
-          }
-        } else {
-          print(
-              'Failed to retrieve item category for category code $categCode: ${response.statusCode}');
-        }
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // Extract item category codes from the response
+        itemCategCodes = responseData.map((item) => item['categCode'].toString()).toList();
+      } else {
+        print('Invalid response format for item category codes data');
       }
-    } catch (e) {
-      print('Error fetching item category data: $e');
+    } else {
+      print('Failed to retrieve item category codes data: ${response.statusCode}');
     }
-    return itemCategData;
+  } catch (e) {
+    print('Error retrieving item category codes: $e');
   }
+  return itemCategCodes;
+}
+
+Future<List<Map<String, dynamic>>> _fetchItemCategData(List<String> itemCateg) async {
+  List<Map<String, dynamic>> itemCategData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'itemCateg': itemCateg,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemCateg'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each item category data to the itemCategData list
+        itemCategData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, directly append it to the itemCategData list
+        itemCategData.add(responseData);
+      } else {
+        print('Invalid response format for item category data');
+      }
+    } else {
+      print('Failed to retrieve item category data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching item category data: $e');
+  }
+  return itemCategData;
+}
+
 
   Future<void> synchronizeDataItemCateg(List<String> itemCateg) async {
     try {
@@ -814,68 +868,77 @@ Future<void> _synchronizeItemCateg(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
+Future<List<String>> retrieveItemBrand(List<String> seCodes, String cmpCode) async {
+  List<String> itemBrandCodes = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode': cmpCode,
+    };
 
-  Future<List<String>> retrieveItemBrand(List<String> seCodes,String cmpCode) async {
-    List<String> itemBrandCodes = [];
-    try {
-      for (String seCode in seCodes) {
-        // Make API call to retrieve item brand codes for the given sales employee code
-        var response = await http.get(
-            Uri.parse('${apiurl}getSalesEmployeesItemsBrands?seCode=$seCode&cmpCode=$cmpCode'));
-        if (response.statusCode == 200) {
-          // Parse the response data
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                itemBrandCodes.add(item['brandCode']);
-              }
-            }
-          } else {
-            print('Invalid response format for item brand codes');
-          }
-        } else {
-          print('Failed to retrieve item brand codes: ${response.statusCode}');
-        }
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesItemsBrands'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+print(response.body);
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+      if (responseData is List) {
+        // Extract item brand codes from the response
+        itemBrandCodes = responseData.map((item) => item['brandCode'].toString()).toList();
+      } else {
+        print('Invalid response format for item brand codes data');
       }
-    } catch (e) {
-      print('Error retrieving item brand codes: $e');
+    } else {
+      print('Failed to retrieve item brand codes data: ${response.statusCode}');
     }
-    return itemBrandCodes;
+  } catch (e) {
+    print('Error retrieving item brand codes: $e');
   }
+  return itemBrandCodes;
+}
 
-  Future<List<Map<String, dynamic>>> _fetchItemBrandData(
-      List<String> itemBrand) async {
-    List<Map<String, dynamic>> itemBrandData = [];
-    try {
-      for (String brandCode in itemBrand) {
-        final response = //await http .get(Uri.parse('${apiurl}getItemBrand'));
-            await http .get(Uri.parse('${apiurl}getItemBrand?brandCode=$brandCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each item brand data to the itemBrandData list
-            for (var itemBrand in responseData) {
-              if (itemBrand is Map<String, dynamic>) {
-                itemBrandData.add(itemBrand);
-              }
-            }
-          } else if (responseData is Map<String, dynamic>) {
-            // If the response is a map, directly append it to the itemBrandData list
-            itemBrandData.add(responseData);
-          } else {
-            print('Invalid response format for brand code $brandCode');
-          }
-        } else {
-          print(
-              'Failed to retrieve item brand for brand code $brandCode: ${response.statusCode}');
-        }
+Future<List<Map<String, dynamic>>> _fetchItemBrandData(List<String> brandCode) async {
+  List<Map<String, dynamic>> itemBrandData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'brandCode': brandCode,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemBrand'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each item brand data to the itemBrandData list
+        itemBrandData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, directly append it to the itemBrandData list
+        itemBrandData.add(responseData);
+      } else {
+        print('Invalid response format for item brand data');
       }
-    } catch (e) {
-      print('Error fetching item brand data: $e');
+    } else {
+      print('Failed to retrieve item brand data: ${response.statusCode}');
     }
-    return itemBrandData;
+  } catch (e) {
+    print('Error fetching item brand data: $e');
   }
+  return itemBrandData;
+}
+
 
   Future<void> synchronizeDataItemBrand(List<String> itemBrand) async {
     try {
@@ -939,39 +1002,43 @@ Future<void> _synchronizeItemBrand(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
+Future<List<Map<String, dynamic>>> _fetchItemUOMData(List<String> itemCodes) async {
+  List<Map<String, dynamic>> itemUOMData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'itemCodes': itemCodes,
+    };
 
-  Future<List<Map<String, dynamic>>> _fetchItemUOMData(
-      List<String> itemCodes) async {
-    List<Map<String, dynamic>> itemUOMData = [];
-    try {
-      for (String itemCode in itemCodes) {
-        final response =//await http.get(Uri.parse('${apiurl}getItemUOM'));
-            await http.get(Uri.parse('${apiurl}getItemUOM?itemCode=$itemCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each item UOM data to the itemUOMData list
-            for (var itemUOM in responseData) {
-              if (itemUOM is Map<String, dynamic>) {
-                itemUOMData.add(itemUOM);
-              }
-            }
-          } else if (responseData is Map<String, dynamic>) {
-            // If the response is a map, directly append it to the itemUOMData list
-            itemUOMData.add(responseData);
-          } else {
-            print('Invalid response format for item code $itemCode');
-          }
-        } else {
-          print(
-              'Failed to retrieve item UOM for item code $itemCode: ${response.statusCode}');
-        }
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemUOM'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each item UOM data to the itemUOMData list
+        itemUOMData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, directly append it to the itemUOMData list
+        itemUOMData.add(responseData);
+      } else {
+        print('Invalid response format for item UOM data');
       }
-    } catch (e) {
-      print('Error fetching item UOM data: $e');
+    } else {
+      print('Failed to retrieve item UOM data: ${response.statusCode}');
     }
-    return itemUOMData;
+  } catch (e) {
+    print('Error fetching item UOM data: $e');
   }
+  return itemUOMData;
+}
+
 
   Future<void> synchronizeDataItemUOM(List<String> itemCodes) async {
     try {
@@ -5840,37 +5907,45 @@ Future<void> _synchronizeCountries(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
+Future<List<Map<String, dynamic>>> _fetchItemManufacturers(String cmpCode) async {
+  List<Map<String, dynamic>> itemManufacturerData = [];
+  // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'cmpCode': cmpCode,
+    };
 
-Future<List<Map<String, dynamic>>> _fetchItemManufacturers() async {
-  List<Map<String, dynamic>> itemmanuData = [];
   try {
-    // Perform HTTP GET request to fetch departments data from the API endpoint
-    final response = await http.get(Uri.parse('${apiurl}getItemManufacturers'));
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemManufacturers'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
     if (response.statusCode == 200) {
+      // Parse the response JSON
       dynamic responseData = jsonDecode(response.body);
+
       if (responseData is List) {
-        // If the response is a list, append each department data to the departmentsData list
-        for (var manuData in responseData) {
-          if (manuData is Map<String, dynamic>) {
-            itemmanuData.add(manuData);
-          }
-        }
+        // If the response is a list, append each item manufacturer data to the itemManufacturerData list
+        itemManufacturerData.addAll(responseData.whereType<Map<String, dynamic>>());
       } else {
-        print('Invalid response format for item manu data');
+        print('Invalid response format for item manufacturer data');
       }
     } else {
-      print('Failed to retrieve item manu data: ${response.statusCode}');
+      print('Failed to retrieve item manufacturer data: ${response.statusCode}');
     }
   } catch (e) {
-    print('Error fetching item manu data: $e');
+    print('Error fetching item manufacturer data: $e');
   }
-  return itemmanuData;
+  return itemManufacturerData;
 }
 
-Future<void> synchronizeItemManu() async {
+
+Future<void> synchronizeItemManu(String cmpCode) async {
   try {
     // Fetch data from API endpoint
-    List<Map<String, dynamic>> apiResponse = await _fetchItemManufacturers();
+    List<Map<String, dynamic>> apiResponse = await _fetchItemManufacturers(cmpCode);
 
     // Open Hive box
     var itemManuBox = await Hive.openBox<ItemManufacturers>('itemManufacturersBox');
@@ -5941,35 +6016,40 @@ Future<void> _synchronizeItemManu(
 
 
 Future<List<Map<String, dynamic>>> _fetchItemBarcode(List<String> itemCodes) async {
-  List<Map<String, dynamic>> itembarcodeData = [];
+  List<Map<String, dynamic>> itemBarcodeData = [];
   try {
-    // Perform HTTP GET request to fetch departments data from the API endpoint
-        for (String itemCode in itemCodes) {
-    final response = await http.get(Uri.parse('${apiurl}getItemBarCode?itemCode=$itemCode'));
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'itemCodes': itemCodes,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemBarCode'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
     if (response.statusCode == 200) {
+      // Parse the response JSON
       dynamic responseData = jsonDecode(response.body);
+
       if (responseData is List) {
-        // If the response is a list, append each department data to the departmentsData list
-        for (var barcodeData in responseData) {
-          if (barcodeData is Map<String, dynamic>) {
-            itembarcodeData.add(barcodeData);
-          }
-        }
-      }
-      else if (responseData is Map<String, dynamic>) {
-          // If the response is a map, directly append it to the itemUOMData list
-          itembarcodeData.add(responseData);
-        } else {
-          print('Invalid response format for item barcode $itemCode');
-        }
+        // If the response is a list, append each item barcode data to the itemBarcodeData list
+        itemBarcodeData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else if (responseData is Map<String, dynamic>) {
+        // If the response is a map, directly append it to the itemBarcodeData list
+        itemBarcodeData.add(responseData);
       } else {
-        print('Failed to retrieve item UOM for item barcode $itemCode: ${response.statusCode}');
+        print('Invalid response format for item barcode data');
       }
-        }
+    } else {
+      print('Failed to retrieve item barcode data: ${response.statusCode}');
+    }
   } catch (e) {
-    print('Error fetching item barcode  data: $e');
+    print('Error fetching item barcode data: $e');
   }
-  return itembarcodeData;
+  return itemBarcodeData;
 }
 
 Future<void> synchronizeItemBarcode(List<String> itemCodes) async {
@@ -6046,34 +6126,41 @@ Future<void> _synchronizeItemBarcode(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-Future<List<Map<String, dynamic>>> _fetchItemProps(List<String>itemCodes, List<String>propCodes) async {
+Future<List<Map<String, dynamic>>> _fetchItemProps(List<String> itemCodes, List<String> propCodes) async {
   List<Map<String, dynamic>> itemPropsData = [];
   try {
-    // Perform HTTP GET request to fetch item properties data from the API endpoint
-        for (String itemCode in itemCodes) {
-      for (String propCode in propCodes) {
-    final response = await http.get(Uri.parse('${apiurl}getItemProps?itemCode=$itemCode&propCode=$propCode'));
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'itemCodes': itemCodes,
+      'propCodes': propCodes,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemProps'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
     if (response.statusCode == 200) {
+      // Parse the response JSON
       dynamic responseData = jsonDecode(response.body);
+
       if (responseData is List) {
         // If the response is a list, append each item property data to the itemPropsData list
-        for (var propData in responseData) {
-          if (propData is Map<String, dynamic>) {
-            itemPropsData.add(propData);
-          }
-        }
+        itemPropsData.addAll(responseData.whereType<Map<String, dynamic>>());
       } else {
         print('Invalid response format for item prop data');
       }
     } else {
       print('Failed to retrieve item prop data: ${response.statusCode}');
     }
-      }}
   } catch (e) {
     print('Error fetching item prop data: $e');
   }
   return itemPropsData;
 }
+
 
 Future<void> synchronizeItemProps(List<String> itemCodes,List<String>propCodes) async {
   try {
