@@ -76,11 +76,11 @@ class DataSynchronizerFromFirebaseToHive {
 String apiurl='http://5.189.188.139:8080/api/';
    TimeOfDay noTime = TimeOfDay(hour: 0, minute: 0);
 
-Future<List<String>> retrieveSeCodes(String usercode) async {
+Future<List<String>> retrieveSeCodes(String usercode, String cmpCode) async {
   List<String> seCodes = [];
   try {
     // Send HTTP GET request to fetch seCodes from the server
-    final response = await http.get(Uri.parse('${apiurl}getSeCodes?usercode=$usercode'));
+    final response = await http.get(Uri.parse('${apiurl}getSeCodes?usercode=$usercode&cmpCode=$cmpCode'));
     if (response.statusCode == 200) {
       // Parse response body and extract seCodes
       // Adjust this part based on your server's response format
@@ -97,6 +97,7 @@ Future<List<String>> retrieveSeCodes(String usercode) async {
   } catch (e) {
     print('Error retrieving seCodes: $e');
   }
+  print(seCodes);
   return seCodes;
 }
 
@@ -135,12 +136,13 @@ Future<List<String>> retrieveSeCodes(String usercode) async {
   return itemCodes;
 }
 
-Future<List<Map<String, dynamic>>> _fetchItemsData(List<String> itemCodes) async {
+Future<List<Map<String, dynamic>>> _fetchItemsData(List<String> itemCodes, String cmpCode) async {
   List<Map<String, dynamic>> itemsData = [];
   try {
     // Prepare the request body
     Map<String, dynamic> requestBody = {
       'itemCodes': itemCodes,
+      'cmpCode': cmpCode
     };
 
     // Make a POST request with the request body
@@ -169,22 +171,25 @@ print(response.body);
   } catch (e) {
     print('Error fetching item data: $e');
   }
+  print('##################');
+  print(itemsData);
   return itemsData;
 }
 
 
 
-  Future<void> synchronizeData(List<String> itemCodes) async {
+  Future<void> synchronizeData(List<String> itemCodes, String cmpCode) async {
     try {
       // Open Hive boxes
       var itemsBox = await Hive.openBox<Items>('items');
       // Open other boxes if needed
 
       // Fetch data from API endpoints
-      List<dynamic> itemsData = await _fetchItemsData(itemCodes);
-
+      List<dynamic> itemsData = await _fetchItemsData(itemCodes,cmpCode);
+print('&&&&&&&&&&&&&&&&');
+print(itemsData);
       // Synchronize data
-      await _synchronizeItems(itemsData, itemsBox);
+      await _synchronizeItems(itemsData, itemsBox,cmpCode);
       // Synchronize other data if needed
 
       // Close other boxes if needed
@@ -193,7 +198,7 @@ print(response.body);
     }
   }
 Future<void> _synchronizeItems(
-    List<dynamic> itemsData, Box<Items> itemsBox) async {
+    List<dynamic> itemsData, Box<Items> itemsBox, String cmpCode) async {
   try {
     List<Items> itemsToUpdate = [];
     List<String> itemsToDelete = [];
@@ -235,7 +240,7 @@ Future<void> _synchronizeItems(
 
     // Delete items not present in the updated data
     Set<String> updatedItemCodes = itemsToUpdate.map((item) => '${item.itemCode}${item.cmpCode}').toSet();
-    itemsBox.keys.where((itemCode) => !updatedItemCodes.contains(itemCode)).forEach((itemCode) {
+    itemsBox.keys.where((itemCode) => !updatedItemCodes.contains(itemCode) && itemCode.startsWith(cmpCode)).forEach((itemCode) {
       itemsToDelete.add(itemCode);
     });
     await itemsBox.deleteAll(itemsToDelete);
@@ -285,12 +290,13 @@ Future<void> _synchronizeItems(
   return priceLists;
 }
 
-Future<List<Map<String, dynamic>>> _fetchPriceListData(List<String> priceLists) async {
+Future<List<Map<String, dynamic>>> _fetchPriceListData(List<String> priceLists,String cmpCode) async {
   List<Map<String, dynamic>> priceListData = [];
   try {
     // Prepare the request body
     Map<String, dynamic> requestBody = {
       'priceLists': priceLists,
+      'cmpCode': cmpCode
     };
 
     // Make a POST request with the request body
@@ -323,7 +329,7 @@ Future<List<Map<String, dynamic>>> _fetchPriceListData(List<String> priceLists) 
 }
 
 
-  Future<void> synchronizeDataPriceLists(List<String> priceLists) async {
+  Future<void> synchronizeDataPriceLists(List<String> priceLists,String cmpCode) async {
     try {
       // Open Hive boxes
       var pricelistsBox = await Hive.openBox<PriceList>('pricelists');
@@ -331,10 +337,10 @@ Future<List<Map<String, dynamic>>> _fetchPriceListData(List<String> priceLists) 
 
       // Fetch data from API endpoints
       List<Map<String, dynamic>> priceListData =
-          await _fetchPriceListData(priceLists);
+          await _fetchPriceListData(priceLists,cmpCode);
 
       // Synchronize data
-      await _synchronizePriceList(priceListData, pricelistsBox);
+      await _synchronizePriceList(priceListData, pricelistsBox,cmpCode);
       // Synchronize other data if needed
 
       // Close Hive boxes
@@ -348,6 +354,7 @@ Future<List<Map<String, dynamic>>> _fetchPriceListData(List<String> priceLists) 
 Future<void> _synchronizePriceList(
   List<Map<String, dynamic>> priceListData,
   Box<PriceList> pricelistsBox,
+  String cmpCode
 ) async {
   try {
     List<PriceList> priceListsToUpdate = [];
@@ -379,7 +386,7 @@ print('%%%%%');
 print(pricelistsBox.values.toList());
     // Delete price lists not present in the updated data
     Set<String> updatedPriceListCodes = priceListsToUpdate.map((priceList) => '${priceList.plCode}${priceList.cmpCode}').toSet();
-    pricelistsBox.keys.where((plCode) => !updatedPriceListCodes.contains(plCode)).forEach((plCode) {
+    pricelistsBox.keys.where((plCode) => !updatedPriceListCodes.contains(plCode) && plCode.startsWith(cmpCode)).forEach((plCode) {
       priceListsToDelete.add(plCode);
     });
     await pricelistsBox.deleteAll(priceListsToDelete);
@@ -393,12 +400,13 @@ print(pricelistsBox.values.toList());
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
- Future<List<Map<String, dynamic>>> _fetchItemPricesData(List<String> itemCodes) async {
+ Future<List<Map<String, dynamic>>> _fetchItemPricesData(List<String> itemCodes, String cmpCode) async {
   List<Map<String, dynamic>> itemPricesData = [];
   try {
     // Prepare the request body
     Map<String, dynamic> requestBody = {
       'itemCodes': itemCodes,
+      'cmpCode': cmpCode
     };
 
     // Make a POST request with the request body
@@ -430,7 +438,7 @@ print(pricelistsBox.values.toList());
   return itemPricesData;
 }
 
-  Future<void> synchronizeDataItemPrice(List<String> itemCodes) async {
+  Future<void> synchronizeDataItemPrice(List<String> itemCodes , String cmpCode) async {
     try {
       // Open Hive boxes
       var itempriceBox = await Hive.openBox<ItemsPrices>('itemprices');
@@ -438,10 +446,10 @@ print(pricelistsBox.values.toList());
 
       // Fetch data from API endpoints
       List<Map<String, dynamic>> itemPricesData =
-          await _fetchItemPricesData(itemCodes);
+          await _fetchItemPricesData(itemCodes , cmpCode);
 
       // Synchronize data
-      await _synchronizeItemPrice(itemPricesData, itempriceBox);
+      await _synchronizeItemPrice(itemPricesData, itempriceBox,cmpCode);
       // Synchronize other data if needed
 
       // Close Hive boxes
@@ -454,6 +462,7 @@ print(pricelistsBox.values.toList());
 Future<void> _synchronizeItemPrice(
   List<Map<String, dynamic>> itemPricesData,
   Box<ItemsPrices> itempriceBox,
+  String cmpCode
 ) async {
   try {
     List<ItemsPrices> itemPricesToUpdate = [];
@@ -485,7 +494,7 @@ Future<void> _synchronizeItemPrice(
 
     // Delete item prices not present in the updated data
     Set<String> updatedItemPriceKeys = itemPricesToUpdate.map((itemPrice) => '${itemPrice.plCode}${itemPrice.itemCode}${itemPrice.cmpCode}').toSet();
-    itempriceBox.keys.where((itemPriceKey) => !updatedItemPriceKeys.contains(itemPriceKey)).forEach((itemPriceKey) {
+    itempriceBox.keys.where((itemPriceKey) => !updatedItemPriceKeys.contains(itemPriceKey) && itemPriceKey.startsWith(cmpCode)).forEach((itemPriceKey) {
       itemPricesToDelete.add(itemPriceKey);
     });
     await itempriceBox.deleteAll(itemPricesToDelete);
@@ -497,12 +506,13 @@ Future<void> _synchronizeItemPrice(
 
 //---------------------------------------
 
- Future<List<Map<String, dynamic>>> _fetchItemAttachData(List<String> itemCodes) async {
+ Future<List<Map<String, dynamic>>> _fetchItemAttachData(List<String> itemCodes, String cmpCode) async {
   List<Map<String, dynamic>> itemAttachData = [];
   try {
     // Prepare the request body
     Map<String, dynamic> requestBody = {
       'itemCodes': itemCodes,
+      'cmpCode': cmpCode
     };
 
     // Make a POST request with the request body
@@ -535,18 +545,18 @@ Future<void> _synchronizeItemPrice(
 }
 
 
-  Future<void> synchronizeDataItemAttach(List<String> itemCodes) async {
+  Future<void> synchronizeDataItemAttach(List<String> itemCodes,String cmpCode) async {
     try {
       // Fetch data from API endpoints
       List<Map<String, dynamic>> apiResponse =
-          await _fetchItemAttachData(itemCodes);
+          await _fetchItemAttachData(itemCodes,cmpCode);
 
       // Open Hive boxes
       var itemattachBox = await Hive.openBox<ItemAttach>('itemattach');
       // Open other boxes if needed
 
       // Synchronize data
-      await _synchronizeItemAttach(apiResponse, itemattachBox);
+      await _synchronizeItemAttach(apiResponse, itemattachBox,cmpCode);
       // Synchronize other data if needed
 
     // Close Hive boxes
@@ -560,6 +570,7 @@ Future<void> _synchronizeItemPrice(
 Future<void> _synchronizeItemAttach(
   List<Map<String, dynamic>> itemAttachData,
   Box<ItemAttach> itemattachBox,
+  String cmpCode
 ) async {
   try {
     List<ItemAttach> itemAttachsToUpdate = [];
@@ -585,7 +596,7 @@ Future<void> _synchronizeItemAttach(
 
     // Delete item attachments not present in the updated data
     Set<String> updatedItemAttachCodes = itemAttachsToUpdate.map((itemAttach) => '${itemAttach.itemCode}${itemAttach.cmpCode}').toSet();
-    itemattachBox.keys.where((itemAttachCode) => !updatedItemAttachCodes.contains(itemAttachCode)).forEach((itemAttachCode) {
+    itemattachBox.keys.where((itemAttachCode) => !updatedItemAttachCodes.contains(itemAttachCode) && itemAttachCode.startsWith(cmpCode)).forEach((itemAttachCode) {
       itemAttachsToDelete.add(itemAttachCode);
     });
     await itemattachBox.deleteAll(itemAttachsToDelete);
@@ -632,12 +643,13 @@ Future<void> _synchronizeItemAttach(
   }
   return itemGroupCodes;
 }
-Future<List<Map<String, dynamic>>> _fetchItemGroupData(List<String> groupCodes) async {
+Future<List<Map<String, dynamic>>> _fetchItemGroupData(List<String> groupCodes, String cmpCode) async {
   List<Map<String, dynamic>> itemGroupData = [];
   try {
     // Prepare the request body
     Map<String, dynamic> requestBody = {
       'groupCodes': groupCodes,
+      'cmpCode': cmpCode
     };
 
     // Make a POST request with the request body
@@ -669,18 +681,18 @@ Future<List<Map<String, dynamic>>> _fetchItemGroupData(List<String> groupCodes) 
   return itemGroupData;
 }
 
-  Future<void> synchronizeDataItemGroup(List<String> itemGroupCodes) async {
+  Future<void> synchronizeDataItemGroup(List<String> itemGroupCodes, String cmpCode) async {
     try {
       // Fetch data from API endpoints
       List<Map<String, dynamic>> apiResponse =
-          await _fetchItemGroupData(itemGroupCodes);
+          await _fetchItemGroupData(itemGroupCodes,cmpCode);
 
       // Open Hive boxes
       var itemgroupBox = await Hive.openBox<ItemGroup>('itemgroup');
       // Open other boxes if needed
 
       // Synchronize data
-      await _synchronizeItemGroup(apiResponse, itemgroupBox);
+      await _synchronizeItemGroup(apiResponse, itemgroupBox,cmpCode);
       // Synchronize other data if needed
 
     // Close Hive boxes
@@ -695,6 +707,7 @@ Future<List<Map<String, dynamic>>> _fetchItemGroupData(List<String> groupCodes) 
 Future<void> _synchronizeItemGroup(
   List<Map<String, dynamic>> itemGroupData,
   Box<ItemGroup> itemgroupBox,
+  String cmpCode
 ) async {
   try {
     List<ItemGroup> itemGroupsToUpdate = [];
@@ -720,7 +733,7 @@ Future<void> _synchronizeItemGroup(
 
     // Delete item groups not present in the updated data
     Set<String> updatedItemGroupCodes = itemGroupsToUpdate.map((itemGroup) => '${itemGroup.groupCode}${itemGroup.cmpCode}').toSet();
-    itemgroupBox.keys.where((itemGroupCode) => !updatedItemGroupCodes.contains(itemGroupCode)).forEach((itemGroupCode) {
+    itemgroupBox.keys.where((itemGroupCode) => !updatedItemGroupCodes.contains(itemGroupCode) && itemGroupCode.startsWith(cmpCode)).forEach((itemGroupCode) {
       itemGroupsToDelete.add(itemGroupCode);
     });
     await itemgroupBox.deleteAll(itemGroupsToDelete);
@@ -767,12 +780,13 @@ Future<List<String>> retrieveItemCateg(List<String> seCodes, String cmpCode) asy
   return itemCategCodes;
 }
 
-Future<List<Map<String, dynamic>>> _fetchItemCategData(List<String> itemCateg) async {
+Future<List<Map<String, dynamic>>> _fetchItemCategData(List<String> itemCateg, String cmpCode) async {
   List<Map<String, dynamic>> itemCategData = [];
   try {
     // Prepare the request body
     Map<String, dynamic> requestBody = {
       'itemCateg': itemCateg,
+      'cmpCode': cmpCode
     };
 
     // Make a POST request with the request body
@@ -805,18 +819,18 @@ Future<List<Map<String, dynamic>>> _fetchItemCategData(List<String> itemCateg) a
 }
 
 
-  Future<void> synchronizeDataItemCateg(List<String> itemCateg) async {
+  Future<void> synchronizeDataItemCateg(List<String> itemCateg, String cmpCode) async {
     try {
       // Fetch data from API endpoints
       List<Map<String, dynamic>> apiResponse =
-          await _fetchItemCategData(itemCateg);
+          await _fetchItemCategData(itemCateg,cmpCode);
 
       // Open Hive boxes
       var itemcategBox = await Hive.openBox<ItemCateg>('itemcateg');
       // Open other boxes if needed
 
       // Synchronize data
-      await _synchronizeItemCateg(apiResponse, itemcategBox);
+      await _synchronizeItemCateg(apiResponse, itemcategBox,cmpCode);
       // Synchronize other data if needed
 
     // Close Hive boxes
@@ -830,6 +844,7 @@ Future<List<Map<String, dynamic>>> _fetchItemCategData(List<String> itemCateg) a
 Future<void> _synchronizeItemCateg(
   List<Map<String, dynamic>> itemCategData,
   Box<ItemCateg> itemcategBox,
+  String cmpCode
 ) async {
   try {
     List<ItemCateg> itemCategsToUpdate = [];
@@ -855,7 +870,7 @@ Future<void> _synchronizeItemCateg(
 
     // Delete item categories not present in the updated data
     Set<String> updatedItemCategCodes = itemCategsToUpdate.map((itemCateg) => '${itemCateg.categCode}${itemCateg.cmpCode}').toSet();
-    itemcategBox.keys.where((itemCategCode) => !updatedItemCategCodes.contains(itemCategCode)).forEach((itemCategCode) {
+    itemcategBox.keys.where((itemCategCode) => !updatedItemCategCodes.contains(itemCategCode) && itemCategCode.startsWith(cmpCode)).forEach((itemCategCode) {
       itemCategsToDelete.add(itemCategCode);
     });
     await itemcategBox.deleteAll(itemCategsToDelete);
@@ -902,12 +917,13 @@ print(response.body);
   return itemBrandCodes;
 }
 
-Future<List<Map<String, dynamic>>> _fetchItemBrandData(List<String> brandCode) async {
+Future<List<Map<String, dynamic>>> _fetchItemBrandData(List<String> brandCode,String cmpCode) async {
   List<Map<String, dynamic>> itemBrandData = [];
   try {
     // Prepare the request body
     Map<String, dynamic> requestBody = {
       'brandCode': brandCode,
+      'cmpCode': cmpCode
     };
 
     // Make a POST request with the request body
@@ -940,18 +956,18 @@ Future<List<Map<String, dynamic>>> _fetchItemBrandData(List<String> brandCode) a
 }
 
 
-  Future<void> synchronizeDataItemBrand(List<String> itemBrand) async {
+  Future<void> synchronizeDataItemBrand(List<String> itemBrand , String cmpCode) async {
     try {
       // Fetch data from API endpoints
       List<Map<String, dynamic>> apiResponse =
-          await _fetchItemBrandData(itemBrand);
+          await _fetchItemBrandData(itemBrand,cmpCode);
 
       // Open Hive boxes
       var itembrandBox = await Hive.openBox<ItemBrand>('itembrand');
       // Open other boxes if needed
 
       // Synchronize data
-      await _synchronizeItemBrand(apiResponse, itembrandBox);
+      await _synchronizeItemBrand(apiResponse, itembrandBox,cmpCode);
       // Synchronize other data if needed
 
     // Close Hive boxes
@@ -965,6 +981,7 @@ Future<List<Map<String, dynamic>>> _fetchItemBrandData(List<String> brandCode) a
 Future<void> _synchronizeItemBrand(
   List<Map<String, dynamic>> itemBrandData,
   Box<ItemBrand> itembrandBox,
+  String cmpCode
 ) async {
   try {
     List<ItemBrand> itemBrandsToUpdate = [];
@@ -990,7 +1007,7 @@ Future<void> _synchronizeItemBrand(
 
     // Delete item brands not present in the updated data
     Set<String> updatedItemBrandCodes = itemBrandsToUpdate.map((itemBrand) => '${itemBrand.brandCode}${itemBrand.cmpCode}').toSet();
-    itembrandBox.keys.where((itemBrandCode) => !updatedItemBrandCodes.contains(itemBrandCode)).forEach((itemBrandCode) {
+    itembrandBox.keys.where((itemBrandCode) => !updatedItemBrandCodes.contains(itemBrandCode) && itemBrandCode.startsWith(cmpCode)).forEach((itemBrandCode) {
       itemBrandsToDelete.add(itemBrandCode);
     });
     await itembrandBox.deleteAll(itemBrandsToDelete);
@@ -1002,12 +1019,13 @@ Future<void> _synchronizeItemBrand(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-Future<List<Map<String, dynamic>>> _fetchItemUOMData(List<String> itemCodes) async {
+Future<List<Map<String, dynamic>>> _fetchItemUOMData(List<String> itemCodes , String cmpCode) async {
   List<Map<String, dynamic>> itemUOMData = [];
   try {
     // Prepare the request body
     Map<String, dynamic> requestBody = {
       'itemCodes': itemCodes,
+      'cmpCode': cmpCode
     };
 
     // Make a POST request with the request body
@@ -1040,18 +1058,18 @@ Future<List<Map<String, dynamic>>> _fetchItemUOMData(List<String> itemCodes) asy
 }
 
 
-  Future<void> synchronizeDataItemUOM(List<String> itemCodes) async {
+  Future<void> synchronizeDataItemUOM(List<String> itemCodes , String cmpCode) async {
     try {
       // Fetch data from API endpoints
       List<Map<String, dynamic>> apiResponse =
-          await _fetchItemUOMData(itemCodes);
+          await _fetchItemUOMData(itemCodes, cmpCode);
 
       // Open Hive boxes
       var itemuomBox = await Hive.openBox<ItemUOM>('itemuom');
       // Open other boxes if needed
 
       // Synchronize data
-      await _synchronizeItemUOM(apiResponse, itemuomBox);
+      await _synchronizeItemUOM(apiResponse, itemuomBox, cmpCode);
       // Synchronize other data if needed
 
     // Close Hive boxes
@@ -1065,6 +1083,7 @@ Future<List<Map<String, dynamic>>> _fetchItemUOMData(List<String> itemCodes) asy
 Future<void> _synchronizeItemUOM(
   List<Map<String, dynamic>> itemUOMData,
   Box<ItemUOM> itemuomBox,
+  String cmpCode
 ) async {
   try {
     List<ItemUOM> itemUOMsToUpdate = [];
@@ -1093,7 +1112,7 @@ Future<void> _synchronizeItemUOM(
 
     // Delete item UOMs not present in the updated data
     Set<String> updatedItemUOMCodes = itemUOMsToUpdate.map((itemUOM) => '${itemUOM.uom}${itemUOM.itemCode}${itemUOM.cmpCode}${itemUOM.docType}').toSet();
-    itemuomBox.keys.where((itemUOMCode) => !updatedItemUOMCodes.contains(itemUOMCode)).forEach((itemUOMCode) {
+    itemuomBox.keys.where((itemUOMCode) => !updatedItemUOMCodes.contains(itemUOMCode) && itemUOMCode.startsWith(cmpCode)).forEach((itemUOMCode) {
       itemUOMsToDelete.add(itemUOMCode);
     });
     await itemuomBox.deleteAll(itemUOMsToDelete);
@@ -2827,36 +2846,40 @@ Future<void> _synchronizePaymentTerms(
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesData(
-      String cmpCode) async {
-    List<Map<String, dynamic>> salesEmployeesData = [];
-    try {
-      // Iterate over each seCode and fetch data for each one
-     
-        final response = await http
-            .get(Uri.parse('${apiurl}getSalesEmployees?cmpCode=$cmpCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each sales employee data to the salesEmployeesData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                salesEmployeesData.add(item);
-              }
-            }
-          } else {
-            print('Invalid response format for sales employees data');
-          }
-        } else {
-          print(
-              'Failed to retrieve sales employees data for seCode $cmpCode: ${response.statusCode}');
-        }
-      
-    } catch (e) {
-      print('Error fetching sales employees data: $e');
+  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesData(String cmpCode) async {
+  List<Map<String, dynamic>> salesEmployeesData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'cmpCode': cmpCode,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployees'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each sales employee data to the salesEmployeesData list
+        salesEmployeesData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else {
+        print('Invalid response format for sales employees data');
+      }
+    } else {
+      print('Failed to retrieve sales employees data: ${response.statusCode}');
     }
-    return salesEmployeesData;
+  } catch (e) {
+    print('Error fetching sales employees data: $e');
   }
+  return salesEmployeesData;
+}
+
 Future<void> _synchronizeSalesEmployees(
   List<Map<String, dynamic>> salesEmployeesData,
   Box<SalesEmployees> salesEmployeesBox,
@@ -2908,11 +2931,11 @@ Future<void> _synchronizeSalesEmployees(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-  Future<void> synchronizeSalesEmployeesCustomers(List<String> seCodes) async {
+  Future<void> synchronizeSalesEmployeesCustomers(List<String> seCodes, String cmpCode) async {
     try {
       // Fetch data from API endpoint using seCodes
       List<Map<String, dynamic>> apiResponse =
-          await _fetchSalesEmployeesCustomersData(seCodes);
+          await _fetchSalesEmployeesCustomersData(seCodes,cmpCode);
 
       // Open Hive box
       var salesEmployeesCustomersBox =
@@ -2928,36 +2951,41 @@ Future<void> _synchronizeSalesEmployees(
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesCustomersData(
-      List<String> seCodes) async {
-    List<Map<String, dynamic>> salesEmployeesCustomersData = [];
-    try {
-      // Iterate over each seCode and fetch data for each one
-      for (String seCode in seCodes) {
-        final response = await http.get(
-            Uri.parse('${apiurl}getSalesEmployeesCustomers?seCode=$seCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each sales employee customer data to the salesEmployeesCustomersData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                salesEmployeesCustomersData.add(item);
-              }
-            }
-          } else {
-            print('Invalid response format for sales employees customers data');
-          }
-        } else {
-          print(
-              'Failed to retrieve sales employees customers data for seCode $seCode: ${response.statusCode}');
-        }
+  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesCustomersData(List<String> seCodes,String cmpCode) async {
+  List<Map<String, dynamic>> salesEmployeesCustomersData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode': cmpCode
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesCustomers'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each sales employee customer data to the salesEmployeesCustomersData list
+        salesEmployeesCustomersData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else {
+        print('Invalid response format for sales employees customers data');
       }
-    } catch (e) {
-      print('Error fetching sales employees customers data: $e');
+    } else {
+      print('Failed to retrieve sales employees customers data: ${response.statusCode}');
     }
-    return salesEmployeesCustomersData;
+  } catch (e) {
+    print('Error fetching sales employees customers data: $e');
   }
+  return salesEmployeesCustomersData;
+}
+
 Future<void> _synchronizeSalesEmployeesCustomers(
   List<Map<String, dynamic>> salesEmployeesCustomersData,
   Box<SalesEmployeesCustomers> salesEmployeesCustomersBox,
@@ -3002,11 +3030,11 @@ Future<void> _synchronizeSalesEmployeesCustomers(
 //-------------------------------------------------------------------------------------------------
 
   Future<void> synchronizeSalesEmployeesDepartments(
-      List<String> seCodes) async {
+      List<String> seCodes,String cmpCode) async {
     try {
       // Fetch data from API endpoint using seCodes
       List<Map<String, dynamic>> apiResponse =
-          await _fetchSalesEmployeesDepartmentsData(seCodes);
+          await _fetchSalesEmployeesDepartmentsData(seCodes,cmpCode);
 
       // Open Hive box
       var salesEmployeesDepartmentsBox =
@@ -3022,37 +3050,40 @@ Future<void> _synchronizeSalesEmployeesCustomers(
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesDepartmentsData(
-      List<String> seCodes) async {
-    List<Map<String, dynamic>> salesEmployeesDepartmentsData = [];
-    try {
-      // Iterate over each seCode and fetch data for each one
-      for (String seCode in seCodes) {
-        final response = await http.get(
-            Uri.parse('${apiurl}getSalesEmployeesDepartments?seCode=$seCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each sales employee department data to the salesEmployeesDepartmentsData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                salesEmployeesDepartmentsData.add(item);
-              }
-            }
-          } else {
-            print(
-                'Invalid response format for sales employees departments data');
-          }
-        } else {
-          print(
-              'Failed to retrieve sales employees departments data for seCode $seCode: ${response.statusCode}');
-        }
+  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesDepartmentsData(List<String> seCodes, String cmpCode) async {
+  List<Map<String, dynamic>> salesEmployeesDepartmentsData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode': cmpCode
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesDepartments'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each sales employee department data to the salesEmployeesDepartmentsData list
+        salesEmployeesDepartmentsData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else {
+        print('Invalid response format for sales employees departments data');
       }
-    } catch (e) {
-      print('Error fetching sales employees departments data: $e');
+    } else {
+      print('Failed to retrieve sales employees departments data: ${response.statusCode}');
     }
-    return salesEmployeesDepartmentsData;
+  } catch (e) {
+    print('Error fetching sales employees departments data: $e');
   }
+  return salesEmployeesDepartmentsData;
+}
 
 Future<void> _synchronizeSalesEmployeesDepartments(
   List<Map<String, dynamic>> salesEmployeesDepartmentsData,
@@ -3071,7 +3102,7 @@ Future<void> _synchronizeSalesEmployeesDepartments(
       var updatedSalesEmployeesDepartments = SalesEmployeesDepartements(
         cmpCode: cmpCode,
         seCode: seCode.toString(),
-        deptCode: deptCode,
+        deptCode: deptCode.toString(),
         reqFromWhsCode: data['reqFromWhsCode'] ?? '',
         notes: data['notes'] ?? '',
       );
@@ -3098,11 +3129,11 @@ Future<void> _synchronizeSalesEmployeesDepartments(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
   Future<void> synchronizeSalesEmployeesItemsBrands(
-      List<String> seCodes) async {
+      List<String> seCodes , String cmpCode) async {
     try {
       // Fetch data from API endpoint using seCodes
       List<Map<String, dynamic>> apiResponse =
-          await _fetchSalesEmployeesItemsBrandsData(seCodes);
+          await _fetchSalesEmployeesItemsBrandsData(seCodes,cmpCode);
 
       // Open Hive box
       var salesEmployeesItemsBrandsBox =
@@ -3115,27 +3146,34 @@ Future<void> _synchronizeSalesEmployeesDepartments(
     print('Error synchronizing data from API to Hive for SalesEmployeesItemsBrands: $e');
   }
 }
-Future<List<Map<String, dynamic>>> _fetchSalesEmployeesItemsBrandsData(List<String> seCodes) async {
+Future<List<Map<String, dynamic>>> _fetchSalesEmployeesItemsBrandsData(List<String> seCodes, String cmpCode) async {
   List<Map<String, dynamic>> salesEmployeesItemsBrandsData = [];
   try {
-    // Iterate over each seCode and fetch data for each one
-    for (String seCode in seCodes) {
-      final response = await http.get(Uri.parse('${apiurl}getSalesEmployeesItemsBrands?seCode=$seCode'));
-      if (response.statusCode == 200) {
-        dynamic responseData = jsonDecode(response.body);
-        if (responseData is List) {
-          // If the response is a list, append each sales employee items brands data to the salesEmployeesItemsBrandsData list
-          for (var item in responseData) {
-            if (item is Map<String, dynamic>) {
-              salesEmployeesItemsBrandsData.add(item);
-            }
-          }
-        } else {
-          print('Invalid response format for sales employees items brands data');
-        }
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode':cmpCode
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesItemsBrands'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each sales employee items brands data to the salesEmployeesItemsBrandsData list
+        salesEmployeesItemsBrandsData.addAll(responseData.whereType<Map<String, dynamic>>());
       } else {
-        print('Failed to retrieve sales employees items brands data for seCode $seCode: ${response.statusCode}');
+        print('Invalid response format for sales employees items brands data');
       }
+    } else {
+      print('Failed to retrieve sales employees items brands data: ${response.statusCode}');
     }
   } catch (e) {
     print('Error fetching sales employees items brands data: $e');
@@ -3188,11 +3226,11 @@ Future<void> _synchronizeSalesEmployeesItemsBrands(
 //-------------------------------------------------------------------------------------------------
 
   Future<void> synchronizeSalesEmployeesItemsCategories(
-      List<String> seCodes) async {
+      List<String> seCodes, String cmpCode) async {
     try {
       // Fetch data from API endpoint using seCodes
       List<Map<String, dynamic>> apiResponse =
-          await _fetchSalesEmployeesItemsCategoriesData(seCodes);
+          await _fetchSalesEmployeesItemsCategoriesData(seCodes,cmpCode);
 
       // Open Hive box
       var salesEmployeesItemsCategoriesBox =
@@ -3208,37 +3246,41 @@ Future<void> _synchronizeSalesEmployeesItemsBrands(
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesItemsCategoriesData(
-      List<String> seCodes) async {
-    List<Map<String, dynamic>> salesEmployeesItemsCategoriesData = [];
-    try {
-      // Iterate over each seCode and fetch data for each one
-      for (String seCode in seCodes) {
-        final response = await http.get(Uri.parse(
-            '${apiurl}getSalesEmployeesItemsCategories?seCode=$seCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each sales employee items categories data to the salesEmployeesItemsCategoriesData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                salesEmployeesItemsCategoriesData.add(item);
-              }
-            }
-          } else {
-            print(
-                'Invalid response format for sales employees items categories data');
-          }
-        } else {
-          print(
-              'Failed to retrieve sales employees items categories data for seCode $seCode: ${response.statusCode}');
-        }
+  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesItemsCategoriesData(List<String> seCodes, String cmpCode) async {
+  List<Map<String, dynamic>> salesEmployeesItemsCategoriesData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode': cmpCode
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesItemsCategories'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each sales employee items categories data to the salesEmployeesItemsCategoriesData list
+        salesEmployeesItemsCategoriesData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else {
+        print('Invalid response format for sales employees items categories data');
       }
-    } catch (e) {
-      print('Error fetching sales employees items categories data: $e');
+    } else {
+      print('Failed to retrieve sales employees items categories data: ${response.statusCode}');
     }
-    return salesEmployeesItemsCategoriesData;
+  } catch (e) {
+    print('Error fetching sales employees items categories data: $e');
   }
+  return salesEmployeesItemsCategoriesData;
+}
+
 Future<void> _synchronizeSalesEmployeesItemsCategories(
   List<Map<String, dynamic>> salesEmployeesItemsCategoriesData,
   Box<SalesEmployeesItemsCategories> salesEmployeesItemsCategoriesBox,
@@ -3282,11 +3324,11 @@ Future<void> _synchronizeSalesEmployeesItemsCategories(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
   Future<void> synchronizeSalesEmployeesItemsGroups(
-      List<String> seCodes) async {
+      List<String> seCodes, String cmpCode) async {
     try {
       // Fetch data from API endpoint using seCodes
       List<Map<String, dynamic>> apiResponse =
-          await _fetchSalesEmployeesItemsGroupsData(seCodes);
+          await _fetchSalesEmployeesItemsGroupsData(seCodes,cmpCode);
 
       // Open Hive box
       var salesEmployeesItemsGroupsBox =
@@ -3302,37 +3344,41 @@ Future<void> _synchronizeSalesEmployeesItemsCategories(
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesItemsGroupsData(
-      List<String> seCodes) async {
-    List<Map<String, dynamic>> salesEmployeesItemsGroupsData = [];
-    try {
-      // Iterate over each seCode and fetch data for each one
-      for (String seCode in seCodes) {
-        final response = await http.get(
-            Uri.parse('${apiurl}getSalesEmployeesItemsGroups?seCode=$seCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each sales employee items groups data to the salesEmployeesItemsGroupsData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                salesEmployeesItemsGroupsData.add(item);
-              }
-            }
-          } else {
-            print(
-                'Invalid response format for sales employees items groups data');
-          }
-        } else {
-          print(
-              'Failed to retrieve sales employees items groups data for seCode $seCode: ${response.statusCode}');
-        }
+  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesItemsGroupsData(List<String> seCodes , String cmpCode) async {
+  List<Map<String, dynamic>> salesEmployeesItemsGroupsData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+      'cmpCode': cmpCode
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesItemsGroups'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each sales employee items groups data to the salesEmployeesItemsGroupsData list
+        salesEmployeesItemsGroupsData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else {
+        print('Invalid response format for sales employees items groups data');
       }
-    } catch (e) {
-      print('Error fetching sales employees items groups data: $e');
+    } else {
+      print('Failed to retrieve sales employees items groups data: ${response.statusCode}');
     }
-    return salesEmployeesItemsGroupsData;
+  } catch (e) {
+    print('Error fetching sales employees items groups data: $e');
   }
+  return salesEmployeesItemsGroupsData;
+}
+
 Future<void> _synchronizeSalesEmployeesItemsGroups(
   List<Map<String, dynamic>> salesEmployeesItemsGroupsData,
   Box<SalesEmployeesItemsGroups> salesEmployeesItemsGroupsBox,
@@ -3395,36 +3441,40 @@ Future<void> _synchronizeSalesEmployeesItemsGroups(
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchSalesEmployeesItemsData(
-      List<String> seCodes) async {
-    List<Map<String, dynamic>> salesEmployeesItemsData = [];
-    try {
-      // Iterate over each seCode and fetch data for each one
-      for (String seCode in seCodes) {
-        final response = await http
-            .get(Uri.parse('${apiurl}getSalesEmployeesItems?seCode=$seCode'));
-        if (response.statusCode == 200) {
-          dynamic responseData = jsonDecode(response.body);
-          if (responseData is List) {
-            // If the response is a list, append each sales employee items data to the salesEmployeesItemsData list
-            for (var item in responseData) {
-              if (item is Map<String, dynamic>) {
-                salesEmployeesItemsData.add(item);
-              }
-            }
-          } else {
-            print('Invalid response format for sales employees items data');
-          }
-        } else {
-          print(
-              'Failed to retrieve sales employees items data for seCode $seCode: ${response.statusCode}');
-        }
+ Future<List<Map<String, dynamic>>> _fetchSalesEmployeesItemsData(List<String> seCodes) async {
+  List<Map<String, dynamic>> salesEmployeesItemsData = [];
+  try {
+    // Prepare the request body
+    Map<String, dynamic> requestBody = {
+      'seCodes': seCodes,
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getSalesEmployeesItems'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response JSON
+      dynamic responseData = jsonDecode(response.body);
+
+      if (responseData is List) {
+        // If the response is a list, append each sales employee items data to the salesEmployeesItemsData list
+        salesEmployeesItemsData.addAll(responseData.whereType<Map<String, dynamic>>());
+      } else {
+        print('Invalid response format for sales employees items data');
       }
-    } catch (e) {
-      print('Error fetching sales employees items data: $e');
+    } else {
+      print('Failed to retrieve sales employees items data: ${response.statusCode}');
     }
-    return salesEmployeesItemsData;
+  } catch (e) {
+    print('Error fetching sales employees items data: $e');
   }
+  return salesEmployeesItemsData;
+}
+
 Future<void> _synchronizeSalesEmployeesItems(
   List<Map<String, dynamic>> salesEmployeesItemsData,
   Box<SalesEmployeesItems> salesEmployeesItemsBox,
@@ -3586,37 +3636,42 @@ print(response.body);
   } catch (e) {
     print('Error retrieving customer codes: $e');
   }
+  print(cmpCode);
+  print(custCodes);
   return custCodes;
 }
 
 
-Future<void> synchronizeCustomers(List<String> custCodes) async {
+Future<void> synchronizeCustomers(List<String> custCodes,String cmpCode) async {
   try {
   
     // Fetch data from API endpoint using custCodes
     //List<Map<String, dynamic>> apiResponse = await _fetchCustomersData(custCodes);
-List<Map<String, dynamic>> apiResponse = await _fetchCustomersData(custCodes);
+List<Map<String, dynamic>> apiResponse = await _fetchCustomersData(custCodes,cmpCode);
     // Open Hive box
     var customersBox = await Hive.openBox<Customers>('customersBox');
 
       // Synchronize data
-      await _synchronizeCustomers(apiResponse, customersBox);
+      await _synchronizeCustomers(apiResponse, customersBox,cmpCode);
     } catch (e) {
       print('Error synchronizing data from API to Hive for Customers: $e');
     }
   }
 
-Future<List<Map<String, dynamic>>> _fetchCustomersData(List<String> custCodes) async {
+Future<List<Map<String, dynamic>>> _fetchCustomersData(List<String> custCodes, String cmpCode) async {
   List<Map<String, dynamic>> customersData = [];
   try {
-    // Convert custCodes to a JSON array
-    String custCodesJson = jsonEncode(custCodes);
+    // Convert custCodes and cmpCode to a JSON object
+    Map<String, dynamic> requestBody = {
+      'custCodes': custCodes,
+      'cmpCode': cmpCode,
+    };
 
-    // Make a POST request with the custCodes in the request body
+    // Make a POST request with the request body
     final response = await http.post(
       Uri.parse('${apiurl}getCustomers'),
       headers: {"Content-Type": "application/json"},
-      body: custCodesJson,
+      body: jsonEncode(requestBody),
     );
 
     if (response.statusCode == 200) {
@@ -3637,9 +3692,11 @@ Future<List<Map<String, dynamic>>> _fetchCustomersData(List<String> custCodes) a
   return customersData;
 }
 
+
 Future<void> _synchronizeCustomers(
   List<Map<String, dynamic>> customersData,
   Box<Customers> customersBox,
+  String cmpCode
 ) async {
   try {
     List<Customers> customersToUpdate = [];
@@ -3686,49 +3743,52 @@ Future<void> _synchronizeCustomers(
     // Batch update customers
     await customersBox.putAll(Map.fromIterable(customersToUpdate, key: (customer) => '${customer.cmpCode}${customer.custCode}'));
 
-    // Delete customers not present in the updated data
-    Set<String> updatedCustomersKeys = customersToUpdate.map((customer) => '${customer.cmpCode}${customer.custCode}').toSet();
-    customersBox.keys.where((customerKey) => !updatedCustomersKeys.contains(customerKey)).forEach((customerKey) {
-      customersToDelete.add(customerKey);
-    });
-    await customersBox.deleteAll(customersToDelete);
+  // Delete customers not present in the updated data for the specific company (cmpCode)
+Set<String> updatedCustomersKeys = customersToUpdate.map((customer) => '${customer.cmpCode}${customer.custCode}').toSet();
+customersBox.keys.where((customerKey) => !updatedCustomersKeys.contains(customerKey) && customerKey.startsWith(cmpCode)).forEach((customerKey) {
+  customersToDelete.add(customerKey);
+});
+await customersBox.deleteAll(customersToDelete);
+
   } catch (e) {
     print('Error synchronizing Customers from API to Hive: $e');
   }
 }
 
-
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-  Future<void> synchronizeCustomerAddresses(List<String> custCodes) async {
+  Future<void> synchronizeCustomerAddresses(List<String> custCodes, String cmpCode) async {
     try {
       // Fetch data from API endpoint
       List<Map<String, dynamic>> apiResponse =
-          await _fetchCustomerAddressesData(custCodes);
+          await _fetchCustomerAddressesData(custCodes,cmpCode);
 
       // Open Hive box
       var addressesBox =
           await Hive.openBox<CustomerAddresses>('customerAddressesBox');
 
       // Synchronize data
-      await _synchronizeCustomerAddresses(apiResponse, addressesBox);
+      await _synchronizeCustomerAddresses(apiResponse, addressesBox,cmpCode);
     } catch (e) {
       print(
           'Error synchronizing data from API to Hive for CustomerAddresses: $e');
     }
   }
-Future<List<Map<String, dynamic>>> _fetchCustomerAddressesData(List<String> custCodes) async {
+Future<List<Map<String, dynamic>>> _fetchCustomerAddressesData(List<String> custCodes,String cmpCode) async {
   List<Map<String, dynamic>> addressesData = [];
   try {
     // Convert custCodes to a JSON array
-    String custCodesJson = jsonEncode(custCodes);
+   Map<String, dynamic> requestBody = {
+      'custCodes': custCodes,
+      'cmpCode': cmpCode,
+    };
 
     // Make a POST request with the custCodes in the request body
     final response = await http.post(
       Uri.parse('${apiurl}getCustomerAddresses'),
       headers: {"Content-Type": "application/json"},
-      body: custCodesJson,
+      body: jsonEncode(requestBody),
     );
 
     if (response.statusCode == 200) {
@@ -3755,6 +3815,7 @@ Future<List<Map<String, dynamic>>> _fetchCustomerAddressesData(List<String> cust
 Future<void> _synchronizeCustomerAddresses(
   List<Map<String, dynamic>> addressesData,
   Box<CustomerAddresses> addressesBox,
+  String cmpCode
 ) async {
   try {
     List<CustomerAddresses> addressesToUpdate = [];
@@ -3794,7 +3855,7 @@ Future<void> _synchronizeCustomerAddresses(
 
     // Delete addresses not present in the updated data
     Set<String> updatedAddressesKeys = addressesToUpdate.map((address) => '${address.cmpCode}${address.addressID}${address.custCode}${address.addressType}').toSet();
-    addressesBox.keys.where((addressKey) => !updatedAddressesKeys.contains(addressKey)).forEach((addressKey) {
+    addressesBox.keys.where((addressKey) => !updatedAddressesKeys.contains(addressKey)&& addressKey.startsWith(cmpCode)).forEach((addressKey) {
       addressesToDelete.add(addressKey);
     });
     await addressesBox.deleteAll(addressesToDelete);
@@ -3807,34 +3868,37 @@ Future<void> _synchronizeCustomerAddresses(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-  Future<void> synchronizeCustomerContacts(List<String> custCodes) async {
+  Future<void> synchronizeCustomerContacts(List<String> custCodes, String cmpCode) async {
     try {
       // Fetch data from API endpoint
       List<Map<String, dynamic>> apiResponse =
-          await _fetchCustomerContactsData(custCodes);
+          await _fetchCustomerContactsData(custCodes,cmpCode);
 
       // Open Hive box
       var contactsBox =
           await Hive.openBox<CustomerContacts>('customerContactsBox');
 
       // Synchronize data
-      await _synchronizeCustomerContacts(apiResponse, contactsBox);
+      await _synchronizeCustomerContacts(apiResponse, contactsBox,cmpCode);
     } catch (e) {
       print(
           'Error synchronizing data from API to Hive for CustomerContacts: $e');
     }
   }
-Future<List<Map<String, dynamic>>> _fetchCustomerContactsData(List<String> custCodes) async {
+Future<List<Map<String, dynamic>>> _fetchCustomerContactsData(List<String> custCodes,String cmpCode) async {
   List<Map<String, dynamic>> contactsData = [];
   try {
     // Convert custCodes to a JSON array
-    String custCodesJson = jsonEncode(custCodes);
+     Map<String, dynamic> requestBody = {
+      'custCodes': custCodes,
+      'cmpCode': cmpCode,
+    };
 
     // Make a POST request with the custCodes in the request body
     final response = await http.post(
       Uri.parse('${apiurl}getCustomerContacts'),
       headers: {"Content-Type": "application/json"},
-      body: custCodesJson,
+      body: jsonEncode(requestBody),
     );
 
     if (response.statusCode == 200) {
@@ -3860,6 +3924,7 @@ Future<List<Map<String, dynamic>>> _fetchCustomerContactsData(List<String> custC
 Future<void> _synchronizeCustomerContacts(
   List<Map<String, dynamic>> contactsData,
   Box<CustomerContacts> contactsBox,
+  String cmpCode
 ) async {
   try {
     List<CustomerContacts> contactsToUpdate = [];
@@ -3892,7 +3957,7 @@ Future<void> _synchronizeCustomerContacts(
 
     // Delete contacts not present in the updated data
     Set<String> updatedContactsKeys = contactsToUpdate.map((contact) => '${contact.cmpCode}${contact.contactID}${contact.custCode}').toSet();
-    contactsBox.keys.where((contactKey) => !updatedContactsKeys.contains(contactKey)).forEach((contactKey) {
+    contactsBox.keys.where((contactKey) => !updatedContactsKeys.contains(contactKey) && contactKey.startsWith(cmpCode)).forEach((contactKey) {
       contactsToDelete.add(contactKey);
     });
     await contactsBox.deleteAll(contactsToDelete);
@@ -3905,35 +3970,38 @@ Future<void> _synchronizeCustomerContacts(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-  Future<void> synchronizeCustomerProperties(List<String> custCodes) async {
+  Future<void> synchronizeCustomerProperties(List<String> custCodes,String cmpCode) async {
     try {
       // Fetch data from API endpoint
       List<Map<String, dynamic>> apiResponse =
-          await _fetchCustomerPropertiesData(custCodes);
+          await _fetchCustomerPropertiesData(custCodes,cmpCode);
 
       // Open Hive box
       var propertiesBox =
           await Hive.openBox<CustomerProperties>('customerPropertiesBox');
 
       // Synchronize data
-      await _synchronizeCustomerProperties(apiResponse, propertiesBox);
+      await _synchronizeCustomerProperties(apiResponse, propertiesBox,cmpCode);
     } catch (e) {
       print(
           'Error synchronizing data from API to Hive for CustomerProperties: $e');
     }
   }
 
- Future<List<Map<String, dynamic>>> _fetchCustomerPropertiesData(List<String> custCodes) async {
+ Future<List<Map<String, dynamic>>> _fetchCustomerPropertiesData(List<String> custCodes,String cmpCode) async {
   List<Map<String, dynamic>> customerPropertiesData = [];
   try {
     // Convert custCodes to a JSON array
-    String custCodesJson = jsonEncode(custCodes);
+    Map<String, dynamic> requestBody = {
+      'custCodes': custCodes,
+      'cmpCode': cmpCode,
+    };
 
     // Make a POST request with the custCodes in the request body
     var response = await http.post(
       Uri.parse('${apiurl}getCustomerProperties'),
       headers: {"Content-Type": "application/json"},
-      body: custCodesJson,
+      body: jsonEncode(requestBody),
     );
 
     if (response.statusCode == 200) {
@@ -3959,6 +4027,7 @@ Future<void> _synchronizeCustomerContacts(
 Future<void> _synchronizeCustomerProperties(
   List<Map<String, dynamic>> customerPropertiesData,
   Box<CustomerProperties> propertiesBox,
+  String cmpCode
 ) async {
   try {
     List<CustomerProperties> propertiesToUpdate = [];
@@ -3985,7 +4054,7 @@ Future<void> _synchronizeCustomerProperties(
 
     // Delete properties not present in the updated data
     Set<String> updatedPropertiesKeys = propertiesToUpdate.map((property) => '${property.cmpCode}${property.propCode}${property.custCode}').toSet();
-    propertiesBox.keys.where((propertyKey) => !updatedPropertiesKeys.contains(propertyKey)).forEach((propertyKey) {
+    propertiesBox.keys.where((propertyKey) => !updatedPropertiesKeys.contains(propertyKey) && propertyKey.startsWith(cmpCode)).forEach((propertyKey) {
       propertiesToDelete.add(propertyKey);
     });
     await propertiesBox.deleteAll(propertiesToDelete);
@@ -3998,34 +4067,37 @@ Future<void> _synchronizeCustomerProperties(
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-  Future<void> synchronizeCustomerAttachments(List<String> custCodes) async {
+  Future<void> synchronizeCustomerAttachments(List<String> custCodes,String cmpCode) async {
     try {
       // Fetch data from API endpoint
       List<Map<String, dynamic>> apiResponse =
-          await _fetchCustomerAttachmentsData(custCodes);
+          await _fetchCustomerAttachmentsData(custCodes,cmpCode);
 
       // Open Hive box
       var attachmentsBox =
           await Hive.openBox<CustomerAttachments>('customerAttachmentsBox');
 
       // Synchronize data
-      await _synchronizeCustomerAttachments(apiResponse, attachmentsBox);
+      await _synchronizeCustomerAttachments(apiResponse, attachmentsBox,cmpCode);
     } catch (e) {
       print(
           'Error synchronizing data from API to Hive for CustomerAttachments: $e');
     }
   }
-Future<List<Map<String, dynamic>>> _fetchCustomerAttachmentsData(List<String> custCodes) async {
+Future<List<Map<String, dynamic>>> _fetchCustomerAttachmentsData(List<String> custCodes,String cmpCode) async {
   List<Map<String, dynamic>> customerAttachmentsData = [];
   try {
     // Convert custCodes to a JSON array
-    String custCodesJson = jsonEncode(custCodes);
+ Map<String, dynamic> requestBody = {
+      'custCodes': custCodes,
+      'cmpCode': cmpCode,
+    };
 
     // Make a POST request with the custCodes in the request body
     var response = await http.post(
       Uri.parse('${apiurl}getCustomerAttachments'),
       headers: {"Content-Type": "application/json"},
-      body: custCodesJson,
+      body: jsonEncode(requestBody),
     );
 
     if (response.statusCode == 200) {
@@ -4051,6 +4123,7 @@ Future<List<Map<String, dynamic>>> _fetchCustomerAttachmentsData(List<String> cu
 Future<void> _synchronizeCustomerAttachments(
   List<Map<String, dynamic>> customerAttachmentsData,
   Box<CustomerAttachments> attachmentsBox,
+  String cmpCode
 ) async {
   try {
     List<CustomerAttachments> attachmentsToUpdate = [];
@@ -4080,7 +4153,7 @@ Future<void> _synchronizeCustomerAttachments(
 
     // Delete attachments not present in the updated data
     Set<String> updatedAttachmentsKeys = attachmentsToUpdate.map((attachment) => '${attachment.cmpCode}${attachment.custCode}').toSet();
-    attachmentsBox.keys.where((attachmentKey) => !updatedAttachmentsKeys.contains(attachmentKey)).forEach((attachmentKey) {
+    attachmentsBox.keys.where((attachmentKey) => !updatedAttachmentsKeys.contains(attachmentKey)&& attachmentKey.startsWith(cmpCode)).forEach((attachmentKey) {
       attachmentsToDelete.add(attachmentKey);
     });
     await attachmentsBox.deleteAll(attachmentsToDelete);

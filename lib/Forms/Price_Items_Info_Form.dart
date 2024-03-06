@@ -15,68 +15,70 @@ class PriceItemsInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-       TextStyle   _appTextStyle = TextStyle(fontSize:appNotifier.fontSize.toDouble());
-        TextStyle   _appTextStyleAppBar = TextStyle(fontSize:appNotifier.fontSize.toDouble());
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.itempricedetails,style: _appTextStyleAppBar,),
-      ),
-      body: Padding(
+  TextStyle _appTextStyle = TextStyle(fontSize: appNotifier.fontSize.toDouble());
+  TextStyle _appTextStyleAppBar = TextStyle(fontSize: appNotifier.fontSize.toDouble());
+  
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(AppLocalizations.of(context)!.itempricedetails, style: _appTextStyleAppBar),
+    ),
+    body: SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ListTile(
               title: Text(AppLocalizations.of(context)!.plcode),
-              subtitle:Text(itemsPrices.plCode ?? 'N/A') ,
+              subtitle: Text(itemsPrices.plCode ?? 'N/A'),
             ),
-              ListTile(
+            ListTile(
               title: Text(AppLocalizations.of(context)!.itemcode),
-              subtitle:Text(itemsPrices.itemCode ?? 'N/A') ,
+              subtitle: Text(itemsPrices.itemCode ?? 'N/A'),
             ),
             ListTile(
               title: Text(AppLocalizations.of(context)!.uom),
-              subtitle:Text(itemsPrices.uom ?? 'N/A') ,
+              subtitle: Text(itemsPrices.uom ?? 'N/A'),
             ),
-              ListTile(
+            ListTile(
               title: Text(AppLocalizations.of(context)!.baseprice),
-              subtitle:Text(itemsPrices.basePrice ?? 'N/A') ,
+              subtitle: Text(itemsPrices.basePrice.toString() ?? 'N/A'),
             ),
-               ListTile(
+            ListTile(
               title: Text(AppLocalizations.of(context)!.currency),
-              subtitle:Text(itemsPrices.currency ?? 'N/A') ,
+              subtitle: Text(itemsPrices.currency.toString() ?? 'N/A'),
             ),
-              ListTile(
+            ListTile(
               title: Text(AppLocalizations.of(context)!.authorizations),
-              subtitle:Text(itemsPrices.auto.toString() ?? 'N/A') ,
+              subtitle: Text(itemsPrices.auto.toString() ?? 'N/A'),
             ),
-             ListTile(
+            ListTile(
               title: Text(AppLocalizations.of(context)!.disc),
-              subtitle:Text(itemsPrices.disc ?? 'N/A') ,
+              subtitle: Text(itemsPrices.disc.toString() ?? 'N/A'),
             ),
-               ListTile(
+            ListTile(
               title: Text(AppLocalizations.of(context)!.price),
-              subtitle:Text(itemsPrices.price ?? 'N/A') ,
+              subtitle: Text(itemsPrices.price.toString() ?? 'N/A'),
             ),
-           
-      
           ],
         ),
       ),
-         floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to AttachementsItemForm when the button is pressed
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AttachementsItemForm(itemCode: itemsPrices.itemCode,appNotifier: appNotifier,),
-            ),
-          );
-        },
-        child: Icon(Icons.attach_file),
-      ),
-    );
-  }
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () {
+        // Navigate to AttachementsItemForm when the button is pressed
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AttachementsItemForm(itemCode: itemsPrices.itemCode, appNotifier: appNotifier),
+          ),
+        );
+      },
+      child: Icon(Icons.attach_file),
+    ),
+  );
+}
+
 
 Widget _buildTitleText(String title, String value) {
   TextStyle _appTextStyle = TextStyle(fontSize: appNotifier.fontSize.toDouble() - 4);

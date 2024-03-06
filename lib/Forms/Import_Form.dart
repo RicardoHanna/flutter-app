@@ -733,7 +733,7 @@ class _ImportFormState extends State<ImportForm> {
     return [];
   }
 
-  Future<void> _synchronizeAll() async {
+ Future<void> _synchronizeAll() async {
     for (var c in checkedCompanies.keys) {
       if (checkedCompanies[c] == true) {
         if (_selectAll) {
@@ -760,6 +760,7 @@ class _ImportFormState extends State<ImportForm> {
     }
   }
 
+
   Future<void> _synchronizeItems(String cmpCode) async {
     TextStyle _appTextStyle =
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
@@ -767,7 +768,7 @@ class _ImportFormState extends State<ImportForm> {
         DataSynchronizerFromFirebaseToHive();
 
     // Step 1: Retrieve seCodes based on widget.usercode from UserSalesEmployees
-    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
+    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode,cmpCode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
     List<String> itemCodes =
@@ -780,13 +781,13 @@ class _ImportFormState extends State<ImportForm> {
         await synchronizer.retrieveItemGroupCodes(seCodes, cmpCode);
 
     // Step 3: Synchronize items based on the retrieved itemCodes
-    await synchronizer.synchronizeData(itemCodes);
-    await synchronizer.synchronizeDataItemAttach(itemCodes);
-    await synchronizer.synchronizeDataItemBrand(brandCode);
-    await synchronizer.synchronizeDataItemCateg(categCode);
-    await synchronizer.synchronizeDataItemGroup(groupCode);
-
-    await synchronizer.synchronizeDataItemUOM(itemCodes);
+    await synchronizer.synchronizeData(itemCodes,cmpCode);
+    await synchronizer.synchronizeDataItemAttach(itemCodes,cmpCode);
+    await synchronizer.synchronizeDataItemBrand(brandCode,cmpCode);
+    await synchronizer.synchronizeDataItemCateg(categCode,cmpCode);
+    await synchronizer.synchronizeDataItemGroup(groupCode,cmpCode);
+await synchronizer.synchronizeDataItemPrice(itemCodes, cmpCode);
+    await synchronizer.synchronizeDataItemUOM(itemCodes,cmpCode);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -803,7 +804,7 @@ class _ImportFormState extends State<ImportForm> {
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     DataSynchronizerFromFirebaseToHive synchronizer =
         DataSynchronizerFromFirebaseToHive();
-    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
+    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode,cmpCode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
     List<String> itemCodes =
@@ -812,7 +813,7 @@ class _ImportFormState extends State<ImportForm> {
     List<String> priceListsCodes =
         await synchronizer.retrievePriceList(itemCodes, cmpCode);
     print(priceListsCodes.toList());
-    await synchronizer.synchronizeDataPriceLists(priceListsCodes);
+    await synchronizer.synchronizeDataPriceLists(priceListsCodes,cmpCode);
     await synchronizer.synchronizeDataPriceListsAutho();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -830,7 +831,7 @@ class _ImportFormState extends State<ImportForm> {
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     DataSynchronizerFromFirebaseToHive synchronizer =
         DataSynchronizerFromFirebaseToHive();
-    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
+    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode,cmpCode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
     List<String> itemCodes =
@@ -860,12 +861,12 @@ class _ImportFormState extends State<ImportForm> {
     await synchronizer.synchronizeWarehouses();
     await synchronizer.synchronizePaymentTerms();
     await synchronizer.synchronizeSalesEmployees(cmpCode);
-    await synchronizer.synchronizeSalesEmployeesCustomers(seCodes);
+    await synchronizer.synchronizeSalesEmployeesCustomers(seCodes,cmpCode);
 
-    await synchronizer.synchronizeSalesEmployeesDepartments(seCodes);
-    await synchronizer.synchronizeSalesEmployeesItemsBrands(seCodes);
-    await synchronizer.synchronizeSalesEmployeesItemsCategories(seCodes);
-    await synchronizer.synchronizeSalesEmployeesItemsGroups(seCodes);
+    await synchronizer.synchronizeSalesEmployeesDepartments(seCodes,cmpCode);
+    await synchronizer.synchronizeSalesEmployeesItemsBrands(seCodes,cmpCode);
+    await synchronizer.synchronizeSalesEmployeesItemsCategories(seCodes,cmpCode);
+    await synchronizer.synchronizeSalesEmployeesItemsGroups(seCodes,cmpCode);
     await synchronizer.synchronizeSalesEmployeesItems(seCodes);
 
     await synchronizer.synchronizeUserSalesEmployees();
@@ -889,7 +890,7 @@ class _ImportFormState extends State<ImportForm> {
         TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     DataSynchronizerFromFirebaseToHive synchronizer =
         DataSynchronizerFromFirebaseToHive();
-    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode);
+    List<String> seCodes = await synchronizer.retrieveSeCodes(widget.usercode,cmpCode);
 
     // Step 2: Retrieve itemCodes based on seCodes from SalesEmployeesItems
   /*  List<String> itemCodes =
@@ -907,12 +908,12 @@ class _ImportFormState extends State<ImportForm> {
     /*List<String> custGroupCodes =
         await synchronizer.retrieveItemCodes(custCode, cmpCode);*/
     print('lo');
-    await synchronizer.synchronizeCustomers(custCode);
+    await synchronizer.synchronizeCustomers(custCode,cmpCode);
     print('l');
-    await synchronizer.synchronizeCustomerAddresses(custCode);
-    await synchronizer.synchronizeCustomerContacts(custCode);
-    await synchronizer.synchronizeCustomerProperties(custCode);
-    await synchronizer.synchronizeCustomerAttachments(custCode);
+    await synchronizer.synchronizeCustomerAddresses(custCode,cmpCode);
+    await synchronizer.synchronizeCustomerContacts(custCode,cmpCode);
+    await synchronizer.synchronizeCustomerProperties(custCode,cmpCode);
+    await synchronizer.synchronizeCustomerAttachments(custCode,cmpCode);
 
    /* await synchronizer.synchronizeCustomerItemsSpecialPrice(custCode, itemCode);
     await synchronizer.synchronizeCustomerBrandsSpecialPrice(

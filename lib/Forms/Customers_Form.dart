@@ -248,54 +248,34 @@ print(field);
 
 
 }
-
 Future<List<Customers>> _getCustomers() async {
-  // Retrieve changes from the local database
   var customersBox = await Hive.openBox<Customers>('customersBox');
   var usersSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
   var salesEmployeesCustomersBox = await Hive.openBox<SalesEmployeesCustomers>('salesEmployeesCustomersBox');
-
-
+  
+  List<Customers> allCustomers = [];
+  
   try {
+    var compusers = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+    var user = compusers.values.firstWhere(
+      (user) => user.userCode == widget.userCode,
+      orElse: () => CompaniesUsers(userCode: '', cmpCode: '', defaultcmpCode: ''), // handle case where user is not found
+    );
+  
+    if (user != null) {
+      var defaultCmpCode = user.defaultcmpCode;
 
-    // Find the UserSalesEmployees objects with matching userCode
-   // var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode && userSalesEmployee.cmpCode==widget.defltCompanyCode);
-
-    List<Customers> allCustomers = [];
-    allCustomers=customersBox.values.toList();
-
-    // Iterate through each userSalesEmployee object
-   /* for (var userSalesEmployee in userSalesEmployees) {
-      var cmpCode = userSalesEmployee.cmpCode;
-      var seCode = userSalesEmployee.seCode;
-
-      // Find all SalesEmployeesItems with matching cmpCode and seCode
-      var salesEmployeeCustomers = salesEmployeesCustomersBox.values.where((salesEmployeeCustomer) => 
-        salesEmployeeCustomer.cmpCode == cmpCode && salesEmployeeCustomer.seCode == seCode);
-
-      // Iterate through each SalesEmployeesItem for the current userSalesEmployee
-      for (var salesEmployeeCustomer in salesEmployeeCustomers) {
-        var custCode = salesEmployeeCustomer.custCode;
-
-        // Retrieve items from the items box based on itemCode and cmpCode
-        var customers = customersBox.values.where((customer) => customer.cmpCode == cmpCode && customer.custCode == custCode).toList();
-        
-        // Add the retrieved items to the list
-        allCustomers.addAll(customers);
-      }
+      // Retrieve customers from the customers box where cmpCode matches defaultCmpCode
+      allCustomers = customersBox.values.where((customer) => customer.cmpCode == defaultCmpCode).toList();
     }
 
-
-*/
     return allCustomers;
   } catch (e) {
     print("Error: $e");
-
- 
-
     return []; // Return an empty list if an error occurs
   }
 }
+
 
  Widget _getFAB() {
     return SpeedDial(

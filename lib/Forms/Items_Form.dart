@@ -151,57 +151,26 @@ Future<void> printUserDataTranslations() async {
 
 }
 Future<List<Items>> _getItems() async {
-  var usersSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
-  var salesEmployeesItemsBox = await Hive.openBox<SalesEmployeesItems>('salesEmployeesItemsBox');
   var itemsBox = await Hive.openBox<Items>('items');
- List<Items> allItems = [];
- var compusers = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
- var user = compusers.values.firstWhere(
+  List<Items> allItems = [];
+  
+  // Fetch the user's information
+  var compusers = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+  var user = compusers.values.firstWhere(
     (user) => user.userCode == widget.userCode,
+    orElse: () => CompaniesUsers(userCode:'',cmpCode:'',defaultcmpCode:''), // handle case where user is not found
   );
- var defaultCmpCode='';
+  
   if (user != null) {
-    defaultCmpCode= user.defaultcmpCode;
-  }
-  /*try {
-    // Find the UserSalesEmployees objects with matching userCode
-    var userSalesEmployees = usersSalesEmployeesBox.values.where((userSalesEmployee) => userSalesEmployee.userCode == widget.userCode && userSalesEmployee.cmpCode == defaultCmpCode);
-
-    List<Items> allItems = [];
-
-    // Iterate through each userSalesEmployee object
-    for (var userSalesEmployee in userSalesEmployees) {
-      var cmpCode = userSalesEmployee.cmpCode;
-      var seCode = userSalesEmployee.seCode;
-
-      // Find all SalesEmployeesItems with matching cmpCode and seCode
-      var salesEmployeeItems = salesEmployeesItemsBox.values.where((salesEmployeeItem) => 
-        salesEmployeeItem.cmpCode == cmpCode && salesEmployeeItem.seCode == seCode);
-
-      // Iterate through each SalesEmployeesItem for the current userSalesEmployee
-      for (var salesEmployeeItem in salesEmployeeItems) {
-        var itemCode = salesEmployeeItem.itemCode;
-
-        // Retrieve items from the items box based on itemCode and cmpCode
-        var items = itemsBox.values.where((item) => item.cmpCode == cmpCode && item.itemCode == itemCode).toList();
-        
-        // Add the retrieved items to the list
-        allItems.addAll(items);
-      }
-    }
-*/
-allItems=itemsBox.values.toList();
-
-    return allItems;
- /* } catch (e) {
-    print("Error: $e");
-
-    // Close the boxes if an error occurs
+    var defaultCmpCode = user.defaultcmpCode;
     
+    // Retrieve items from the items box where cmpCode matches defaultCmpCode
+    allItems = itemsBox.values.where((item) => item.cmpCode == defaultCmpCode).toList();
+  }
 
-    return []; // Return an empty list if an error occurs
-  }*/
+  return allItems;
 }
+
 
 
 
