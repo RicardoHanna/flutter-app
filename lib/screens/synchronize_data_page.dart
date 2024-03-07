@@ -246,12 +246,22 @@ class _SynchronizeDataPageState extends State<SynchronizeDataPage> {
                   // Handle other actions as before
                   String exportSource = await _showExportDialog();
                   if (exportSource == AppLocalizations.of(context)!.yes) {
-                    LoadingHelper.configureLoading();
-                    LoadingHelper.showLoading(); // Show loading indicator
-                    await _synchronizeData();
-                    LoadingHelper.dismissLoading(); // Dismiss loading indicator
+                     _showLoadingOverlay(context); // Show loading overlay
+                       try {
+            // Your existing synchronization logic goes here
+            LoadingHelper.configureLoading();
+            LoadingHelper.showLoading(); // Show loading indicator
+            await     _synchronizeData();
 
-                    EasyLoading.dismiss();
+            LoadingHelper.dismissLoading(); // Dismiss loading indicator
+          } catch (e) {
+            // Handle errors and display an error message or update UI accordingly
+            print('Error synchronizing data: $e');
+          } finally {
+            // Hide loading overlay
+            _hideLoadingOverlay(context);
+          }
+           EasyLoading.dismiss();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -260,7 +270,11 @@ class _SynchronizeDataPageState extends State<SynchronizeDataPage> {
                         ),
                       ),
                     );
-                  } else {}
+        }
+                    
+
+                   
+                   else {}
                   // }
                   // else {
                   //   ScaffoldMessenger.of(context).showSnackBar(
@@ -280,6 +294,22 @@ class _SynchronizeDataPageState extends State<SynchronizeDataPage> {
       ),
     );
   }
+
+   void _showLoadingOverlay(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        //content: CircularProgressIndicator(),
+      );
+    },
+  );
+}
+
+void _hideLoadingOverlay(BuildContext context) {
+  Navigator.of(context, rootNavigator: true).pop();
+}
 
   Future<bool> checkAuthorization(int groupcode, int userGroup) async {
     var authorizationBox =

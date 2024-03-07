@@ -99,6 +99,18 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - lib/icons/wms/wms_picking.png
+    - lib/icons/wms/wms_packing.png
+    - lib/icons/wms/wms_receive.png
+    - lib/icons/wms/wms_putaway.png
+    - lib/icons/wms/wms_transactions.png
+    - lib/icons/wms/wms_cycle.png
+
+
+
+
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

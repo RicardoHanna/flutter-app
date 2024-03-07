@@ -850,16 +850,16 @@ await synchronizer.synchronizeDataItemPrice(itemCodes, cmpCode);
     await synchronizer.synchronizeDataMenu();
     await synchronizer.synchronizeDataGeneralSettings();
     await synchronizer.synchronizeCompanies();
-    await synchronizer.synchronizeDepartments();
-    await synchronizer.synchronizeExchangeRates();
-    await synchronizer.synchronizeCurrencies();
-    await synchronizer.synchronizeVATGroups();
-    await synchronizer.synchronizeCustGroups();
+    await synchronizer.synchronizeDepartments(cmpCode);
+    await synchronizer.synchronizeExchangeRates(cmpCode);
+    await synchronizer.synchronizeCurrencies(cmpCode);
+    await synchronizer.synchronizeVATGroups(cmpCode);
+    await synchronizer.synchronizeCustGroups(cmpCode);
 
-    await synchronizer.synchronizeCustProperties();
-    await synchronizer.synchronizeRegions();
-    await synchronizer.synchronizeWarehouses();
-    await synchronizer.synchronizePaymentTerms();
+    await synchronizer.synchronizeCustProperties(cmpCode);
+    await synchronizer.synchronizeRegions(cmpCode);
+    await synchronizer.synchronizeWarehouses(cmpCode);
+    await synchronizer.synchronizePaymentTerms(cmpCode);
     await synchronizer.synchronizeSalesEmployees(cmpCode);
     await synchronizer.synchronizeSalesEmployeesCustomers(seCodes,cmpCode);
 
@@ -867,9 +867,9 @@ await synchronizer.synchronizeDataItemPrice(itemCodes, cmpCode);
     await synchronizer.synchronizeSalesEmployeesItemsBrands(seCodes,cmpCode);
     await synchronizer.synchronizeSalesEmployeesItemsCategories(seCodes,cmpCode);
     await synchronizer.synchronizeSalesEmployeesItemsGroups(seCodes,cmpCode);
-    await synchronizer.synchronizeSalesEmployeesItems(seCodes);
+    await synchronizer.synchronizeSalesEmployeesItems(seCodes,cmpCode);
 
-    await synchronizer.synchronizeUserSalesEmployees();
+    await synchronizer.synchronizeUserSalesEmployees(cmpCode);
 
     await synchronizer.synchronizeDataCompaniesConnection();
     await synchronizer.synchronizeDataCompaniesUsers();

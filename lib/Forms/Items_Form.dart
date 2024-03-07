@@ -42,8 +42,7 @@ class ItemsForm extends StatefulWidget {
  
   final AppNotifier appNotifier;
   final String userCode;
-  final String defltCompanyCode;
-  ItemsForm({required this.appNotifier,required this.userCode,required this.defltCompanyCode});
+  ItemsForm({required this.appNotifier,required this.userCode});
   @override
   State<ItemsForm> createState() => _itemsFormState();
 }

@@ -20,7 +20,17 @@ static const int ITEMS_MENU_CODE = 4;
 static const int PRICELISTS_MENU_CODE = 5;
 static const int CUSTOMERS_MENU_CODE=6;
 static const int REPORT_MENU_CODE=7;
-static const int REPORT_CATALOG_CODE=7;
+static const int INVENTORY_MENU_CODE=8;
+static const int BP_MENU_CODE=9;
+static const int WMS_MENU_CODE=10;
+static const int RECEIVE_MENU_CODE=11;
+static const int PICKING_MENU_CODE=12;
+static const int PUTAWAY_MENU_CODE=13;
+static const int PACKING_MENU_CODE=14;
+static const int TRANSACTIONS_MENU_CODE=15;
+static const int CYCLE_MENU_CODE=15;
+
+
 
   Menu({
   required  this.menucode,

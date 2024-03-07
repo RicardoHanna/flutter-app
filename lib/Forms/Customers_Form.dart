@@ -51,8 +51,8 @@ class CustomersForm extends StatefulWidget {
  
   final AppNotifier appNotifier;
   final String userCode;
-  final String defltCompanyCode;
-  CustomersForm({required this.appNotifier,required this.userCode,required this.defltCompanyCode});
+
+  CustomersForm({required this.appNotifier,required this.userCode});
   @override
   State<CustomersForm> createState() => _customersFormState();
 }

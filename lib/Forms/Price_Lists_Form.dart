@@ -31,10 +31,10 @@ import 'package:project/Synchronize/DataSynchronizer.dart';
 class PriceLists extends StatefulWidget {
   final AppNotifier appNotifier;
   final String usercode;
-  final String defltCompanyCode;
 
 
-  PriceLists({required this.appNotifier,required this.usercode,required this.defltCompanyCode});
+
+  PriceLists({required this.appNotifier,required this.usercode});
 
   @override
   State<PriceLists> createState() => _PriceListsState();

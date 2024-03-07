@@ -9,11 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/Forms/BP_Form.dart';
 import 'package:project/Forms/Customers_Form.dart';
+import 'package:project/Forms/Inventory_Form.dart';
 import 'package:project/Forms/Items_Form.dart';
 import 'package:project/Forms/Price_Lists_Form.dart';
 import 'package:project/Forms/Report_Form.dart';
 import 'package:project/Forms/settings_edit_user_form.dart';
+import 'package:project/Forms/wms_Form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/Synchronize/DataSynchronizerFromFirebaseToHive.dart';
 import 'package:project/hive/authorization_hive.dart';
@@ -108,44 +111,51 @@ class _welcomePageState extends State<welcomePage> {
   @override
   Widget build(BuildContext context) {
     final Map<String, Widget> formWidgets = {
-      AppLocalizations.of(context)!.items: ItemsForm(
+      'Inventory': Inventory(
           appNotifier: widget.appNotifier,
-          userCode: usercode,
-          defltCompanyCode: companyCodeDefltPassedToPages),
-      AppLocalizations.of(context)!.pricelists:
-          PriceLists(appNotifier: widget.appNotifier, usercode: usercode,defltCompanyCode: companyCodeDefltPassedToPages,),
-      AppLocalizations.of(context)!.customers: CustomersForm(
+          usercode: usercode, email: widget.email,
+         ),
+      'Business Partners':
+        BusinessPartner(
         appNotifier: widget.appNotifier,
-        userCode: usercode,
-        defltCompanyCode: companyCodeDefltPassedToPages,
+        usercode: usercode,
+email: widget.email
       ),
-      'Receiving':ReceivingScreen(),
-      AppLocalizations.of(context)!.report:
+     'Warehouse Management System': WMS(
+        appNotifier: widget.appNotifier,
+        usercode: usercode,
+email: widget.email,
+      ),
+
+        AppLocalizations.of(context)!.report:
           ReportForm(appNotifier: widget.appNotifier, usercode: usercode),
+     /* 'Receiving':ReceivingScreen(),
+      AppLocalizations.of(context)!.report:
+          ReportForm(appNotifier: widget.appNotifier, usercode: usercode),*/
     };
 
     final Map<String, int> menuCodes = {
-      AppLocalizations.of(context)!.items: Menu.ITEMS_MENU_CODE,
-      AppLocalizations.of(context)!.pricelists: Menu.PRICELISTS_MENU_CODE,
-      AppLocalizations.of(context)!.customers: Menu.CUSTOMERS_MENU_CODE,
-      'Receiving': Menu.ITEMS_MENU_CODE,
-      AppLocalizations.of(context)!.report: Menu.REPORT_MENU_CODE
+     'Inventory': Menu.INVENTORY_MENU_CODE,
+      'Business Partners': Menu.BP_MENU_CODE,
+   'Warehouse Management System': Menu.CUSTOMERS_MENU_CODE,
+    AppLocalizations.of(context)!.report: Menu.REPORT_MENU_CODE
+      //'Receiving': Menu.ITEMS_MENU_CODE,
       // Add other menu items and their menu codes
     };
     final List<String> data = <String>[
-      AppLocalizations.of(context)!.items,
-      AppLocalizations.of(context)!.pricelists,
-      AppLocalizations.of(context)!.customers,
-      'Receiving',
-      AppLocalizations.of(context)!.report
+      'Inventory',
+      'Business Partners',
+      'Warehouse Management System',
+         AppLocalizations.of(context)!.report,
+      //'Receiving',
     ];
 
     final Map<String, IconData> iconData = {
-      AppLocalizations.of(context)!.items: Icons.shopping_cart,
-      AppLocalizations.of(context)!.pricelists: Icons.attach_money,
-      AppLocalizations.of(context)!.customers: Icons.people_outline_outlined,
-      'Receiving':Icons.call_received,
-      AppLocalizations.of(context)!.report: Icons.report
+      'Inventory': Icons.inventory,
+      'Business Partners': Icons.business_center,
+       'Warehouse Management System': Icons.warehouse,
+         AppLocalizations.of(context)!.report: Icons.report
+     //'Receiving':Icons.call_received,
     };
 
     String languageUser = '';
