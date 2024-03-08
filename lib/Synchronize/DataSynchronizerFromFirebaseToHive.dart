@@ -471,7 +471,7 @@ Future<void> _synchronizeItemPrice(
 
     // Prepare item prices to update and delete
     for (var data in itemPricesData) {
-      var plCode = data['plCode'] ?? '';
+      var plCode = data['plCode'].toString() ?? '';
       var itemCode = data['itemCode'] ?? '';
 
       var updatedItemPrice = ItemsPrices(
