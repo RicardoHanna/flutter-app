@@ -421,9 +421,16 @@ Widget build(BuildContext context) {
                   var customer = filteredCustomers[index];
                   return Card(
                     child: ListTile(
-                      leading: Text(customer.custCode ?? '', style: _appTextStyleLead),
-                      subtitle: buildTrailingWidget(customer),
-                      title: Text(customer.custName ?? '', style: _appTextStyle),
+                      title: Text(customer.custCode ?? '', style: _appTextStyleLead),
+                      subtitle: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+      Text(customer.custName ?? '', style: _appTextStyle),
+        SizedBox(height: 8), // Add spacing between item name and additional values
+        buildTrailingWidget(customer)     
+         ],
+    ),
+              
                       onTap: () {
                         Navigator.push(
                           context,
@@ -490,12 +497,12 @@ Widget build(BuildContext context) {
   }
 
 return Container(
-  padding: EdgeInsets.all(8.0),
+  padding: EdgeInsets.all(1.0),
 
   child: Row(
     mainAxisSize: MainAxisSize.min,
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    crossAxisAlignment: CrossAxisAlignment.center,
+    mainAxisAlignment: MainAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: _buildSeparatedWidgets(widgets),
   ),
 );
@@ -512,7 +519,7 @@ List<Widget> _buildSeparatedWidgets(List<Widget> widgets) {
 
     if (i < widgets.length - 1) {
       // Add "|" only between items, not after the last item
-      separatedWidgets.add(Text("|"));
+      separatedWidgets.add(SizedBox(height: 8));
     }
   }
 

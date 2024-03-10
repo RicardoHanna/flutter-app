@@ -274,24 +274,29 @@ _appTextStyleNormal= TextStyle(fontSize: widget.appNotifier.fontSize.toDouble())
         itemCount: filteredItems.length, // Use filteredItems.length
         itemBuilder: (context, index) {
           var item = filteredItems[index]; // Use filteredItems[index] instead of snapshot.data![index]
-          return Card(
-            child: ListTile(
-              leading: Text(item.itemCode ?? '',style: _appTextStyleLead,),
-                    subtitle: buildTrailingWidget(item),
-    title:Text(item.itemName ?? '',style:_appTextStyle,),
-              
+        return Card(
+  child: ListTile(
+    title: Text(item.itemCode ?? '', style: _appTextStyleLead),
+    subtitle: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(item.itemName ?? '', style: _appTextStyle),
+        SizedBox(height: 8), // Add spacing between item name and additional values
+        buildTrailingWidget(item), // Display additional values below item name
+      ],
+    ),
+    onTap: () {
+      // Navigate to the ItemsInfoForm page and pass the selected item
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ItemsInfoForm(item: item, appNotifier: widget.appNotifier),
+        ),
+      );
+    },
+  ),
+);
 
-              onTap: () {
-                // Navigate to the ItemsInfoForm page and pass the selected item
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ItemsInfoForm(item: item,appNotifier: widget.appNotifier,),
-                  ),
-                );
-              },
-            ),
-          );
         },
       );
     }
@@ -402,12 +407,12 @@ void _showCatalogItems(){
   }
 
 return Container(
-  padding: EdgeInsets.all(8.0),
+  padding: EdgeInsets.all(1.0),
 
-  child: Row(
+  child: Column(
     mainAxisSize: MainAxisSize.min,
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    crossAxisAlignment: CrossAxisAlignment.center,
+    mainAxisAlignment: MainAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: _buildSeparatedWidgets(widgets),
   ),
 );
@@ -423,13 +428,14 @@ List<Widget> _buildSeparatedWidgets(List<Widget> widgets) {
     separatedWidgets.add(widgets[i]);
 
     if (i < widgets.length - 1) {
-      // Add "|" only between items, not after the last item
-      separatedWidgets.add(Text("|"));
+      // Add SizedBox with vertical space between items, not after the last item
+      separatedWidgets.add(SizedBox(height: 8));
     }
   }
 
   return separatedWidgets;
 }
+
 Future<void> _showSettingsDialog() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
 

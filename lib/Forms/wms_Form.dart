@@ -94,6 +94,8 @@ String apiurl='http://5.189.188.139:8080/api/';
                     context,
                     MaterialPageRoute(
                       builder: (context) => ReceivingScreen(
+                          appNotifier: widget.appNotifier,
+                       usercode: widget.usercode,
                        
                       ),
                     ),
