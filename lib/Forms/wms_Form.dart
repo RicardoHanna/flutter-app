@@ -30,7 +30,6 @@ import 'package:project/screens/admin_page.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/screens/synchronize_data_page.dart';
 import 'package:project/utils.dart';
-import 'package:project/wms/Receipt_Form.dart';
 import 'package:project/wms/Receiving_Form.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:project/resources/add_data.dart';
@@ -38,7 +37,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/Synchronize/DataSynchronizer.dart';
-import 'package:project/wms/Suppliers_Form.dart';
 
 class WMS extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -108,15 +106,7 @@ String apiurl='http://5.189.188.139:8080/api/';
                   
               label: 'Picking',
               onTap: () {
-                    Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SuppliersForm(
-                       appNotifier: widget.appNotifier,
-                       usercode: widget.usercode,
-                      ),
-                    ),
-                  );
+                    
               },
             ),
             _buildWMSOption(
@@ -124,15 +114,8 @@ String apiurl='http://5.189.188.139:8080/api/';
                   'lib/icons/wms/wms_putaway.png', // Path to your picking icon
               label: 'Put Away',
               onTap: () {
-                   Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ReceiptForm(
-                       appNotifier: widget.appNotifier,
-                       usercode: widget.usercode,
-                      ),
-                    ),
-                  );
+                   
+                
               },
             ),
                _buildWMSOption(

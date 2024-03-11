@@ -1,9 +1,16 @@
+import 'dart:convert';
+
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
-import 'package:flutter/services.dart' show ByteData, rootBundle;
+import 'package:flutter/services.dart' show ByteData, PlatformException, rootBundle;
 import 'package:project/app_notifier.dart';
+import 'package:project/wms/NewReceipt_Form.dart';
 import 'package:project/wms/Order_Form.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:project/wms/SearchBySupplier_Form.dart';
 
 class ReceivingScreen extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -15,36 +22,97 @@ class ReceivingScreen extends StatefulWidget {
 }
 
 class _ReceivingScreenState extends State<ReceivingScreen> {
+  String apiurl = 'http://5.189.188.139:8080/api/';
   TextEditingController itemNameController = TextEditingController();
-  List<Map<String, String>> orders = [
-    {"OrderNumber": "123", "DeliveryDate": "2024-03-10", "cmpCode": "ABC"},
-    {"OrderNumber": "456", "DeliveryDate": "2024-03-15", "cmpCode": "XYZ"},
-    {"OrderNumber": "789", "DeliveryDate": "2024-03-20", "cmpCode": "DEF"},
-    {"OrderNumber": "101", "DeliveryDate": "2024-03-25", "cmpCode": "GHI"},
-    {"OrderNumber": "202", "DeliveryDate": "2024-03-30", "cmpCode": "JKL"},
-    {"OrderNumber": "303", "DeliveryDate": "2024-04-05", "cmpCode": "MNO"},
-    {"OrderNumber": "404", "DeliveryDate": "2024-04-10", "cmpCode": "PQR"},
-    {"OrderNumber": "505", "DeliveryDate": "2024-04-15", "cmpCode": "STU"},
-    {"OrderNumber": "606", "DeliveryDate": "2024-04-20", "cmpCode": "VWX"},
-    {"OrderNumber": "707", "DeliveryDate": "2024-04-25", "cmpCode": "YZA"},
-    {"OrderNumber": "123", "DeliveryDate": "2024-03-10", "cmpCode": "ABC"},
-    {"OrderNumber": "456", "DeliveryDate": "2024-03-15", "cmpCode": "XYZ"},
-    {"OrderNumber": "789", "DeliveryDate": "2024-03-20", "cmpCode": "DEF"},
-    {"OrderNumber": "101", "DeliveryDate": "2024-03-25", "cmpCode": "GHI"},
-    {"OrderNumber": "202", "DeliveryDate": "2024-03-30", "cmpCode": "JKL"},
-    {"OrderNumber": "303", "DeliveryDate": "2024-04-05", "cmpCode": "MNO"},
-    {"OrderNumber": "404", "DeliveryDate": "2024-04-10", "cmpCode": "PQR"},
-    {"OrderNumber": "505", "DeliveryDate": "2024-04-15", "cmpCode": "STU"},
-    {"OrderNumber": "606", "DeliveryDate": "2024-04-20", "cmpCode": "VWX"},
-    {"OrderNumber": "707", "DeliveryDate": "2024-04-25", "cmpCode": "YZA"},
-  ];
+  bool _isLoading = false;
+  String searchQuery = '';
+
+  List<Map<String, String>> orders = [];
+  List<Map<String, String>> filteredOrders = [];
 
   String itemName = '';
 
-  @override
-  void initState() {
-    super.initState();
+
+@override
+void initState() {
+  super.initState();
+  _fetchOrders(widget.usercode).then((_) {
+    setState(() {
+      filteredOrders = List.from(orders);
+    });
+  });
+}
+
+  void _updateFilteredOrders(String query) {
+    setState(() {
+      searchQuery = query;
+      filteredOrders = orders.where((order) {
+        final lowerCaseQuery = query.toLowerCase();
+        return order['docEntry']!.toLowerCase().contains(lowerCaseQuery) ||
+            order['docDelDate']!.toLowerCase().contains(lowerCaseQuery) ||
+            order['cmpCode']!.toLowerCase().contains(lowerCaseQuery);
+      }).toList();
+    });
   }
+
+  Future<String?> fetchCmpCode(String userCode) async {
+  try {
+    final response = await http.get(
+      Uri.parse('${apiurl}getDefaultCompCode?userCode=$userCode'),
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      if (data.isNotEmpty) {
+        return data[0]['cmpCode'].toString();
+      }
+    }
+  } catch (error) {
+    print('Error fetching cmpCode: $error');
+  }
+  return null;
+}
+
+ Future<void> _fetchOrders(String userCode) async {
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    // Fetch cmpCode based on userCode
+    final cmpCode = await fetchCmpCode(userCode);
+
+    // Proceed to fetch orders if cmpCode is retrieved successfully
+    if (cmpCode != null) {
+      final response = await http.get(
+        Uri.parse('${apiurl}getOpor?cmpCode=$cmpCode'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        final DateFormat dateFormat =
+            DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        final DateFormat dateFormatter = DateFormat("yyyy-MM-dd");
+        setState(() {
+          orders = List<Map<String, String>>.from(data.map((item) => {
+                "docEntry": item["docEntry"].toString(),
+                "docDelDate":
+                    dateFormatter.format(dateFormat.parse(item["docDelDate"])),
+                "cmpCode": item["cmpCode"].toString(),
+              }));
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to fetch orders');
+      }
+    } else {
+      throw Exception('Failed to fetch cmpCode');
+    }
+  } catch (error) {
+    print('Error fetching orders: $error');
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +132,39 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
                 color: Colors.white,
               )),
           IconButton(
-              onPressed: () {},
+              onPressed: () async {
+    String barcode = await scanBarcode();
+    if (barcode.isNotEmpty) {
+      // Perform logic to check if the scanned barcode exists in the items
+      // and display the corresponding item details.
+      // You can use a method similar to how you display items in the list.
+   
+      // For example:
+      bool itemFound = false;
+  /*    for (var item in filteredItems) {
+
+        if (item.barCode == barcode) {
+          itemFound = true;
+          // Show item details for the scanned item
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ItemsInfoForm(item: item, appNotifier: widget.appNotifier,),
+            ),
+          );
+          break; // Exit the loop since the item is found
+        }
+      }*/
+      if (!itemFound) {
+        // Display a message indicating that the scanned item was not found
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Scanned item not found'),
+          ),
+        );
+      }
+    }
+  },
               icon: Icon(
                 Icons.qr_code_scanner,
                 color: Colors.white,
@@ -88,7 +188,7 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
                             fontSize:
                                 widget.appNotifier.fontSize.toDouble() - 2)),
                     onChanged: (value) {
-                      itemName = value;
+                     _updateFilteredOrders(value);
                     },
                   ),
                 ),
@@ -96,6 +196,10 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
                 ElevatedButton(
                   onPressed: () {
                     print(orders.length);
+                Navigator.of(context).push(MaterialPageRoute(
+                        builder: (builder) => SearchBySupplierScreen(
+                            appNotifier: widget.appNotifier,
+                            usercode: widget.usercode)));
                   },
                   child: SizedBox(
                     width: 40, // Decrease width here
@@ -125,7 +229,13 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
               height: 10,
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (builder) => NewReceipt(
+                          appNotifier: widget.appNotifier,
+                          usercode: widget.usercode,
+                        )));
+              },
               child: Text(
                 "New Receipt",
                 style: TextStyle(
@@ -134,9 +244,9 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          20), // Adjust borderRadius to maintain button shape
-                    ),
+                  borderRadius: BorderRadius.circular(
+                      20), // Adjust borderRadius to maintain button shape
+                ),
                 backgroundColor: Colors.blue,
               ),
             ),
@@ -149,12 +259,14 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
                 Text(
                   "OrderNumber",
                   style: TextStyle(
+                      fontStyle: FontStyle.italic,
                       color: Colors.black54,
                       fontSize: widget.appNotifier.fontSize.toDouble() - 5),
                 ),
                 Text(
                   "DeliveryDate",
                   style: TextStyle(
+                      fontStyle: FontStyle.italic,
                       color: Colors.black54,
                       fontSize: widget.appNotifier.fontSize.toDouble() - 5),
                 )
@@ -163,55 +275,85 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
             SizedBox(
               height: 10,
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: orders.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 1.0),
-                    child: Card(
-                      child: ListTile(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (builder) => OrderForm(
-                                  order: orders[index],
-                                  appNotifier: widget.appNotifier)));
-                        },
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "${orders[index]["OrderNumber"]}",
-                              style: TextStyle(
-                                fontSize:
-                                    widget.appNotifier.fontSize.toDouble()-2,
+            _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredOrders.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 1.0),
+                          child: Card(
+                            child: ListTile(
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (builder) => OrderForm(
+                                        order: filteredOrders[index],
+                                        usercode : widget.usercode,
+                                        appNotifier: widget.appNotifier)));
+                              },
+                              title: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "${filteredOrders[index]["docEntry"]}",
+                                    style: TextStyle(
+                                      fontSize: widget.appNotifier.fontSize
+                                              .toDouble() -
+                                          2,
+                                    ),
+                                  ),
+                                  Text(
+                                    "${filteredOrders[index]["docDelDate"]}",
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: widget.appNotifier.fontSize
+                                              .toDouble() -
+                                          5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Text(
+                                "${filteredOrders[index]["cmpCode"]}",
+                                style: TextStyle(
+                                  fontSize:
+                                      widget.appNotifier.fontSize.toDouble() -
+                                          5,
+                                ),
                               ),
                             ),
-                            Text(
-                              "${orders[index]["DeliveryDate"]}",
-                              style: TextStyle(
-                                color: Colors.black54,
-                                fontSize:
-                                    widget.appNotifier.fontSize.toDouble()-5,
-                              ),
-                            ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          "${orders[index]["cmpCode"]}",
-                          style: TextStyle(
-                            fontSize: widget.appNotifier.fontSize.toDouble()-5,
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
           ],
         ),
       ),
     );
   }
+    Future<String> scanBarcode() async {
+  try {
+    ScanResult result = await BarcodeScanner.scan();
+    String barcode = result.rawContent.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
+    // This regular expression removes control characters from the string.
+    print(barcode);
+    return barcode;
+  } on PlatformException catch (e) {
+    if (e.code == BarcodeScanner.cameraAccessDenied) {
+      // Handle camera permission denied
+      print('Camera permission denied');
+    } else {
+      // Handle other exceptions
+      print('Error: $e');
+    }
+    return '';
+  }
+}
+
+
 }

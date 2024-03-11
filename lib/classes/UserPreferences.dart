@@ -43,4 +43,18 @@ List<String> getSelectedFieldsCustMap() {
     if (showregCodeCustMap) selectedFields.add('RegCode');
     return selectedFields;
   }
+
+
+     bool showBarcode=false;
+   bool showWarehouse=false;
+     bool showOutQuantity=false;
+   
+List<String> getSelectedFieldsItemReceive() {
+    List<String> selectedFields = [];
+    if (showBarcode) selectedFields.add('barcode');
+    if (showWarehouse) selectedFields.add('warehouse');
+    if (showOutQuantity) selectedFields.add('outquantity');
+    return selectedFields;
+  }
+
 }

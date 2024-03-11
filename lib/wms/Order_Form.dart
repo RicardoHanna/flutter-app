@@ -1,22 +1,86 @@
-import 'package:flutter/material.dart';
-import 'package:project/app_notifier.dart';
+import 'dart:convert';
 
+import 'package:barcode_scan2/barcode_scan2.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:project/Forms/Inventory_Form.dart';
+import 'package:project/app_notifier.dart';
+import 'package:http/http.dart' as http;
+import 'package:project/classes/UserPreferences.dart';
+import 'package:project/wms/InventoryList_Form.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class OrderForm extends StatefulWidget {
   final Map<String, String> order;
   final AppNotifier appNotifier;
-  const OrderForm({super.key, required this.order, required this.appNotifier});
+  final String usercode;
+  const OrderForm({super.key, required this.order, required this.usercode , required this.appNotifier});
 
   @override
   State<OrderForm> createState() => _OrderFormState();
 }
 
 class _OrderFormState extends State<OrderForm> {
+  String apiurl = 'http://5.189.188.139:8080/api/';
+  UserPreferences userPreferences = UserPreferences();
+  bool _isLoading = false;
+  List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
+  List<String> itemCodes = [];
+    TextStyle   _appTextStyleNormal = TextStyle();
+  @override
+  void initState() {
+    super.initState();
+    fetchItemCodes();
+    loadCheckboxPreferences();
+  }
+
+  Future<void> fetchItemCodes() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Map<String, dynamic> requestBody = {
+        'docEntry': widget.order['docEntry'],
+        'cmpCode': widget.order['cmpCode'],
+      };
+
+      // Make a POST request with the request body
+      final response = await http.post(
+        Uri.parse('${apiurl}getpor1'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Update state with the fetched data
+          fetchedData = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            // Convert each item in the response to a map
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+        });
+        print(fetchedData);
+      } else {
+        throw Exception('Failed to fetch data');
+      }
+    } catch (error) {
+      print('Error fetching data: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.order['OrderNumber']!,
+          widget.order['docEntry']!,
           style: TextStyle(
               color: Colors.white,
               fontSize: widget.appNotifier.fontSize.toDouble()),
@@ -25,11 +89,43 @@ class _OrderFormState extends State<OrderForm> {
           IconButton(
               onPressed: () {},
               icon: Icon(
-                Icons.history,
+                Icons.attachment,
                 color: Colors.white,
               )),
           IconButton(
-              onPressed: () {},
+              onPressed: () async {
+    String barcode = await scanBarcode();
+    if (barcode.isNotEmpty) {
+      // Perform logic to check if the scanned barcode exists in the items
+      // and display the corresponding item details.
+      // You can use a method similar to how you display items in the list.
+   
+      // For example:
+      bool itemFound = false;
+  /*    for (var item in filteredItems) {
+
+        if (item.barCode == barcode) {
+          itemFound = true;
+          // Show item details for the scanned item
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ItemsInfoForm(item: item, appNotifier: widget.appNotifier,),
+            ),
+          );
+          break; // Exit the loop since the item is found
+        }
+      }*/
+      if (!itemFound) {
+        // Display a message indicating that the scanned item was not found
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Scanned item not found'),
+          ),
+        );
+      }
+    }
+  },
               icon: Icon(
                 Icons.qr_code_scanner,
                 color: Colors.white,
@@ -43,24 +139,33 @@ class _OrderFormState extends State<OrderForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              "${widget.order['DeliveryDate']}",
-              style:
-                  TextStyle(fontSize: widget.appNotifier.fontSize.toDouble(),color: Colors.black54,),
-                 
+              "${widget.order['docDelDate']}",
+              style: TextStyle(
+                fontSize: widget.appNotifier.fontSize.toDouble(),
+                color: Colors.black54,
+              ),
             ),
             SizedBox(
               height: 5,
             ),
             Text(
               '${widget.order['cmpCode']!}',
-              style:
-                  TextStyle(fontSize: widget.appNotifier.fontSize.toDouble(),color: Colors.black54),
+              style: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black54),
             ),
             SizedBox(
               height: 5,
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+             Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => InventoryList(appNotifier: widget.appNotifier,usercode: widget.usercode,),
+            ),
+          );
+              },
               child: Text(
                 "Add Item",
                 style: TextStyle(
@@ -68,10 +173,10 @@ class _OrderFormState extends State<OrderForm> {
                     fontSize: widget.appNotifier.fontSize.toDouble()),
               ),
               style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          20), // Adjust borderRadius to maintain button shape
-                    ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                      20), // Adjust borderRadius to maintain button shape
+                ),
                 backgroundColor: Colors.blue,
               ),
             ),
@@ -84,81 +189,298 @@ class _OrderFormState extends State<OrderForm> {
                 Text(
                   "Item",
                   style: TextStyle(
-                    color: Colors.black54,
-                      fontSize: widget.appNotifier.fontSize.toDouble()-5),
+                      color: Colors.black54,
+                      fontStyle: FontStyle.italic,
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 5),
                 ),
                 Text(
                   "Quantity",
                   style: TextStyle(
-                       color: Colors.black54,
-                      fontSize: widget.appNotifier.fontSize.toDouble()-5),
+                      fontStyle: FontStyle.italic,
+                      color: Colors.black54,
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 5),
                 )
               ],
             ),
             SizedBox(
               height: 8,
             ),
-       Expanded(
-  child: ListView.builder(
-    itemCount: 6, // Assuming you have only one order
-    itemBuilder: (context, index) {
-      return Padding(
-        padding: EdgeInsets.only(bottom: 8.0),
-        child: Card(
-          child: ListTile(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "ItemCode",
-                  style: TextStyle(
-                      fontSize: widget.appNotifier.fontSize.toDouble()-2),
-                ),
-                Text(
-                  "0 / 4 Units",
-                  style: TextStyle(
-                      color: Colors.black54,
-                      fontSize: widget.appNotifier.fontSize.toDouble()-5),
-                ),
-              ],
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 5),
-                Text(
-                  "BarCode: ",
-                  style: TextStyle(
-                      fontSize: widget.appNotifier.fontSize.toDouble()-5),
-                ),
-                Text(
-                  "ItemName",
-                  style: TextStyle(
-                      fontSize: widget.appNotifier.fontSize.toDouble()-5),
-                ),
-                Text(
-                  "WareHouse",
-                  style: TextStyle(
-                      fontSize: widget.appNotifier.fontSize.toDouble()-5),
-                ),
-                Text(
-                  "OutBound Quantity",
-                  style: TextStyle(
-                      fontSize: widget.appNotifier.fontSize.toDouble()-5),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  ),
-),
-
-
+            _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: fetchedData.length,
+                      itemBuilder: (context, index) {
+                        final itemCode = fetchedData[
+                            index]; // Get the item at the current index
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 8.0),
+                          child: Card(
+                            child: ListTile(
+                              title: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    itemCode['itemCode'] ??
+                                        '', // Access 'itemCode' from the map
+                                    style: TextStyle(
+                                        fontSize: widget.appNotifier.fontSize
+                                                .toDouble() -
+                                            2),
+                                  ),
+                                  Text(
+                                    "${itemCode['recQty']} / ${itemCode['ordQty']} Units",
+                                    style: TextStyle(
+                                        color: Colors.black54,
+                                        fontSize: widget.appNotifier.fontSize
+                                                .toDouble() -
+                                            5),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 5),
+                                  Text(
+                                    "ItemName: ${itemCode['itemName']}",
+                                    style: TextStyle(
+                                        fontSize: widget.appNotifier.fontSize
+                                                .toDouble() -
+                                            5),
+                                  ),
+                                     buildTrailingWidget(fetchedData,index),
+                                ],
+                            
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ],
         ),
       ),
+       floatingActionButton: Align(
+  alignment: Directionality.of(context) == TextDirection.rtl
+      ? Alignment.bottomRight
+      : Alignment.bottomRight,
+  child: Padding(
+    padding: EdgeInsets.only(
+      right: Directionality.of(context) == TextDirection.rtl ? 23.0 : 0.0,
+      left: Directionality.of(context) == TextDirection.ltr ? 23.0 : 0.0,
+    ),
+    child: _getFAB(),
+  ),
+),
     );
   }
+
+
+  List<Widget> _buildSeparatedWidgets(List<Widget> widgets) {
+  List<Widget> separatedWidgets = [];
+
+  for (int i = 0; i < widgets.length; i++) {
+    separatedWidgets.add(widgets[i]);
+
+    if (i < widgets.length - 1) {
+      // Add SizedBox with vertical space between items, not after the last item
+      separatedWidgets.add(SizedBox(height: 2));
+    }
+  }
+
+  return separatedWidgets;
+}
+
+Future<void> _showSettingsDialog() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  List<String?> selectedOptions = [
+    userPreferences.showBarcode ? 'barcode' : null,
+    userPreferences.showWarehouse ? 'warehouse' : null,
+    userPreferences.showOutQuantity ? 'outquantity' : null,
+
+  ];
+
+  // ignore: use_build_context_synchronously
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            title: Text(AppLocalizations.of(context)!.choosefields,style: _appTextStyleNormal,),
+            content: Column(
+              children: <Widget>[
+                
+                for (int i = 0; i < 3; i++)
+                  _buildDropdown(
+                    AppLocalizations.of(context)!.field+'${i + 1}',
+                    selectedOptions[i],
+                    (String? newValue) {
+                      setState(() {
+                        selectedOptions[i] = newValue;
+                      });
+                    },
+                    
+                  ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text(AppLocalizations.of(context)!.save,style: _appTextStyleNormal,),
+                onPressed: () async {
+                  userPreferences.showBarcode = selectedOptions.contains('barcode');
+                  userPreferences.showWarehouse = selectedOptions.contains('warehouse');
+                  userPreferences.showOutQuantity = selectedOptions.contains('outquantity');
+
+
+                  // Save dropdown preferences to shared preferences
+                  await prefs.setBool('showBarcode', userPreferences.showBarcode);
+                  await prefs.setBool('showWarehouse', userPreferences.showWarehouse);
+                  await prefs.setBool('showOutQuantity', userPreferences.showOutQuantity);
+     
+fetchItemCodes();
+                 // _applySorting(); // Call the method to update items
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+Future<void> loadCheckboxPreferences() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  setState(() {
+    userPreferences.showBarcode = prefs.getBool('showBarcode') ?? false;
+    userPreferences.showWarehouse = prefs.getBool('showWarehouse') ?? false;
+    userPreferences.showOutQuantity = prefs.getBool('showOutQuantity') ?? false;
+
+  });
+}
+
+
+Widget _getFAB() {
+    return SpeedDial(
+      animatedIcon: AnimatedIcons.menu_close,
+      animatedIconTheme: IconThemeData(size: 22),
+      backgroundColor: Color(0xFF2196F3),
+      visible: true,
+      curve: Curves.bounceIn,
+      children: [
+    
+        // Sub button 2
+        SpeedDialChild(
+          child: Icon(Icons.add),
+          backgroundColor: Color(0xFF2196F3),
+          onTap: () {
+         _showSettingsDialog();
+          },
+          label:'Add Fields Items',
+          labelStyle: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontSize: 16.0,
+          ),
+          labelBackgroundColor: Color(0xFF2196F3),
+        ),
+      ],
+    );
+  }
+
+  Widget buildTrailingWidget(List<Map<dynamic,dynamic>>fetchedData, int index) {
+               TextStyle   _appTextStylewidgets = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble()-5);
+  List<Widget> widgets = [];
+  List<String> selectedFields = userPreferences.getSelectedFieldsItemReceive();
+
+  for (var field in selectedFields) {
+    switch (field) {
+      case 'barcode':
+        widgets.add(Text('Barcode: '+fetchedData[index]['barcode']??'',style: _appTextStylewidgets,));
+        break;
+      case 'warehouse':
+        widgets.add(Text('Warehouse: '+fetchedData[index]['whsCode'] ?? '',style: _appTextStylewidgets,),);
+        break;
+  
+      case 'outquantity':
+        widgets.add(Text('OutBound Quantity: '+fetchedData[index]['invQty'].toString() ?? '',style: _appTextStylewidgets,));
+        break;
+    }
+  }
+
+return Container(
+  padding: EdgeInsets.all(1.0),
+
+  child: Column(
+    mainAxisSize: MainAxisSize.min,
+    mainAxisAlignment: MainAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: _buildSeparatedWidgets(widgets),
+  ),
+);
+
+
+
+}
+
+
+Widget _buildDropdown(String label, String? selectedValue, Function(String?) onChanged) {
+  return Row(
+    children: [
+      Text(label),
+      SizedBox(width: 10),
+      DropdownButton<String>(
+        value: selectedValue,
+        onChanged: onChanged,
+        items: [
+          DropdownMenuItem<String>(
+            value: 'barcode',
+            child: Text(AppLocalizations.of(context)!.barcode),
+          ),
+          DropdownMenuItem<String>(
+            value: 'warehouse',
+            child: Text(AppLocalizations.of(context)!.warehouse),
+          ),
+          DropdownMenuItem<String>(
+            value: 'outquantity',
+            child: Text('Outbound'),
+          ),
+          
+           DropdownMenuItem<String>(
+            value: '',
+            child: Text(''),
+          ),
+          // Add other options as needed
+        ],
+      ),
+    ],
+  );
+}
+  Future<String> scanBarcode() async {
+  try {
+    ScanResult result = await BarcodeScanner.scan();
+    String barcode = result.rawContent.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
+    // This regular expression removes control characters from the string.
+    print(barcode);
+    return barcode;
+  } on PlatformException catch (e) {
+    if (e.code == BarcodeScanner.cameraAccessDenied) {
+      // Handle camera permission denied
+      print('Camera permission denied');
+    } else {
+      // Handle other exceptions
+      print('Error: $e');
+    }
+    return '';
+  }
+}
+
 }
