@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/wms/ItemQuantity_Form.dart';
+import 'package:http/http.dart' as http;
 
 class InventoryList extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -14,6 +17,97 @@ class InventoryList extends StatefulWidget {
 
 class _InventoryListState extends State<InventoryList> {
   TextEditingController itemNameController = TextEditingController();
+    String apiurl = 'http://5.189.188.139:8080/api/';
+  bool _isLoading = false;
+    String searchQuery = '';
+      List<Map<dynamic, dynamic>> filteredItems = [];
+
+  List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
+
+  @override
+void initState() {
+  super.initState();
+  fetchItems().then((_) {
+    setState(() {
+      filteredItems = List.from(fetchedData);
+    });
+  });
+}
+
+    void _updateFilteredItems(String query) {
+    setState(() {
+      searchQuery = query;
+      filteredItems = fetchedData.where((fetcheddata) {
+        final lowerCaseQuery = query.toLowerCase();
+        return fetcheddata['itemCode']!.toLowerCase().contains(lowerCaseQuery) ||
+            fetcheddata['barcode']!.toLowerCase().contains(lowerCaseQuery);
+      }).toList();
+    });
+  }
+
+ Future<String?> fetchCmpCode(String userCode) async {
+  try {
+    final response = await http.get(
+      Uri.parse('${apiurl}getDefaultCompCode?userCode=$userCode'),
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      if (data.isNotEmpty) {
+        return data[0]['cmpCode'].toString();
+      }
+    }
+  } catch (error) {
+    print('Error fetching cmpCode: $error');
+  }
+  return null;
+}
+
+
+
+ Future<void> fetchItems() async {
+    setState(() {
+      _isLoading = true;
+    });
+        final cmpCode = await fetchCmpCode(widget.usercode);
+
+    try {
+      Map<String, dynamic> requestBody = {
+
+        'cmpCode': cmpCode,
+      };
+
+      // Make a POST request with the request body
+      final response = await http.post(
+        Uri.parse('${apiurl}getItemsInventory'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Update state with the fetched data
+          fetchedData = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            // Convert each item in the response to a map
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+                    _updateFilteredItems(searchQuery); // Update filtered items after fetching data
+
+        });
+        print(fetchedData);
+      } else {
+        throw Exception('Failed to fetch data');
+      }
+    } catch (error) {
+      print('Error fetching data: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +129,7 @@ class _InventoryListState extends State<InventoryList> {
         backgroundColor: Colors.blue,
       ),
       body: Padding(
-        padding: EdgeInsets.all(8.0),
+        padding: EdgeInsets.all(4.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -46,8 +140,8 @@ class _InventoryListState extends State<InventoryList> {
                   labelStyle: TextStyle(
                       fontSize: widget.appNotifier.fontSize.toDouble() - 2)),
               onChanged: (value) {
-                // itemName = value;
-              },
+                _updateFilteredItems(value); // Update filtered items when search query changes
+                    },
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -106,28 +200,38 @@ class _InventoryListState extends State<InventoryList> {
             SizedBox(
               height: 10,
             ),
+              _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  ):
             Expanded(
-              child: ListView.builder(
-                itemBuilder: (context, index) {
+               child: ListView.builder(
+                      itemCount: filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = filteredItems[
+                            index]; // Get the item at the
                   return Card(
                     child: ListTile(
                       onTap: (){
-                        Navigator.of(context).push(MaterialPageRoute(builder: (builder)=>ItemQuantityScreen(appNotifier: widget.appNotifier, usercode: widget.usercode)));
+                       // Navigator.of(context).push(MaterialPageRoute(builder: (builder)=>ItemQuantityScreen(appNotifier: widget.appNotifier, usercode: widget.usercode,items: filteredItems,index: index,changeQuantity: ,)));
                       },
                       title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Text(
-                            'ItemCode: ',
+                            item['itemCode'],
                             style: TextStyle(
                                 fontSize:
                                     widget.appNotifier.fontSize.toDouble() - 2),
                           ),
+                           SizedBox(
+                                width: 15,
+                              ),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Text(
-                                "OnHand",
+                                "5",
                                 style: TextStyle(
                                     color: Colors.black54,
                                     fontSize:
@@ -135,10 +239,10 @@ class _InventoryListState extends State<InventoryList> {
                                             5),
                               ),
                               SizedBox(
-                                width: 20,
+                                width: 15,
                               ),
                               Text(
-                                "Commit.",
+                                "10.",
                                 style: TextStyle(
                                     color: Colors.black54,
                                     fontSize:
@@ -146,10 +250,10 @@ class _InventoryListState extends State<InventoryList> {
                                             5),
                               ),
                               SizedBox(
-                                width: 20,
+                                width: 45,
                               ),
                               Text(
-                                "Ordered",
+                                "15",
                                 style: TextStyle(
                                     color: Colors.black54,
                                     fontSize:
@@ -157,10 +261,10 @@ class _InventoryListState extends State<InventoryList> {
                                             5),
                               ),
                               SizedBox(
-                                width: 20,
+                                width: 45,
                               ),
                               Text(
-                                "Avail.",
+                                "12.",
                                 style: TextStyle(
                                     color: Colors.black54,
                                     fontSize:
@@ -183,7 +287,7 @@ class _InventoryListState extends State<InventoryList> {
                                             5),
                           ),
                           Text(
-                            'BarCode: ',
+                            'BarCode: '+item['barcode'],
                             style: TextStyle(
                                     color: Colors.black54,
                                     fontSize:

@@ -137,7 +137,7 @@ email: widget.email,
     final Map<String, int> menuCodes = {
      'Inventory': Menu.INVENTORY_MENU_CODE,
       'Business Partners': Menu.BP_MENU_CODE,
-   'Warehouse Management System': Menu.CUSTOMERS_MENU_CODE,
+   'Warehouse Management System': Menu.WMS_MENU_CODE,
     AppLocalizations.of(context)!.report: Menu.REPORT_MENU_CODE
       //'Receiving': Menu.ITEMS_MENU_CODE,
       // Add other menu items and their menu codes

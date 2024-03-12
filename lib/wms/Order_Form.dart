@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:project/Forms/Inventory_Form.dart';
+import 'package:project/Forms/wms_Form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:http/http.dart' as http;
 import 'package:project/classes/UserPreferences.dart';
 import 'package:project/wms/InventoryList_Form.dart';
+import 'package:project/wms/ItemQuantity_Form.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class OrderForm extends StatefulWidget {
@@ -28,11 +30,15 @@ class _OrderFormState extends State<OrderForm> {
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
   List<String> itemCodes = [];
     TextStyle   _appTextStyleNormal = TextStyle();
+    Map<int, int> itemQuantities = {}; // Map to store item quantities, with item index as key
+
   @override
   void initState() {
     super.initState();
     fetchItemCodes();
     loadCheckboxPreferences();
+      initializeItemQuantities();
+
   }
 
   Future<void> fetchItemCodes() async {
@@ -44,6 +50,7 @@ class _OrderFormState extends State<OrderForm> {
       Map<String, dynamic> requestBody = {
         'docEntry': widget.order['docEntry'],
         'cmpCode': widget.order['cmpCode'],
+        
       };
 
       // Make a POST request with the request body
@@ -75,208 +82,390 @@ class _OrderFormState extends State<OrderForm> {
     }
   }
 
+  void initializeItemQuantities() {
+  for (int i = 0; i < fetchedData.length; i++) {
+    itemQuantities[i] = fetchedData[i]['recQty'];
+  }
+}
+
+void changeQuantity(BuildContext context, int index, int newQuantity) {
+  // Update the quantity directly
+  setState(() {
+    itemQuantities[index] = newQuantity;
+  });
+
+  // Show the action dialog if the new quantity is 0
+  if (newQuantity == 0) {
+    _showActionDialog(context, fetchedData[index], index);
+  }
+}
+
+
+// Function to get the background color based on quantity
+Color getBackgroundColor(int recQty, int ordQty) {
+  if (recQty==0){
+return Colors.transparent;
+  }
+
+ else if (recQty == ordQty) {
+    return Colors.green.shade100; // If quantity equals order quantity, show green
+  } else if (recQty < ordQty) {
+    return Colors.yellow.shade100; // If quantity is less than order quantity, show yellow
+  } else {
+    return Colors.red.shade100; // If quantity is greater than order quantity, show red
+  }
+}
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.order['docEntry']!,
-          style: TextStyle(
-              color: Colors.white,
-              fontSize: widget.appNotifier.fontSize.toDouble()),
-        ),
-        actions: [
-          IconButton(
-              onPressed: () {},
-              icon: Icon(
-                Icons.attachment,
+    return WillPopScope(
+      onWillPop: () async {
+        // Check if any itemQuantities are not null (not empty)
+        bool anyQuantitiesNotEmpty = itemQuantities.values.any((quantity) => quantity != null && quantity > 0);
+        if (anyQuantitiesNotEmpty) {
+          // Show the dialog if itemQuantities are not empty
+          return await _showExitConfirmationDialog(context);
+        }
+        // Allow navigation if itemQuantities are empty
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.order['docEntry']!,
+            style: TextStyle(
                 color: Colors.white,
-              )),
-          IconButton(
-              onPressed: () async {
-    String barcode = await scanBarcode();
-    if (barcode.isNotEmpty) {
-      // Perform logic to check if the scanned barcode exists in the items
-      // and display the corresponding item details.
-      // You can use a method similar to how you display items in the list.
-   
-      // For example:
-      bool itemFound = false;
-  /*    for (var item in filteredItems) {
-
-        if (item.barCode == barcode) {
-          itemFound = true;
-          // Show item details for the scanned item
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ItemsInfoForm(item: item, appNotifier: widget.appNotifier,),
+                fontSize: widget.appNotifier.fontSize.toDouble()),
+          ),
+          actions: [
+            IconButton(
+                onPressed: () {},
+                icon: Icon(
+                  Icons.attachment,
+                  color: Colors.white,
+                )),
+            IconButton(
+                onPressed: () async {
+      String barcode = await scanBarcode();
+      if (barcode.isNotEmpty) {
+        // Perform logic to check if the scanned barcode exists in the items
+        // and display the corresponding item details.
+        // You can use a method similar to how you display items in the list.
+       
+        // For example:
+        bool itemFound = false;
+      /*    for (var item in filteredItems) {
+    
+          if (item.barCode == barcode) {
+            itemFound = true;
+            // Show item details for the scanned item
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ItemsInfoForm(item: item, appNotifier: widget.appNotifier,),
+              ),
+            );
+            break; // Exit the loop since the item is found
+          }
+        }*/
+        if (!itemFound) {
+          // Display a message indicating that the scanned item was not found
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Scanned item not found'),
             ),
           );
-          break; // Exit the loop since the item is found
         }
-      }*/
-      if (!itemFound) {
-        // Display a message indicating that the scanned item was not found
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Scanned item not found'),
+      }
+      },
+                icon: Icon(
+                  Icons.qr_code_scanner,
+                  color: Colors.white,
+                )),
+          ],
+          backgroundColor: Colors.blue,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                "${widget.order['docDelDate']}",
+                style: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black54,
+                ),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Text(
+                '${widget.order['cmpCode']!}',
+                style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble(),
+                    color: Colors.black54),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              ElevatedButton(
+                onPressed: () {
+               Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => InventoryList(appNotifier: widget.appNotifier,usercode: widget.usercode,),
+              ),
+            );
+                },
+                child: Text(
+                  "Add Item",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: widget.appNotifier.fontSize.toDouble()),
+                ),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                        20), // Adjust borderRadius to maintain button shape
+                  ),
+                  backgroundColor: Colors.blue,
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Item",
+                    style: TextStyle(
+                        color: Colors.black54,
+                        fontStyle: FontStyle.italic,
+                        fontSize: widget.appNotifier.fontSize.toDouble() - 5),
+                  ),
+                  Text(
+                    "Quantity",
+                    style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.black54,
+                        fontSize: widget.appNotifier.fontSize.toDouble() - 5),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 8,
+              ),
+              _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : Expanded(
+                      child: ListView.builder(
+                        itemCount: fetchedData.length,
+                        itemBuilder: (context, index) {
+                          final itemCode = fetchedData[index];
+                          return GestureDetector(
+                            
+                            onTap: () {
+                              // Show dialog when card is tapped
+                              _showActionDialog(context, itemCode,index);
+                            },
+                             child: Padding(
+      padding: EdgeInsets.only(bottom: 8.0),
+      child: Card(
+        child: ListTile(
+          tileColor: getBackgroundColor(itemQuantities[index]??itemCode['reqQty']??0, itemCode['ordQty']), // Set background color here
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                itemCode['itemCode'] ?? '',
+                style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2),
+              ),
+              Text(
+                "${itemQuantities[index]??itemCode['reqQty']??0} / ${itemCode['ordQty']} Units", // Use itemQuantities[index] here
+                style: TextStyle(
+                    color: Colors.black54,
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 5),
+              ),
+            ],
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 5),
+              Text(
+                "ItemName: ${itemCode['itemName']}",
+                style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 5),
+              ),
+              buildTrailingWidget(fetchedData, index),
+            ],
+          ),
+        ),
+      ),
+      ),
+    
+                          );
+                        },
+                      ),
+                    ),
+            
+            ],
+          ),
+        ),
+         floatingActionButton: Align(
+      alignment: Directionality.of(context) == TextDirection.rtl
+        ? Alignment.bottomRight
+        : Alignment.bottomRight,
+      child: Padding(
+      padding: EdgeInsets.only(
+        right: Directionality.of(context) == TextDirection.rtl ? 23.0 : 0.0,
+        left: Directionality.of(context) == TextDirection.ltr ? 23.0 : 0.0,
+      ),
+      child: _getFAB(),
+      ),
+    ),
+      ),
+    );
+  }
+ Future<bool> _showExitConfirmationDialog(BuildContext context) async {
+  return await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Quit Activity'),
+        content: Text('Do you want to save and continue later, or discard data?',style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 1),
+              ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              // Save and continue later logic goes here
+ /*Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WMS(appNotifier: widget.appNotifier,usercode: widget.usercode,),
+            ),
+          );  */          },
+            child: Text('Save and continue later',style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2),
+              ),
+          ),
+          TextButton(
+            onPressed: () {
+              // Discard data logic goes here
+              Navigator.of(context).pop(true); // Allow navigation
+            },
+            child: Text('Discard data',style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2),
+              ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false); // Stay on the current screen
+            },
+            child: Text('Cancel' ,style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2),
+              ),
+          ),
+        ],
+      );
+    },
+  ) ?? false; // Ensure a default value is returned if showDialog returns null
+}
+
+
+  Future<void> _showActionDialog(BuildContext context, Map<dynamic, dynamic> itemCode,int index) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Choose an action'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildActionItem('Add Quantity', () {
+dynamic remainingQty = (itemCode['ordQty'] ?? 0) - (itemQuantities[index] ?? 0);
+                print(remainingQty);
+                  Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ItemQuantityScreen(appNotifier: widget.appNotifier,usercode: widget.usercode,items:fetchedData,index:index,changeQuantity: changeQuantity,itemQuantities:remainingQty??0),
+            ),
+          );
+              }),
+              _buildActionItem('Change Quantity', () {
+                Navigator.pop(context);
+                _showChangeQuantityDialog(context, itemCode,index,itemQuantities[index]!);
+
+                // Handle Change Quantity action
+              }),
+              _buildActionItem('Print Label', () {
+                // Handle Print Label action
+              }),
+              _buildActionItem('Delete', () {
+                // Handle Delete action
+              }),
+            ],
           ),
         );
-      }
-    }
-  },
-              icon: Icon(
-                Icons.qr_code_scanner,
-                color: Colors.white,
-              )),
-        ],
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      },
+    );
+  }
+
+ Future<void> _showChangeQuantityDialog(BuildContext context, Map<dynamic, dynamic> itemCode, int index, int existingQuantity) async {
+  TextEditingController quantityController = TextEditingController(text: existingQuantity.toString());
+
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Enter quantity'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              "${widget.order['docDelDate']}",
-              style: TextStyle(
-                fontSize: widget.appNotifier.fontSize.toDouble(),
-                color: Colors.black54,
+            TextField(
+              controller: quantityController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Qty',
+                suffix: Text('Units'),
               ),
             ),
-            SizedBox(
-              height: 5,
-            ),
-            Text(
-              '${widget.order['cmpCode']!}',
-              style: TextStyle(
-                  fontSize: widget.appNotifier.fontSize.toDouble(),
-                  color: Colors.black54),
-            ),
-            SizedBox(
-              height: 5,
-            ),
-            ElevatedButton(
-              onPressed: () {
-             Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => InventoryList(appNotifier: widget.appNotifier,usercode: widget.usercode,),
-            ),
-          );
-              },
-              child: Text(
-                "Add Item",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: widget.appNotifier.fontSize.toDouble()),
-              ),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      20), // Adjust borderRadius to maintain button shape
-                ),
-                backgroundColor: Colors.blue,
-              ),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Item",
-                  style: TextStyle(
-                      color: Colors.black54,
-                      fontStyle: FontStyle.italic,
-                      fontSize: widget.appNotifier.fontSize.toDouble() - 5),
-                ),
-                Text(
-                  "Quantity",
-                  style: TextStyle(
-                      fontStyle: FontStyle.italic,
-                      color: Colors.black54,
-                      fontSize: widget.appNotifier.fontSize.toDouble() - 5),
-                )
-              ],
-            ),
-            SizedBox(
-              height: 8,
-            ),
-            _isLoading
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : Expanded(
-                    child: ListView.builder(
-                      itemCount: fetchedData.length,
-                      itemBuilder: (context, index) {
-                        final itemCode = fetchedData[
-                            index]; // Get the item at the current index
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 8.0),
-                          child: Card(
-                            child: ListTile(
-                              title: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    itemCode['itemCode'] ??
-                                        '', // Access 'itemCode' from the map
-                                    style: TextStyle(
-                                        fontSize: widget.appNotifier.fontSize
-                                                .toDouble() -
-                                            2),
-                                  ),
-                                  Text(
-                                    "${itemCode['recQty']} / ${itemCode['ordQty']} Units",
-                                    style: TextStyle(
-                                        color: Colors.black54,
-                                        fontSize: widget.appNotifier.fontSize
-                                                .toDouble() -
-                                            5),
-                                  ),
-                                ],
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(height: 5),
-                                  Text(
-                                    "ItemName: ${itemCode['itemName']}",
-                                    style: TextStyle(
-                                        fontSize: widget.appNotifier.fontSize
-                                                .toDouble() -
-                                            5),
-                                  ),
-                                     buildTrailingWidget(fetchedData,index),
-                                ],
-                            
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
           ],
         ),
-      ),
-       floatingActionButton: Align(
-  alignment: Directionality.of(context) == TextDirection.rtl
-      ? Alignment.bottomRight
-      : Alignment.bottomRight,
-  child: Padding(
-    padding: EdgeInsets.only(
-      right: Directionality.of(context) == TextDirection.rtl ? 23.0 : 0.0,
-      left: Directionality.of(context) == TextDirection.ltr ? 23.0 : 0.0,
-    ),
-    child: _getFAB(),
-  ),
-),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close the dialog
+            },
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              String quantityText = quantityController.text;
+              int newQuantity = int.tryParse(quantityText) ?? 0;
+              changeQuantity(context, index, newQuantity);
+              Navigator.pop(context); // Close the dialog
+            },
+            child: Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+  // Helper function to build each action item in the dialog
+  Widget _buildActionItem(String title, Function() onTap) {
+    return ListTile(
+      title: Text(title),
+      onTap: onTap,
     );
   }
 
@@ -430,6 +619,7 @@ return Container(
 
 
 }
+
 
 
 Widget _buildDropdown(String label, String? selectedValue, Function(String?) onChanged) {

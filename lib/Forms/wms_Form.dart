@@ -247,7 +247,7 @@ int getMenuCodeForLabel(String label) {
   }
 
 
-  Future<bool> checkAuthorization(int menucode, int userGroup) async {
+Future<bool> checkAuthorization(int menucode, int userGroup) async {
   if (userGroup == 1) {
     // Return true for admin user
     return true;
@@ -257,8 +257,24 @@ int getMenuCodeForLabel(String label) {
       final authorizationData = await fetchAuthorizationData();
       // Generate composite key for the menucode and userGroup
       int compositeKey = _generateCompositeKey(menucode, userGroup);
-      // Check if the authorization data contains the composite key
-      return authorizationData.containsKey(compositeKey) && authorizationData[compositeKey]!;
+      print('ccc');
+      print(authorizationData.toString());
+      print('ssd');
+      print(compositeKey);
+
+      
+
+      if (authorizationData is Map) {
+        // Check if the authorization data is a map
+        return authorizationData.containsKey(compositeKey) && authorizationData[compositeKey]!;
+      } else if (authorizationData is List) {
+        // Check if the authorization data is a list
+        return authorizationData.contains(compositeKey);
+      } else {
+        // Handle unexpected data format
+        print('Unexpected authorization data format');
+        return false;
+      }
     } catch (e) {
       // Handle exceptions
       print('Error checking authorization: $e');
@@ -267,25 +283,32 @@ int getMenuCodeForLabel(String label) {
   }
 }
 
-Future<Map<int, bool>> fetchAuthorizationData() async {
+
+Future<dynamic> fetchAuthorizationData() async {
   try {
-    final response = await http.get(Uri.parse('$apiurl/getAuthorization'));
+    final response = await http.get(Uri.parse('${apiurl}getAuthorization'));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      // Parse the response data and return it as a Map<int, bool>
-      // Format: {compositeKey: authorizationValue}
-      return Map<int, bool>.from(data);
+      if (data is List) {
+        // If data is a list, return the list itself
+        return data;
+      } else {
+        // Parse the response data and return it as a Map<int, bool>
+        // Format: {compositeKey: authorizationValue}
+        return Map<int, bool>.from(data);
+      }
     } else {
       // Handle unsuccessful HTTP response
       print('Failed to fetch authorization data: ${response.statusCode}');
-      return {};
+      return null;
     }
   } catch (e) {
     // Handle exceptions during HTTP request
     print('Error fetching authorization data: $e');
-    return {};
+    return null;
   }
 }
+
 
   int _generateCompositeKey(int menucode, int groupcode) {
     // Use any logic that ensures uniqueness for your composite key
