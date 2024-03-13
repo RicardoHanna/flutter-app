@@ -152,18 +152,18 @@ String apiurl='http://5.189.188.139:8080/api/';
   {required String imagePath,
   required String label,
   required VoidCallback onTap}) {
-  return InkWell(
-    onTap: () async {
-      bool authorized = await checkAuthorizationForLabel(label);
-      if (authorized) {
-        onTap();
-      } else {
-        Flushbar(
-          message: 'You do not have permission to access $label.',
-          duration: Duration(seconds: 3),
-        )..show(context);
-      }
-    },
+return InkWell(
+  onTap: () async {
+    bool authorized = await checkAuthorizationForLabel(label);
+    if (authorized) {
+      onTap();
+    } else {
+      Flushbar(
+        message: 'You do not have permission to access $label.',
+        duration: Duration(seconds: 3),
+      )..show(context);
+    }
+  },
     child: Card(
       elevation: 5,
       child: Column(
@@ -262,14 +262,20 @@ Future<bool> checkAuthorization(int menucode, int userGroup) async {
       print('ssd');
       print(compositeKey);
 
-      
-
       if (authorizationData is Map) {
         // Check if the authorization data is a map
+        print('@@@@@@@@@@@');
         return authorizationData.containsKey(compositeKey) && authorizationData[compositeKey]!;
       } else if (authorizationData is List) {
         // Check if the authorization data is a list
-        return authorizationData.contains(compositeKey);
+        print('################');
+        // Iterate over the list to check each map for the compositeKey
+        for (var item in authorizationData) {
+          if (item['menucode'] == menucode && item['groupcode'] == userGroup) {
+            return true; // Found matching compositeKey in the list
+          }
+        }
+        return false; // Did not find matching compositeKey in the list
       } else {
         // Handle unexpected data format
         print('Unexpected authorization data format');
