@@ -11,6 +11,7 @@ import 'package:project/wms/Order_Form.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:project/wms/SearchBySupplier_Form.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ReceivingScreen extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -26,6 +27,7 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
   TextEditingController itemNameController = TextEditingController();
   bool _isLoading = false;
   String searchQuery = '';
+  bool _incompletePurchaseReceipt = false; // Track incomplete purchase receipt
 
   List<Map<String, String>> orders = [];
   List<Map<String, String>> filteredOrders = [];
@@ -41,8 +43,15 @@ void initState() {
       filteredOrders = List.from(orders);
     });
   });
-}
 
+}
+@override
+void didChangeDependencies() { 
+super.didChangeDependencies();
+      _checkIncompletePurchaseReceipt();
+
+
+}
   void _updateFilteredOrders(String query) {
     setState(() {
       searchQuery = query;
@@ -336,6 +345,72 @@ void initState() {
       ),
     );
   }
+
+
+ Future<void> _checkIncompletePurchaseReceipt() async {
+    // Check if the user has an incomplete purchase receipt
+    // Replace this with your own logic to determine if there's an incomplete purchase receipt
+    bool hasIncompleteReceipt = await hasIncompletePurchaseReceipt();
+    setState(() {
+      _incompletePurchaseReceipt = hasIncompleteReceipt;
+    });
+
+    // If there's an incomplete purchase receipt, show the dialog
+    if (_incompletePurchaseReceipt) {
+      
+      _showIncompleteReceiptDialog();
+    }
+  }
+
+
+Future<bool> hasIncompletePurchaseReceipt() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  // Check if there is incomplete data saved in shared preferences
+  print('@@@@@@');
+  print(prefs.getBool('incompletePurchaseReceipt'));
+  return prefs.getBool('incompletePurchaseReceipt') ?? false;
+}
+
+  Future<void> _showIncompleteReceiptDialog() async {
+    
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('You have an incomplete purchase receipt'),
+          content: Text('Do you want to continue or discard it?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (builder) => OrderForm(
+                                        order: filteredOrders.first,
+                                        usercode : widget.usercode,
+                                        appNotifier: widget.appNotifier)));
+              },
+              child: Text('Continue'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Discard the incomplete purchase receipt
+                // Replace this with your own logic
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Discard'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Cancel and stay on the current screen
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
     Future<String> scanBarcode() async {
   try {
     ScanResult result = await BarcodeScanner.scan();

@@ -41,9 +41,9 @@ import 'package:project/Synchronize/DataSynchronizer.dart';
 class WMS extends StatefulWidget {
   final AppNotifier appNotifier;
   final String usercode;
-  final String email;
 
-  WMS({required this.appNotifier, required this.usercode, required this.email});
+
+  WMS({required this.appNotifier, required this.usercode});
 
   @override
   State<WMS> createState() => _WMSState();
@@ -220,7 +220,7 @@ int getMenuCodeForLabel(String label) {
       if (usercode.isEmpty) {
         // If usercode is empty, fetch data based on email
         user = userBox.values.firstWhere(
-          (user) => user['email'] == widget.email,
+          (user) => user['usercode'] == widget.usercode,
           orElse: () => null,
         );
       } else {
@@ -229,7 +229,7 @@ int getMenuCodeForLabel(String label) {
       }
 
       print(user.toString());
-      print(widget.email);
+      //print(widget.email);
 
       if (user != null && mounted) {
         setState(() {
@@ -320,4 +320,6 @@ Future<dynamic> fetchAuthorizationData() async {
     // Use any logic that ensures uniqueness for your composite key
     return int.parse('$menucode$groupcode');
   }
+
+  
 }

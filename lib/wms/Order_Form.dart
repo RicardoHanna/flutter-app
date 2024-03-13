@@ -9,8 +9,10 @@ import 'package:project/Forms/wms_Form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:http/http.dart' as http;
 import 'package:project/classes/UserPreferences.dart';
+import 'package:project/screens/welcome_page.dart';
 import 'package:project/wms/InventoryList_Form.dart';
 import 'package:project/wms/ItemQuantity_Form.dart';
+import 'package:project/wms/Receiving_Form.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class OrderForm extends StatefulWidget {
@@ -24,13 +26,79 @@ class OrderForm extends StatefulWidget {
 }
 
 class _OrderFormState extends State<OrderForm> {
-  String apiurl = 'http://5.189.188.139:8080/api/';
+    String apiurl = 'http://5.189.188.139:8080/api/';
   UserPreferences userPreferences = UserPreferences();
   bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
   List<String> itemCodes = [];
-    TextStyle   _appTextStyleNormal = TextStyle();
-    Map<int, int> itemQuantities = {}; // Map to store item quantities, with item index as key
+  TextStyle _appTextStyleNormal = TextStyle();
+  Map<int, int> itemQuantities = {}; // Map to store item quantities, with item index as key
+  Map<int, Color> itemColors = {}; // Map to store item colors, with item index as key
+
+  // Save the state when the user decides to save and continue later
+  Future<void> saveState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    
+    // Convert the itemQuantities map to a JSON encodable format
+    Map<String, dynamic> encodedItemQuantities = {};
+    itemQuantities.forEach((key, value) {
+      encodedItemQuantities[key.toString()] = value;
+    });
+    
+    // Convert the itemColors map to a JSON encodable format
+    Map<String, dynamic> encodedItemColors = {};
+    itemColors.forEach((key, value) {
+      encodedItemColors[key.toString()] = value.value; // Store the color value
+    });
+
+    // Save the encoded itemQuantities to shared preferences
+    await prefs.setString('itemQuantities', json.encode(encodedItemQuantities));
+    
+    // Save the encoded itemColors to shared preferences
+    await prefs.setString('itemColors', json.encode(encodedItemColors));
+  }
+  Future<void> restoreState() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  
+  // Retrieve the saved item quantities from shared preferences
+  String? itemQuantitiesString = prefs.getString('itemQuantities');
+  print('4444');
+  print(itemQuantitiesString);
+  if (itemQuantitiesString != null) {
+    // Parse the JSON string to a Map<String, dynamic>
+    Map<String, dynamic> decodedItemQuantities = json.decode(itemQuantitiesString);
+    
+    // Clear the existing item quantities
+    itemQuantities.clear();
+    
+    // Update the itemQuantities map with the decoded data
+    decodedItemQuantities.forEach((key, value) {
+      itemQuantities[int.parse(key)] = value;
+    });
+  } else {
+    // Initialize itemQuantities with default values if it's empty
+    initializeItemQuantities();
+  }
+
+  // Retrieve the saved item colors from shared preferences
+  String? itemColorsString = prefs.getString('itemColors');
+  if (itemColorsString != null) {
+    // Parse the JSON string to a Map<String, dynamic>
+    Map<String, dynamic> decodedItemColors = json.decode(itemColorsString);
+    
+    // Clear the existing item colors
+    itemColors.clear();
+    
+    // Update the itemColors map with the decoded data
+    decodedItemColors.forEach((key, value) {
+      itemColors[int.parse(key)] = Color(value);
+    });
+  }
+}
+
+
+
+
 
   @override
   void initState() {
@@ -38,8 +106,15 @@ class _OrderFormState extends State<OrderForm> {
     fetchItemCodes();
     loadCheckboxPreferences();
       initializeItemQuantities();
+  restoreState();
 
   }
+
+  @override
+void dispose() {
+  saveState();
+  super.dispose();
+}
 
   Future<void> fetchItemCodes() async {
     setState(() {
@@ -332,51 +407,57 @@ return Colors.transparent;
       ),
     );
   }
+
  Future<bool> _showExitConfirmationDialog(BuildContext context) async {
   return await showDialog<bool>(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
         title: Text('Quit Activity'),
-        content: Text('Do you want to save and continue later, or discard data?',style: TextStyle(
-                    fontSize: widget.appNotifier.fontSize.toDouble() - 1),
-              ),
+        content: Text('Do you want to save and continue later, or discard data?', style: TextStyle(fontSize: widget.appNotifier.fontSize.toDouble() - 1)),
         actions: <Widget>[
+      TextButton(
+ onPressed: () async {
+  await saveState();
+  await saveIncompletePurchaseReceipt();
+  // Navigate back to the Welcome screen
+  Navigator.of(context).pop(true);
+    Navigator.of(context).pop(true);
+     Navigator.of(context).pop(true);
+
+},
+
+  child: Text('Save and continue later', style: TextStyle(fontSize: widget.appNotifier.fontSize.toDouble() - 2)),
+),
+
+
           TextButton(
-            onPressed: () {
-              // Save and continue later logic goes here
- /*Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => WMS(appNotifier: widget.appNotifier,usercode: widget.usercode,),
-            ),
-          );  */          },
-            child: Text('Save and continue later',style: TextStyle(
-                    fontSize: widget.appNotifier.fontSize.toDouble() - 2),
-              ),
+            onPressed: () async {
+             
+              initializeItemQuantities(); // Reset item quantities
+              setState(() {
+                itemColors.clear(); // Clear item colors
+              });
+               await discardIncompletePurchaseReceipt();
+             Navigator.of(context).pop(true);
+     Navigator.of(context).pop(true);
+    Navigator.of(context).pop(true);
+     Navigator.of(context).pop(true);
+            },
+            child: Text('Discard data', style: TextStyle(fontSize: widget.appNotifier.fontSize.toDouble() - 2)),
           ),
           TextButton(
             onPressed: () {
-              // Discard data logic goes here
-              Navigator.of(context).pop(true); // Allow navigation
+              Navigator.pop(context); // Stay on the current screen
             },
-            child: Text('Discard data',style: TextStyle(
-                    fontSize: widget.appNotifier.fontSize.toDouble() - 2),
-              ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(false); // Stay on the current screen
-            },
-            child: Text('Cancel' ,style: TextStyle(
-                    fontSize: widget.appNotifier.fontSize.toDouble() - 2),
-              ),
+            child: Text('Cancel', style: TextStyle(fontSize: widget.appNotifier.fontSize.toDouble() - 2)),
           ),
         ],
       );
     },
   ) ?? false; // Ensure a default value is returned if showDialog returns null
 }
+
 
 
   Future<void> _showActionDialog(BuildContext context, Map<dynamic, dynamic> itemCode,int index) async {
@@ -545,6 +626,26 @@ fetchItemCodes();
     },
   );
 }
+
+Future<void> saveIncompletePurchaseReceipt() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  // Save the incomplete purchase receipt flag to shared preferences
+  await prefs.setBool('incompletePurchaseReceipt', true);
+}
+
+Future<void> discardIncompletePurchaseReceipt() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  // Save the incomplete purchase receipt flag to shared preferences
+  await prefs.setBool('incompletePurchaseReceipt', false);
+}
+
+Future<bool> hasIncompletePurchaseReceipt() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  // Check if there is incomplete data saved in shared preferences
+  return prefs.getBool('incompletePurchaseReceipt') ?? false;
+}
+
+
 Future<void> loadCheckboxPreferences() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
 

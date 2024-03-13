@@ -124,7 +124,7 @@ email: widget.email
      'Warehouse Management System': WMS(
         appNotifier: widget.appNotifier,
         usercode: usercode,
-email: widget.email,
+
       ),
 
         AppLocalizations.of(context)!.report:
