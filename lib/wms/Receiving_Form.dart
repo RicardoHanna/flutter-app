@@ -357,7 +357,6 @@ super.didChangeDependencies();
 
     // If there's an incomplete purchase receipt, show the dialog
     if (_incompletePurchaseReceipt) {
-      
       _showIncompleteReceiptDialog();
     }
   }

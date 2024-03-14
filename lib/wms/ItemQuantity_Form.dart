@@ -7,14 +7,14 @@ class ItemQuantityScreen extends StatefulWidget {
   final int index;
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
-final Function(BuildContext,int, int) changeQuantity;
+final Function(BuildContext,int, int) addQuantity;
   const ItemQuantityScreen(
       {Key? key,
       required this.appNotifier,
       required this.usercode,
       required this.items,
       required this.index,
-      required this.changeQuantity, // Add this line
+      required this.addQuantity, // Add this line
       required this.itemQuantities,
 
       })
@@ -100,7 +100,7 @@ Widget build(BuildContext context) {
                 );
                 return;
     }
-    widget.changeQuantity(context, widget.index, newQuantity); // Pass the context here
+    widget.addQuantity(context, widget.index, newQuantity); // Pass the context here
     Navigator.pop(context); // Close the screen
     Navigator.pop(context);
   },
