@@ -190,11 +190,13 @@ class _OrderFormState extends State<OrderForm> {
     }
   }
 
-    void addQuantity(BuildContext context, int index, int newQuantity) {
-    // Update the quantity directly
-    setState(() {
-      itemQuantities[index] = newQuantity+ itemQuantities[index]!;
-    });
+    
+void addQuantity(BuildContext context, int index, int? newQuantity) {
+  // Update the quantity directly
+  setState(() {
+    itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
+  });
+
 
     // Show the action dialog if the new quantity is 0
     if (newQuantity == 0) {
@@ -586,6 +588,8 @@ class _OrderFormState extends State<OrderForm> {
               }),
               _buildActionItem('Print Label', () {
                 Navigator.pop(context);
+                print('%%%%');
+                print(itemCode['itemCode']);
                 _printLabel(
                     context, itemCode, index, itemQuantities[index]!);
               }),
@@ -599,9 +603,9 @@ class _OrderFormState extends State<OrderForm> {
     );
   }
 
- Future<void> _printLabel1() async {
+ Future<void> _printLabel1(String itemCode, String barcode, int index) async {
   // Create PDF document
-  final Uint8List pdfBytes = await _generatePdf();
+  final Uint8List pdfBytes = await _generatePdf(itemCode,barcode);
 
   // Define custom page size with width and height ratio
   final PdfPageFormat format = PdfPageFormat(200 + 60, 50 + 60); // Adjust as needed
@@ -610,28 +614,31 @@ class _OrderFormState extends State<OrderForm> {
   await Printing.layoutPdf(onLayout: (_) => pdfBytes, format: format);
 }
 
-Future<Uint8List> _generatePdf() async {
+Future<Uint8List> _generatePdf(String itemCode , String barcode) async {
   final pdf = pw.Document();
 
   // Add content to the PDF document
   pdf.addPage(pw.Page(
     pageFormat: PdfPageFormat(100, 80), // Adjust as needed
     build: (pw.Context context) {
-      return pw.Center(
-        child: pw.Stack(
-          alignment: pw.Alignment.center,
-          children: [
-            // Insert BarcodeWidget with QR code
-            pw.BarcodeWidget(
-              barcode: pw.Barcode.qrCode(),
-              data: 'https://pub.dev/packages/barcode_widget',
-              width: 100,
+      return pw.Stack(
+        children: [
+          // Insert BarcodeWidget with QR code at the center
+          pw.Center(
+            child: pw.BarcodeWidget(
+              barcode: pw.Barcode.code128(),
+              data: barcode,
+              width: 90,
               height: 30,
             ),
-            // Insert FlutterLogo inside a container
-         
-          ],
-        ),
+          ),
+          // Insert item code at the top left
+          pw.Positioned(
+            child: pw.Text('Code : $itemCode', style: pw.TextStyle(fontSize: 5)),
+            top: 10.0,  // Adjust as needed
+            left: 10.0,  // Adjust as needed
+          ),
+        ],
       );
     },
   ));
@@ -639,6 +646,7 @@ Future<Uint8List> _generatePdf() async {
   // Save the PDF document as bytes
   return pdf.save();
 }
+
 
 
   Future<void> _printLabel(BuildContext context,
@@ -656,7 +664,9 @@ Future<Uint8List> _generatePdf() async {
             children: [
               TextButton(
                 onPressed: () async{
-_printLabel1();
+                  print('@@@@@@@@@');
+                  print(itemCode['itemCode']);
+_printLabel1(itemCode['itemCode'],itemCode['barcode'],index);
 
 
                 },

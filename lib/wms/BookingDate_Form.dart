@@ -20,7 +20,6 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
   TextEditingController commentsController = TextEditingController();
   TextEditingController createdByController = TextEditingController();
 
-
   DateTime _selectedDueDate = DateTime.now();
   DateTime _selectedBookingDate = DateTime.now();
 
@@ -35,6 +34,7 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
     if (picked != null && picked != _selectedDueDate) {
       setState(() {
         _selectedDueDate = picked;
+        dueDateController.text = _selectedDueDate.toString();
       });
     }
   }
@@ -50,8 +50,16 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
     if (picked != null && picked != _selectedBookingDate) {
       setState(() {
         _selectedBookingDate = picked;
+        bookingDateController.text = _selectedBookingDate.toString();
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    bookingDateController.text = _selectedBookingDate.toString();
+    dueDateController.text = _selectedDueDate.toString();
   }
 
   @override
@@ -94,13 +102,10 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
                         labelStyle: TextStyle(
                             fontSize:
                                 widget.appNotifier.fontSize.toDouble() - 2)),
-                    onChanged: (value) {
-                      // itemName = value;
-                    },
                   ),
                 ),
                 IconButton(
-                  onPressed: () => _selectDueDate(context),
+                  onPressed: () => _selectBookingDate(context),
                   icon: Icon(Icons.calendar_month),
                 )
               ],
@@ -118,13 +123,10 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
                         labelStyle: TextStyle(
                             fontSize:
                                 widget.appNotifier.fontSize.toDouble() - 2)),
-                    onChanged: (value) {
-                      // itemName = value;
-                    },
                   ),
                 ),
                 IconButton(
-                  onPressed: () => _selectBookingDate,
+                  onPressed: () => _selectDueDate(context),
                   icon: Icon(Icons.calendar_month),
                 )
               ],
@@ -194,7 +196,11 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
               height: 10,
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                print('Booking Date: ${bookingDateController.text}');
+          print('Due Date: ${dueDateController.text}');
+          print('BP Reference: ${BpReferenceController.text}');
+              },
               child: Text(
                 "Send",
                 style: TextStyle(
