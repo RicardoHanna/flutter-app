@@ -17,19 +17,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ReceivingScreen extends StatefulWidget {
   final AppNotifier appNotifier;
   final String usercode;
+  String? searchedSupplier;
 
-  ReceivingScreen({required this.appNotifier, required this.usercode});
+  ReceivingScreen(
+      {required this.appNotifier,
+      required this.usercode,
+      this.searchedSupplier});
   @override
   _ReceivingScreenState createState() => _ReceivingScreenState();
 }
 
 class _ReceivingScreenState extends State<ReceivingScreen> {
   String apiurl = 'http://5.189.188.139:8080/api/';
-  TextEditingController itemNameController = TextEditingController();
   bool _isLoading = false;
   String searchQuery = '';
   bool _incompletePurchaseReceipt = false; // Track incomplete purchase receipt
-
+  TextEditingController itemNameController = TextEditingController();
   List<Map<String, String>> orders = [];
   List<Map<String, String>> filteredOrders = [];
 
@@ -41,6 +44,11 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
     _fetchOrders(widget.usercode).then((_) {
       setState(() {
         filteredOrders = List.from(orders);
+        if (widget.searchedSupplier != null) {
+          
+          itemNameController.text = widget.searchedSupplier!;
+          _updateFilteredOrders(widget.searchedSupplier!);
+        }
       });
     });
   }
@@ -53,12 +61,14 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
 
   void _updateFilteredOrders(String query) {
     setState(() {
+      print(query);
       searchQuery = query;
       filteredOrders = orders.where((order) {
         final lowerCaseQuery = query.toLowerCase();
         return order['docEntry']!.toLowerCase().contains(lowerCaseQuery) ||
             order['docDelDate']!.toLowerCase().contains(lowerCaseQuery) ||
-            order['cmpCode']!.toLowerCase().contains(lowerCaseQuery);
+            order['cmpCode']!.toLowerCase().contains(lowerCaseQuery) ||
+            order['cardCode']!.toLowerCase().contains(lowerCaseQuery);
       }).toList();
     });
   }
@@ -102,6 +112,7 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
           setState(() {
             orders = List<Map<String, String>>.from(data.map((item) => {
                   "docEntry": item["docEntry"].toString(),
+                  "cardCode": item['cardCode'].toString(),
                   "docDelDate": dateFormatter
                       .format(dateFormat.parse(item["docDelDate"])),
                   "cmpCode": item["cmpCode"].toString(),
