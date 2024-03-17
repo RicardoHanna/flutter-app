@@ -17,7 +17,7 @@ class WmsSettings extends StatefulWidget {
 
 class _WmsSettingsState extends State<WmsSettings> {
   String baseUrl = "http://5.189.188.139:8081/api/";
-
+  List<dynamic> filteredUsers = [];
   TextEditingController _searchController = TextEditingController();
   List<dynamic> userGroups = [];
   List<dynamic> wmsSetup = [];
@@ -26,6 +26,7 @@ class _WmsSettingsState extends State<WmsSettings> {
     "allowAddItems": "Allow Add Items",
     "allowAdditionalQty": "Allow Additional Quantity"
   };
+  String searchQuery = '';
 
   Future<void> getUserGroups() async {
     try {
@@ -54,7 +55,6 @@ class _WmsSettingsState extends State<WmsSettings> {
           },
           body: jsonEncode({'data': data}));
       if (response.statusCode == 200) {
-        
       } else {}
     } catch (e) {}
   }
@@ -116,98 +116,129 @@ class _WmsSettingsState extends State<WmsSettings> {
                     TextStyle(fontSize: widget.appNotifier.fontSize.toDouble()),
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: "Search By Name",
+                  hintText: "Search",
                   prefixIcon: Icon(
                     Icons.search,
                   ),
                 ),
-                onChanged: (value) {},
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: userGroups.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      "${userGroups[index]['groupname']}",
-                      style: TextStyle(
-                          fontSize: widget.appNotifier.fontSize.toDouble()),
-                    ),
-                    trailing: IconButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return StatefulBuilder(
-                              builder:
-                                  (BuildContext context, StateSetter setState) {
-                                final keysList = menuwms.keys.toList();
-                                final bools = wmsSetup.where((element) =>
-                                    element['groupCode'] ==
-                                    userGroups[index]['groupcode']);
-                                return AlertDialog(
-                                  title:
-                                      Text("Assign User Group To Wms Action"),
-                                  content: Container(
-                                    width: double.maxFinite,
-                                    height:
-                                        200, // You can adjust the height as needed
-                                    child: ListView.builder(
-                                      itemCount: menuwms.keys.length,
-                                      itemBuilder: (context, i) {
-                                        return ListTile(
-                                          title: Text(menuwms[keysList[i]]),
-                                          trailing: Checkbox(
-                                            onChanged: (bool? value) {
-                                              setState(() {
-                                                bools.first[keysList[i]] =
-                                                    value == true ? 1 : 0;
-                                                print(bools);
-                                              });
-                                            },
-                                            value: bools.first[keysList[i]] == 1
-                                                ? true
-                                                : false,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pop(); // Close the dialog
-                                      },
-                                      child: Text("Close"),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        print(jsonEncode(bools.first));
-                                        await updateWmsSetup(bools.first);
-                                      },
-                                      child: Text("Update"),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                      icon: Icon(
-                        Icons.assignment_add,
-                        color: Colors.blue,
-                      ),
-                    ),
-                  );
+                onChanged: (value) {
+                  _updateFilteredOrders(value);
                 },
               ),
-            )
+            ),
+            userGroups.length != 0
+                ? Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredUsers.length == 0
+                          ? userGroups.length
+                          : filteredUsers.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(
+                            filteredUsers.length == 0
+                                ? userGroups[index]['groupname']
+                                : filteredUsers[index]['groupname'],
+                            style: TextStyle(
+                                fontSize:
+                                    widget.appNotifier.fontSize.toDouble()),
+                          ),
+                          trailing: IconButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return StatefulBuilder(
+                                    builder: (BuildContext context,
+                                        StateSetter setState) {
+                                      final keysList = menuwms.keys.toList();
+                                      final bools = wmsSetup.where((element) =>
+                                          element['groupCode'] ==
+                                          (filteredUsers.length == 0
+                                              ? userGroups[index]['groupcode']
+                                              : filteredUsers[index]
+                                                  ['groupcode']));
+                                      return AlertDialog(
+                                        title: Text(
+                                            "Assign User Group To Wms Action"),
+                                        content: Container(
+                                          width: double.maxFinite,
+                                          height:
+                                              200, // You can adjust the height as needed
+                                          child: ListView.builder(
+                                            itemCount: menuwms.keys.length,
+                                            itemBuilder: (context, i) {
+                                              return ListTile(
+                                                title:
+                                                    Text(menuwms[keysList[i]]),
+                                                trailing: Checkbox(
+                                                  onChanged: (bool? value) {
+                                                    setState(() {
+                                                      bools.first[keysList[i]] =
+                                                          value == true ? 1 : 0;
+                                                      print(bools);
+                                                    });
+                                                  },
+                                                  value: bools.first[
+                                                              keysList[i]] ==
+                                                          1
+                                                      ? true
+                                                      : false,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context)
+                                                  .pop(); // Close the dialog
+                                            },
+                                            child: Text("Close"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () async {
+                                              Navigator.of(context).pop();
+
+                                              print(jsonEncode(bools.first));
+                                              await updateWmsSetup(bools.first);
+                                            },
+                                            child: Text("Update"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                            icon: Icon(
+                              Icons.assignment_add,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : Center(
+                    child: CircularProgressIndicator(),
+                  )
           ],
         ),
       ),
     );
+  }
+
+  void _updateFilteredOrders(String query) {
+    setState(() {
+      searchQuery = query;
+      print(query);
+
+      filteredUsers = userGroups.where((order) {
+        final lowerCaseQuery = query.toLowerCase();
+        return order['groupname']!.toLowerCase().contains(lowerCaseQuery);
+      }).toList();
+    });
   }
 }
