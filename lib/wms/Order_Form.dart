@@ -35,10 +35,8 @@ class OrderForm extends StatefulWidget {
   @override
   State<OrderForm> createState() => _OrderFormState();
 }
-  late CollectionReference<Map<String, dynamic>> _specialPriceCollection;
 
-
-
+late CollectionReference<Map<String, dynamic>> _specialPriceCollection;
 
 class _OrderFormState extends State<OrderForm> {
   String apiurl = 'http://5.189.188.139:8080/api/';
@@ -123,7 +121,6 @@ class _OrderFormState extends State<OrderForm> {
     loadCheckboxPreferences();
     initializeItemQuantities();
     restoreState();
-
   }
 
   @override
@@ -190,10 +187,10 @@ class _OrderFormState extends State<OrderForm> {
     }
   }
 
-    void addQuantity(BuildContext context, int index, int newQuantity) {
+  void addQuantity(BuildContext context, int index, int? newQuantity) {
     // Update the quantity directly
     setState(() {
-      itemQuantities[index] = newQuantity+ itemQuantities[index]!;
+      itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
     });
 
     // Show the action dialog if the new quantity is 0
@@ -586,8 +583,7 @@ class _OrderFormState extends State<OrderForm> {
               }),
               _buildActionItem('Print Label', () {
                 Navigator.pop(context);
-                _printLabel(
-                    context, itemCode, index, itemQuantities[index]!);
+                _printLabel(context, itemCode, index, itemQuantities[index]!);
               }),
               _buildActionItem('Delete', () {
                 // Handle Delete action
@@ -599,50 +595,49 @@ class _OrderFormState extends State<OrderForm> {
     );
   }
 
- Future<void> _printLabel1() async {
-  // Create PDF document
-  final Uint8List pdfBytes = await _generatePdf();
+  Future<void> _printLabel1() async {
+    // Create PDF document
+    final Uint8List pdfBytes = await _generatePdf();
 
-  // Define custom page size with width and height ratio
-  final PdfPageFormat format = PdfPageFormat(200 + 60, 50 + 60); // Adjust as needed
+    // Define custom page size with width and height ratio
+    final PdfPageFormat format =
+        PdfPageFormat(200 + 60, 50 + 60); // Adjust as needed
 
-  // Display PDF preview
-  await Printing.layoutPdf(onLayout: (_) => pdfBytes, format: format);
-}
+    // Display PDF preview
+    await Printing.layoutPdf(onLayout: (_) => pdfBytes, format: format);
+  }
 
-Future<Uint8List> _generatePdf() async {
-  final pdf = pw.Document();
+  Future<Uint8List> _generatePdf() async {
+    final pdf = pw.Document();
 
-  // Add content to the PDF document
-  pdf.addPage(pw.Page(
-    pageFormat: PdfPageFormat(100, 80), // Adjust as needed
-    build: (pw.Context context) {
-      return pw.Center(
-        child: pw.Stack(
-          alignment: pw.Alignment.center,
-          children: [
-            // Insert BarcodeWidget with QR code
-            pw.BarcodeWidget(
-              barcode: pw.Barcode.qrCode(),
-              data: 'https://pub.dev/packages/barcode_widget',
-              width: 100,
-              height: 30,
-            ),
-            // Insert FlutterLogo inside a container
-         
-          ],
-        ),
-      );
-    },
-  ));
+    // Add content to the PDF document
+    pdf.addPage(pw.Page(
+      pageFormat: PdfPageFormat(100, 80), // Adjust as needed
+      build: (pw.Context context) {
+        return pw.Center(
+          child: pw.Stack(
+            alignment: pw.Alignment.center,
+            children: [
+              // Insert BarcodeWidget with QR code
+              pw.BarcodeWidget(
+                barcode: pw.Barcode.qrCode(),
+                data: 'https://pub.dev/packages/barcode_widget',
+                width: 100,
+                height: 30,
+              ),
+              // Insert FlutterLogo inside a container
+            ],
+          ),
+        );
+      },
+    ));
 
-  // Save the PDF document as bytes
-  return pdf.save();
-}
+    // Save the PDF document as bytes
+    return pdf.save();
+  }
 
-
-  Future<void> _printLabel(BuildContext context,
-      Map<dynamic, dynamic> itemCode, int index, int existingQuantity) async {
+  Future<void> _printLabel(BuildContext context, Map<dynamic, dynamic> itemCode,
+      int index, int existingQuantity) async {
     TextEditingController quantityController =
         TextEditingController(text: existingQuantity.toString());
 
@@ -655,12 +650,13 @@ Future<Uint8List> _generatePdf() async {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextButton(
-                onPressed: () async{
-_printLabel1();
-
-
+                onPressed: () async {
+                  _printLabel1();
                 },
-                child: Text('Sample 1',style: TextStyle(color: Colors.black54),),
+                child: Text(
+                  'Sample 1',
+                  style: TextStyle(color: Colors.black54),
+                ),
               ),
               TextButton(
                 onPressed: () {
@@ -668,7 +664,8 @@ _printLabel1();
                   // For example:
                   // _handleLabelSelection(context, 'Sample 2');
                 },
-                child: Text('Sample 2',style: TextStyle(color: Colors.black54)),
+                child:
+                    Text('Sample 2', style: TextStyle(color: Colors.black54)),
               ),
               TextButton(
                 onPressed: () {
@@ -676,7 +673,8 @@ _printLabel1();
                   // For example:
                   // _handleLabelSelection(context, 'Sample 3');
                 },
-                child: Text('Sample 3',style: TextStyle(color: Colors.black54)),
+                child:
+                    Text('Sample 3', style: TextStyle(color: Colors.black54)),
               ),
             ],
           ),
@@ -701,7 +699,6 @@ _printLabel1();
       },
     );
   }
-
 
   Future<void> _showChangeQuantityDialog(BuildContext context,
       Map<dynamic, dynamic> itemCode, int index, int existingQuantity) async {
