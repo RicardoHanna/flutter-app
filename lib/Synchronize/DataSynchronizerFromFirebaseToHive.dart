@@ -70,6 +70,7 @@ import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/hive/vatgroups_hive.dart';
 import 'package:project/hive/warehouses_hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/hive/warehousesusers_hive.dart';
 
 class DataSynchronizerFromFirebaseToHive {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -6934,6 +6935,104 @@ Future<void> _synchronizeItemsBatches(
   }
 }
 
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+  Future<void> synchronizeDataWarehousesUsers() async {
+    try {
+      // Fetch data from API endpoint
+      var apiResponse = await _fetchWarehousesUsersData();
+
+      // Open Hive box
+      var warehousesUsersBox =
+          await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
+
+      // Synchronize data
+      await _synchronizeWarehousesUsers(apiResponse, warehousesUsersBox);
+
+      // Close Hive box if needed
+      // await companiesUsersBox.close();
+    } catch (e) {
+      print('Error synchronizing data from API to Hive: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchWarehousesUsersData() async {
+    List<Map<String, dynamic>> warehousesUsersData = [];
+    try {
+      // Make API call to fetch companies users data
+      var response = await http.get(Uri.parse('${apiurl}getWarehousesUsers'));
+      if (response.statusCode == 200) {
+        // Parse the response data
+        dynamic responseData = jsonDecode(response.body);
+        if (responseData is List) {
+          for (var item in responseData) {
+            if (item is Map<String, dynamic>) {
+              warehousesUsersData.add(item);
+            }
+          }
+        } else {
+          print('Invalid response format for warehouses users data');
+        }
+      } else {
+        print(
+            'Failed to retrieve warehouses users data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching warehouses users data: $e');
+    }
+    return warehousesUsersData;
+  }
+
+Future<void> _synchronizeWarehousesUsers(
+  List<Map<String, dynamic>> warehousesUsersData,
+  Box<WarehousesUsers> warehousesUsersBox,
+) async {
+  try {
+    // Prepare lists for batch operations
+    List<WarehousesUsers> warehousesUsersToUpdate = [];
+    List<String> warehousesUsersToDelete = [];
+
+    // Iterate over the retrieved data
+    for (var data in warehousesUsersData) {
+      var userCode = data['userCode'] ?? '';
+      var whsCode = data['whsCode'] ?? '';
+      var defaultwhsCode = data['defaultwhsCode'] ?? '';
+
+      var updatedWarehousesUsers = WarehousesUsers(
+        userCode: userCode,
+        whsCode: whsCode,
+        defaultwhsCode: defaultwhsCode,
+      );
+
+      warehousesUsersToUpdate.add(updatedWarehousesUsers);
+    }
+
+    // Batch update companies users
+    await warehousesUsersBox.putAll(Map.fromIterable(
+      warehousesUsersToUpdate,
+      key: (warehousesUsers) => '${warehousesUsers.userCode}${warehousesUsers.whsCode}',
+    ));
+
+    // Delete companies users not present in the updated data
+    Set<String> updatedWarehousesUsersKeys = warehousesUsersToUpdate
+        .map((warehousesUser) => '${warehousesUser.userCode}${warehousesUser.whsCode}')
+        .toSet();
+    warehousesUsersBox.keys
+        .where((warehousesUserKey) => !updatedWarehousesUsersKeys.contains(warehousesUserKey))
+        .forEach((warehousesUserKey) {
+      warehousesUsersToDelete.add(warehousesUserKey);
+    });
+    await warehousesUsersBox.deleteAll(warehousesUsersToDelete);
+  } catch (e) {
+    print('Error synchronizing Warehouses Users data from API to Hive: $e');
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
 
 
 }

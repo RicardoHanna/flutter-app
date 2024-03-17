@@ -15,6 +15,7 @@ import 'package:project/app_notifier.dart';
 import 'package:http/http.dart' as http;
 import 'package:project/classes/UserPreferences.dart';
 import 'package:project/screens/welcome_page.dart';
+import 'package:project/wms/AddBatch_Form.dart';
 import 'package:project/wms/BookingDate_Form.dart';
 import 'package:project/wms/InventoryList_Form.dart';
 import 'package:project/wms/ItemQuantity_Form.dart';
@@ -35,10 +36,8 @@ class OrderForm extends StatefulWidget {
   @override
   State<OrderForm> createState() => _OrderFormState();
 }
-  late CollectionReference<Map<String, dynamic>> _specialPriceCollection;
 
-
-
+late CollectionReference<Map<String, dynamic>> _specialPriceCollection;
 
 class _OrderFormState extends State<OrderForm> {
   String apiurl = 'http://5.189.188.139:8080/api/';
@@ -123,7 +122,6 @@ class _OrderFormState extends State<OrderForm> {
     loadCheckboxPreferences();
     initializeItemQuantities();
     restoreState();
-
   }
 
   @override
@@ -566,6 +564,7 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
                 dynamic remainingQty =
                     (itemCode['ordQty'] ?? 0) - (itemQuantities[index] ?? 0);
                 print(remainingQty);
+                if(itemCode['batchID']==''){
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -578,6 +577,21 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
                         itemQuantities: remainingQty ?? 0),
                   ),
                 );
+                }else if(itemCode['batchID']==''){
+       Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddBatch(
+                        appNotifier: widget.appNotifier,
+                        usercode: widget.usercode,
+                        items: fetchedData,
+                        index: index,
+                        addQuantity: addQuantity,
+                        itemQuantities: remainingQty ?? 0),
+                  ),
+                );
+
+                }
               }),
               _buildActionItem('Change Quantity', () {
                 Navigator.pop(context);
@@ -607,12 +621,13 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
   // Create PDF document
   final Uint8List pdfBytes = await _generatePdf(itemCode,barcode);
 
-  // Define custom page size with width and height ratio
-  final PdfPageFormat format = PdfPageFormat(200 + 60, 50 + 60); // Adjust as needed
+    // Define custom page size with width and height ratio
+    final PdfPageFormat format =
+        PdfPageFormat(200 + 60, 50 + 60); // Adjust as needed
 
-  // Display PDF preview
-  await Printing.layoutPdf(onLayout: (_) => pdfBytes, format: format);
-}
+    // Display PDF preview
+    await Printing.layoutPdf(onLayout: (_) => pdfBytes, format: format);
+  }
 
 Future<Uint8List> _generatePdf(String itemCode , String barcode) async {
   final pdf = pw.Document();
@@ -670,7 +685,10 @@ _printLabel1(itemCode['itemCode'],itemCode['barcode'],index);
 
 
                 },
-                child: Text('Sample 1',style: TextStyle(color: Colors.black54),),
+                child: Text(
+                  'Sample 1',
+                  style: TextStyle(color: Colors.black54),
+                ),
               ),
               TextButton(
                 onPressed: () {
@@ -678,7 +696,8 @@ _printLabel1(itemCode['itemCode'],itemCode['barcode'],index);
                   // For example:
                   // _handleLabelSelection(context, 'Sample 2');
                 },
-                child: Text('Sample 2',style: TextStyle(color: Colors.black54)),
+                child:
+                    Text('Sample 2', style: TextStyle(color: Colors.black54)),
               ),
               TextButton(
                 onPressed: () {
@@ -686,7 +705,8 @@ _printLabel1(itemCode['itemCode'],itemCode['barcode'],index);
                   // For example:
                   // _handleLabelSelection(context, 'Sample 3');
                 },
-                child: Text('Sample 3',style: TextStyle(color: Colors.black54)),
+                child:
+                    Text('Sample 3', style: TextStyle(color: Colors.black54)),
               ),
             ],
           ),
@@ -711,7 +731,6 @@ _printLabel1(itemCode['itemCode'],itemCode['barcode'],index);
       },
     );
   }
-
 
   Future<void> _showChangeQuantityDialog(BuildContext context,
       Map<dynamic, dynamic> itemCode, int index, int existingQuantity) async {

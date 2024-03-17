@@ -961,7 +961,7 @@ Future<void> _loadDefaultWarehouseCode() async {
             items: companies.map((company) {
               return DropdownMenuItem<String>(
                 value: company.cmpName,
-                child: Text(company.cmpName,style: _appTextStyle,),
+                child: Text(company.cmpName,style: TextStyle(fontSize: widget.appNotifier.fontSize.toDouble()-4),),
               );
             }).toList(),
           onChanged: (value) {
@@ -1011,7 +1011,7 @@ Future<void> _loadDefaultWarehouseCode() async {
             items: warehouses.map((warehouse) {
               return DropdownMenuItem<String>(
                 value: warehouse.whsName,
-                child: Text(warehouse.whsName,style: _appTextStyle,),
+                child: Text(warehouse.whsName,style: TextStyle(fontSize:widget.appNotifier.fontSize.toDouble()-4),),
               );
             }).toList(),
           onChanged: (value) {
@@ -1029,6 +1029,7 @@ Future<void> _loadDefaultWarehouseCode() async {
       },
     );
   }
+  
  Future<void> _updateDefaultWarehouseCode(String warehouseCode) async {
   String warehouseNameEachRecordToUpdate='';
     try {

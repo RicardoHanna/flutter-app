@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:project/app_notifier.dart';
 
-class AddSerialNumber extends StatefulWidget {
+class AddBatch extends StatefulWidget {
   final AppNotifier appNotifier;
   final String usercode;
   final int index;
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
 final Function(BuildContext,int, int) addQuantity;
-  const AddSerialNumber(
+  const AddBatch(
       {Key? key,
       required this.appNotifier,
       required this.usercode,
@@ -21,10 +21,10 @@ final Function(BuildContext,int, int) addQuantity;
       : super(key: key);
 
   @override
-  State<AddSerialNumber> createState() => _AddSerialNumberState();
+  State<AddBatch> createState() => _AddBatchState();
 }
 
-class _AddSerialNumberState extends State<AddSerialNumber> {
+class _AddBatchState extends State<AddBatch> {
   TextEditingController quantityController = TextEditingController();
   String dropdownValue = 'Units';
   List<Map<dynamic, dynamic>> itemsorders = [];
@@ -41,7 +41,7 @@ Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
       title: Text(
-        'Add Serial',
+        'Add Batch',
         style: TextStyle(
           color: Colors.white,
           fontSize: widget.appNotifier.fontSize.toDouble(),

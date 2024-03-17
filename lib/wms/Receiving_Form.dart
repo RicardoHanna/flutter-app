@@ -4,7 +4,8 @@ import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
-import 'package:flutter/services.dart' show ByteData, PlatformException, rootBundle;
+import 'package:flutter/services.dart'
+    show ByteData, PlatformException, rootBundle;
 import 'package:project/app_notifier.dart';
 import 'package:project/wms/NewReceipt_Form.dart';
 import 'package:project/wms/Order_Form.dart';
@@ -34,24 +35,22 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
 
   String itemName = '';
 
-
-@override
-void initState() {
-  super.initState();
-  _fetchOrders(widget.usercode).then((_) {
-    setState(() {
-      filteredOrders = List.from(orders);
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders(widget.usercode).then((_) {
+      setState(() {
+        filteredOrders = List.from(orders);
+      });
     });
-  });
+  }
 
-}
-@override
-void didChangeDependencies() { 
-super.didChangeDependencies();
-      _checkIncompletePurchaseReceipt();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _checkIncompletePurchaseReceipt();
+  }
 
-
-}
   void _updateFilteredOrders(String query) {
     setState(() {
       searchQuery = query;
@@ -65,63 +64,63 @@ super.didChangeDependencies();
   }
 
   Future<String?> fetchCmpCode(String userCode) async {
-  try {
-    final response = await http.get(
-      Uri.parse('${apiurl}getDefaultCompCode?userCode=$userCode'),
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      if (data.isNotEmpty) {
-        return data[0]['cmpCode'].toString();
-      }
-    }
-  } catch (error) {
-    print('Error fetching cmpCode: $error');
-  }
-  return null;
-}
-
- Future<void> _fetchOrders(String userCode) async {
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    // Fetch cmpCode based on userCode
-    final cmpCode = await fetchCmpCode(userCode);
-
-    // Proceed to fetch orders if cmpCode is retrieved successfully
-    if (cmpCode != null) {
+    try {
       final response = await http.get(
-        Uri.parse('${apiurl}getOpor?cmpCode=$cmpCode'),
+        Uri.parse('${apiurl}getDefaultCompCode?userCode=$userCode'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        final DateFormat dateFormat =
-            DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        final DateFormat dateFormatter = DateFormat("yyyy-MM-dd");
-        setState(() {
-          orders = List<Map<String, String>>.from(data.map((item) => {
-                "docEntry": item["docEntry"].toString(),
-                "docDelDate":
-                    dateFormatter.format(dateFormat.parse(item["docDelDate"])),
-                "cmpCode": item["cmpCode"].toString(),
-              }));
-          _isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to fetch orders');
+        if (data.isNotEmpty) {
+          return data[0]['cmpCode'].toString();
+        }
       }
-    } else {
-      throw Exception('Failed to fetch cmpCode');
+    } catch (error) {
+      print('Error fetching cmpCode: $error');
     }
-  } catch (error) {
-    print('Error fetching orders: $error');
-    setState(() {
-      _isLoading = false;
-    });
+    return null;
   }
-}
+
+  Future<void> _fetchOrders(String userCode) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Fetch cmpCode based on userCode
+      final cmpCode = await fetchCmpCode(userCode);
+
+      // Proceed to fetch orders if cmpCode is retrieved successfully
+      if (cmpCode != null) {
+        final response = await http.get(
+          Uri.parse('${apiurl}getOpor?cmpCode=$cmpCode'),
+        );
+        if (response.statusCode == 200) {
+          final List<dynamic> data = json.decode(response.body);
+          final DateFormat dateFormat =
+              DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+          final DateFormat dateFormatter = DateFormat("yyyy-MM-dd");
+          setState(() {
+            orders = List<Map<String, String>>.from(data.map((item) => {
+                  "docEntry": item["docEntry"].toString(),
+                  "docDelDate": dateFormatter
+                      .format(dateFormat.parse(item["docDelDate"])),
+                  "cmpCode": item["cmpCode"].toString(),
+                }));
+            _isLoading = false;
+          });
+        } else {
+          throw Exception('Failed to fetch orders');
+        }
+      } else {
+        throw Exception('Failed to fetch cmpCode');
+      }
+    } catch (error) {
+      print('Error fetching orders: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,15 +141,15 @@ super.didChangeDependencies();
               )),
           IconButton(
               onPressed: () async {
-    String barcode = await scanBarcode();
-    if (barcode.isNotEmpty) {
-      // Perform logic to check if the scanned barcode exists in the items
-      // and display the corresponding item details.
-      // You can use a method similar to how you display items in the list.
-   
-      // For example:
-      bool itemFound = false;
-  /*    for (var item in filteredItems) {
+                String barcode = await scanBarcode();
+                if (barcode.isNotEmpty) {
+                  // Perform logic to check if the scanned barcode exists in the items
+                  // and display the corresponding item details.
+                  // You can use a method similar to how you display items in the list.
+
+                  // For example:
+                  bool itemFound = false;
+                  /*    for (var item in filteredItems) {
 
         if (item.barCode == barcode) {
           itemFound = true;
@@ -164,16 +163,16 @@ super.didChangeDependencies();
           break; // Exit the loop since the item is found
         }
       }*/
-      if (!itemFound) {
-        // Display a message indicating that the scanned item was not found
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Scanned item not found'),
-          ),
-        );
-      }
-    }
-  },
+                  if (!itemFound) {
+                    // Display a message indicating that the scanned item was not found
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Scanned item not found'),
+                      ),
+                    );
+                  }
+                }
+              },
               icon: Icon(
                 Icons.qr_code_scanner,
                 color: Colors.white,
@@ -197,7 +196,7 @@ super.didChangeDependencies();
                             fontSize:
                                 widget.appNotifier.fontSize.toDouble() - 2)),
                     onChanged: (value) {
-                     _updateFilteredOrders(value);
+                      _updateFilteredOrders(value);
                     },
                   ),
                 ),
@@ -205,7 +204,7 @@ super.didChangeDependencies();
                 ElevatedButton(
                   onPressed: () {
                     print(orders.length);
-                Navigator.of(context).push(MaterialPageRoute(
+                    Navigator.of(context).push(MaterialPageRoute(
                         builder: (builder) => SearchBySupplierScreen(
                             appNotifier: widget.appNotifier,
                             usercode: widget.usercode)));
@@ -239,7 +238,7 @@ super.didChangeDependencies();
             ),
             ElevatedButton(
               onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
+                Navigator.of(context).push(MaterialPageRoute(
                     builder: (builder) => NewReceipt(
                           appNotifier: widget.appNotifier,
                           usercode: widget.usercode,
@@ -300,7 +299,7 @@ super.didChangeDependencies();
                                 Navigator.of(context).push(MaterialPageRoute(
                                     builder: (builder) => OrderForm(
                                         order: filteredOrders[index],
-                                        usercode : widget.usercode,
+                                        usercode: widget.usercode,
                                         appNotifier: widget.appNotifier)));
                               },
                               title: Row(
@@ -346,8 +345,7 @@ super.didChangeDependencies();
     );
   }
 
-
- Future<void> _checkIncompletePurchaseReceipt() async {
+  Future<void> _checkIncompletePurchaseReceipt() async {
     // Check if the user has an incomplete purchase receipt
     // Replace this with your own logic to determine if there's an incomplete purchase receipt
     bool hasIncompleteReceipt = await hasIncompletePurchaseReceipt();
@@ -361,17 +359,15 @@ super.didChangeDependencies();
     }
   }
 
-
-Future<bool> hasIncompletePurchaseReceipt() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  // Check if there is incomplete data saved in shared preferences
-  print('@@@@@@');
-  print(prefs.getBool('incompletePurchaseReceipt'));
-  return prefs.getBool('incompletePurchaseReceipt') ?? false;
-}
+  Future<bool> hasIncompletePurchaseReceipt() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // Check if there is incomplete data saved in shared preferences
+    print('@@@@@@');
+    print(prefs.getBool('incompletePurchaseReceipt'));
+    return prefs.getBool('incompletePurchaseReceipt') ?? false;
+  }
 
   Future<void> _showIncompleteReceiptDialog() async {
-    
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -382,10 +378,10 @@ Future<bool> hasIncompletePurchaseReceipt() async {
             TextButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (builder) => OrderForm(
-                                        order: filteredOrders.first,
-                                        usercode : widget.usercode,
-                                        appNotifier: widget.appNotifier)));
+                    builder: (builder) => OrderForm(
+                        order: filteredOrders.first,
+                        usercode: widget.usercode,
+                        appNotifier: widget.appNotifier)));
               },
               child: Text('Continue'),
             ),
@@ -410,24 +406,23 @@ Future<bool> hasIncompletePurchaseReceipt() async {
     );
   }
 
-    Future<String> scanBarcode() async {
-  try {
-    ScanResult result = await BarcodeScanner.scan();
-    String barcode = result.rawContent.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
-    // This regular expression removes control characters from the string.
-    print(barcode);
-    return barcode;
-  } on PlatformException catch (e) {
-    if (e.code == BarcodeScanner.cameraAccessDenied) {
-      // Handle camera permission denied
-      print('Camera permission denied');
-    } else {
-      // Handle other exceptions
-      print('Error: $e');
+  Future<String> scanBarcode() async {
+    try {
+      ScanResult result = await BarcodeScanner.scan();
+      String barcode =
+          result.rawContent.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
+      // This regular expression removes control characters from the string.
+      print(barcode);
+      return barcode;
+    } on PlatformException catch (e) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
+        // Handle camera permission denied
+        print('Camera permission denied');
+      } else {
+        // Handle other exceptions
+        print('Error: $e');
+      }
+      return '';
     }
-    return '';
   }
-}
-
-
 }

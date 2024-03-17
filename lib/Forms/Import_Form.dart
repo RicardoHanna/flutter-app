@@ -873,6 +873,7 @@ await synchronizer.synchronizeDataItemPrice(itemCodes, cmpCode);
 
     await synchronizer.synchronizeDataCompaniesConnection();
     await synchronizer.synchronizeDataCompaniesUsers();
+    await synchronizer.synchronizeDataWarehousesUsers();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

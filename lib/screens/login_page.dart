@@ -81,6 +81,7 @@ Future<void> _synchronizeDatatoHive() async {
  await synchronizer.synchronizeDataPriceListsAutho();
  await synchronizer.synchronizeCompanies();
  await synchronizer.synchronizeDataCompaniesUsers();
+ await synchronizer.synchronizeDataWarehousesUsers();
     // Simulate a delay for demonstration purposes (remove in production)
     await Future.delayed(Duration(seconds: 3));
 
@@ -357,7 +358,14 @@ print(identifierField);
 
   // Print or log the user data for debugging
   print('User data from local database: $userData');
-
+if(identifier=='' || password==''){
+    ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('User and Password is incorrect!'),
+              ),
+            );
+            return;
+}
    if (userData[identifierField] != null) {
     print('loo');
   String userLanguage = userData['languages'] ?? '';
