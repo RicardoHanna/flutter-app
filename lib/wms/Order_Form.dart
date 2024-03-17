@@ -402,7 +402,7 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
                                                 2),
                                       ),
                                       Text(
-                                        "${itemQuantities[index] ?? itemCode['reqQty'] ?? 0} / ${itemCode['ordQty']} Units", // Use itemQuantities[index] here
+                                        "${itemQuantities[index] ?? itemCode['recQty'] ?? 0} / ${itemCode['ordQty']} Units", // Use itemQuantities[index] here
                                         style: TextStyle(
                                             color: Colors.black54,
                                             fontSize: widget

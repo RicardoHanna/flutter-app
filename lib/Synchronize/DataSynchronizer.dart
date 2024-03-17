@@ -14,7 +14,8 @@ import 'package:project/hive/systemadmin_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart'; // Replace with your actual Hive user class
 import 'package:http/http.dart' as http;
-import 'package:project/hive/userssalesemployees_hive.dart'; 
+import 'package:project/hive/userssalesemployees_hive.dart';
+import 'package:project/hive/warehousesusers_hive.dart'; 
 
 
 class DataSynchronizer {
@@ -55,6 +56,9 @@ String baseUrl='http://5.189.188.139:8080';
             var usersSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('usersSalesEmployeesBox');
       List<UserSalesEmployees>userssalesemployees = usersSalesEmployeesBox.values.toList();
 
+            var warehousesusersBox = await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
+      List<WarehousesUsers> warehouseusers = warehousesusersBox.values.toList();
+
       // Check for an internet connection
       if (await hasInternetConnection()) {
         // If there's an internet connection, update or add data to Firestore
@@ -68,6 +72,7 @@ String baseUrl='http://5.189.188.139:8080';
          await _updateFirestorePriceListAutho(pricelistautho);
          await _updateFirestoreCompanies(companies);
          await _updateFirestoreUsersSalesEmployees(userssalesemployees);
+         await _updateWarehousesUsers(warehouseusers);
         // Update or add other data to Firestore if needed
 
       }
@@ -774,6 +779,74 @@ String apiKey = '${apiUserCode}${apiCmpCode}${apiSeCode}';
       print('Error updating API Users Sales Employees   group: $e');
     }
   }
+
+
+  
+Future<void> _updateWarehousesUsers(List<WarehousesUsers> warehousesusers) async {
+   try {
+      var warehousesUsersBox = await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
+
+    // Fetch user data from the API
+    var response = await http.get(Uri.parse('http://5.189.188.139:8080/api/warehousesusers'));
+    print(response.body);
+    if (response.statusCode == 200) {
+      List<dynamic> apiWhsUser = jsonDecode(response.body);
+
+      print(apiWhsUser);
+      // Iterate through each user to determine if it should be added, updated, or deleted
+   for (WarehousesUsers whsuser in warehousesUsersBox.values) {
+    var existingAuthoGroup;
+    if(apiWhsUser!=null){
+   existingAuthoGroup = apiWhsUser.firstWhere((user) => user['userCode'] == whsuser.userCode && user['whsCode'] == whsuser.whsCode, orElse: () => null);
+    }
+  print('Processing Whs User: $whsuser');
+
+  if (existingAuthoGroup != null) {
+    // User exists, update user data
+    final response = await http.put(
+      Uri.parse('http://5.189.188.139:8080/api/warehousesusers/updateWarehousesUsers/${whsuser.userCode}/${whsuser.whsCode}'),
+      body: jsonEncode(whsuser.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print(response.statusCode);
+    print(response.body);
+    print('Warehouse User updated: $whsuser');
+  } else {
+    // User does not exist, add new user
+    await http.post(
+      Uri.parse('http://5.189.188.139:8080/api/warehousesusers/insertWarehousesUsers'),
+      body: jsonEncode(whsuser.toJson()),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print('Warehouse User added: $whsuser');
+  }
+}
+
+   // Convert the keys from authorizationBox to strings for comparison
+List<String> hiveWhsUserKeys = warehousesUsersBox.keys.map((key) => key.toString()).toList();
+
+// Compare the list of authorizations from Hive with the list of authorizations from the API
+for (dynamic apiwhs in apiWhsUser) {
+    String apiUserCode = apiwhs['userCode'];
+    String apiWhsCode = apiwhs['whsCode'];
+    // Construct the key in the same format as stored in authorizationBox
+    String apiKey = '$apiUserCode$apiWhsCode';
+    print(apiKey);
+    // Check if the authorization exists in Hive
+    if (!hiveWhsUserKeys.contains(apiKey)) {
+        // Authorization exists in the API but not in Hive, delete from API
+        await http.delete(Uri.parse('http://5.189.188.139:8080/api/warehousesusers/deleteWarehousesUsers/$apiUserCode/$apiWhsCode'));
+        print('whs Users deleted from API: $apiKey');
+    }
+}
+
+    } else {
+      print('Failed to fetch whs user from API');
+    }
+  } catch (e) {
+    print('Error updating API whs user: $e');
+  }
+}
 
   Future<bool> hasInternetConnection() async {
     try {

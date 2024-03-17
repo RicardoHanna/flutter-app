@@ -28,6 +28,8 @@ import 'package:project/hive/itemsprices_hive.dart';
 import 'package:project/hive/menu_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/userssalesemployees_hive.dart';
+import 'package:project/hive/warehouses_hive.dart';
+import 'package:project/hive/warehousesusers_hive.dart';
 import 'package:project/screens/admin_page.dart';
 import 'package:project/screens/login_page.dart';
 import 'package:project/screens/synchronize_data_page.dart';
@@ -64,8 +66,12 @@ class _welcomePageState extends State<welcomePage> {
   String _username = '';
   String usercode = '';
   List<Companies> companies = [];
+  List<Warehouses> warehouses = [];
   String companyCodeDefltPassedToPages = '';
+   String warehouseCodeDefltPassedToPages = '';
   String? selectedCompany;
+  String? selectedWarehouse;
+    String? selectedWarehouseCode;
   String selectedCompanyCode = ''; // Variable to hold the selected company code
   String imageLink = '';
   String? _userFname;
@@ -234,6 +240,19 @@ email: widget.email
                 _showCompanySelectionDialog(context);
               },
             ),
+
+            ListTile(
+              leading: Icon(Icons.warehouse),
+              title: Text(
+                'Warehouse',
+                style: _appTextStyle,
+              ),
+              subtitle: selectedWarehouse != null ? Text(selectedWarehouse!) : null,
+              onTap: () {
+                _showWarehouseSelectionDialog(context);
+              },
+            ),
+
             ListTile(
               leading: Icon(Icons.settings),
               title: FutureBuilder<bool>(
@@ -465,6 +484,8 @@ email: widget.email
     await _loadUserGroup();
     await _loadCompanies();
     await _loadDefaultCompanyCode();
+   await _loadWarehouses();
+   await _loadDefaultWarehouseCode();
   }
 
   Future<void> _synchronizeData() async {
@@ -589,6 +610,7 @@ email: widget.email
     setState(() {
       // Update the companies list with the filtered companies
       companies = filteredCompanies;
+      
     });
   } catch (error) {
     print('Error loading companies: $error');
@@ -615,6 +637,62 @@ Future<void> _loadDefaultCompanyCode() async {
       }
     } catch (error) {
       print('Error loading default company code: $error');
+    }
+}
+
+//-------------
+//-------------
+//------------
+ Future<void> _loadWarehouses() async {
+  try {
+    var warehousesBox = await Hive.openBox<Warehouses>('warehousesBox');
+    var warehousesusersBox = await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
+
+    // Retrieve all companies from the box
+    List<Warehouses> allWarehouses = warehousesBox.values.toList();
+
+    // Retrieve cmpCodes from companiesUsersBox where userCode is equal to a specific value
+    List<String> whsCodesInUsers = warehousesusersBox.values
+        .where((warehouseUser) => warehouseUser.userCode == usercode)
+        .map((warehouseUser) => warehouseUser.whsCode)
+        .toList();
+
+    // Filter companies where cmpCode is in cmpCodesInUsers
+    List<Warehouses> filteredWarehouses = allWarehouses
+        .where((warehouse) => whsCodesInUsers.contains(warehouse.whsCode) && warehouse.cmpCode==selectedCompanyCode)
+        .toList();
+
+    setState(() {
+      print(selectedCompany);
+      print('@@@@@@@@@@@@@@@@@');
+      // Update the companies list with the filtered companies
+      warehouses = filteredWarehouses;
+    });
+  } catch (error) {
+    print('Error loading warehouses: $error');
+  }
+}
+
+Future<void> _loadDefaultWarehouseCode() async {
+
+    try {
+      var warehousesUsersBox = await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
+
+      var warehousesUser = warehousesUsersBox.values.firstWhere((element) => element.userCode==usercode);
+      print('ooooop');
+      if (warehousesUser != null) {
+        print('lloooo');
+        setState(() {
+          // Set the selected company and its code based on the default company code
+          selectedWarehouseCode = warehousesUser.defaultwhsCode??'';
+          warehouseCodeDefltPassedToPages=selectedWarehouseCode??'';
+          selectedWarehouse = warehouses.firstWhere((warehouse) => warehouse.whsCode== selectedWarehouseCode).whsName??'';
+          print('ricop');
+          print(selectedWarehouse);
+        });
+      }
+    } catch (error) {
+      print('Error loading default warehouse code: $error');
     }
 }
 
@@ -870,6 +948,7 @@ Future<void> _loadDefaultCompanyCode() async {
     var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
     return user?['usergroup'].toString() ?? '';
   }
+
  void _showCompanySelectionDialog(BuildContext context) {
     TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
     showDialog(
@@ -892,6 +971,7 @@ Future<void> _loadDefaultCompanyCode() async {
                 selectedCompanyCode = companies.firstWhere((company) => company.cmpName == value).cmpCode;
                 // Update the default company code in CompaniesUsers box
                 _updateDefaultCompanyCode(selectedCompanyCode!);
+                _loadWarehouses();
               });
               Navigator.pop(context); // Close the dialog
             },
@@ -914,6 +994,55 @@ Future<void> _loadDefaultCompanyCode() async {
     }
     } catch (error) {
       print('Error updating default company code: $error');
+    }
+  }
+  ///-----
+  ///---
+  
+   void _showWarehouseSelectionDialog(BuildContext context) {
+    TextStyle _appTextStyle = TextStyle(fontSize: widget.appNotifier.fontSize.toDouble());
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Select Warehouse'),
+          content: DropdownButtonFormField<String>(
+            value: selectedWarehouse,
+            items: warehouses.map((warehouse) {
+              return DropdownMenuItem<String>(
+                value: warehouse.whsName,
+                child: Text(warehouse.whsName,style: _appTextStyle,),
+              );
+            }).toList(),
+          onChanged: (value) {
+              setState(() {
+                selectedWarehouse = value;
+                // Get the selected company code based on the selected company name
+                selectedWarehouseCode = warehouses.firstWhere((warehouse) => warehouse.whsName == value).whsCode;
+                // Update the default company code in CompaniesUsers box
+                _updateDefaultWarehouseCode(selectedWarehouseCode!);
+              });
+              Navigator.pop(context); // Close the dialog
+            },
+          ),
+        );
+      },
+    );
+  }
+ Future<void> _updateDefaultWarehouseCode(String warehouseCode) async {
+  String warehouseNameEachRecordToUpdate='';
+    try {
+      var warehousesUsersBox = await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
+      var userCode = usercode;// Get the user code here
+      var warehousesUsers  = warehousesUsersBox.values.where((element) => element.userCode==usercode);
+      for(var warehouseUser in warehousesUsers){
+        warehouseUser.defaultwhsCode = warehouseCode;
+        warehouseNameEachRecordToUpdate=warehouseUser.whsCode;
+        warehousesUsersBox.put('$userCode$warehouseNameEachRecordToUpdate', warehouseUser);
+      
+    }
+    } catch (error) {
+      print('Error updating default warehouse code: $error');
     }
   }
 

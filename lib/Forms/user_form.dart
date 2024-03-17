@@ -18,6 +18,8 @@ import 'package:project/hive/salesemployees_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/usergroup_hive.dart';
 import 'package:project/hive/userssalesemployees_hive.dart';
+import 'package:project/hive/warehouses_hive.dart';
+import 'package:project/hive/warehousesusers_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
   import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:collection/collection.dart';
@@ -50,6 +52,9 @@ class _UserFormState extends State<UserForm> {
   String language='';
     List<String?> selectedSalesEmployees = [];
   TextStyle _appTextStyle=TextStyle();
+  List<String?> selectedWarehouseName=[];
+  List<String?> selectedWarehouses=[];
+List <String> selectedWarehouseCodes=[];
 String selectedUserGroupArabic = '';
  List<String> selectedCmpCodes = [];
 List<String> selectedSeCodes = [];
@@ -89,6 +94,10 @@ int maxValue = 30;
 
             SizedBox(height: 8.0),
             _buildTextFieldDropDownCompanies(),
+            SizedBox(height: 8.0),
+
+              SizedBox(height: 8.0),
+            _buildTextFieldDropDownWarehouses(),
             SizedBox(height: 8.0),
 
             SizedBox(height: 8.0),
@@ -438,6 +447,78 @@ Widget _buildTextFieldDropDownCompanies() {
                             .toList();
 
                         print(selectedCompanyCodes);
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Container(); // You can replace this with a loading indicator
+        }
+      },
+    ),
+  );
+}
+
+Widget _buildTextFieldDropDownWarehouses() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: FutureBuilder(
+      future: Hive.openBox<Warehouses>('warehousesBox'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          var warehouseBox = snapshot.data as Box<Warehouses>;
+
+          List<String> warehouseList = warehouseBox.values
+              .map((warehouse) => warehouse.whsName)
+              .toList();
+
+          return Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: TextTheme(
+                subtitle1: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Warehouse',
+                  style: _appTextStyle,
+                ),
+                SizedBox(height: 8.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: MultiSelectDialogField(
+                    items: warehouseList
+                        .map((warehouseName) =>
+                            MultiSelectItem<String>(warehouseName, warehouseName))
+                        .toList(),
+                    initialValue: selectedWarehouses,
+                    onConfirm: (List<String?> values) {
+                      setState(() {
+                        selectedWarehouses = values;
+
+                        // Retrieve company codes based on selected values
+                        selectedWarehouseCodes = values
+                            .map((selectedWarehouseName) {
+                              String warehouseName = selectedWarehouseName!;
+                              Warehouses selectedWarehouse = warehouseBox.values
+                                  .firstWhere(
+                                      (warehouse) => warehouse.whsName == warehouseName);
+                              return selectedWarehouse.whsCode;
+                            })
+                            .toList();
+
+                        print(selectedWarehouseCodes);
                       });
                     },
                   ),
@@ -878,6 +959,7 @@ print(selectedSeCodes);
     final userBox = await Hive.openBox('userBox');
     final userSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
     final userCompaniesUsersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
+  final userWarehousesUsersBox = await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
     final priceListAuthorizationBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
 
     // Use the user's email as a unique identifier for the key
@@ -923,6 +1005,23 @@ for (int i = 0; i < selectedCompanyCodes.length; i++) {
   await userCompaniesUsersBox.put(
     '${usercode}${selectedCompanyCodes[i]}',
     companiesUsers,
+  );
+}
+
+
+
+ // Insert into WarehousesUsers box
+for (int i = 0; i < selectedWarehouseCodes.length; i++) {
+  WarehousesUsers warehousesUsers = WarehousesUsers(
+    userCode: usercode,
+    whsCode: selectedWarehouseCodes[i],
+    defaultwhsCode: ''
+   
+  );
+
+  await userWarehousesUsersBox.put(
+    '${usercode}${selectedWarehouseCodes[i]}',
+    warehousesUsers,
   );
 }
 

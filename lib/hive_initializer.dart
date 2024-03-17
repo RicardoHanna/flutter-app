@@ -69,6 +69,7 @@ import 'package:project/hive/userpl_hive.dart';
 import 'package:project/hive/userssalesemployees_hive.dart';
 import 'package:project/hive/vatgroups_hive.dart';
 import 'package:project/hive/warehouses_hive.dart';
+import 'package:project/hive/warehousesusers_hive.dart';
 import 'package:project/l10n/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_page.dart';
@@ -145,7 +146,8 @@ Future<void> initializeHive() async {
     ..registerAdapter(ItemsWhsesSerialsAdapter())
     ..registerAdapter(ItemsSerialsAdapter())
     ..registerAdapter(ItemsWhsesBatchesAdapter())
-    ..registerAdapter(ItemsBatchesAdapter());
+    ..registerAdapter(ItemsBatchesAdapter())
+    ..registerAdapter(WarehousesUsersAdapter());
 }
 
 Future<void> openHiveBoxes() async {
@@ -224,7 +226,7 @@ await Hive.openBox<ItemsWhsesSerials>('itemsWhsesSerialsBox');
 await Hive.openBox<ItemsSerials>('itemsSerialsBox');
 await Hive.openBox<ItemsWhsesBatches>('itemsWhsesBatchesBox');
 await Hive.openBox<ItemsBatches>('itemsBatchesBox');
-
+await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
 
 
 

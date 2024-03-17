@@ -13,6 +13,8 @@ import 'package:project/hive/pricelistauthorization_hive.dart';
 import 'package:project/hive/salesemployees_hive.dart';
 import 'package:project/hive/translations_hive.dart';
 import 'package:project/hive/userssalesemployees_hive.dart';
+import 'package:project/hive/warehouses_hive.dart';
+import 'package:project/hive/warehousesusers_hive.dart';
 import 'package:project/screens/admin_users_page.dart';
 import 'package:validators/validators.dart';
 import 'package:project/classes/validations.dart';
@@ -75,11 +77,13 @@ String _selectedLanguage = 'English';
 List<String> userGroups = [];
   bool isInitialized = false;
   String defaultCompanyCode='';
+  String defaultWarehouseCode='';
 String username='';
       bool _formChanged = false; // Added to track changes
       bool isDeletedSales = false;
       bool isDeletedCust=false;
        bool isDeletedAutho=false;
+       bool isDeletedWHS=false;
     List<String?> selectedSalesEmployees = [];
 List<String> selectedCmpCodes = [];
 List<String> selectedSeCodes = [];
@@ -88,7 +92,9 @@ List<String> selectedCompanyCodes = [];
 List<String?> selectedPriceList = [];
 List<String> selectedCmpCodesPriceList = [];
 List<String> selectedAuthoGroup = [];
-
+  List<String?> selectedWarehouseName=[];
+  List<String?> selectedWarehouses=[];
+List <String> selectedWarehouseCodes=[];
 
  TextStyle _appTextStyle=TextStyle();
 @override
@@ -191,6 +197,36 @@ defaultCompanyCode=company.cmpCode;
       print(selectedCompanies);
       print(defaultCompanyCode);
     });
+
+
+
+      // Fetch companies based on the selected user group
+    var warehousesusersBox = await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
+
+    List<String> warehouseList = warehousesusersBox.values
+        .where((warehouseuser) => warehouseuser.userCode == selectedUserGroup)
+         .map((warehouseuser) {
+          // Retrieve cmpName based on cmpCode from the Companies box
+          var warehousesBox = Hive.box<Warehouses>('warehousesBox');
+   
+          Warehouses warehouse = warehousesBox.values
+              .firstWhere((warehouse) => warehouse.whsCode == warehouseuser.whsCode,
+              orElse: () => Warehouses(cmpCode:'', whsCode: 'Unknown Company',whsName: '', whsFName: '', binActivate:false,notes: ''));
+defaultWarehouseCode=warehouse.whsCode;
+
+          return '${warehouse.whsName}';
+        })
+        .toList();
+    setState(() {
+      // Update the companies dropdown
+      selectedWarehouses = warehouseList;
+      defaultWarehouseCode=defaultWarehouseCode;
+    
+      print(selectedWarehouses);
+      print(defaultWarehouseCode);
+    });
+
+
 
     // Fetch price list based on the selected user group
     var priceListBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
@@ -476,6 +512,8 @@ Future<String?> getUsernameByCode(int groupcode) async {
                  _buildTextFieldDropDownSalesEmployees(),
                       SizedBox(height: 16),
                     _buildTextFieldDropDownCompanies(),
+                     SizedBox(height: 16),
+                    _buildTextFieldDropDownWarehouses(),
                       SizedBox(height: 16),
                   _buildTextFieldDropDownPriceListAutho(),
 
@@ -727,6 +765,79 @@ Widget _buildTextFieldDropDownCompanies() {
   );
 }
 
+Widget _buildTextFieldDropDownWarehouses() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: FutureBuilder(
+      future: Hive.openBox<Warehouses>('warehousesBox'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          var warehouseBox = snapshot.data as Box<Warehouses>;
+
+          List<String> warehouseList = warehouseBox.values
+              .map((warehouse) => warehouse.whsName)
+              .toList();
+
+          return Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: TextTheme(
+                subtitle1: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble(),
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Warehouse',
+                  style: _appTextStyle,
+                ),
+                SizedBox(height: 8.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: MultiSelectDialogField(
+                    items: warehouseList
+                        .map((warehouseName) =>
+                            MultiSelectItem<String>(warehouseName, warehouseName))
+                        .toList(),
+                    initialValue: selectedWarehouses,
+                    onConfirm: (List<String?> values) {
+                      setState(() {
+                        selectedWarehouses = values;
+                        _formChanged=true;
+                           isDeletedWHS=true;
+                        // Retrieve company codes based on selected values
+                        selectedWarehouseCodes = values
+                            .map((selectedWarehouseName) {
+                              String warehouseName = selectedWarehouseName!;
+                              Warehouses selectedWarehouse = warehouseBox.values
+                                  .firstWhere(
+                                      (warehouse) => warehouse.whsName == warehouseName);
+                              return selectedWarehouse.whsCode;
+                            })
+                            .toList();
+
+                        print(selectedWarehouseCodes);
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Container(); // You can replace this with a loading indicator
+        }
+      },
+    ),
+  );
+}
+
 Widget _buildTextFieldDropDownPriceListAutho() {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -958,6 +1069,8 @@ if(AppLocalizations.of(context)!.language !='English'){
 final userSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesEmployeesBox');
     final userCompaniesUsersBox = await Hive.openBox<CompaniesUsers>('companiesUsersBox');
     final priceListAuthorizationBox = await Hive.openBox<PriceListAuthorization>('pricelistAuthorizationBox');
+        final userWarehousesUsersBox = await Hive.openBox<WarehousesUsers>('warehousesUsersBox');
+
     // Retrieve user data from Hive box based on email
     String userCode = widget.usercode;
     var user = userBox.get(userCode) as Map<dynamic, dynamic>?;
@@ -990,6 +1103,10 @@ final userSalesEmployeesBox = await Hive.openBox<UserSalesEmployees>('userSalesE
         .where((companiesUser) => companiesUser.userCode == widget.usercode)
         .toList();
 
+        List<WarehousesUsers> existingWarehousesUsers = await userWarehousesUsersBox.values
+        .where((warehousesUsers) => warehousesUsers.userCode == widget.usercode)
+        .toList();
+
     List<PriceListAuthorization> existingPriceListAuthorizations = await priceListAuthorizationBox.values
         .where((pricelistautho) => pricelistautho.userCode == widget.usercode)
         .toList();
@@ -1008,6 +1125,15 @@ print(selectedSeCodes);
     for (var existingCompaniesUser in existingCompaniesUsers) {
       if (!selectedCompanyCodes.contains(existingCompaniesUser.cmpCode)) {
         await userCompaniesUsersBox.delete('${widget.usercode}${existingCompaniesUser.cmpCode}');
+      }
+    }
+    }
+
+        // Delete unchecked warehouses users
+    if(isDeletedWHS){
+    for (var existingWarehousesUser in existingWarehousesUsers) {
+      if (!selectedWarehouseCodes.contains(existingWarehousesUser.whsCode)) {
+        await userWarehousesUsersBox.delete('${widget.usercode}${existingWarehousesUser.whsCode}');
       }
     }
     }
@@ -1051,6 +1177,21 @@ for (int i = 0; i < selectedCompanyCodes.length; i++) {
   await userCompaniesUsersBox.put(
     '${widget.usercode}${selectedCompanyCodes[i]}',
     companiesUsers,
+  );
+}
+
+ // Insert into WarehouseUsers box
+for (int i = 0; i < selectedWarehouseCodes.length; i++) {
+  WarehousesUsers warehousesUsers = WarehousesUsers(
+    userCode: widget.usercode,
+    whsCode: selectedWarehouseCodes[i],
+    defaultwhsCode:defaultWarehouseCode 
+   
+  );
+
+  await userWarehousesUsersBox.put(
+    '${widget.usercode}${selectedWarehouseCodes[i]}',
+    warehousesUsers,
   );
 }
 
