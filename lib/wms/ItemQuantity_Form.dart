@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:project/app_notifier.dart';
+import 'package:http/http.dart' as http;
 
 class ItemQuantityScreen extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -7,7 +10,7 @@ class ItemQuantityScreen extends StatefulWidget {
   final int index;
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
-  final Function(BuildContext, int, int) addQuantity;
+  final Function(BuildContext, int, int,String) addQuantity;
   const ItemQuantityScreen({
     Key? key,
     required this.appNotifier,
@@ -24,16 +27,68 @@ class ItemQuantityScreen extends StatefulWidget {
 
 class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
   TextEditingController quantityController = TextEditingController();
-  String dropdownValue = 'Units';
+  String dropdownValue = '';
   List<Map<dynamic, dynamic>> itemsorders = [];
+    String apiurl = 'http://5.189.188.139:8080/api/';
+    bool _isLoading=false;
+  List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
 
-  @override
-  void initState() {
-    super.initState();
-    itemsorders = widget.items;
+@override
+void initState() {
+  super.initState();
+  itemsorders = widget.items;
+  fetchWarehouses().then((_) {
+    setState(() {
+      print('Fetched Data: $fetchedData');
+      dropdownValue = fetchedData.isNotEmpty
+          ? fetchedData.first['ANY_VALUE(u.whsCode)'].toString()
+          : ''; // Set default value to an empty string if fetched data is empty
+      print('Dropdown Value: $dropdownValue');
+    });
+  });
+}
+
+
+ Future<void> fetchWarehouses() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Map<String, dynamic> requestBody = {
+        'userCode': widget.usercode
+        
+      };
+
+      // Make a POST request with the request body
+      final response = await http.post(
+        Uri.parse('${apiurl}getWarehousesUsers'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Update state with the fetched data
+          fetchedData = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            // Convert each item in the response to a map
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+        });
+        print(fetchedData);
+      } else {
+        throw Exception('Failed to fetch data');
+      }
+    } catch (error) {
+      print('Error fetching data: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-
-  @override
+ 
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,6 +146,38 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
             ),
             SizedBox(
                 height: 10), // Add space between the text field and the button
+              Column(
+  crossAxisAlignment: CrossAxisAlignment.stretch,
+  children: [
+    Text(
+      'Warehouse',
+      style: TextStyle(
+        fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+        color: Colors.black54
+      ),
+    ),
+    DropdownButton<String>(
+      value: dropdownValue,
+      onChanged: (String? newValue) {
+        setState(() {
+          dropdownValue = newValue!;
+        });
+      },
+      items: fetchedData.map<DropdownMenuItem<String>>((Map<dynamic, dynamic> warehouse) {
+        return DropdownMenuItem<String>(
+          value: warehouse['ANY_VALUE(u.whsCode)'].toString(),
+          child: Text(warehouse['ANY_VALUE(w.whsName)'].toString()),
+        );
+      }).toList(),
+    ),
+  ],
+),
+
+
+
+            SizedBox(height: 10),
+
+
             ElevatedButton(
               onPressed: () {
                 int newQuantity = int.tryParse(quantityController.text) ?? 0;
@@ -106,7 +193,7 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
                   return;
                 }
                 widget.addQuantity(context, widget.index,
-                    newQuantity); // Pass the context here
+                    newQuantity,dropdownValue); // Pass the context here
                 Navigator.pop(context); // Close the screen
                 Navigator.pop(context);
               },

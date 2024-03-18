@@ -16,7 +16,9 @@ import 'package:http/http.dart' as http;
 import 'package:project/classes/UserPreferences.dart';
 import 'package:project/screens/welcome_page.dart';
 import 'package:project/wms/AddBatch_Form.dart';
+import 'package:project/wms/AddSerialNumber_Form.dart';
 import 'package:project/wms/BookingDate_Form.dart';
+import 'package:project/wms/ChangeSerialNumber_Form.dart';
 import 'package:project/wms/InventoryList_Form.dart';
 import 'package:project/wms/ItemQuantity_Form.dart';
 import 'package:project/wms/Receiving_Form.dart';
@@ -27,6 +29,7 @@ class OrderForm extends StatefulWidget {
   final Map<String, String> order;
   final AppNotifier appNotifier;
   final String usercode;
+  
   const OrderForm(
       {super.key,
       required this.order,
@@ -51,6 +54,9 @@ class _OrderFormState extends State<OrderForm> {
       {}; // Map to store item quantities, with item index as key
   Map<int, Color> itemColors =
       {}; // Map to store item colors, with item index as key
+  Map<int, String> updatedWarehouses = {};
+  Map<int, int> countSerial = {};
+Map<int,List<String>>serials={};
 
   // Save the state when the user decides to save and continue later
   Future<void> saveState() async {
@@ -188,13 +194,13 @@ class _OrderFormState extends State<OrderForm> {
     }
   }
 
-    
-void addQuantity(BuildContext context, int index, int? newQuantity) {
-  // Update the quantity directly
-  setState(() {
-    itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
-  });
-
+  void addQuantity(
+      BuildContext context, int index, int? newQuantity, String newWarehouses) {
+    // Update the quantity directly
+    setState(() {
+      itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
+      updatedWarehouses[index] = newWarehouses;
+    });
 
     // Show the action dialog if the new quantity is 0
     if (newQuantity == 0) {
@@ -202,8 +208,77 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
     }
   }
 
+void addQuantitySerial(BuildContext context, int index, int? newQuantity,
+    String newWarehouses, int newcountSerial, Map<int,List<String>>serialsComeFrom) {
+  // Update the quantity directly
+  setState(() {
+    itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
+    updatedWarehouses[index] = newWarehouses;
+    countSerial[index] = (newcountSerial ?? 0) + (countSerial[index] ?? 0);
+    
+    // Merge the serials
+    if (serialsComeFrom.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      serials[index] = [
+        ...(serials[index] ?? []),
+        ...serialsComeFrom[index]!.where((serial) => !serials[index]!.contains(serial)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      serials[index] = serialsComeFrom[index] ?? [];
+    }
+
+    print('Updated serials:');
+    print(serials); // Print the updated serials
+  });
+
+  // Show the action dialog if the new quantity is 0
+  if (newQuantity == 0) {
+    _showActionDialog(context, fetchedData[index], index);
+  }
+}
+
+void changeQuantitySerial(BuildContext context, int index, int? newQuantity,
+ int newcountSerial, Map<int,List<String>>serialsComeFrom) {
+  // Update the quantity directly
+  setState(() {
+    if((newQuantity ?? 0)<(itemQuantities[index]??0)){
+    itemQuantities[index] = (itemQuantities[index] ?? 0) -(newQuantity ?? 0) ;
+    countSerial[index] =  (countSerial[index] ?? 0) - (newcountSerial ?? 0) ;
+    }
+    else{
+ itemQuantities[index] = (itemQuantities[index] ?? 0) -(newQuantity ?? 0) ;
+    countSerial[index] =  (countSerial[index] ?? 0) - (newcountSerial ?? 0) ;
+    }
+    print('?????????????');
+    print(newQuantity);
+    print(itemQuantities[index]);
+    print( countSerial[index]);
+    // Merge the serials
+    if (serialsComeFrom.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      serials[index] = [
+        ...(serials[index] ?? []),
+        ...serialsComeFrom[index]!.where((serial) => !serials[index]!.contains(serial)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      serials[index] = serialsComeFrom[index] ?? [];
+    }
+
+    print('Updated serials:');
+    print(serials); // Print the updated serials
+  });
+
+  // Show the action dialog if the new quantity is 0
+  if (newQuantity == 0) {
+    _showActionDialog(context, fetchedData[index], index);
+  }
+}
+
 // Function to get the background color based on quantity
-  Color getBackgroundColor(int recQty, int ordQty) {
+  Color getBackgroundColor(int recQty, int ordQty,int index) {
+    if(countSerial[index]==null){
     if (recQty == 0) {
       return Colors.transparent;
     } else if (recQty == ordQty) {
@@ -215,6 +290,9 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
     } else {
       return Colors
           .red.shade100; // If quantity is greater than order quantity, show red
+    }
+    }else{
+return Colors.blue.shade100;
     }
   }
 
@@ -386,7 +464,7 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
                                           itemCode['reqQty'] ??
                                           0,
                                       itemCode[
-                                          'ordQty']), // Set background color here
+                                          'ordQty'],index), // Set background color here
                                   title: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -399,6 +477,17 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
                                                     .toDouble() -
                                                 2),
                                       ),
+                                      if (countSerial[index] != null)
+                                      Text(
+                                        "${countSerial[index]} Units", // Use itemQuantities[index] here
+                                        style: TextStyle(
+                                            color: Colors.black54,
+                                            fontSize: widget
+                                                    .appNotifier.fontSize
+                                                    .toDouble() -
+                                                5),
+                                      )
+                                      else
                                       Text(
                                         "${itemQuantities[index] ?? itemCode['recQty'] ?? 0} / ${itemCode['ordQty']} Units", // Use itemQuantities[index] here
                                         style: TextStyle(
@@ -423,6 +512,26 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
                                                     .toDouble() -
                                                 5),
                                       ),
+                                      Text(
+                                        "Warehouse:  ${updatedWarehouses[index] ?? itemCode['whsName']}",
+                                        style: TextStyle(
+                                          fontSize: widget.appNotifier.fontSize
+                                                  .toDouble() -
+                                              5,
+                                        ),
+                                      ),
+                                      if (countSerial[index] != null)
+                                        Text(
+                                          "Contains:  ${countSerial[index]} Serial Numbers",
+                                          style: TextStyle(
+                                            fontSize: widget
+                                                    .appNotifier.fontSize
+                                                    .toDouble() -
+                                                5,
+                                          ),
+                                        )
+                                      else
+                                        Container(),
                                       buildTrailingWidget(fetchedData, index),
                                     ],
                                   ),
@@ -551,75 +660,125 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
   }
 
   Future<void> _showActionDialog(
-      BuildContext context, Map<dynamic, dynamic> itemCode, int index) async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
+  BuildContext context, Map<dynamic, dynamic> itemCode, int index) async {
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      // Check if itemCode['manageBy'] is 'Serial'
+      if (itemCode['manageBy'] == 'Serial') {
+        // Return the dialog with options related to serial management
         return AlertDialog(
           title: Text('Choose an action'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildActionItem('Add Quantity', () {
+              _buildActionItem('Add Serial', () {
                 dynamic remainingQty =
                     (itemCode['ordQty'] ?? 0) - (itemQuantities[index] ?? 0);
                 print(remainingQty);
-                if(itemCode['batchID']==''){
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ItemQuantityScreen(
-                        appNotifier: widget.appNotifier,
-                        usercode: widget.usercode,
-                        items: fetchedData,
-                        index: index,
-                        addQuantity: addQuantity,
-                        itemQuantities: remainingQty ?? 0),
+                    builder: (context) => AddSerialNumber(
+                      appNotifier: widget.appNotifier,
+                      usercode: widget.usercode,
+                      items: fetchedData,
+                      index: index,
+                      addQuantitySerial: addQuantitySerial,
+                      itemQuantities: remainingQty ?? 0,
+                      serials: serials,
+                    ),
                   ),
                 );
-                }else if(itemCode['batchID']==''){
-       Navigator.push(
+              }),
+              _buildActionItem('Change Serial', () {
+                Navigator.pop(context);
+               dynamic remainingQty =
+                    (itemCode['ordQty'] ?? 0) - (itemQuantities[index] ?? 0);
+                print(remainingQty);
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddBatch(
-                        appNotifier: widget.appNotifier,
-                        usercode: widget.usercode,
-                        items: fetchedData,
-                        index: index,
-                        addQuantity: addQuantity,
-                        itemQuantities: remainingQty ?? 0),
+                    builder: (context) => ChangeSerialNumber(
+                      appNotifier: widget.appNotifier,
+                      usercode: widget.usercode,
+                      items: fetchedData,
+                      index: index,
+                      changeQuantitySerial: changeQuantitySerial,
+                      itemQuantities: remainingQty ?? 0,
+                      serials: serials,
+                    ),
                   ),
                 );
-
-                }
+                // Handle Change Serial action
               }),
-              _buildActionItem('Change Quantity', () {
-                Navigator.pop(context);
-                _showChangeQuantityDialog(
-                    context, itemCode, index, itemQuantities[index]!);
-
-                // Handle Change Quantity action
-              }),
-              _buildActionItem('Print Label', () {
+                _buildActionItem('Print Label', () {
                 Navigator.pop(context);
                 print('%%%%');
                 print(itemCode['itemCode']);
-                _printLabel(
-                    context, itemCode, index, itemQuantities[index]!);
+                _printLabel(context, itemCode, index, itemQuantities[index]!);
               }),
               _buildActionItem('Delete', () {
                 // Handle Delete action
               }),
+              // Other options related to serial management
             ],
           ),
         );
-      },
-    );
-  }
+      } else {
+        // Return the dialog with options not related to serial management
+        return SingleChildScrollView(
+          child: AlertDialog(
+            title: Text('Choose an action'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+             children: [
+                _buildActionItem('Add Quantity', () {
+                  dynamic remainingQty =
+                      (itemCode['ordQty'] ?? 0) - (itemQuantities[index] ?? 0);
+                  print(remainingQty);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ItemQuantityScreen(
+                        appNotifier: widget.appNotifier,
+                        usercode: widget.usercode,
+                        items: fetchedData,
+                        index: index,
+                        addQuantity: addQuantity,
+                        itemQuantities: remainingQty ?? 0,
+                      ),
+                    ),
+                  );
+                }),
+                _buildActionItem('Change Quantity', () {
+                  Navigator.pop(context);
+                  _showChangeQuantityDialog(
+                      context, itemCode, index, itemQuantities[index]!);
+                  // Handle Change Serial action
+                }),
+                  _buildActionItem('Print Label', () {
+                  Navigator.pop(context);
+                  print('%%%%');
+                  print(itemCode['itemCode']);
+                  _printLabel(context, itemCode, index, itemQuantities[index]!);
+                }),
+                _buildActionItem('Delete', () {
+                  // Handle Delete action
+                }),
+                // Other options related to serial management
+              ],
+            ),
+          ),
+        );
+      }
+    },
+  );
+}
 
- Future<void> _printLabel1(String itemCode, String barcode, int index) async {
-  // Create PDF document
-  final Uint8List pdfBytes = await _generatePdf(itemCode,barcode);
+  Future<void> _printLabel1(String itemCode, String barcode, int index) async {
+    // Create PDF document
+    final Uint8List pdfBytes = await _generatePdf(itemCode, barcode);
 
     // Define custom page size with width and height ratio
     final PdfPageFormat format =
@@ -629,43 +788,42 @@ void addQuantity(BuildContext context, int index, int? newQuantity) {
     await Printing.layoutPdf(onLayout: (_) => pdfBytes, format: format);
   }
 
-Future<Uint8List> _generatePdf(String itemCode , String barcode) async {
-  final pdf = pw.Document();
+  Future<Uint8List> _generatePdf(String itemCode, String barcode) async {
+    final pdf = pw.Document();
 
-  // Add content to the PDF document
-  pdf.addPage(pw.Page(
-    pageFormat: PdfPageFormat(100, 80), // Adjust as needed
-    build: (pw.Context context) {
-      return pw.Stack(
-        children: [
-          // Insert BarcodeWidget with QR code at the center
-          pw.Center(
-            child: pw.BarcodeWidget(
-              barcode: pw.Barcode.code128(),
-              data: barcode,
-              width: 90,
-              height: 30,
+    // Add content to the PDF document
+    pdf.addPage(pw.Page(
+      pageFormat: PdfPageFormat(100, 80), // Adjust as needed
+      build: (pw.Context context) {
+        return pw.Stack(
+          children: [
+            // Insert BarcodeWidget with QR code at the center
+            pw.Center(
+              child: pw.BarcodeWidget(
+                barcode: pw.Barcode.code128(),
+                data: barcode,
+                width: 90,
+                height: 30,
+              ),
             ),
-          ),
-          // Insert item code at the top left
-          pw.Positioned(
-            child: pw.Text('Code : $itemCode', style: pw.TextStyle(fontSize: 5)),
-            top: 10.0,  // Adjust as needed
-            left: 10.0,  // Adjust as needed
-          ),
-        ],
-      );
-    },
-  ));
+            // Insert item code at the top left
+            pw.Positioned(
+              child:
+                  pw.Text('Code : $itemCode', style: pw.TextStyle(fontSize: 5)),
+              top: 10.0, // Adjust as needed
+              left: 10.0, // Adjust as needed
+            ),
+          ],
+        );
+      },
+    ));
 
-  // Save the PDF document as bytes
-  return pdf.save();
-}
+    // Save the PDF document as bytes
+    return pdf.save();
+  }
 
-
-
-  Future<void> _printLabel(BuildContext context,
-      Map<dynamic, dynamic> itemCode, int index, int existingQuantity) async {
+  Future<void> _printLabel(BuildContext context, Map<dynamic, dynamic> itemCode,
+      int index, int existingQuantity) async {
     TextEditingController quantityController =
         TextEditingController(text: existingQuantity.toString());
 
@@ -678,12 +836,11 @@ Future<Uint8List> _generatePdf(String itemCode , String barcode) async {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextButton(
-                onPressed: () async{
+                onPressed: () async {
                   print('@@@@@@@@@');
                   print(itemCode['itemCode']);
-_printLabel1(itemCode['itemCode'],itemCode['barcode'],index);
-
-
+                  _printLabel1(
+                      itemCode['itemCode'], itemCode['barcode'], index);
                 },
                 child: Text(
                   'Sample 1',

@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:project/app_notifier.dart';
+import 'package:http/http.dart' as http;
 
 class AddSerialNumber extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -7,18 +10,19 @@ class AddSerialNumber extends StatefulWidget {
   final int index;
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
-final Function(BuildContext,int, int) addQuantity;
-  const AddSerialNumber(
-      {Key? key,
-      required this.appNotifier,
-      required this.usercode,
-      required this.items,
-      required this.index,
-      required this.addQuantity, // Add this line
-      required this.itemQuantities,
-
-      })
-      : super(key: key);
+  final Map<int,List<String>>serials;
+  final Function(BuildContext, int, int, String, int, Map<int,List<String>>)
+      addQuantitySerial;
+  const AddSerialNumber({
+    Key? key,
+    required this.appNotifier,
+    required this.usercode,
+    required this.items,
+    required this.index,
+    required this.addQuantitySerial, // Add this line
+    required this.itemQuantities,
+    required this.serials
+  }) : super(key: key);
 
   @override
   State<AddSerialNumber> createState() => _AddSerialNumberState();
@@ -28,106 +32,268 @@ class _AddSerialNumberState extends State<AddSerialNumber> {
   TextEditingController quantityController = TextEditingController();
   String dropdownValue = 'Units';
   List<Map<dynamic, dynamic>> itemsorders = [];
+  String apiurl = 'http://5.189.188.139:8080/api/';
+  bool _isLoading = false;
+  List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
+  List<String> serialNumbers = []; // Maintain a list of serial numbers
+  List<TextEditingController> serialControllers =
+      []; // Maintain controllers for each serial text field
 
   @override
   void initState() {
     super.initState();
     itemsorders = widget.items;
+    fetchWarehouses().then((_) {
+      setState(() {
+        print('Fetched Data: $fetchedData');
+        dropdownValue = fetchedData.isNotEmpty
+            ? fetchedData.first['ANY_VALUE(u.whsCode)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown Value: $dropdownValue');
+      });
+    });
+  }
+
+  Future<void> fetchWarehouses() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Map<String, dynamic> requestBody = {'userCode': widget.usercode};
+
+      // Make a POST request with the request body
+      final response = await http.post(
+        Uri.parse('${apiurl}getWarehousesUsers'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Update state with the fetched data
+          fetchedData = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            // Convert each item in the response to a map
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+        });
+        print(fetchedData);
+      } else {
+        throw Exception('Failed to fetch data');
+      }
+    } catch (error) {
+      print('Error fetching data: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text(
-        'Add Serial',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: widget.appNotifier.fontSize.toDouble(),
-        ),
-      ),
-      actions: [
-        IconButton(
-          onPressed: () {},
-          icon: Icon(
-            Icons.qr_code_scanner,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Add Serial',
+          style: TextStyle(
             color: Colors.white,
+            fontSize: widget.appNotifier.fontSize.toDouble(),
           ),
         ),
-      ],
-      backgroundColor: Colors.blue,
-    ),
-    body: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            '${itemsorders[widget.index]['itemCode']} ${itemsorders[widget.index]['itemName']}',
-            style: TextStyle(fontSize: widget.appNotifier.fontSize.toDouble() - 2),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(
+              Icons.qr_code_scanner,
+              color: Colors.white,
+            ),
           ),
-          SizedBox(height: 10),
-          Text(
-            'Remaining Quantity: ${widget.itemQuantities.toString()??0}',
-            style: TextStyle(fontSize: widget.appNotifier.fontSize.toDouble() - 2, color: Colors.black54),
-          ),
-          Row(
+        ],
+        backgroundColor: Colors.blue,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: quantityController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Quantity',
-                    labelStyle: TextStyle(fontSize: widget.appNotifier.fontSize.toDouble() - 2),
-                    suffixText: 'Units', // Text next to the text field
-                  ),
-                ),
+              Text(
+                '${itemsorders[widget.index]['itemCode']} ${itemsorders[widget.index]['itemName']}',
+                style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2),
               ),
-            ],
-          ),
-              ElevatedButton(
-  onPressed: () {
-        int newQuantity = int.tryParse(quantityController.text) ?? 0;
 
-    if(widget.itemQuantities<0 || widget.itemQuantities == 0 || newQuantity > widget.itemQuantities){
-        ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Over Quantity Not Allowed!'),
+              SizedBox(height: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Warehouse',
+                    style: TextStyle(
+                        fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                        color: Colors.black54),
                   ),
-                );
-                return;
-    }
-    widget.addQuantity(context, widget.index, newQuantity); // Pass the context here
-    Navigator.pop(context); // Close the screen
-    Navigator.pop(context);
+                  DropdownButton<String>(
+                    value: dropdownValue,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        dropdownValue = newValue!;
+                      });
+                    },
+                    items: fetchedData.map<DropdownMenuItem<String>>(
+                        (Map<dynamic, dynamic> warehouse) {
+                      return DropdownMenuItem<String>(
+                        value: warehouse['ANY_VALUE(u.whsCode)'].toString(),
+                        child:
+                            Text(warehouse['ANY_VALUE(w.whsName)'].toString()),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+              SizedBox(height: 5),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: quantityController,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        labelText: 'Serial',
+                        labelStyle: TextStyle(
+                            fontSize:
+                                widget.appNotifier.fontSize.toDouble() - 2),
+                        suffixText: 'Units', // Text next to the text field
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              for (int i = 0; i < serialNumbers.length; i++)
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: serialControllers[i],
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                          labelText: 'Serial ${i + 1}',
+                          labelStyle: TextStyle(
+                              fontSize:
+                                  widget.appNotifier.fontSize.toDouble() - 2),
+                          suffixText: 'Units',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              // Button to add more text fields
+          ElevatedButton(
+  onPressed: () {
+    setState(() {
+      String newSerial = quantityController.text.trim();
+      
+      // Check if the new serial is empty
+      if (newSerial.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please enter a serial number first'),
+          ),
+        );
+        return;
+      }
+
+      if (serialControllers.any((controller) => controller.text == newSerial)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('This serial number has already been entered'),
+          ),
+        );
+      } else {
+        // Check if the serial number already exists in the accumulated list
+        if (widget.serials.containsKey(widget.index) &&
+            widget.serials[widget.index]!.contains(newSerial)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('This serial number has already been entered'),
+            ),
+          );
+          return;
+        }
+
+        // If not, add the serial number
+        serialNumbers.add(newSerial);
+        serialControllers.add(
+          TextEditingController(text: newSerial),
+        );
+        quantityController.clear();
+      }
+    });
   },
   child: Text('Add Serial Number'),
 ),
-          SizedBox(height: 10), // Add space between the text field and the button
-         ElevatedButton(
-  onPressed: () {
-        int newQuantity = int.tryParse(quantityController.text) ?? 0;
 
-    if(widget.itemQuantities<0 || widget.itemQuantities == 0 || newQuantity > widget.itemQuantities){
+ElevatedButton(
+  onPressed: () {
+    setState(() {
+      int newQuantity = int.tryParse(quantityController.text) ?? 0;
+
+      // Check if any of the serial numbers are empty
+      if (serialControllers.any((controller) => controller.text.isEmpty)) {
         ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Over Quantity Not Allowed!'),
-                  ),
-                );
-                return;
-    }
-    widget.addQuantity(context, widget.index, newQuantity); // Pass the context here
-    Navigator.pop(context); // Close the screen
-    Navigator.pop(context);
+          SnackBar(
+            content: Text('Please enter all serial numbers'),
+          ),
+        );
+        return;
+      }
+
+      // Add the new serial number entered directly into the last controller
+      String newSerial = quantityController.text.trim();
+      if (newSerial.isNotEmpty) {
+        serialControllers.add(TextEditingController(text: newSerial));
+      }
+
+      // Filter out empty serial numbers
+      List<String> nonEmptySerials = serialControllers
+          .map((controller) => controller.text.trim())
+          .where((serial) => serial.isNotEmpty)
+          .toList();
+
+      // Check if serials already exist for the given index
+      if (widget.serials.containsKey(widget.index)) {
+        // If they exist, accumulate the serials
+        widget.serials[widget.index] = [
+          ...widget.serials[widget.index]!,
+          ...nonEmptySerials,
+        ];
+      } else {
+        // If not, assign the serials directly
+        widget.serials[widget.index] = nonEmptySerials;
+      }
+
+      widget.addQuantitySerial(
+        context,
+        widget.index,
+        newQuantity,
+        dropdownValue,
+        nonEmptySerials.length,
+        widget.serials,
+      );
+      Navigator.pop(context);
+      Navigator.pop(context);
+    });
   },
   child: Text('OK'),
 ),
 
-        ],
+
+            ],       
+          ),
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

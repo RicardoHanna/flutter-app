@@ -7,7 +7,7 @@ class AddBatch extends StatefulWidget {
   final int index;
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
-final Function(BuildContext,int, int) addQuantity;
+final Function(BuildContext,int, int , String) addQuantity;
   const AddBatch(
       {Key? key,
       required this.appNotifier,
@@ -99,7 +99,7 @@ Widget build(BuildContext context) {
                 );
                 return;
     }
-    widget.addQuantity(context, widget.index, newQuantity); // Pass the context here
+   // widget.addQuantity(context, widget.index, newQuantity); // Pass the context here
     Navigator.pop(context); // Close the screen
     Navigator.pop(context);
   },
@@ -118,7 +118,7 @@ Widget build(BuildContext context) {
                 );
                 return;
     }
-    widget.addQuantity(context, widget.index, newQuantity); // Pass the context here
+  //  widget.addQuantity(context, widget.index, newQuantity); // Pass the context here
     Navigator.pop(context); // Close the screen
     Navigator.pop(context);
   },
