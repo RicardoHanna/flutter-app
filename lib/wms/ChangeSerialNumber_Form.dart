@@ -45,7 +45,9 @@ class _ChangeSerialNumberState extends State<ChangeSerialNumber> {
   }
 
   void updateSerialNumbers(
-      BuildContext context, ValueChanged<bool> updateReturnBack) {
+    BuildContext context,
+    ValueChanged<bool> updateReturnBack,
+  ) {
     // Check if any serial number is changed to empty
     if (widget.serials.containsKey(widget.index)) {
       for (int i = 0; i < widget.serials[widget.index]!.length; i++) {
@@ -70,7 +72,8 @@ class _ChangeSerialNumberState extends State<ChangeSerialNumber> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  'Please do not enter a serial number that already exists'),
+                'Please do not enter a serial number that already exists',
+              ),
             ),
           );
           return; // Stop the update process
@@ -78,17 +81,18 @@ class _ChangeSerialNumberState extends State<ChangeSerialNumber> {
       }
     }
 
+    // Calculate the updated quantity after deleting serial number(s)
+    int updatedQuantity = widget.serials[widget.index]!.length;
+    quantityController.text = updatedQuantity.toString();
+
     // Update the serial numbers and quantity
     widget.changeQuantitySerial(
       context,
       widget.index,
       int.tryParse(quantityController.text) ?? 0,
-      serialNumbers.length, // Pass the count of serial numbers
+      widget.serials[widget.index]!.length, // Pass the updated serials count
       widget.serials, // Pass the updated serials map
     );
-
-    // Navigate back
-    Navigator.pop(context);
   }
 
   @override
@@ -149,41 +153,57 @@ class _ChangeSerialNumberState extends State<ChangeSerialNumber> {
                                   widget.appNotifier.fontSize.toDouble() - 2),
                           suffixText: 'Units',
                           suffixIcon: IconButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text('Delete Serial'),
-                                    content: Text(
-                                        'Are you sure you want to delete this serial?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            // Remove the corresponding serial number from the list
-                                            widget.serials[widget.index]!
-                                                .removeAt(i);
-                                          });
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text('Delete'),
-                                        
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                            icon: Icon(Icons.delete),
-                            color: Colors.red
-                          ),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('Delete Serial'),
+                                      content: Text(
+                                          'Are you sure you want to delete this serial?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              // Remove the corresponding serial number from the list
+                                              int updatedQuantity = widget
+                                                  .serials[widget.index]!
+                                                  .length;
+                                              quantityController.text =
+                                                  updatedQuantity.toString();
+                                              print(quantityController.text);
+                                              if (quantityController.text ==
+                                                  '1') {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'At least should be 1 serial',
+                                                    ),
+                                                  ),
+                                                );
+                                                return;
+                                              }
+                                              widget.serials[widget.index]!
+                                                  .removeAt(i);
+                                            });
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text('Delete'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              icon: Icon(Icons.delete),
+                              color: Colors.red),
                         ),
                       ),
                 ],

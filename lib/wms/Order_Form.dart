@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -18,6 +19,7 @@ import 'package:project/screens/welcome_page.dart';
 import 'package:project/wms/AddBatch_Form.dart';
 import 'package:project/wms/AddSerialNumber_Form.dart';
 import 'package:project/wms/BookingDate_Form.dart';
+import 'package:project/wms/ChangeBatchNumber_Form.dart';
 import 'package:project/wms/ChangeSerialNumber_Form.dart';
 import 'package:project/wms/InventoryList_Form.dart';
 import 'package:project/wms/ItemQuantity_Form.dart';
@@ -57,6 +59,11 @@ class _OrderFormState extends State<OrderForm> {
   Map<int, String> updatedWarehouses = {};
   Map<int, int> countSerial = {};
 Map<int,List<String>>serials={};
+Map<int,List<String>>batches={};
+Map<int, int> countBatch = {};
+Map<int,List<String>>quantities={};
+Map<int,List<DateTime>>prodDate={};
+Map<int,List<DateTime>>expDate={};
 
   // Save the state when the user decides to save and continue later
   Future<void> saveState() async {
@@ -238,22 +245,89 @@ void addQuantitySerial(BuildContext context, int index, int? newQuantity,
   }
 }
 
+void addBatchSerial(BuildContext context, int index, int? newQuantity,
+    String newWarehouses, int newcountBatch, Map<int,List<String>>batchesComeFrom,Map<int,List<String>>quantitiesComeForm,
+  Map<int,List<DateTime>>prodDateComeFrom,Map<int,List<DateTime>>expDateComeFrom){  
+  // Update the quantity directly
+  setState(() {
+    itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
+    updatedWarehouses[index] = newWarehouses;
+    countBatch[index] = (newcountBatch ?? 0) + (countBatch[index] ?? 0);
+    
+    // Merge the serials
+    if (batchesComeFrom.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      batches[index] = [
+        ...(batches[index] ?? []),
+        ...batchesComeFrom[index]!.where((batch) => !batches[index]!.contains(batch)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      serials[index] = batchesComeFrom[index] ?? [];
+    }
+
+      // Merge the serials
+    if (quantitiesComeForm.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      quantities[index] = [
+        ...(quantities[index] ?? []),
+        ...quantitiesComeForm[index]!.where((quantity) => !quantities[index]!.contains(quantity)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      quantities[index] = quantitiesComeForm[index] ?? [];
+    }
+
+          // Merge the serials
+    if (prodDateComeFrom.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      prodDate[index] = [
+        ...(prodDate[index] ?? []),
+        ...prodDateComeFrom[index]!.where((proddate) => !prodDate[index]!.contains(proddate)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      prodDate[index] = prodDateComeFrom[index] ?? [];
+    }
+
+          // Merge the serials
+    if (expDateComeFrom.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      expDate[index] = [
+        ...(expDate[index] ?? []),
+        ...expDateComeFrom[index]!.where((expdate) => !expDate[index]!.contains(expdate)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      expDate[index] = expDateComeFrom[index] ?? [];
+    }
+
+
+    print('Updated batches:');
+    print(countBatch);
+    print(itemQuantities);
+    print(batches); // Print the updated serials
+    print(batchesComeFrom);
+    print(quantitiesComeForm);
+    print(prodDateComeFrom);
+  });
+
+  // Show the action dialog if the new quantity is 0
+  if (newQuantity == 0) {
+    _showActionDialog(context, fetchedData[index], index);
+  }
+}
+
 void changeQuantitySerial(BuildContext context, int index, int? newQuantity,
  int newcountSerial, Map<int,List<String>>serialsComeFrom) {
   // Update the quantity directly
   setState(() {
-    if((newQuantity ?? 0)<(itemQuantities[index]??0)){
-    itemQuantities[index] = (itemQuantities[index] ?? 0) -(newQuantity ?? 0) ;
-    countSerial[index] =  (countSerial[index] ?? 0) - (newcountSerial ?? 0) ;
-    }
-    else{
- itemQuantities[index] = (itemQuantities[index] ?? 0) -(newQuantity ?? 0) ;
-    countSerial[index] =  (countSerial[index] ?? 0) - (newcountSerial ?? 0) ;
-    }
+   countSerial[index]=newQuantity!;
+
     print('?????????????');
     print(newQuantity);
     print(itemQuantities[index]);
-    print( countSerial[index]);
+    print(countSerial[index]);
     // Merge the serials
     if (serialsComeFrom.containsKey(index)) {
       // If serials already exist for the given index, merge the new list with the existing one
@@ -276,9 +350,77 @@ void changeQuantitySerial(BuildContext context, int index, int? newQuantity,
   }
 }
 
+
+void changeQuantityBatch(BuildContext context, int index, int? newQuantity,
+ int newcountBatch, Map<int,List<String>>batchesComeFrom,Map<int,List<String>>quantitiesComeForm ,Map<int,List<DateTime>>prodDateComeFrom,
+ Map<int,List<DateTime>>expDateComeFrom){
+  // Update the quantity directly
+  setState(() {
+   countBatch[index]=newQuantity!;
+
+    print('?????????????');
+    print(newQuantity);
+    print(itemQuantities[index]);
+    print(countBatch[index]);
+    // Merge the serials
+    if (batchesComeFrom.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      batches[index] = [
+        ...(batches[index] ?? []),
+        ...batchesComeFrom[index]!.where((batch) => !batches[index]!.contains(batch)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      batches[index] = batchesComeFrom[index] ?? [];
+    }
+
+    if (quantitiesComeForm.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      quantities[index] = [
+        ...(quantities[index] ?? []),
+        ...quantitiesComeForm[index]!.where((quantity) => !quantities[index]!.contains(quantity)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      quantities[index] = quantitiesComeForm[index] ?? [];
+    }
+
+        if (prodDateComeFrom.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      prodDate[index] = [
+        ...(prodDate[index] ?? []),
+        ...prodDateComeFrom[index]!.where((proddate) => !prodDate[index]!.contains(proddate)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      quantities[index] = quantitiesComeForm[index] ?? [];
+    }
+
+            if (expDateComeFrom.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      expDate[index] = [
+        ...(expDate[index] ?? []),
+        ...expDateComeFrom[index]!.where((expdate) => !expDate[index]!.contains(expdate)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      expDate[index] = expDateComeFrom[index] ?? [];
+    }
+
+    print('Updated serials:');
+    print(serials); // Print the updated serials
+  });
+
+  // Show the action dialog if the new quantity is 0
+  if (newQuantity == 0) {
+    _showActionDialog(context, fetchedData[index], index);
+  }
+}
+
+
 // Function to get the background color based on quantity
   Color getBackgroundColor(int recQty, int ordQty,int index) {
-    if(countSerial[index]==null){
+    if(countSerial[index]==null && countBatch[index]==null){
     if (recQty == 0) {
       return Colors.transparent;
     } else if (recQty == ordQty) {
@@ -291,7 +433,17 @@ void changeQuantitySerial(BuildContext context, int index, int? newQuantity,
       return Colors
           .red.shade100; // If quantity is greater than order quantity, show red
     }
+    }else if(countSerial[index]!=null) {
+      if(countSerial[index]==0){
+              return Colors.transparent;
+
+      }
+return Colors.blue.shade100;
     }else{
+      if(countBatch[index]==0){
+              return Colors.transparent;
+
+      }
 return Colors.blue.shade100;
     }
   }
@@ -454,6 +606,8 @@ return Colors.blue.shade100;
                             onTap: () {
                               // Show dialog when card is tapped
                               _showActionDialog(context, itemCode, index);
+                              print(index);
+                              print(fetchedData[index]);
                             },
                             child: Padding(
                               padding: EdgeInsets.only(bottom: 8.0),
@@ -480,6 +634,16 @@ return Colors.blue.shade100;
                                       if (countSerial[index] != null)
                                       Text(
                                         "${countSerial[index]} Units", // Use itemQuantities[index] here
+                                        style: TextStyle(
+                                            color: Colors.black54,
+                                            fontSize: widget
+                                                    .appNotifier.fontSize
+                                                    .toDouble() -
+                                                5),
+                                      )
+                                      else if(itemQuantities[index] != null)
+                                      Text(
+                                        "${itemQuantities[index]} Units", // Use itemQuantities[index] here
                                         style: TextStyle(
                                             color: Colors.black54,
                                             fontSize: widget
@@ -530,7 +694,17 @@ return Colors.blue.shade100;
                                                 5,
                                           ),
                                         )
-                                      else
+                                      else if (countBatch[index] != null)
+                                       Text(
+                                          "Batches:  ${countBatch[index]}",
+                                          style: TextStyle(
+                                            fontSize: widget
+                                                    .appNotifier.fontSize
+                                                    .toDouble() -
+                                                5,
+                                          ),
+                                        )
+                                        else
                                         Container(),
                                       buildTrailingWidget(fetchedData, index),
                                     ],
@@ -719,13 +893,82 @@ return Colors.blue.shade100;
                 _printLabel(context, itemCode, index, itemQuantities[index]!);
               }),
               _buildActionItem('Delete', () {
-                // Handle Delete action
+                _showDeleteDialog(index);
               }),
               // Other options related to serial management
             ],
           ),
         );
-      } else {
+      }
+      
+   else    if (itemCode['manageBy'] == 'Batch') {
+        // Return the dialog with options related to serial management
+        return AlertDialog(
+          title: Text('Choose an action'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildActionItem('Add Batch', () {
+                dynamic remainingQty =
+                    (itemCode['ordQty'] ?? 0) - (itemQuantities[index] ?? 0);
+                print(remainingQty);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddBatch(
+                      appNotifier: widget.appNotifier,
+                      usercode: widget.usercode,
+                      items: fetchedData,
+                      index: index,
+                      addBatchSerial: addBatchSerial,
+                      itemQuantities: remainingQty ?? 0,
+                      batches: batches,
+                      quantities: quantities,
+                      prodDate: prodDate,
+                      expDate:expDate
+                    ),
+                  ),
+                );
+              }),
+              _buildActionItem('Change Batch', () {
+                Navigator.pop(context);
+               dynamic remainingQty =
+                    (itemCode['ordQty'] ?? 0) - (itemQuantities[index] ?? 0);
+                print(remainingQty);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChangeBatchNumber(
+                      appNotifier: widget.appNotifier,
+                      usercode: widget.usercode,
+                      items: fetchedData,
+                      index: index,
+                      changeQuantityBatch: changeQuantityBatch,
+                      itemQuantities: remainingQty ?? 0,
+                      batches: batches,
+                      quantities: quantities,
+                      prodDate: prodDate,
+                      expDate: expDate,
+                    ),
+                  ),
+                );
+                // Handle Change Serial action
+              }),
+                _buildActionItem('Print Label', () {
+                Navigator.pop(context);
+                print('%%%%');
+                print(itemCode['itemCode']);
+                _printLabel(context, itemCode, index, itemQuantities[index]!);
+              }),
+              _buildActionItem('Delete', () {
+                _showDeleteDialog(index);
+              }),
+              // Other options related to serial management
+            ],
+          ),
+        );
+      }
+       else {
         // Return the dialog with options not related to serial management
         return SingleChildScrollView(
           child: AlertDialog(
@@ -888,6 +1131,50 @@ return Colors.blue.shade100;
       },
     );
   }
+
+
+void _showDeleteDialog(int index) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Confirm Delete'),
+        content: Text('Are you sure you want to delete this item?'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog without deleting
+               Navigator.of(context).pop(); // Close the dialog without deleting
+
+            },
+          ),
+          TextButton(
+            child: Text('Delete'),
+            onPressed: () {
+              print('##');
+              print(index);
+              print(fetchedData[index]);
+              setState(() {
+                fetchedData.removeAt(index); // Remove the item from the list
+              });
+              Navigator.of(context).pop(); // Close the dialog after deleting
+              Navigator.of(context).pop(); // Close the dialog after deleting
+
+            },
+          ),
+          
+        ],
+        
+      );
+      
+    },
+    
+  );
+
+}
+
+
 
   Future<void> _showChangeQuantityDialog(BuildContext context,
       Map<dynamic, dynamic> itemCode, int index, int existingQuantity) async {

@@ -252,9 +252,32 @@ ElevatedButton(
 
       // Add the new serial number entered directly into the last controller
       String newSerial = quantityController.text.trim();
+      if (serialControllers.any((controller) => controller.text == newSerial)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('This serial number has already been entered'),
+          ),
+        );
+        return;
+      } else {
+        // Check if the serial number already exists in the accumulated list
+        if (widget.serials.containsKey(widget.index) &&
+            widget.serials[widget.index]!.contains(newSerial)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('This serial number has already been entered in the list'),
+            ),
+          );
+          return;
+        }
+      }
       if (newSerial.isNotEmpty) {
         serialControllers.add(TextEditingController(text: newSerial));
       }
+
+      
+
+      
 
       // Filter out empty serial numbers
       List<String> nonEmptySerials = serialControllers
