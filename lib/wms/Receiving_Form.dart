@@ -17,22 +17,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ReceivingScreen extends StatefulWidget {
   final AppNotifier appNotifier;
   final String usercode;
+  String? searchedSupplier;
 
-  ReceivingScreen({required this.appNotifier, required this.usercode});
+  ReceivingScreen(
+      {required this.appNotifier,
+      required this.usercode,
+      this.searchedSupplier});
   @override
   _ReceivingScreenState createState() => _ReceivingScreenState();
 }
 
 class _ReceivingScreenState extends State<ReceivingScreen> {
   String apiurl = 'http://5.189.188.139:8080/api/';
-  TextEditingController itemNameController = TextEditingController();
   bool _isLoading = false;
   String searchQuery = '';
   bool _incompletePurchaseReceipt = false; // Track incomplete purchase receipt
-
+  TextEditingController itemNameController = TextEditingController();
   List<Map<String, String>> orders = [];
   List<Map<String, String>> filteredOrders = [];
-
+  List<dynamic> selectedIndices = [];
   String itemName = '';
 
   @override
@@ -41,6 +44,10 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
     _fetchOrders(widget.usercode).then((_) {
       setState(() {
         filteredOrders = List.from(orders);
+        if (widget.searchedSupplier != null) {
+          itemNameController.text = widget.searchedSupplier!;
+          _updateFilteredOrders(widget.searchedSupplier!);
+        }
       });
     });
   }
@@ -53,12 +60,14 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
 
   void _updateFilteredOrders(String query) {
     setState(() {
+      print(query);
       searchQuery = query;
       filteredOrders = orders.where((order) {
         final lowerCaseQuery = query.toLowerCase();
         return order['docEntry']!.toLowerCase().contains(lowerCaseQuery) ||
             order['docDelDate']!.toLowerCase().contains(lowerCaseQuery) ||
-            order['cmpCode']!.toLowerCase().contains(lowerCaseQuery);
+            order['cmpCode']!.toLowerCase().contains(lowerCaseQuery) ||
+            order['cardCode']!.toLowerCase().contains(lowerCaseQuery);
       }).toList();
     });
   }
@@ -102,6 +111,7 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
           setState(() {
             orders = List<Map<String, String>>.from(data.map((item) => {
                   "docEntry": item["docEntry"].toString(),
+                  "cardCode": item['cardCode'].toString(),
                   "docDelDate": dateFormatter
                       .format(dateFormat.parse(item["docDelDate"])),
                   "cmpCode": item["cmpCode"].toString(),
@@ -291,16 +301,60 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
                     child: ListView.builder(
                       itemCount: filteredOrders.length,
                       itemBuilder: (context, index) {
+                        bool isSelected =
+                            selectedIndices.contains(filteredOrders[index]);
                         return Padding(
                           padding: EdgeInsets.only(bottom: 1.0),
                           child: Card(
+                            color: isSelected ? Colors.blue[100] : Colors.white,
                             child: ListTile(
                               onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (builder) => OrderForm(
-                                        order: filteredOrders[index],
-                                        usercode: widget.usercode,
-                                        appNotifier: widget.appNotifier)));
+                                print(
+                                    " ${selectedIndices.length} ${isSelected} #################################################");
+                                if (selectedIndices.length != 0) {
+                                  setState(() {
+                                    if (isSelected) {
+                                      selectedIndices
+                                          .remove(filteredOrders[index]);
+                                    } else {
+                                      if (filteredOrders[index]["cardCode"] ==
+                                          selectedIndices[0]['cardCode']) {
+                                        if (selectedIndices
+                                            .contains(filteredOrders[index])) {
+                                        } else {
+                                          selectedIndices
+                                              .add(filteredOrders[index]);
+                                        }
+                                      } else {}
+                                    }
+                                  });
+
+                                  print(selectedIndices);
+                                } else {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (builder) => OrderForm(
+                                          order: filteredOrders[index],
+                                          usercode: widget.usercode,
+                                          appNotifier: widget.appNotifier)));
+                                }
+                              },
+                              onLongPress: () {
+                                setState(() {
+                                  if (isSelected) {
+                                    selectedIndices
+                                        .remove(filteredOrders[index]);
+                                  } else {
+                                    if (selectedIndices.length == 0) {
+                                      selectedIndices
+                                          .add(filteredOrders[index]);
+                                    } else if (filteredOrders[index]
+                                            ["cardCode"] ==
+                                        selectedIndices[0]['cardCode']) {
+                                      selectedIndices
+                                          .add(filteredOrders[index]);
+                                    } else {}
+                                  }
+                                });
                               },
                               title: Row(
                                 mainAxisAlignment:

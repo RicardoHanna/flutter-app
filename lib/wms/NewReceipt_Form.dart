@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/wms/SupplierNewReceipt_Form.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class NewReceipt extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -14,18 +16,37 @@ class NewReceipt extends StatefulWidget {
 
 class _NewReceiptState extends State<NewReceipt> {
   TextEditingController supplierNameController = TextEditingController();
-  List<Map<String, dynamic>> suppliers = [
-    {"SupplierCode": "001", "SupplierName": "Supplier A"},
-    {"SupplierCode": "002", "SupplierName": "Supplier B"},
-    {"SupplierCode": "003", "SupplierName": "Supplier C"},
-    {"SupplierCode": "004", "SupplierName": "Supplier D"},
-    {"SupplierCode": "005", "SupplierName": "Supplier E"},
-    {"SupplierCode": "006", "SupplierName": "Supplier F"},
-    {"SupplierCode": "007", "SupplierName": "Supplier G"},
-    {"SupplierCode": "008", "SupplierName": "Supplier H"},
-    {"SupplierCode": "009", "SupplierName": "Supplier I"},
-    {"SupplierCode": "010", "SupplierName": "Supplier J"},
-  ];
+  List<dynamic> suppliers = [];
+  List<dynamic> filteredSuppliers = [];
+  String baseUrl = "http://5.189.188.139:8081/api/";
+
+  Future<void> getSuppliers() async {
+    try {
+      final response = await http.get(Uri.parse('${baseUrl}getSuppliers'));
+      if (response.statusCode == 200) {
+        setState(() {
+          suppliers = jsonDecode(response.body);
+        });
+        print(response.body);
+      } else {
+        print('Failed to fetch user groups: ${response.statusCode}');
+        // Handle error accordingly
+      }
+    } catch (e) {
+      print('Error fetching user groups: $e');
+      // Handle error accordingly
+    }
+  }
+
+  userGroupWaiter() async {
+    await getSuppliers();
+  }
+
+  @override
+  void initState() {
+    userGroupWaiter();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,50 +81,65 @@ class _NewReceiptState extends State<NewReceipt> {
                       fontSize: widget.appNotifier.fontSize.toDouble() - 2)),
               onChanged: (value) {
                 // itemName = value;
+                _updateFilteredOrders(value);
               },
             ),
             SizedBox(
               height: 10,
             ),
-            Expanded(
-              child: ListView.builder(
-                  itemCount: suppliers.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: 1.0),
-                      child: Card(
-                        child: ListTile(
-                            onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (builder) => SupplierNewReceipt(
-                                        appNotifier: widget.appNotifier,
-                                        usercode: widget.usercode,
-                                        supplierCode: suppliers[index]
-                                            ['SupplierCode'],
-                                      )));
-                            },
-                            title: Text(
-                              "SupplierCode: ${suppliers[index]["SupplierCode"]}",
-                              style: TextStyle(
-                                fontSize:
-                                    widget.appNotifier.fontSize.toDouble() - 2,
-                              ),
+            suppliers.length != 0
+                ? Expanded(
+                    child: ListView.builder(
+                        itemCount: filteredSuppliers.length == 0
+                            ? suppliers.length
+                            : filteredSuppliers.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 1.0),
+                            child: Card(
+                              child: ListTile(
+                                  onTap: () {
+                                    
+                                  },
+                                  title: Text(
+                                    "SupplierCode: ${filteredSuppliers.length == 0 ? suppliers[index]["cardCode"] : filteredSuppliers[index]["cardCode"]}",
+                                    style: TextStyle(
+                                      fontSize: widget.appNotifier.fontSize
+                                              .toDouble() -
+                                          2,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    "SupplierName: ${filteredSuppliers.length == 0 ? suppliers[index]["cardName"] : filteredSuppliers[index]["cardName"]}",
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: widget.appNotifier.fontSize
+                                              .toDouble() -
+                                          5,
+                                    ),
+                                  )),
                             ),
-                            subtitle: Text(
-                              "SupplierName: ${suppliers[index]["SupplierName"]}",
-                              style: TextStyle(
-                                color: Colors.black54,
-                                fontSize:
-                                    widget.appNotifier.fontSize.toDouble() - 5,
-                              ),
-                            )),
-                      ),
-                    );
-                  }),
-            )
+                          );
+                        }),
+                  )
+                : Center(
+                    child: CircularProgressIndicator(),
+                  )
           ],
         ),
       ),
     );
+  }
+
+  void _updateFilteredOrders(String query) {
+    setState(() {
+      print(query);
+
+      filteredSuppliers = suppliers.where((order) {
+        final lowerCaseQuery = query.toLowerCase();
+        return order['cardCode']!.toLowerCase().contains(lowerCaseQuery) ||
+            order['cardName']!.toLowerCase().contains(lowerCaseQuery);
+      }).toList();
+    });
   }
 }
