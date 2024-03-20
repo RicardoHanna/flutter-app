@@ -12,11 +12,18 @@ class ChangeBatchNumber extends StatefulWidget {
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
   final Map<int, List<String>> batches;
-    final Map<int, List<String>> quantities;
-      final Map<int, List<DateTime>> prodDate;
-        final Map<int, List<DateTime>> expDate;
-  final Function(BuildContext, int, int, int, Map<int, List<String>>,Map<int, List<String>>,Map<int, List<DateTime>>,Map<int, List<DateTime>>)
-      changeQuantityBatch;
+  final Map<int, List<String>> quantities;
+  final Map<int, List<DateTime>> prodDate;
+  final Map<int, List<DateTime>> expDate;
+  final Function(
+      BuildContext,
+      int,
+      int,
+      int,
+      Map<int, List<String>>,
+      Map<int, List<String>>,
+      Map<int, List<DateTime>>,
+      Map<int, List<DateTime>>) changeQuantityBatch;
   const ChangeBatchNumber(
       {Key? key,
       required this.appNotifier,
@@ -28,8 +35,7 @@ class ChangeBatchNumber extends StatefulWidget {
       required this.batches,
       required this.quantities,
       required this.prodDate,
-      required this.expDate
-      })
+      required this.expDate})
       : super(key: key);
 
   @override
@@ -49,30 +55,54 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
   List<String> batchNumbers = []; // Maintain a list of serial numbers
   List<TextEditingController> batchControllers =
       []; // Maintain controllers for each serial text field
-
+ String formattedExpDate = '';
+ String formattedProdDate ='';
   @override
   void initState() {
     super.initState();
     itemsorders = widget.items;
-  }
-  Future<void> _selectDate(BuildContext context, bool isProductionDate, int index) async {
-  final DateTime? picked = await showDatePicker(
-    context: context,
-    initialDate: DateTime.now(),
-    firstDate: DateTime(2015, 8),
-    lastDate: DateTime(2101),
-  );
-  if (picked != null) {
-    setState(() {
-      if (isProductionDate) {
-        widget.prodDate[widget.index]![index] = picked;
-      } else {
-        widget.expDate[widget.index]![index] = picked;
-      }
-    });
-  }
+         
+if (widget.prodDate[widget.index]!= null) {
+  formattedProdDate = DateFormat.yMd().format(widget.prodDate[widget.index]![0]);
+  productionDateController=TextEditingController(text:formattedProdDate);
+} else {
+  formattedProdDate = DateFormat.yMd().format(DateTime.now());
 }
 
+  
+if (widget.expDate[widget.index]!= null) {
+  formattedExpDate = DateFormat.yMd().format(widget.expDate[widget.index]![0]);
+    expiryDateController=TextEditingController(text:formattedExpDate);
+
+} else {
+  formattedExpDate = DateFormat.yMd().format(DateTime.now());
+}
+
+  }
+
+  Future<void> _selectDate(
+      BuildContext context, bool isProductionDate, int index) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2015, 8),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        String formattedDate = DateFormat.yMd().format(picked);
+        if (isProductionDate) {
+          widget.prodDate[widget.index]![index] = picked;
+          // Assuming you have a productionDateController similar to the one defined for other fields
+          productionDateController.text = formattedDate;
+        } else {
+          widget.expDate[widget.index]![index] = picked;
+          // Assuming you have an expiryDateController similar to the one defined for other fields
+          expiryDateController.text = formattedDate;
+        }
+      });
+    }
+  }
 
   void updateSerialNumbers(
     BuildContext context,
@@ -113,205 +143,203 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
 
     // Calculate the updated quantity after deleting serial number(s)
     int updatedBatchNumber = widget.batches[widget.index]!.length;
-      batchController.text = updatedBatchNumber.toString();
+    batchController.text = updatedBatchNumber.toString();
 
     // Update the serial numbers and quantity
     widget.changeQuantityBatch(
-      context,
-      widget.index,
-      int.tryParse(batchController.text) ?? 0,
-      widget.batches[widget.index]!.length, // Pass the updated serials count
-      widget.batches, // Pass the updated serials map
-      widget.quantities,
-      widget.prodDate,
-      widget.expDate
-    );
+        context,
+        widget.index,
+        int.tryParse(batchController.text) ?? 0,
+        widget.batches[widget.index]!.length, // Pass the updated serials count
+        widget.batches, // Pass the updated serials map
+        widget.quantities,
+        widget.prodDate,
+        widget.expDate);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Change Batch',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: widget.appNotifier.fontSize.toDouble(),
-          ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.qr_code_scanner,
+        appBar: AppBar(
+          title: Text(
+            'Change Batch',
+            style: TextStyle(
               color: Colors.white,
+              fontSize: widget.appNotifier.fontSize.toDouble(),
             ),
           ),
-        ],
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                '${itemsorders[widget.index]['itemCode']} ${itemsorders[widget.index]['itemName']}',
-                style: TextStyle(
-                    fontSize: widget.appNotifier.fontSize.toDouble() - 2),
+          actions: [
+            IconButton(
+              onPressed: () {},
+              icon: Icon(
+                Icons.qr_code_scanner,
+                color: Colors.white,
               ),
-              SizedBox(height: 10),
-Column(
-  crossAxisAlignment: CrossAxisAlignment.stretch,
-  children: [
-    if (widget.batches.containsKey(widget.index))
-      for (int i = 0; i < widget.batches[widget.index]!.length; i++)
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Text field for batch number
-            TextFormField(
-              initialValue: widget.batches[widget.index]![i],
-              onChanged: (value) {
-                // Update the batch number in the batches map
-                setState(() {
-                  widget.batches[widget.index]![i] = value;
-                });
-              },
-              decoration: InputDecoration(
-                labelText: 'Batch ${i + 1}',
-                labelStyle: TextStyle(
-                  fontSize: widget.appNotifier.fontSize.toDouble() - 2,
-                ),
-                suffixText: 'Units',
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text('Delete Batch'),
-                          content: Text(
-                            'Are you sure you want to delete this Batch?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  // Remove the corresponding batch number from the list
-                                  widget.batches[widget.index]!.removeAt(i);
-                                });
-                                Navigator.pop(context);
-                              },
-                              child: Text('Delete'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  icon: Icon(Icons.delete),
-                  color: Colors.red,
-                ),
-              ),
-            ),
-            // Text field for quantity
-            TextFormField(
-              initialValue: widget.quantities[widget.index]![i],
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Quantity',
-                // Other decoration properties as needed
-              ),
-              onChanged: (value) {
-                setState(() {
-                  widget.quantities[widget.index]![i] = value;
-                });
-              },
-            ),
-            // Row for production date and expiry date
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    initialValue: widget.prodDate[widget.index]![i] != null
-                        ? DateFormat.yMd().format(widget.prodDate[widget.index]![i])
-                        : null,
-                    keyboardType: TextInputType.datetime,
-                    decoration: InputDecoration(
-                      labelText: 'Production Date',
-                      // Other decoration properties as needed
-                    ),
-                    onChanged: (value) {
-                      DateTime? parsedDate = DateTime.tryParse(value);
-                      if (parsedDate != null) {
-                        setState(() {
-                          if (!widget.prodDate.containsKey(widget.index)) {
-                            widget.prodDate[widget.index] = []; // Initialize list if not exists
-                          }
-                          widget.prodDate[widget.index]![i] = parsedDate;
-                        });
-                      }
-                    },
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    _selectDate(context, true, i);
-                  },
-                  icon: Icon(Icons.calendar_today),
-                  
-                ),
-                SizedBox(width: 8), // Adjust the spacing between the text field and the icon
-                Expanded(
-                  child: TextFormField(
-                    initialValue: widget.expDate[widget.index]![i] != null
-                        ? DateFormat.yMd().format(widget.expDate[widget.index]![i])
-                        : null,
-                    keyboardType: TextInputType.datetime,
-                    decoration: InputDecoration(
-                      labelText: 'Expiry Date',
-                      // Other decoration properties as needed
-                    ),
-                    onChanged: (value) {
-                      DateTime? parsedDate = DateTime.tryParse(value);
-                      if (parsedDate != null) {
-                        setState(() {
-                          if (!widget.expDate.containsKey(widget.index)) {
-                            widget.expDate[widget.index] = []; // Initialize list if not exists
-                          }
-                          widget.expDate[widget.index]![i] = parsedDate;
-                        });
-                      }
-                    },
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    _selectDate(context, false, i);
-                  },
-                  icon: Icon(Icons.calendar_today),
-                ),
-              ],
             ),
           ],
+          backgroundColor: Colors.blue,
         ),
-  ],
-),
-
-
-            ]
-        ),
-        
-      ),
-      )
-    );
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SingleChildScrollView(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    '${itemsorders[widget.index]['itemCode']} ${itemsorders[widget.index]['itemName']}',
+                    style: TextStyle(
+                        fontSize: widget.appNotifier.fontSize.toDouble() - 2),
+                  ),
+                  SizedBox(height: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (widget.batches.containsKey(widget.index))
+                        for (int i = 0;
+                            i < widget.batches[widget.index]!.length;
+                            i++)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Text field for batch number
+                              TextFormField(
+                                initialValue: widget.batches[widget.index]![i],
+                                onChanged: (value) {
+                                  // Update the batch number in the batches map
+                                  setState(() {
+                                    widget.batches[widget.index]![i] = value;
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Batch ${i + 1}',
+                                  labelStyle: TextStyle(
+                                    fontSize:
+                                        widget.appNotifier.fontSize.toDouble() -
+                                            2,
+                                  ),
+                                  suffixText: 'Units',
+                                  suffixIcon: IconButton(
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text('Delete Batch'),
+                                            content: Text(
+                                              'Are you sure you want to delete this Batch?',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    // Remove the corresponding batch number from the list
+                                                    widget
+                                                        .batches[widget.index]!
+                                                        .removeAt(i);
+                                                  });
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Text('Delete'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                    icon: Icon(Icons.delete),
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                              // Text field for quantity
+                              TextFormField(
+                                initialValue:
+                                    widget.quantities[widget.index]![i],
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: 'Quantity',
+                                  // Other decoration properties as needed
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    widget.quantities[widget.index]![i] = value;
+                                  });
+                                },
+                              ),
+                              // Row for production date and expiry date
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                        
+                                      controller:
+                                          productionDateController, // Use the controller here
+                                      decoration: InputDecoration(
+                                        labelText: 'Production Date',
+                                        // Other decoration properties as needed
+                                      ),
+                                      onTap: () {
+                                        // Prevent keyboard from appearing when tapping the field
+                                        FocusScope.of(context)
+                                            .requestFocus(new FocusNode());
+                                        _selectDate(context, true, i);
+                                      },
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      _selectDate(context, true, i);
+                                    },
+                                    icon: Icon(Icons.calendar_today),
+                                  ),
+                                  SizedBox(
+                                      width:
+                                          8), // Adjust the spacing between the text field and the icon
+                                  Expanded(
+                                    child: TextFormField(
+                                     controller: expiryDateController,
+                                      keyboardType: TextInputType.datetime,
+                                      decoration: InputDecoration(
+                                        labelText: 'Expiry Date',
+                                        // Other decoration properties as needed
+                                      ),
+                                      onChanged: (value) {
+                                        DateTime? parsedDate =
+                                            DateTime.tryParse(value);
+                                        if (parsedDate != null) {
+                                          setState(() {
+                                            if (!widget.expDate
+                                                .containsKey(widget.index)) {
+                                              widget.expDate[widget.index] =
+                                                  []; // Initialize list if not exists
+                                            }
+                                            widget.expDate[widget.index]![i] =
+                                                parsedDate;
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      _selectDate(context, false, i);
+                                    },
+                                    icon: Icon(Icons.calendar_today),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                    ],
+                  ),
+                ]),
+          ),
+        ));
   }
 }
