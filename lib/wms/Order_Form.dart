@@ -355,8 +355,10 @@ void changeQuantityBatch(BuildContext context, int index, int? newQuantity,
  int newcountBatch, Map<int,List<String>>batchesComeFrom,Map<int,List<String>>quantitiesComeForm ,Map<int,List<DateTime>>prodDateComeFrom,
  Map<int,List<DateTime>>expDateComeFrom){
   // Update the quantity directly
+  print(newcountBatch);
   setState(() {
    countBatch[index]=newQuantity!;
+   itemQuantities[index]=newcountBatch;
 
     print('?????????????');
     print(newQuantity);
@@ -420,10 +422,13 @@ void changeQuantityBatch(BuildContext context, int index, int? newQuantity,
 
 // Function to get the background color based on quantity
   Color getBackgroundColor(int recQty, int ordQty,int index) {
-    if(countSerial[index]==null && countBatch[index]==null){
-    if (recQty == 0) {
+    //if(countSerial[index]!=null && countBatch[index]!=null){
+      print(recQty);
+      print('#######&&&&########'); 
+      if (recQty == 0 && (countBatch[index]==null && countSerial[index]==null) ) {
       return Colors.transparent;
-    } else if (recQty == ordQty) {
+    }
+     else if (recQty == ordQty) {
       return Colors
           .green.shade100; // If quantity equals order quantity, show green
     } else if (recQty < ordQty) {
@@ -433,7 +438,11 @@ void changeQuantityBatch(BuildContext context, int index, int? newQuantity,
       return Colors
           .red.shade100; // If quantity is greater than order quantity, show red
     }
-    }else if(countSerial[index]!=null) {
+    
+    //}
+       //   return Colors.transparent;
+
+    }/*else if(countSerial[index]!=null) {
       if(countSerial[index]==0){
               return Colors.transparent;
 
@@ -445,8 +454,8 @@ return Colors.blue.shade100;
 
       }
 return Colors.blue.shade100;
-    }
-  }
+    }*/
+
 
   @override
   Widget build(BuildContext context) {
@@ -633,7 +642,7 @@ return Colors.blue.shade100;
                                       ),
                                       if (countSerial[index] != null)
                                       Text(
-                                        "${countSerial[index]} Units", // Use itemQuantities[index] here
+                                        "${countSerial[index] ?? itemCode['recQty'] ?? 0} / ${itemCode['ordQty']} Units", // Use itemQuantities[index] here
                                         style: TextStyle(
                                             color: Colors.black54,
                                             fontSize: widget
@@ -641,9 +650,9 @@ return Colors.blue.shade100;
                                                     .toDouble() -
                                                 5),
                                       )
-                                      else if(itemQuantities[index] != null)
+                                      else if(countBatch[index] != null)
                                       Text(
-                                        "${itemQuantities[index]} Units", // Use itemQuantities[index] here
+                                        "${itemQuantities[index] ?? itemCode['recQty'] ?? 0} / ${itemCode['ordQty']} Units", // Use itemQuantities[index] here
                                         style: TextStyle(
                                             color: Colors.black54,
                                             fontSize: widget
@@ -970,8 +979,7 @@ return Colors.blue.shade100;
       }
        else {
         // Return the dialog with options not related to serial management
-        return SingleChildScrollView(
-          child: AlertDialog(
+        return  AlertDialog(
             title: Text('Choose an action'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1012,8 +1020,7 @@ return Colors.blue.shade100;
                 // Other options related to serial management
               ],
             ),
-          ),
-        );
+          );
       }
     },
   );

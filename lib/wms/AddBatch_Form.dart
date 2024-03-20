@@ -283,6 +283,16 @@ class _AddBatchState extends State<AddBatch> {
                 onPressed: () {
                   setState(() {
                         int newQuantity = int.tryParse(quantityControllerPerUnit.text) ?? 0;
+                           if (widget.itemQuantities < 0 ||
+                    widget.itemQuantities == 0 ||
+                    newQuantity > widget.itemQuantities) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Over Quantity Not Allowed!'),
+                    ),
+                  );
+                  return;
+                }
 
                     // Check if any of the serial numbers are empty
                     if (quantityControllers
@@ -312,6 +322,9 @@ class _AddBatchState extends State<AddBatch> {
                     String newBatchtext = batchController.text.trim();
                     if (batchControllers
                         .any((controller) => controller.text == newBatchtext)) {
+                          print(batchControllers.toList().toString());
+                          print('bbbbbbbbbbbb');
+                          print(newBatchtext);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -332,6 +345,17 @@ class _AddBatchState extends State<AddBatch> {
                         return;
                       }
                     }
+                    if (batchController.text.isEmpty ||
+        productionDateController.text.isEmpty ||
+        expiryDateController.text.isEmpty ||
+        quantityControllerPerUnit.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please fill in all the fields'),
+        ),
+      );
+      return;
+        }
                     if (newBatchtext.isNotEmpty) {
                       batchControllers
                           .add(TextEditingController(text: newBatchtext));

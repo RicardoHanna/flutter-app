@@ -128,22 +128,6 @@ void initState() {
                   fontSize: widget.appNotifier.fontSize.toDouble() - 2,
                   color: Colors.black54),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: quantityController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Quantity',
-                      labelStyle: TextStyle(
-                          fontSize: widget.appNotifier.fontSize.toDouble() - 2),
-                      suffixText: 'Units', // Text next to the text field
-                    ),
-                  ),
-                ),
-              ],
-            ),
             SizedBox(
                 height: 10), // Add space between the text field and the button
               Column(
@@ -170,6 +154,23 @@ void initState() {
         );
       }).toList(),
     ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: quantityController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Quantity',
+                      labelStyle: TextStyle(
+                          fontSize: widget.appNotifier.fontSize.toDouble() - 2),
+                      suffixText: 'Units', // Text next to the text field
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
   ],
 ),
 

@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:project/app_notifier.dart';
 import 'package:http/http.dart' as http;
 
@@ -54,6 +56,42 @@ class _AddSerialNumberState extends State<AddSerialNumber> {
     });
   }
 
+Future<void> scanBarcode() async {
+  try {
+    ScanResult result = await BarcodeScanner.scan();
+    String barcode = result.rawContent.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
+    print(barcode);
+
+    // Split the scanned content by the delimiter (e.g., comma or newline)
+    List<String> serials = barcode.split('\n');
+
+    for (String serial in serials) {
+      if (serialNumbers.contains(serial)) {
+        // If the serial number has already been scanned, show a SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('This serial has already been scanned: $serial')),
+        );
+      } else {
+        // If the serial number hasn't been scanned yet, add it to the list
+        setState(() {
+          serialNumbers.add(serial);
+          serialControllers.add(TextEditingController(text: serial));
+        });
+      }
+    }
+  } on PlatformException catch (e) {
+    if (e.code == BarcodeScanner.cameraAccessDenied) {
+      print('Camera permission denied');
+    } else {
+      print('Error: $e');
+    }
+  }
+}
+
+
+
+
+
   Future<void> fetchWarehouses() async {
     setState(() {
       _isLoading = true;
@@ -103,12 +141,15 @@ class _AddSerialNumberState extends State<AddSerialNumber> {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.qr_code_scanner,
-              color: Colors.white,
-            ),
-          ),
+  onPressed: () async {
+    await scanBarcode();
+  },
+  icon: Icon(
+    Icons.qr_code_scanner,
+    color: Colors.white,
+  ),
+),
+
         ],
         backgroundColor: Colors.blue,
       ),
@@ -272,6 +313,7 @@ ElevatedButton(
         }
       }
       if (newSerial.isNotEmpty) {
+                serialNumbers.add(newSerial);
         serialControllers.add(TextEditingController(text: newSerial));
       }
 

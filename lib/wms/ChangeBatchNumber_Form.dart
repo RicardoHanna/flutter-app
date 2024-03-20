@@ -43,7 +43,7 @@ class ChangeBatchNumber extends StatefulWidget {
 }
 
 class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
-  TextEditingController quantityController = TextEditingController();
+  List<TextEditingController> quantityControllers = [];
   TextEditingController productionDateController = TextEditingController();
   TextEditingController expiryDateController = TextEditingController();
   TextEditingController batchController = TextEditingController();
@@ -55,29 +55,22 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
   List<String> batchNumbers = []; // Maintain a list of serial numbers
   List<TextEditingController> batchControllers =
       []; // Maintain controllers for each serial text field
- String formattedExpDate = '';
- String formattedProdDate ='';
+  String formattedExpDate = '';
+  String formattedProdDate = '';
+  String quantity = '';
+  String batches = '';
+  int totalQuantity = 0;
   @override
   void initState() {
     super.initState();
     itemsorders = widget.items;
-         
-if (widget.prodDate[widget.index]!= null) {
-  formattedProdDate = DateFormat.yMd().format(widget.prodDate[widget.index]![0]);
-  productionDateController=TextEditingController(text:formattedProdDate);
-} else {
-  formattedProdDate = DateFormat.yMd().format(DateTime.now());
-}
 
-  
-if (widget.expDate[widget.index]!= null) {
-  formattedExpDate = DateFormat.yMd().format(widget.expDate[widget.index]![0]);
-    expiryDateController=TextEditingController(text:formattedExpDate);
-
-} else {
-  formattedExpDate = DateFormat.yMd().format(DateTime.now());
-}
-
+    // Initialize a TextEditingController for each quantity
+    if (widget.quantities.containsKey(widget.index)) {
+      for (String quantity in widget.quantities[widget.index]!) {
+        quantityControllers.add(TextEditingController(text: quantity));
+      }
+    }
   }
 
   Future<void> _selectDate(
@@ -104,7 +97,31 @@ if (widget.expDate[widget.index]!= null) {
     }
   }
 
-  void updateSerialNumbers(
+  int sumAndSendQuantities() {
+    // Sum all the quantities
+    totalQuantity = 0;
+    if (widget.quantities.containsKey(widget.index)) {
+      print('pp');
+      print(widget.quantities[widget.index]);
+       if(widget.quantities[widget.index]!=1){
+      for (String quantity in widget.quantities[widget.index]!) {
+        try {
+          totalQuantity += int.parse(quantity);
+        } catch (e) {
+          print("Error parsing quantity: $e");
+          // Handle the error here, maybe show an error message to the user
+        }
+      }
+    }
+    }else{
+                totalQuantity = int.parse(quantity);
+
+    }
+    print(totalQuantity);
+    return totalQuantity;
+  }
+
+  void updateBatchNumbers(
     BuildContext context,
     ValueChanged<bool> updateReturnBack,
   ) {
@@ -116,6 +133,20 @@ if (widget.expDate[widget.index]!= null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Please do not change a batch number to empty'),
+            ),
+          );
+          return; // Stop the update process
+        }
+      }
+    }
+
+       if (widget.quantities.containsKey(widget.index)) {
+      for (int i = 0; i < widget.quantities[widget.index]!.length; i++) {
+        if (widget.quantities[widget.index]![i].isEmpty) {
+          updateReturnBack(false); // Update the returnBack variable
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Please do not change a quanity number to empty'),
             ),
           );
           return; // Stop the update process
@@ -145,12 +176,16 @@ if (widget.expDate[widget.index]!= null) {
     int updatedBatchNumber = widget.batches[widget.index]!.length;
     batchController.text = updatedBatchNumber.toString();
 
+    print('hiii');
+    // print(quantityController.text);
+    int sumQuantity = sumAndSendQuantities();
+    print(sumQuantity);
     // Update the serial numbers and quantity
     widget.changeQuantityBatch(
         context,
         widget.index,
         int.tryParse(batchController.text) ?? 0,
-        widget.batches[widget.index]!.length, // Pass the updated serials count
+        sumQuantity ?? 0, // Pass the updated serials count
         widget.batches, // Pass the updated serials map
         widget.quantities,
         widget.prodDate,
@@ -203,7 +238,9 @@ if (widget.expDate[widget.index]!= null) {
                             children: [
                               // Text field for batch number
                               TextFormField(
-                                initialValue: widget.batches[widget.index]![i],
+                                controller: TextEditingController(
+                                    text:
+                                        widget.batches[widget.index]![i] ?? ''),
                                 onChanged: (value) {
                                   // Update the batch number in the batches map
                                   setState(() {
@@ -239,8 +276,35 @@ if (widget.expDate[widget.index]!= null) {
                                                 onPressed: () {
                                                   setState(() {
                                                     // Remove the corresponding batch number from the list
+                                                      int updatedBatches= widget
+                                                  .batches[widget.index]!
+                                                  .length;
+                                              batchController.text =
+                                                  updatedBatches.toString();
+                                           
+                                              if (batchController.text ==
+                                                  '1') {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'At least should be 1 batch',
+                                                    ),
+                                                  ),
+                                                );
+                                                return;
+                                              }
                                                     widget
                                                         .batches[widget.index]!
+                                                        .removeAt(i);
+                                                         widget
+                                                        .quantities[widget.index]!
+                                                        .removeAt(i);
+                                                         widget
+                                                        .prodDate[widget.index]!
+                                                        .removeAt(i);
+                                                         widget
+                                                        .expDate[widget.index]!
                                                         .removeAt(i);
                                                   });
                                                   Navigator.pop(context);
@@ -259,8 +323,7 @@ if (widget.expDate[widget.index]!= null) {
                               ),
                               // Text field for quantity
                               TextFormField(
-                                initialValue:
-                                    widget.quantities[widget.index]![i],
+                                controller: quantityControllers[i],
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   labelText: 'Quantity',
@@ -268,18 +331,23 @@ if (widget.expDate[widget.index]!= null) {
                                 ),
                                 onChanged: (value) {
                                   setState(() {
+                                    // Update the quantity at the i-th index in widget.quantities[widget.index]
                                     widget.quantities[widget.index]![i] = value;
                                   });
                                 },
                               ),
+
                               // Row for production date and expiry date
                               Row(
                                 children: [
                                   Expanded(
                                     child: TextFormField(
-                                        
-                                      controller:
-                                          productionDateController, // Use the controller here
+                                      controller: TextEditingController(
+                                          text: DateFormat.yMd().format(
+                                                  widget.prodDate[
+                                                      widget.index]![i]) ??
+                                              DateFormat.yMd()
+                                                  .format(DateTime.now())),
                                       decoration: InputDecoration(
                                         labelText: 'Production Date',
                                         // Other decoration properties as needed
@@ -303,7 +371,11 @@ if (widget.expDate[widget.index]!= null) {
                                           8), // Adjust the spacing between the text field and the icon
                                   Expanded(
                                     child: TextFormField(
-                                     controller: expiryDateController,
+                                      controller: TextEditingController(
+                                          text: DateFormat.yMd().format(widget
+                                                  .expDate[widget.index]![i]) ??
+                                              DateFormat.yMd()
+                                                  .format(DateTime.now())),
                                       keyboardType: TextInputType.datetime,
                                       decoration: InputDecoration(
                                         labelText: 'Expiry Date',
@@ -336,6 +408,25 @@ if (widget.expDate[widget.index]!= null) {
                               ),
                             ],
                           ),
+                      SizedBox(height: 5),
+                      Row(
+                        children: [],
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            bool returnBack = true;
+                            updateBatchNumbers(context, (newValue) {
+                              returnBack = newValue;
+                            });
+
+                            if (returnBack) {
+                              Navigator.pop(context);
+                            }
+                          });
+                        },
+                        child: Text('OK'),
+                      ),
                     ],
                   ),
                 ]),
