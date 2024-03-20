@@ -20,7 +20,6 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
   TextEditingController commentsController = TextEditingController();
   TextEditingController createdByController = TextEditingController();
 
-
   DateTime _selectedDueDate = DateTime.now();
   DateTime _selectedBookingDate = DateTime.now();
 

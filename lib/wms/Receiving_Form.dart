@@ -35,7 +35,7 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
   TextEditingController itemNameController = TextEditingController();
   List<Map<String, String>> orders = [];
   List<Map<String, String>> filteredOrders = [];
-
+  List<dynamic> selectedIndices = [];
   String itemName = '';
 
   @override
@@ -45,7 +45,6 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
       setState(() {
         filteredOrders = List.from(orders);
         if (widget.searchedSupplier != null) {
-          
           itemNameController.text = widget.searchedSupplier!;
           _updateFilteredOrders(widget.searchedSupplier!);
         }
@@ -302,16 +301,60 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
                     child: ListView.builder(
                       itemCount: filteredOrders.length,
                       itemBuilder: (context, index) {
+                        bool isSelected =
+                            selectedIndices.contains(filteredOrders[index]);
                         return Padding(
                           padding: EdgeInsets.only(bottom: 1.0),
                           child: Card(
+                            color: isSelected ? Colors.blue[100] : Colors.white,
                             child: ListTile(
                               onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (builder) => OrderForm(
-                                        order: filteredOrders[index],
-                                        usercode: widget.usercode,
-                                        appNotifier: widget.appNotifier)));
+                                print(
+                                    " ${selectedIndices.length} ${isSelected} #################################################");
+                                if (selectedIndices.length != 0) {
+                                  setState(() {
+                                    if (isSelected) {
+                                      selectedIndices
+                                          .remove(filteredOrders[index]);
+                                    } else {
+                                      if (filteredOrders[index]["cardCode"] ==
+                                          selectedIndices[0]['cardCode']) {
+                                        if (selectedIndices
+                                            .contains(filteredOrders[index])) {
+                                        } else {
+                                          selectedIndices
+                                              .add(filteredOrders[index]);
+                                        }
+                                      } else {}
+                                    }
+                                  });
+
+                                  print(selectedIndices);
+                                } else {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (builder) => OrderForm(
+                                          order: filteredOrders[index],
+                                          usercode: widget.usercode,
+                                          appNotifier: widget.appNotifier)));
+                                }
+                              },
+                              onLongPress: () {
+                                setState(() {
+                                  if (isSelected) {
+                                    selectedIndices
+                                        .remove(filteredOrders[index]);
+                                  } else {
+                                    if (selectedIndices.length == 0) {
+                                      selectedIndices
+                                          .add(filteredOrders[index]);
+                                    } else if (filteredOrders[index]
+                                            ["cardCode"] ==
+                                        selectedIndices[0]['cardCode']) {
+                                      selectedIndices
+                                          .add(filteredOrders[index]);
+                                    } else {}
+                                  }
+                                });
                               },
                               title: Row(
                                 mainAxisAlignment:
