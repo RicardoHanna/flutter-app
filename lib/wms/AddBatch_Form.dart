@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:project/app_notifier.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart'; // Import this package to format the date
@@ -14,12 +16,18 @@ class AddBatch extends StatefulWidget {
   final Map<int, List<String>> batches;
   final Map<int, List<String>> quantities;
   final Map<int, List<DateTime>> prodDate;
-    final Map<int, List<DateTime>> expDate;
+  final Map<int, List<DateTime>> expDate;
 
-
-
-  final Function(BuildContext, int, int, String, int, Map<int, List<String>>,Map<int, List<String>>,Map<int, List<DateTime>>,Map<int, List<DateTime>>)
-      addBatchSerial;
+  final Function(
+      BuildContext,
+      int,
+      int,
+      String,
+      int,
+      Map<int, List<String>>,
+      Map<int, List<String>>,
+      Map<int, List<DateTime>>,
+      Map<int, List<DateTime>>,String) addBatchSerial;
   const AddBatch(
       {Key? key,
       required this.appNotifier,
@@ -31,9 +39,7 @@ class AddBatch extends StatefulWidget {
       required this.batches,
       required this.quantities,
       required this.prodDate,
-      required this.expDate
-      
-      })
+      required this.expDate})
       : super(key: key);
 
   @override
@@ -47,18 +53,18 @@ class _AddBatchState extends State<AddBatch> {
   String apiurl = 'http://5.189.188.139:8080/api/';
   bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
+    List<Map<dynamic, dynamic>> fetchedDataUOM = []; // Define fetchedData list
   List<String> batchNumbers = []; // Maintain a list of serial numbers
   List<String> quantityNumbers = []; // Maintain a list of serial numbers
   List<TextEditingController> batchControllers =
       []; // Maintain controllers for each serial text field
-        List<TextEditingController> quantityControllers =
+  List<TextEditingController> quantityControllers =
       []; // Maintain controllers for each serial text field
-              List<TextEditingController> prodDateControllers =
-      []; 
-                    List<TextEditingController> expDateControllers =
-      []; 
+  List<TextEditingController> prodDateControllers = [];
+  List<TextEditingController> expDateControllers = [];
   TextEditingController quantityControllerPerUnit = TextEditingController();
   TextEditingController productionDateController = TextEditingController();
+  String dropdownValueUOM='';
 
   TextEditingController expiryDateController = TextEditingController();
   DateTime? _productionDate;
@@ -99,6 +105,15 @@ class _AddBatchState extends State<AddBatch> {
         print('Dropdown Value: $dropdownValue');
       });
     });
+    fetchUOM().then((_) {
+      setState(() {
+        print('Fetched uom Data: $fetchedDataUOM');
+        dropdownValueUOM = fetchedDataUOM.isNotEmpty
+            ? fetchedDataUOM.first['ANY_VALUE(i.uom)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown uom Value: $dropdownValueUOM');
+      });
+    }); 
   }
 
   Future<void> fetchWarehouses() async {
@@ -137,6 +152,81 @@ class _AddBatchState extends State<AddBatch> {
     }
   }
 
+  Future<void> fetchUOM() async {
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    Map<String, dynamic> requestBody = {
+      'itemCode': itemsorders[widget.index]['itemCode']
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemUOMReceiving'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody), // Encode the request body as JSON
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        // Update state with the fetched data
+        fetchedDataUOM = List<Map<dynamic, dynamic>>.from(data.map((item) {
+          // Convert each item in the response to a map
+          return Map<dynamic, dynamic>.from(item);
+        }));
+        _isLoading = false;
+      });
+      print(fetchedDataUOM);
+    } else {
+      throw Exception('Failed to fetch data uom');
+    }
+  } catch (error) {
+    print('Error fetching data uom: $error');
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
+
+  Future<void> scanBarcode() async {
+    try {
+      ScanResult result = await BarcodeScanner.scan();
+      String barcode =
+          result.rawContent.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
+      print(barcode);
+
+      // Split the scanned content by the delimiter (e.g., comma or newline)
+      List<String> batches = barcode.split('\n');
+
+      for (String batch in batches) {
+        // If the serial number hasn't been scanned yet, add it to the list
+        setState(() {
+          batchNumbers.add(batch);
+          // Automatically fill the batch field with the scanned barcode
+          batchController.text = batch;
+          // Check if batch already exists
+          if (widget.batches[widget.index]!.contains(batch)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('This batch number has already been entered'),
+              ),
+            );
+            return;
+          }
+        });
+      }
+    } on PlatformException catch (e) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
+        print('Camera permission denied');
+      } else {
+        print('Error: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,7 +240,9 @@ class _AddBatchState extends State<AddBatch> {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () async {
+              await scanBarcode();
+            },
             icon: Icon(
               Icons.qr_code_scanner,
               color: Colors.white,
@@ -197,6 +289,27 @@ class _AddBatchState extends State<AddBatch> {
                       );
                     }).toList(),
                   ),
+                  Text(
+                  'UOM',
+                  style: TextStyle(
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                      color: Colors.black54),
+                ),
+                DropdownButton<String>(
+                  value: dropdownValueUOM ??'',
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValueUOM = newValue??'';
+                    });
+                  },
+                  items: fetchedDataUOM.map<DropdownMenuItem<String>>(
+                      (Map<dynamic, dynamic> uom) {
+                    return DropdownMenuItem<String>(
+                      value: uom['ANY_VALUE(i.uom)'].toString(),
+                      child: Text(uom['ANY_VALUE(i.uom)'].toString()),
+                    );
+                  }).toList(),
+                ),
                 ],
               ),
               SizedBox(height: 5),
@@ -209,7 +322,6 @@ class _AddBatchState extends State<AddBatch> {
                       labelText: 'Quantity',
                       labelStyle: TextStyle(
                           fontSize: widget.appNotifier.fontSize.toDouble() - 2),
-                      suffixText: 'Units', // Text next to the text field
                     ),
                   ),
                   SizedBox(
@@ -277,22 +389,22 @@ class _AddBatchState extends State<AddBatch> {
               ),
 
               // Button to add more text fields
-           
 
               ElevatedButton(
                 onPressed: () {
                   setState(() {
-                        int newQuantity = int.tryParse(quantityControllerPerUnit.text) ?? 0;
-                           if (widget.itemQuantities < 0 ||
-                    widget.itemQuantities == 0 ||
-                    newQuantity > widget.itemQuantities) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Over Quantity Not Allowed!'),
-                    ),
-                  );
-                  return;
-                }
+                    int newQuantity =
+                        int.tryParse(quantityControllerPerUnit.text) ?? 0;
+                    if (widget.itemQuantities < 0 ||
+                        widget.itemQuantities == 0 ||
+                        newQuantity > widget.itemQuantities) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Over Quantity Not Allowed!'),
+                        ),
+                      );
+                      return;
+                    }
 
                     // Check if any of the serial numbers are empty
                     if (quantityControllers
@@ -318,61 +430,68 @@ class _AddBatchState extends State<AddBatch> {
                       return;
                     }
 
-                    // Add the new serial number entered directly into the last controller
+// Add the new serial number entered directly into the last controller
                     String newBatchtext = batchController.text.trim();
-                    if (batchControllers
-                        .any((controller) => controller.text == newBatchtext)) {
-                          print(batchControllers.toList().toString());
-                          print('bbbbbbbbbbbb');
-                          print(newBatchtext);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'This batch number has already been entered'),
-                        ),
-                      );
-                      return;
-                    } else {
-                      // Check if the serial number already exists in the accumulated list
-                      if (widget.batches.containsKey(widget.index) &&
-                          widget.batches[widget.index]!.contains(newBatch)) {
+                    print(widget.batches[widget.index]);
+                    print(batchControllers.toList().toString());
+                    print('bbbbbbbbbbbb');
+                    print(newBatchtext);
+
+// Check if the new batch number already exists
+                    if (widget.batches[widget.index] != null) {
+                      if (widget.batches[widget.index]!
+                          .contains(newBatchtext)) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                                'This batch number has already been entered in the list'),
+                                'This batch number has already been entered'),
                           ),
                         );
                         return;
+                      } else {
+                        // Check if the serial number already exists in the accumulated list
+                        if (widget.batches.containsKey(widget.index) &&
+                            widget.batches[widget.index]!.contains(newBatch)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'This batch number has already been entered in the list'),
+                            ),
+                          );
+                          return;
+                        }
                       }
                     }
                     if (batchController.text.isEmpty ||
-        productionDateController.text.isEmpty ||
-        expiryDateController.text.isEmpty ||
-        quantityControllerPerUnit.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please fill in all the fields'),
-        ),
-      );
-      return;
-        }
+                        productionDateController.text.isEmpty ||
+                        expiryDateController.text.isEmpty ||
+                        quantityControllerPerUnit.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please fill in all the fields'),
+                        ),
+                      );
+                      return;
+                    }
                     if (newBatchtext.isNotEmpty) {
                       batchControllers
                           .add(TextEditingController(text: newBatchtext));
                     }
-                     String newQuantitytext = quantityControllerPerUnit.text.trim();
-                     if (newQuantitytext.isNotEmpty) {
+                    String newQuantitytext =
+                        quantityControllerPerUnit.text.trim();
+                    if (newQuantitytext.isNotEmpty) {
                       quantityControllers
                           .add(TextEditingController(text: newQuantitytext));
                     }
-                     String newProdDatetext = productionDateController.text.trim();
-                     if (newProdDatetext.isNotEmpty) {
+                    String newProdDatetext =
+                        productionDateController.text.trim();
+                    if (newProdDatetext.isNotEmpty) {
                       prodDateControllers
                           .add(TextEditingController(text: newProdDatetext));
                     }
 
-                     String newExpDatetext = expiryDateController.text.trim();
-                     if (newExpDatetext.isNotEmpty) {
+                    String newExpDatetext = expiryDateController.text.trim();
+                    if (newExpDatetext.isNotEmpty) {
                       expDateControllers
                           .add(TextEditingController(text: newExpDatetext));
                     }
@@ -394,8 +513,9 @@ class _AddBatchState extends State<AddBatch> {
                       // If not, assign the serials directly
                       widget.batches[widget.index] = nonEmptyBatches;
                     }
+
                     ///------
-                     // Filter out empty serial numbers
+                    // Filter out empty serial numbers
                     List<String> nonEmptyQuantities = quantityControllers
                         .map((controller) => controller.text.trim())
                         .where((quantity) => quantity.isNotEmpty)
@@ -412,20 +532,21 @@ class _AddBatchState extends State<AddBatch> {
                       // If not, assign the serials directly
                       widget.quantities[widget.index] = nonEmptyQuantities;
                     }
-                     ///------
-                     // Filter out empty serial numbers
+
+                    ///------
+                    // Filter out empty serial numbers
 
 // Then you can convert it to a DateTime object if necessary
 
- 
 // Filter out empty serial numbers
-List<DateTime> parsedProdDates = prodDateControllers
-  .map((controller) => controller.text.trim()) // Get the text from the controllers
-  .where((dateString) => dateString.isNotEmpty) // Filter out empty date strings
-  .map((dateString) => DateFormat.yMd().parse(dateString)) // Parse date strings into DateTime objects
-  .toList();
-
-    
+                    List<DateTime> parsedProdDates = prodDateControllers
+                        .map((controller) => controller.text
+                            .trim()) // Get the text from the controllers
+                        .where((dateString) => dateString
+                            .isNotEmpty) // Filter out empty date strings
+                        .map((dateString) => DateFormat.yMd().parse(
+                            dateString)) // Parse date strings into DateTime objects
+                        .toList();
 
                     // Check if serials already exist for the given index
                     if (widget.prodDate.containsKey(widget.index)) {
@@ -441,13 +562,15 @@ List<DateTime> parsedProdDates = prodDateControllers
 
                     // Then you can convert it to a DateTime object if necessary
 
-
 // Filter out empty serial numbers
-List<DateTime> parsedExpDate = expDateControllers
-  .map((controller) => controller.text.trim()) // Get the text from the controllers
-  .where((dateString) => dateString.isNotEmpty) // Filter out empty date strings
-  .map((dateString) => DateFormat.yMd().parse(dateString)) // Parse date strings into DateTime objects
-  .toList();
+                    List<DateTime> parsedExpDate = expDateControllers
+                        .map((controller) => controller.text
+                            .trim()) // Get the text from the controllers
+                        .where((dateString) => dateString
+                            .isNotEmpty) // Filter out empty date strings
+                        .map((dateString) => DateFormat.yMd().parse(
+                            dateString)) // Parse date strings into DateTime objects
+                        .toList();
 
                     // Check if serials already exist for the given index
                     if (widget.expDate.containsKey(widget.index)) {
@@ -461,19 +584,18 @@ List<DateTime> parsedExpDate = expDateControllers
                       widget.expDate[widget.index] = parsedExpDate;
                     }
 
-
                     widget.addBatchSerial(
-                      context,
-                      widget.index,
-                      newQuantity,
-                      dropdownValue,
-                      nonEmptyBatches.length,
-                      widget.batches,
-                      widget.quantities,
-                      widget.prodDate,
-                      widget.expDate
-                      
-                    );
+                        context,
+                        widget.index,
+                        newQuantity,
+                        dropdownValue,
+                        nonEmptyBatches.length,
+                        widget.batches,
+                        widget.quantities,
+                        widget.prodDate,
+                        widget.expDate,
+                        dropdownValueUOM
+                        );
                     Navigator.pop(context);
                     Navigator.pop(context);
                   });

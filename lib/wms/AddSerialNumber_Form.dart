@@ -13,7 +13,7 @@ class AddSerialNumber extends StatefulWidget {
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
   final Map<int,List<String>>serials;
-  final Function(BuildContext, int, int, String, int, Map<int,List<String>>)
+  final Function(BuildContext, int, int, String, int, Map<int,List<String>>,String)
       addQuantitySerial;
   const AddSerialNumber({
     Key? key,
@@ -37,10 +37,12 @@ class _AddSerialNumberState extends State<AddSerialNumber> {
   String apiurl = 'http://5.189.188.139:8080/api/';
   bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
+    List<Map<dynamic, dynamic>> fetchedDataUOM = []; // Define fetchedData list
+
   List<String> serialNumbers = []; // Maintain a list of serial numbers
   List<TextEditingController> serialControllers =
       []; // Maintain controllers for each serial text field
-
+  String dropdownValueUOM='';
   @override
   void initState() {
     super.initState();
@@ -54,6 +56,17 @@ class _AddSerialNumberState extends State<AddSerialNumber> {
         print('Dropdown Value: $dropdownValue');
       });
     });
+
+    fetchUOM().then((_) {
+      setState(() {
+        print('Fetched uom Data: $fetchedDataUOM');
+        dropdownValueUOM = fetchedDataUOM.isNotEmpty
+            ? fetchedDataUOM.first['ANY_VALUE(i.uom)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown uom Value: $dropdownValueUOM');
+      });
+    }); 
+
   }
 
 Future<void> scanBarcode() async {
@@ -128,6 +141,45 @@ Future<void> scanBarcode() async {
     }
   }
 
+  Future<void> fetchUOM() async {
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    Map<String, dynamic> requestBody = {
+      'itemCode': itemsorders[widget.index]['itemCode']
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemUOMReceiving'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody), // Encode the request body as JSON
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        // Update state with the fetched data
+        fetchedDataUOM = List<Map<dynamic, dynamic>>.from(data.map((item) {
+          // Convert each item in the response to a map
+          return Map<dynamic, dynamic>.from(item);
+        }));
+        _isLoading = false;
+      });
+      print(fetchedDataUOM);
+    } else {
+      throw Exception('Failed to fetch data uom');
+    }
+  } catch (error) {
+    print('Error fetching data uom: $error');
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -191,6 +243,27 @@ Future<void> scanBarcode() async {
                       );
                     }).toList(),
                   ),
+                  Text(
+                  'UOM',
+                  style: TextStyle(
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                      color: Colors.black54),
+                ),
+                DropdownButton<String>(
+                  value: dropdownValueUOM ??'',
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValueUOM = newValue??'';
+                    });
+                  },
+                  items: fetchedDataUOM.map<DropdownMenuItem<String>>(
+                      (Map<dynamic, dynamic> uom) {
+                    return DropdownMenuItem<String>(
+                      value: uom['ANY_VALUE(i.uom)'].toString(),
+                      child: Text(uom['ANY_VALUE(i.uom)'].toString()),
+                    );
+                  }).toList(),
+                ),
                 ],
               ),
               SizedBox(height: 5),
@@ -205,7 +278,6 @@ Future<void> scanBarcode() async {
                         labelStyle: TextStyle(
                             fontSize:
                                 widget.appNotifier.fontSize.toDouble() - 2),
-                        suffixText: 'Units', // Text next to the text field
                       ),
                     ),
                   ),
@@ -224,7 +296,6 @@ Future<void> scanBarcode() async {
                           labelStyle: TextStyle(
                               fontSize:
                                   widget.appNotifier.fontSize.toDouble() - 2),
-                          suffixText: 'Units',
                         ),
                       ),
                     ),
@@ -346,6 +417,7 @@ ElevatedButton(
         dropdownValue,
         nonEmptySerials.length,
         widget.serials,
+        dropdownValueUOM
       );
       Navigator.pop(context);
       Navigator.pop(context);

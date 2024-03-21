@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:project/app_notifier.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/wms/ItemStatus_Form.dart';
 
 class ItemQuantityScreen extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -10,7 +11,7 @@ class ItemQuantityScreen extends StatefulWidget {
   final int index;
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
-  final Function(BuildContext, int, int,String) addQuantity;
+  final Function(BuildContext, int, int, String , String) addQuantity;
   const ItemQuantityScreen({
     Key? key,
     required this.appNotifier,
@@ -28,37 +29,44 @@ class ItemQuantityScreen extends StatefulWidget {
 class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
   TextEditingController quantityController = TextEditingController();
   String dropdownValue = '';
+  String dropdownValueUOM='';
   List<Map<dynamic, dynamic>> itemsorders = [];
-    String apiurl = 'http://5.189.188.139:8080/api/';
-    bool _isLoading=false;
+  String apiurl = 'http://5.189.188.139:8080/api/';
+  bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
+  List<Map<dynamic, dynamic>> fetchedDataUOM = []; // Define fetchedData list
 
-@override
-void initState() {
-  super.initState();
-  itemsorders = widget.items;
-  fetchWarehouses().then((_) {
-    setState(() {
-      print('Fetched Data: $fetchedData');
-      dropdownValue = fetchedData.isNotEmpty
-          ? fetchedData.first['ANY_VALUE(u.whsCode)'].toString()
-          : ''; // Set default value to an empty string if fetched data is empty
-      print('Dropdown Value: $dropdownValue');
+  @override
+  void initState() {
+    super.initState();
+    itemsorders = widget.items;
+    fetchWarehouses().then((_) {
+      setState(() {
+        print('Fetched Data: $fetchedData');
+        dropdownValue = fetchedData.isNotEmpty
+            ? fetchedData.first['ANY_VALUE(u.whsCode)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown Value: $dropdownValue');
+      });
     });
-  });
-}
+       fetchUOM().then((_) {
+      setState(() {
+        print('Fetched uom Data: $fetchedDataUOM');
+        dropdownValueUOM = fetchedDataUOM.isNotEmpty
+            ? fetchedDataUOM.first['ANY_VALUE(i.uom)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown uom Value: $dropdownValueUOM');
+      });
+    });
+  }
 
-
- Future<void> fetchWarehouses() async {
+  Future<void> fetchWarehouses() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      Map<String, dynamic> requestBody = {
-        'userCode': widget.usercode
-        
-      };
+      Map<String, dynamic> requestBody = {'userCode': widget.usercode};
 
       // Make a POST request with the request body
       final response = await http.post(
@@ -87,8 +95,47 @@ void initState() {
       });
     }
   }
- 
- 
+
+ Future<void> fetchUOM() async {
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    Map<String, dynamic> requestBody = {
+      'itemCode': itemsorders[widget.index]['itemCode']
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemUOMReceiving'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody), // Encode the request body as JSON
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        // Update state with the fetched data
+        fetchedDataUOM = List<Map<dynamic, dynamic>>.from(data.map((item) {
+          // Convert each item in the response to a map
+          return Map<dynamic, dynamic>.from(item);
+        }));
+        _isLoading = false;
+      });
+      print(fetchedDataUOM);
+    } else {
+      throw Exception('Failed to fetch data uom');
+    }
+  } catch (error) {
+    print('Error fetching data uom: $error');
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,13 +148,40 @@ void initState() {
           ),
         ),
         actions: [
+                IconButton(
+            onPressed: () {
+                   Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ItemStatus(
+                        appNotifier: widget.appNotifier,
+                        usercode: widget.usercode,
+                        index: widget.index,
+                        items: itemsorders,
+                        itemQuantities: widget.itemQuantities,
+                      ),
+                    ),
+                  );
+            },
+            icon: Icon(
+              Icons.attach_file,
+              color: Colors.white,
+            ),
+
+            
+          ),
           IconButton(
+            
             onPressed: () {},
             icon: Icon(
               Icons.qr_code_scanner,
               color: Colors.white,
             ),
+
+            
           ),
+
+     
         ],
         backgroundColor: Colors.blue,
       ),
@@ -130,54 +204,72 @@ void initState() {
             ),
             SizedBox(
                 height: 10), // Add space between the text field and the button
-              Column(
-  crossAxisAlignment: CrossAxisAlignment.stretch,
-  children: [
-    Text(
-      'Warehouse',
-      style: TextStyle(
-        fontSize: widget.appNotifier.fontSize.toDouble() - 2,
-        color: Colors.black54
-      ),
-    ),
-    DropdownButton<String>(
-      value: dropdownValue,
-      onChanged: (String? newValue) {
-        setState(() {
-          dropdownValue = newValue!;
-        });
-      },
-      items: fetchedData.map<DropdownMenuItem<String>>((Map<dynamic, dynamic> warehouse) {
-        return DropdownMenuItem<String>(
-          value: warehouse['ANY_VALUE(u.whsCode)'].toString(),
-          child: Text(warehouse['ANY_VALUE(w.whsName)'].toString()),
-        );
-      }).toList(),
-    ),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: quantityController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Quantity',
-                      labelStyle: TextStyle(
-                          fontSize: widget.appNotifier.fontSize.toDouble() - 2),
-                      suffixText: 'Units', // Text next to the text field
+                Text(
+                  'Warehouse',
+                  style: TextStyle(
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                      color: Colors.black54),
+                ),
+                DropdownButton<String>(
+                  value: dropdownValue ??'',
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValue = newValue ??'';
+                    });
+                  },
+                  items: fetchedData.map<DropdownMenuItem<String>>(
+                      (Map<dynamic, dynamic> warehouse) {
+                    return DropdownMenuItem<String>(
+                      value: warehouse['ANY_VALUE(u.whsCode)'].toString(),
+                      child: Text(warehouse['ANY_VALUE(w.whsName)'].toString()),
+                    );
+                  }).toList(),
+                ),
+                 Text(
+                  'UOM',
+                  style: TextStyle(
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                      color: Colors.black54),
+                ),
+                DropdownButton<String>(
+                  value: dropdownValueUOM ??'',
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValueUOM = newValue??'';
+                    });
+                  },
+                  items: fetchedDataUOM.map<DropdownMenuItem<String>>(
+                      (Map<dynamic, dynamic> uom) {
+                    return DropdownMenuItem<String>(
+                      value: uom['ANY_VALUE(i.uom)'].toString(),
+                      child: Text(uom['ANY_VALUE(i.uom)'].toString()),
+                    );
+                  }).toList(),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: quantityController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Quantity',
+                          labelStyle: TextStyle(
+                              fontSize:
+                                  widget.appNotifier.fontSize.toDouble() - 2),
+                        ),
+                      ),
                     ),
-                  ),
+                    
+                  ],
                 ),
               ],
             ),
-            
-  ],
-),
-
-
 
             SizedBox(height: 10),
-
 
             ElevatedButton(
               onPressed: () {
@@ -193,8 +285,8 @@ void initState() {
                   );
                   return;
                 }
-                widget.addQuantity(context, widget.index,
-                    newQuantity,dropdownValue); // Pass the context here
+                widget.addQuantity(context, widget.index, newQuantity,
+                    dropdownValue,dropdownValueUOM); // Pass the context here
                 Navigator.pop(context); // Close the screen
                 Navigator.pop(context);
               },

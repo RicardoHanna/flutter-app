@@ -20,6 +20,7 @@ import 'package:project/wms/AddBatch_Form.dart';
 import 'package:project/wms/AddSerialNumber_Form.dart';
 import 'package:project/wms/BookingDate_Form.dart';
 import 'package:project/wms/ChangeBatchNumber_Form.dart';
+import 'package:project/wms/ChangeItemQuantity_Form.dart';
 import 'package:project/wms/ChangeSerialNumber_Form.dart';
 import 'package:project/wms/InventoryList_Form.dart';
 import 'package:project/wms/ItemQuantity_Form.dart';
@@ -57,11 +58,15 @@ class _OrderFormState extends State<OrderForm> {
   Map<int, Color> itemColors =
       {}; // Map to store item colors, with item index as key
   Map<int, String> updatedWarehouses = {};
+    Map<int, String> updatedUOM = {};
+
   Map<int, int> countSerial = {};
 Map<int,List<String>>serials={};
 Map<int,List<String>>batches={};
 Map<int, int> countBatch = {};
 Map<int,List<String>>quantities={};
+Map<int,String>quantitiesChange={};
+
 Map<int,List<DateTime>>prodDate={};
 Map<int,List<DateTime>>expDate={};
 
@@ -189,10 +194,25 @@ Map<int,List<DateTime>>expDate={};
     }
   }
 
-  void changeQuantity(BuildContext context, int index, int newQuantity) {
+  void changeQuantity(BuildContext context, int index, int newQuantity,Map<int,List<String>>quantitiesComeForm ,String newWarehouses , String newUOM) {
     // Update the quantity directly
     setState(() {
       itemQuantities[index] = newQuantity;
+      updatedWarehouses[index]=newWarehouses;
+      updatedUOM[index]=newUOM;
+      
+            // Merge the serials
+    if (quantitiesComeForm.containsKey(index)) {
+      // If serials already exist for the given index, merge the new list with the existing one
+      quantities[index] = [
+        ...(quantities[index] ?? []),
+        ...quantitiesComeForm[index]!.where((quantity) => !quantities[index]!.contains(quantity)),
+      ];
+    } else {
+      // If not, assign the serials directly
+      quantities[index] = quantitiesComeForm[index] ?? [];
+    }
+
     });
 
     // Show the action dialog if the new quantity is 0
@@ -202,11 +222,12 @@ Map<int,List<DateTime>>expDate={};
   }
 
   void addQuantity(
-      BuildContext context, int index, int? newQuantity, String newWarehouses) {
+      BuildContext context, int index, int? newQuantity, String newWarehouses,String newUOM) {
     // Update the quantity directly
     setState(() {
       itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
       updatedWarehouses[index] = newWarehouses;
+      updatedUOM[index]=newUOM;
     });
 
     // Show the action dialog if the new quantity is 0
@@ -216,12 +237,13 @@ Map<int,List<DateTime>>expDate={};
   }
 
 void addQuantitySerial(BuildContext context, int index, int? newQuantity,
-    String newWarehouses, int newcountSerial, Map<int,List<String>>serialsComeFrom) {
+    String newWarehouses, int newcountSerial, Map<int,List<String>>serialsComeFrom, String newUOM) {
   // Update the quantity directly
   setState(() {
     itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
     updatedWarehouses[index] = newWarehouses;
     countSerial[index] = (newcountSerial ?? 0) + (countSerial[index] ?? 0);
+    updatedUOM[index]=newUOM;
     
     // Merge the serials
     if (serialsComeFrom.containsKey(index)) {
@@ -247,12 +269,13 @@ void addQuantitySerial(BuildContext context, int index, int? newQuantity,
 
 void addBatchSerial(BuildContext context, int index, int? newQuantity,
     String newWarehouses, int newcountBatch, Map<int,List<String>>batchesComeFrom,Map<int,List<String>>quantitiesComeForm,
-  Map<int,List<DateTime>>prodDateComeFrom,Map<int,List<DateTime>>expDateComeFrom){  
+  Map<int,List<DateTime>>prodDateComeFrom,Map<int,List<DateTime>>expDateComeFrom,String newUOM){  
   // Update the quantity directly
   setState(() {
     itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
     updatedWarehouses[index] = newWarehouses;
     countBatch[index] = (newcountBatch ?? 0) + (countBatch[index] ?? 0);
+    updatedUOM[index]=newUOM;
     
     // Merge the serials
     if (batchesComeFrom.containsKey(index)) {
@@ -319,10 +342,12 @@ void addBatchSerial(BuildContext context, int index, int? newQuantity,
 }
 
 void changeQuantitySerial(BuildContext context, int index, int? newQuantity,
- int newcountSerial, Map<int,List<String>>serialsComeFrom) {
+ int newcountSerial, Map<int,List<String>>serialsComeFrom,String newWarehouses , String newUOM ) {
   // Update the quantity directly
   setState(() {
    countSerial[index]=newQuantity!;
+   updatedWarehouses[index]=newWarehouses;
+   updatedUOM[index]=newUOM;
 
     print('?????????????');
     print(newQuantity);
@@ -353,12 +378,14 @@ void changeQuantitySerial(BuildContext context, int index, int? newQuantity,
 
 void changeQuantityBatch(BuildContext context, int index, int? newQuantity,
  int newcountBatch, Map<int,List<String>>batchesComeFrom,Map<int,List<String>>quantitiesComeForm ,Map<int,List<DateTime>>prodDateComeFrom,
- Map<int,List<DateTime>>expDateComeFrom){
+ Map<int,List<DateTime>>expDateComeFrom,String newWarehouses ,String newUOM){
   // Update the quantity directly
   print(newcountBatch);
   setState(() {
    countBatch[index]=newQuantity!;
    itemQuantities[index]=newcountBatch;
+   updatedWarehouses[index]=newWarehouses;
+   updatedUOM[index]=newUOM;
 
     print('?????????????');
     print(newQuantity);
@@ -890,6 +917,9 @@ return Colors.blue.shade100;
                       changeQuantitySerial: changeQuantitySerial,
                       itemQuantities: remainingQty ?? 0,
                       serials: serials,
+                         updatedWarehouses:updatedWarehouses,
+                      updatedUOM: updatedUOM
+
                     ),
                   ),
                 );
@@ -958,6 +988,8 @@ return Colors.blue.shade100;
                       quantities: quantities,
                       prodDate: prodDate,
                       expDate: expDate,
+                      updatedWarehouses:updatedWarehouses,
+                      updatedUOM: updatedUOM
                     ),
                   ),
                 );
@@ -1003,9 +1035,31 @@ return Colors.blue.shade100;
                   );
                 }),
                 _buildActionItem('Change Quantity', () {
+                  dynamic remainingQty =
+                      (itemCode['ordQty'] ?? 0) - (itemQuantities[index] ?? 0);
                   Navigator.pop(context);
-                  _showChangeQuantityDialog(
-                      context, itemCode, index, itemQuantities[index]!);
+                   Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChangeItemQuantity(
+                        appNotifier: widget.appNotifier,
+                      usercode: widget.usercode,
+                      items: fetchedData,
+                      index: index,
+                      changeQuantity: changeQuantity,
+                      itemQuantities: itemQuantities[index] ?? 0,
+                      quantities: quantities,
+                      updatedWarehouses:updatedWarehouses,
+                      updatedUOM: updatedUOM,
+                      
+
+                      
+                      ),
+                    ),
+                  );
+                
+                 /* _showChangeQuantityDialog(
+                      context, itemCode, index, itemQuantities[index]!);*/
                   // Handle Change Serial action
                 }),
                   _buildActionItem('Print Label', () {
@@ -1128,7 +1182,7 @@ return Colors.blue.shade100;
               onPressed: () {
                 String quantityText = quantityController.text;
                 int newQuantity = int.tryParse(quantityText) ?? 0;
-                changeQuantity(context, index, newQuantity);
+                //changeQuantity(context, index, newQuantity,);
                 Navigator.pop(context); // Close the dialog
               },
               child: Text('OK'),
@@ -1201,7 +1255,6 @@ void _showDeleteDialog(int index) {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'Qty',
-                  suffix: Text('Units'),
                 ),
               ),
             ],
@@ -1217,7 +1270,7 @@ void _showDeleteDialog(int index) {
               onPressed: () {
                 String quantityText = quantityController.text;
                 int newQuantity = int.tryParse(quantityText) ?? 0;
-                changeQuantity(context, index, newQuantity);
+                //changeQuantity(context, index, newQuantity,);
                 Navigator.pop(context); // Close the dialog
               },
               child: Text('OK'),

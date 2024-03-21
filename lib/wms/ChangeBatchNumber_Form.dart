@@ -15,6 +15,9 @@ class ChangeBatchNumber extends StatefulWidget {
   final Map<int, List<String>> quantities;
   final Map<int, List<DateTime>> prodDate;
   final Map<int, List<DateTime>> expDate;
+  final Map<int, String> updatedWarehouses;
+  final Map<int, String> updatedUOM;
+
   final Function(
       BuildContext,
       int,
@@ -23,7 +26,9 @@ class ChangeBatchNumber extends StatefulWidget {
       Map<int, List<String>>,
       Map<int, List<String>>,
       Map<int, List<DateTime>>,
-      Map<int, List<DateTime>>) changeQuantityBatch;
+      Map<int, List<DateTime>>,
+      String,
+      String) changeQuantityBatch;
   const ChangeBatchNumber(
       {Key? key,
       required this.appNotifier,
@@ -35,7 +40,9 @@ class ChangeBatchNumber extends StatefulWidget {
       required this.batches,
       required this.quantities,
       required this.prodDate,
-      required this.expDate})
+      required this.expDate,
+      required this.updatedWarehouses,
+      required this.updatedUOM})
       : super(key: key);
 
   @override
@@ -47,11 +54,14 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
   TextEditingController productionDateController = TextEditingController();
   TextEditingController expiryDateController = TextEditingController();
   TextEditingController batchController = TextEditingController();
-
+  String dropdownValueUOM = '';
+  String dropdownValue = 'Each';
   List<Map<dynamic, dynamic>> itemsorders = [];
   String apiurl = 'http://5.189.188.139:8080/api/';
   bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
+  List<Map<dynamic, dynamic>> fetchedDataUOM = []; // Define fetchedData list
+
   List<String> batchNumbers = []; // Maintain a list of serial numbers
   List<TextEditingController> batchControllers =
       []; // Maintain controllers for each serial text field
@@ -70,6 +80,102 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
       for (String quantity in widget.quantities[widget.index]!) {
         quantityControllers.add(TextEditingController(text: quantity));
       }
+    }
+    fetchWarehouses().then((_) {
+      setState(() {
+        print('Fetched Data: $fetchedData');
+        dropdownValue = fetchedData.isNotEmpty
+            ? fetchedData.first['ANY_VALUE(u.whsCode)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown Value: $dropdownValue');
+      });
+    });
+    fetchUOM().then((_) {
+      setState(() {
+        print('Fetched uom Data: $fetchedDataUOM');
+        dropdownValueUOM = fetchedDataUOM.isNotEmpty
+            ? fetchedDataUOM.first['ANY_VALUE(i.uom)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown uom Value: $dropdownValueUOM');
+      });
+    });
+
+    print('%%%%%%%%%');
+    print(widget.updatedUOM[widget.index]);
+  }
+
+  Future<void> fetchWarehouses() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Map<String, dynamic> requestBody = {'userCode': widget.usercode};
+
+      // Make a POST request with the request body
+      final response = await http.post(
+        Uri.parse('${apiurl}getWarehousesUsers'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Update state with the fetched data
+          fetchedData = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            // Convert each item in the response to a map
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+        });
+        print(fetchedData);
+      } else {
+        throw Exception('Failed to fetch data');
+      }
+    } catch (error) {
+      print('Error fetching data: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchUOM() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Map<String, dynamic> requestBody = {
+        'itemCode': itemsorders[widget.index]['itemCode']
+      };
+
+      // Make a POST request with the request body
+      final response = await http.post(
+        Uri.parse('${apiurl}getItemUOMReceiving'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody), // Encode the request body as JSON
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Update state with the fetched data
+          fetchedDataUOM = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            // Convert each item in the response to a map
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+        });
+        print(fetchedDataUOM);
+      } else {
+        throw Exception('Failed to fetch data uom');
+      }
+    } catch (error) {
+      print('Error fetching data uom: $error');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -103,19 +209,18 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
     if (widget.quantities.containsKey(widget.index)) {
       print('pp');
       print(widget.quantities[widget.index]);
-       if(widget.quantities[widget.index]!=1){
-      for (String quantity in widget.quantities[widget.index]!) {
-        try {
-          totalQuantity += int.parse(quantity);
-        } catch (e) {
-          print("Error parsing quantity: $e");
-          // Handle the error here, maybe show an error message to the user
+      if (widget.quantities[widget.index] != 1) {
+        for (String quantity in widget.quantities[widget.index]!) {
+          try {
+            totalQuantity += int.parse(quantity);
+          } catch (e) {
+            print("Error parsing quantity: $e");
+            // Handle the error here, maybe show an error message to the user
+          }
         }
       }
-    }
-    }else{
-                totalQuantity = int.parse(quantity);
-
+    } else {
+      totalQuantity = int.parse(quantity);
     }
     print(totalQuantity);
     return totalQuantity;
@@ -140,7 +245,7 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
       }
     }
 
-       if (widget.quantities.containsKey(widget.index)) {
+    if (widget.quantities.containsKey(widget.index)) {
       for (int i = 0; i < widget.quantities[widget.index]!.length; i++) {
         if (widget.quantities[widget.index]![i].isEmpty) {
           updateReturnBack(false); // Update the returnBack variable
@@ -189,7 +294,9 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
         widget.batches, // Pass the updated serials map
         widget.quantities,
         widget.prodDate,
-        widget.expDate);
+        widget.expDate,
+        dropdownValue,
+        dropdownValueUOM);
   }
 
   @override
@@ -224,6 +331,55 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
                     '${itemsorders[widget.index]['itemCode']} ${itemsorders[widget.index]['itemName']}',
                     style: TextStyle(
                         fontSize: widget.appNotifier.fontSize.toDouble() - 2),
+                  ),
+                  Text(
+                    'Warehouse',
+                    style: TextStyle(
+                        fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                        color: Colors.black54),
+                  ),
+                  DropdownButton<String>(
+                    value: widget.updatedWarehouses[widget.index] ??
+                        dropdownValue ??
+                        '',
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        dropdownValue = newValue!;
+                        widget.updatedWarehouses[widget.index] = newValue ?? '';
+                      });
+                    },
+                    items: fetchedData.map<DropdownMenuItem<String>>(
+                        (Map<dynamic, dynamic> warehouse) {
+                      return DropdownMenuItem<String>(
+                        value: warehouse['ANY_VALUE(u.whsCode)'].toString(),
+                        child:
+                            Text(warehouse['ANY_VALUE(w.whsName)'].toString()),
+                      );
+                    }).toList(),
+                  ),
+                  Text(
+                    'UOM',
+                    style: TextStyle(
+                        fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                        color: Colors.black54),
+                  ),
+                  DropdownButton<String>(
+                    value: widget.updatedUOM[widget.index] ??
+                        dropdownValueUOM ??
+                        '',
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        dropdownValueUOM = newValue ?? '';
+                        widget.updatedUOM[widget.index] = newValue ?? '';
+                      });
+                    },
+                    items: fetchedDataUOM.map<DropdownMenuItem<String>>(
+                        (Map<dynamic, dynamic> uom) {
+                      return DropdownMenuItem<String>(
+                        value: uom['ANY_VALUE(i.uom)'].toString(),
+                        child: Text(uom['ANY_VALUE(i.uom)'].toString()),
+                      );
+                    }).toList(),
                   ),
                   SizedBox(height: 10),
                   Column(
@@ -276,34 +432,36 @@ class _ChangeBatchNumberState extends State<ChangeBatchNumber> {
                                                 onPressed: () {
                                                   setState(() {
                                                     // Remove the corresponding batch number from the list
-                                                      int updatedBatches= widget
-                                                  .batches[widget.index]!
-                                                  .length;
-                                              batchController.text =
-                                                  updatedBatches.toString();
-                                           
-                                              if (batchController.text ==
-                                                  '1') {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'At least should be 1 batch',
-                                                    ),
-                                                  ),
-                                                );
-                                                return;
-                                              }
+                                                    int updatedBatches = widget
+                                                        .batches[widget.index]!
+                                                        .length;
+                                                    batchController.text =
+                                                        updatedBatches
+                                                            .toString();
+
+                                                    if (batchController.text ==
+                                                        '1') {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            'At least should be 1 batch',
+                                                          ),
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
                                                     widget
                                                         .batches[widget.index]!
                                                         .removeAt(i);
-                                                         widget
-                                                        .quantities[widget.index]!
+                                                    widget.quantities[
+                                                            widget.index]!
                                                         .removeAt(i);
-                                                         widget
+                                                    widget
                                                         .prodDate[widget.index]!
                                                         .removeAt(i);
-                                                         widget
+                                                    widget
                                                         .expDate[widget.index]!
                                                         .removeAt(i);
                                                   });

@@ -11,7 +11,9 @@ class ChangeSerialNumber extends StatefulWidget {
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
   final Map<int, List<String>> serials;
-  final Function(BuildContext, int, int, int, Map<int, List<String>>)
+    final Map<int,String>updatedUOM;
+    final Map<int,String>updatedWarehouses;
+  final Function(BuildContext, int, int, int, Map<int, List<String>>,String,String)
       changeQuantitySerial;
   const ChangeSerialNumber(
       {Key? key,
@@ -21,7 +23,10 @@ class ChangeSerialNumber extends StatefulWidget {
       required this.index,
       required this.changeQuantitySerial, // Add this line
       required this.itemQuantities,
-      required this.serials})
+      required this.serials,
+      required this.updatedWarehouses,
+      required this.updatedUOM,
+      })
       : super(key: key);
 
   @override
@@ -33,16 +38,111 @@ class _ChangeSerialNumberState extends State<ChangeSerialNumber> {
   List<Map<dynamic, dynamic>> itemsorders = [];
   String apiurl = 'http://5.189.188.139:8080/api/';
   bool _isLoading = false;
+  String dropdownValueUOM='';
+String dropdownValue='';
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
   List<String> serialNumbers = []; // Maintain a list of serial numbers
   List<TextEditingController> serialControllers =
       []; // Maintain controllers for each serial text field
-
+    List<Map<dynamic, dynamic>> fetchedDataUOM = []; // Define fetchedData list
   @override
   void initState() {
     super.initState();
     itemsorders = widget.items;
+     fetchWarehouses().then((_) {
+      setState(() {
+        print('Fetched Data: $fetchedData');
+        dropdownValue = fetchedData.isNotEmpty
+            ? fetchedData.first['ANY_VALUE(u.whsCode)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown Value: $dropdownValue');
+      });
+    });
+    fetchUOM().then((_) {
+      setState(() {
+        print('Fetched uom Data: $fetchedDataUOM');
+        dropdownValueUOM = fetchedDataUOM.isNotEmpty
+            ? fetchedDataUOM.first['ANY_VALUE(i.uom)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown uom Value: $dropdownValueUOM');
+      });
+    }); 
   }
+
+   Future<void> fetchWarehouses() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Map<String, dynamic> requestBody = {'userCode': widget.usercode};
+
+      // Make a POST request with the request body
+      final response = await http.post(
+        Uri.parse('${apiurl}getWarehousesUsers'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Update state with the fetched data
+          fetchedData = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            // Convert each item in the response to a map
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+        });
+        print(fetchedData);
+      } else {
+        throw Exception('Failed to fetch data');
+      }
+    } catch (error) {
+      print('Error fetching data: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchUOM() async {
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    Map<String, dynamic> requestBody = {
+      'itemCode': itemsorders[widget.index]['itemCode']
+    };
+
+    // Make a POST request with the request body
+    final response = await http.post(
+      Uri.parse('${apiurl}getItemUOMReceiving'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(requestBody), // Encode the request body as JSON
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        // Update state with the fetched data
+        fetchedDataUOM = List<Map<dynamic, dynamic>>.from(data.map((item) {
+          // Convert each item in the response to a map
+          return Map<dynamic, dynamic>.from(item);
+        }));
+        _isLoading = false;
+      });
+      print(fetchedDataUOM);
+    } else {
+      throw Exception('Failed to fetch data uom');
+    }
+  } catch (error) {
+    print('Error fetching data uom: $error');
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
 
   void updateSerialNumbers(
     BuildContext context,
@@ -91,7 +191,7 @@ class _ChangeSerialNumberState extends State<ChangeSerialNumber> {
       widget.index,
       int.tryParse(quantityController.text) ?? 0,
       widget.serials[widget.index]!.length, // Pass the updated serials count
-      widget.serials, // Pass the updated serials map
+      widget.serials,dropdownValue,dropdownValueUOM // Pass the updated serials map
     );
   }
 
@@ -128,7 +228,57 @@ class _ChangeSerialNumberState extends State<ChangeSerialNumber> {
                 style: TextStyle(
                     fontSize: widget.appNotifier.fontSize.toDouble() - 2),
               ),
-              SizedBox(height: 10),
+         Text(
+                    'Warehouse',
+                    style: TextStyle(
+                        fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                        color: Colors.black54),
+                  ),
+                  DropdownButton<String>(
+                    value: widget.updatedWarehouses[widget.index] ?? dropdownValue ?? '',
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        dropdownValue = newValue!;
+                              widget.updatedWarehouses[widget.index] = newValue ?? '';
+
+                      });
+                    },
+                    items: fetchedData.map<DropdownMenuItem<String>>(
+                        (Map<dynamic, dynamic> warehouse) {
+                      return DropdownMenuItem<String>(
+                        value: warehouse['ANY_VALUE(u.whsCode)'].toString(),
+                        child:
+                            Text(warehouse['ANY_VALUE(w.whsName)'].toString()),
+                      );
+                    }).toList(),
+                  ),
+                  Text(
+                  'UOM',
+                  style: TextStyle(
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                      color: Colors.black54),
+                ),
+                
+              DropdownButton<String>(
+  value: widget.updatedUOM[widget.index] ?? dropdownValueUOM ?? '',
+  onChanged: (String? newValue) {
+    setState(() {
+      dropdownValueUOM = newValue ?? '';
+      // Update widget.updatedUOM if needed
+      widget.updatedUOM[widget.index] = newValue ?? '';
+    });
+  },
+  items: fetchedDataUOM.map<DropdownMenuItem<String>>(
+    (Map<dynamic, dynamic> uom) {
+      return DropdownMenuItem<String>(
+        value: uom['ANY_VALUE(i.uom)'].toString(),
+        child: Text(uom['ANY_VALUE(i.uom)'].toString()),
+      );
+    },
+  ).toList(),
+),
+
+                  SizedBox(height: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
