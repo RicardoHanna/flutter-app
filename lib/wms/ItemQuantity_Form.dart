@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:project/app_notifier.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/hive/itemattach_hive.dart';
+import 'package:project/wms/ItemAttach_Form.dart';
 import 'package:project/wms/ItemStatus_Form.dart';
 
 class ItemQuantityScreen extends StatefulWidget {
@@ -153,7 +155,7 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
                    Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ItemStatus(
+                      builder: (context) => ItemAttachPage(
                         appNotifier: widget.appNotifier,
                         usercode: widget.usercode,
                         index: widget.index,

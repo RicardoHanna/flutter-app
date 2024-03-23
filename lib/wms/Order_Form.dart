@@ -765,12 +765,15 @@ return Colors.blue.shade100;
                       ),
                     );
                   } else {
+                    
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => BookingDateScreen(
                           appNotifier: widget.appNotifier,
                           usercode: widget.usercode,
+                           items: fetchedData,
+                           itemQuantities: itemQuantities
                         ),
                       ),
                     );

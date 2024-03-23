@@ -2,12 +2,16 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:project/app_notifier.dart';
+import 'package:project/wms/ItemAttachDocument_Form.dart';
 
 class BookingDateScreen extends StatefulWidget {
-  final AppNotifier appNotifier;
+ 
+    final AppNotifier appNotifier;
   final String usercode;
+  final List<Map<dynamic, dynamic>> items;
+  final Map<int,int> itemQuantities;
    BookingDateScreen(
-      {required this.appNotifier, required this.usercode});
+      {required this.appNotifier, required this.usercode  , required this.items , required this.itemQuantities});
 
   @override
   State<BookingDateScreen> createState() => _BookingDateScreenState();
@@ -19,6 +23,7 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
   TextEditingController BpReferenceController = TextEditingController();
   TextEditingController commentsController = TextEditingController();
   TextEditingController createdByController = TextEditingController();
+  List<Map<dynamic, dynamic>> itemsorders = [];
 
   DateTime _selectedDueDate = DateTime.now();
   DateTime _selectedBookingDate = DateTime.now();
@@ -58,6 +63,8 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
   @override
   void initState() {
     super.initState();
+        itemsorders = widget.items;
+
     bookingDateController.text = _selectedBookingDate.toString();
     dueDateController.text = _selectedDueDate.toString();
   }
@@ -75,13 +82,27 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
         backgroundColor: Colors.blue,
         actions: [
           IconButton(
-              onPressed: () {},
+              onPressed: () {
+                    Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ItemAttachDocumentPage(
+                        appNotifier: widget.appNotifier,
+                        usercode: widget.usercode,
+                        items: itemsorders,
+                        itemQuantities: widget.itemQuantities,
+                      ),
+                    ),
+                  );
+              },
               icon: Icon(
                 Icons.attach_file,
                 color: Colors.white,
               )),
           IconButton(
-              onPressed: () {},
+              onPressed: () {
+                
+              },
               icon: Icon(
                 Icons.qr_code_scanner,
                 color: Colors.white,
