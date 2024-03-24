@@ -12,28 +12,28 @@ class ChangeItemQuantity extends StatefulWidget {
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
   final Map<int, List<String>> quantities;
+  
   final Map<int, String> updatedWarehouses;
   final Map<int, String> updatedUOM;
+  final Map<int, String> updatedStatus;
+  final Map<int, String> updatedNotes;
 
-  final Function(
-      BuildContext,
-      int,
-      int,
-      Map<int,List<String>>,
-      String,
-      String) changeQuantity;
-  const ChangeItemQuantity(
-      {Key? key,
-      required this.appNotifier,
-      required this.usercode,
-      required this.items,
-      required this.index,
-      required this.changeQuantity, // Add this line
-      required this.itemQuantities,
-      required this.quantities,
-      required this.updatedWarehouses,
-      required this.updatedUOM})
-      : super(key: key);
+  final Function(BuildContext, int, int, Map<int, List<String>>, String, String,
+      String, String) changeQuantity;
+  const ChangeItemQuantity({
+    Key? key,
+    required this.appNotifier,
+    required this.usercode,
+    required this.items,
+    required this.index,
+    required this.changeQuantity, // Add this line
+    required this.itemQuantities,
+    required this.quantities,
+    required this.updatedWarehouses,
+    required this.updatedUOM,
+    required this.updatedStatus,
+    required this.updatedNotes,
+  }) : super(key: key);
 
   @override
   State<ChangeItemQuantity> createState() => _ChangeItemQuantityState();
@@ -41,14 +41,18 @@ class ChangeItemQuantity extends StatefulWidget {
 
 class _ChangeItemQuantityState extends State<ChangeItemQuantity> {
   List<TextEditingController> quantityControllers = [];
+
   String dropdownValueUOM = '';
+  String dropdownValueStatus = 'Good';
   String dropdownValue = 'Each';
   List<Map<dynamic, dynamic>> itemsorders = [];
   String apiurl = 'http://5.189.188.139:8080/api/';
   bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
   List<Map<dynamic, dynamic>> fetchedDataUOM = []; // Define fetchedData list
-late TextEditingController quantityController;
+  late TextEditingController quantityController;
+    late TextEditingController notesController;
+
   String quantity = '';
 
   int totalQuantity = 0;
@@ -56,9 +60,14 @@ late TextEditingController quantityController;
   void initState() {
     super.initState();
     itemsorders = widget.items;
-print(widget.itemQuantities);
-    quantityController = TextEditingController(text: widget.itemQuantities.toString());
+    print(widget.itemQuantities);
+    quantityController =
+        TextEditingController(text: widget.itemQuantities.toString());
+notesController=  TextEditingController(text: widget.updatedNotes[widget.index].toString());
 
+print('looooo');
+print(quantityController.text);
+print(notesController.text);
     fetchWarehouses().then((_) {
       setState(() {
         print('Fetched Data: $fetchedData');
@@ -157,16 +166,11 @@ print(widget.itemQuantities);
     }
   }
 
-  
-
-
-
   void updateQuantityNumbers(
     BuildContext context,
     ValueChanged<bool> updateReturnBack,
   ) {
     // Check if any serial number is changed to empty
-    
 
     if (widget.quantities.containsKey(widget.index)) {
       for (int i = 0; i < widget.quantities[widget.index]!.length; i++) {
@@ -183,13 +187,11 @@ print(widget.itemQuantities);
     }
 
     // Check if any serial number is changed to a value that already exists in the same map
-    
-
 
     print('hiii');
     // print(quantityController.text);
     // Update the serial numbers and quantity
-   int newQuantity = int.tryParse(quantityController.text) ?? 0;
+    int newQuantity = int.tryParse(quantityController.text) ?? 0;
     // Update the serial numbers and quantity
     widget.changeQuantity(
       context,
@@ -198,6 +200,8 @@ print(widget.itemQuantities);
       widget.quantities,
       dropdownValue,
       dropdownValueUOM,
+      dropdownValueStatus,
+      notesController.text,
     );
   }
 
@@ -287,29 +291,85 @@ print(widget.itemQuantities);
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                 
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Text field for batch number
-                              // Text field for quantity
-                            TextFormField(
-        controller: quantityController, // Use the controller for the TextFormField
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: 'Quantity',
-          // Other decoration properties as needed
-        ),
-        onChanged: (value) {
-          // You can remove this onChanged callback if you don't need it
-        },
-      ),
-
-                              // Row for production date and expiry date
-                           
-                            ],
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Text field for batch number
+                          // Text field for quantity
+                          Text(
+                  'Quanity',
+                  style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                    color: Colors.black54,
+                  ),
+                ),
+                          TextFormField(
+                            controller:
+                                quantityController, // Use the controller for the TextFormField
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              // Other decoration properties as needed
+                            ),
+                            onChanged: (value) {
+                              // You can remove this onChanged callback if you don't need it
+                            },
                           ),
-                      SizedBox(height: 5),
+
+                          // Row for production date and expiry date
+                        ],
+                      ),
+                      // Add Status dropdown
+SizedBox(height: 10,),
+/*
+               Text(
+                  'Status',
+                  style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                    color: Colors.black54,
+                  ),
+                ),
+                DropdownButton<String>(
+                  value: widget.updatedStatus[widget.index] ??
+                        dropdownValueStatus ??
+                        '',
+                  onChanged: (String? newValue) {
+                    setState(() {
+                   
+                        dropdownValueStatus = newValue ?? '';
+                        widget.updatedStatus[widget.index] = newValue ?? '';
+                    });
+                  },
+                  items: <String>['Good', 'Bad', 'Other']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+*/
+// Add Notes text field
+                Text(
+                  'Notes',
+                  style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                    color: Colors.black54,
+                  ),
+                ),
+                TextField(
+                  controller: notesController,
+                  onChanged: (value) {
+                    setState(() {
+                      notesController.text = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Enter notes...',
+                  ),
+                ),
+              
+           
+  
                       Row(
                         children: [],
                       ),

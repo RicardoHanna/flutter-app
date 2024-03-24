@@ -28,6 +28,7 @@ class ItemStatus extends StatefulWidget {
 class _ItemStatusState extends State<ItemStatus> {
   TextEditingController notesController = TextEditingController();
   String dropdownValue = 'Good';
+  String dropdownValueWhs='';
   List<Map<dynamic, dynamic>> itemsorders = [];
   String apiurl = 'http://5.189.188.139:8080/api/';
   bool _isLoading = false;
@@ -39,14 +40,60 @@ class _ItemStatusState extends State<ItemStatus> {
   void initState() {
     super.initState();
     itemsorders = widget.items;
+     fetchWarehouses().then((_) {
+      setState(() {
+        print('Fetched Data: $fetchedData');
+        dropdownValueWhs = fetchedData.isNotEmpty
+            ? fetchedData.first['ANY_VALUE(u.whsCode)'].toString()
+            : ''; // Set default value to an empty string if fetched data is empty
+        print('Dropdown Value: $dropdownValueWhs');
+      });
+    });
     print(itemsorders[widget.index]['whsCode']);
-    fetchData();
+    //fetchData();
   }
 @override
   void dispose() {
     // Cancel any ongoing asynchronous tasks here
     super.dispose();
   }
+
+ Future<void> fetchWarehouses() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Map<String, dynamic> requestBody = {'userCode': widget.usercode};
+
+      // Make a POST request with the request body
+      final response = await http.post(
+        Uri.parse('${apiurl}getWarehousesUsers'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Update state with the fetched data
+          fetchedData = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            // Convert each item in the response to a map
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+        });
+        print(fetchedData);
+      } else {
+        throw Exception('Failed to fetch data');
+      }
+    } catch (error) {
+      print('Error fetching data: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   Future<void> fetchData() async {
   setState(() {
     _isLoading = true;
@@ -191,28 +238,12 @@ Future<void> insertItemStatusAndImages() async {
 
 
 
-Future<void> addNewPicture(ImageSource source) async {
-  final picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: source);
-  if (pickedFile != null) {
-    setState(() {
-      imageFiles.add(File(pickedFile.path)); // Store image file itself
-    });
-  }
-}
-
-  void deletePicture(int index) {
-    setState(() {
-      imageFiles.removeAt(index);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Add Attach',
+          'Add Status',
           style: TextStyle(
             color: Colors.white,
             fontSize: widget.appNotifier.fontSize.toDouble(),
@@ -231,13 +262,33 @@ Future<void> addNewPicture(ImageSource source) async {
                 fontSize: widget.appNotifier.fontSize.toDouble() - 2,
               ),
             ),
-            ElevatedButton(
-              onPressed: () => addNewPicture(ImageSource.camera),
-              child: Text('New Picture'),
-            ),
-            ElevatedButton(
-              onPressed: () => addNewPicture(ImageSource.gallery),
-              child: Text('Choose Picture'),
+            SizedBox(height: 10,),
+            Text(
+                  'Warehouse',
+                  style: TextStyle(
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                      color: Colors.black54),
+                ),
+                DropdownButton<String>(
+                  value: dropdownValueWhs ??'',
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValueWhs = newValue ??'';
+                    });
+                  },
+                  items: fetchedData.map<DropdownMenuItem<String>>(
+                      (Map<dynamic, dynamic> warehouse) {
+                    return DropdownMenuItem<String>(
+                      value: warehouse['ANY_VALUE(u.whsCode)'].toString(),
+                      child: Text(warehouse['ANY_VALUE(w.whsName)'].toString()),
+                    );
+                  }).toList(),
+                ),
+                Text(
+              'Status',
+              style: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                  color: Colors.black54),
             ),
             DropdownButton<String>(
               value: dropdownValue??'Good',
@@ -254,6 +305,12 @@ Future<void> addNewPicture(ImageSource source) async {
                 );
               }).toList(),
             ),
+                Text(
+              'Notes',
+              style: TextStyle(
+                  fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                  color: Colors.black54),
+            ),
             TextField(
               controller: notesController,
               onChanged: (value) {
@@ -265,22 +322,7 @@ Future<void> addNewPicture(ImageSource source) async {
                 hintText: 'Enter notes...',
               ),
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: imageFiles.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Image.file(imageFiles[index]),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () {
-                        deletePicture(index);
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
+
             ElevatedButton(
               onPressed: () {
                 if (imageFiles.isNotEmpty &&
@@ -292,7 +334,7 @@ Future<void> addNewPicture(ImageSource source) async {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Please insert at least 1 picture, select status, and enter notes.'),
+                          'Please  select status, and enter notes.'),
                     ),
                   );
                 }

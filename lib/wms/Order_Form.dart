@@ -59,9 +59,12 @@ class _OrderFormState extends State<OrderForm> {
       {}; // Map to store item colors, with item index as key
   Map<int, String> updatedWarehouses = {};
     Map<int, String> updatedUOM = {};
+    Map<int, String> updatedStatus = {};
+    Map<int, String> updatedNotes = {};
 
   Map<int, int> countSerial = {};
 Map<int,List<String>>serials={};
+Map<int,List<String>>serialsNotes={};
 Map<int,List<String>>batches={};
 Map<int, int> countBatch = {};
 Map<int,List<String>>quantities={};
@@ -194,12 +197,14 @@ Map<int,List<DateTime>>expDate={};
     }
   }
 
-  void changeQuantity(BuildContext context, int index, int newQuantity,Map<int,List<String>>quantitiesComeForm ,String newWarehouses , String newUOM) {
+  void changeQuantity(BuildContext context, int index, int newQuantity,Map<int,List<String>>quantitiesComeForm ,String newWarehouses , String newUOM , String newStatus , String newNotes) {
     // Update the quantity directly
     setState(() {
       itemQuantities[index] = newQuantity;
       updatedWarehouses[index]=newWarehouses;
       updatedUOM[index]=newUOM;
+      updatedStatus[index]=newStatus;
+      updatedNotes[index]=newNotes;
       
             // Merge the serials
     if (quantitiesComeForm.containsKey(index)) {
@@ -222,12 +227,14 @@ Map<int,List<DateTime>>expDate={};
   }
 
   void addQuantity(
-      BuildContext context, int index, int? newQuantity, String newWarehouses,String newUOM) {
+      BuildContext context, int index, int? newQuantity, String newWarehouses,String newUOM,String newStatus , String newNotes) {
     // Update the quantity directly
     setState(() {
       itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
       updatedWarehouses[index] = newWarehouses;
       updatedUOM[index]=newUOM;
+      updatedStatus[index]=newStatus;
+      updatedNotes[index]=newNotes;
     });
 
     // Show the action dialog if the new quantity is 0
@@ -237,13 +244,14 @@ Map<int,List<DateTime>>expDate={};
   }
 
 void addQuantitySerial(BuildContext context, int index, int? newQuantity,
-    String newWarehouses, int newcountSerial, Map<int,List<String>>serialsComeFrom, String newUOM) {
+    String newWarehouses, int newcountSerial, Map<int,List<String>>serialsComeFrom, String newUOM ,String newNotes) {
   // Update the quantity directly
   setState(() {
     itemQuantities[index] = (newQuantity ?? 0) + (itemQuantities[index] ?? 0);
     updatedWarehouses[index] = newWarehouses;
     countSerial[index] = (newcountSerial ?? 0) + (countSerial[index] ?? 0);
-    updatedUOM[index]=newUOM;
+    updatedNotes[index]=newNotes;
+  
     
     // Merge the serials
     if (serialsComeFrom.containsKey(index)) {
@@ -342,12 +350,13 @@ void addBatchSerial(BuildContext context, int index, int? newQuantity,
 }
 
 void changeQuantitySerial(BuildContext context, int index, int? newQuantity,
- int newcountSerial, Map<int,List<String>>serialsComeFrom,String newWarehouses , String newUOM ) {
+ int newcountSerial, Map<int,List<String>>serialsComeFrom,String newWarehouses , String newUOM , String newNotes) {
   // Update the quantity directly
   setState(() {
    countSerial[index]=newQuantity!;
    updatedWarehouses[index]=newWarehouses;
    updatedUOM[index]=newUOM;
+   updatedNotes[index]=newNotes;
 
     print('?????????????');
     print(newQuantity);
@@ -921,7 +930,9 @@ return Colors.blue.shade100;
                       itemQuantities: remainingQty ?? 0,
                       serials: serials,
                          updatedWarehouses:updatedWarehouses,
-                      updatedUOM: updatedUOM
+                      updatedUOM: updatedUOM,
+                      updatedNotes: updatedNotes,
+
 
                     ),
                   ),
@@ -1054,6 +1065,8 @@ return Colors.blue.shade100;
                       quantities: quantities,
                       updatedWarehouses:updatedWarehouses,
                       updatedUOM: updatedUOM,
+                      updatedStatus: updatedStatus,
+                      updatedNotes: updatedNotes,
                       
 
                       

@@ -13,7 +13,7 @@ class ItemQuantityScreen extends StatefulWidget {
   final int index;
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
-  final Function(BuildContext, int, int, String , String) addQuantity;
+  final Function(BuildContext, int, int, String, String,String ,String) addQuantity;
   const ItemQuantityScreen({
     Key? key,
     required this.appNotifier,
@@ -31,12 +31,15 @@ class ItemQuantityScreen extends StatefulWidget {
 class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
   TextEditingController quantityController = TextEditingController();
   String dropdownValue = '';
-  String dropdownValueUOM='';
+  String dropdownValueUOM = '';
   List<Map<dynamic, dynamic>> itemsorders = [];
   String apiurl = 'http://5.189.188.139:8080/api/';
   bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
   List<Map<dynamic, dynamic>> fetchedDataUOM = []; // Define fetchedData list
+  TextEditingController notesController = TextEditingController();
+  String notes = '';
+  String dropdownValueStatus = 'Good';
 
   @override
   void initState() {
@@ -51,7 +54,7 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
         print('Dropdown Value: $dropdownValue');
       });
     });
-       fetchUOM().then((_) {
+    fetchUOM().then((_) {
       setState(() {
         print('Fetched uom Data: $fetchedDataUOM');
         dropdownValueUOM = fetchedDataUOM.isNotEmpty
@@ -98,45 +101,44 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
     }
   }
 
- Future<void> fetchUOM() async {
-  setState(() {
-    _isLoading = true;
-  });
+  Future<void> fetchUOM() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-  try {
-    Map<String, dynamic> requestBody = {
-      'itemCode': itemsorders[widget.index]['itemCode']
-    };
+    try {
+      Map<String, dynamic> requestBody = {
+        'itemCode': itemsorders[widget.index]['itemCode']
+      };
 
-    // Make a POST request with the request body
-    final response = await http.post(
-      Uri.parse('${apiurl}getItemUOMReceiving'),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(requestBody), // Encode the request body as JSON
-    );
+      // Make a POST request with the request body
+      final response = await http.post(
+        Uri.parse('${apiurl}getItemUOMReceiving'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody), // Encode the request body as JSON
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          // Update state with the fetched data
+          fetchedDataUOM = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            // Convert each item in the response to a map
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+        });
+        print(fetchedDataUOM);
+      } else {
+        throw Exception('Failed to fetch data uom');
+      }
+    } catch (error) {
+      print('Error fetching data uom: $error');
       setState(() {
-        // Update state with the fetched data
-        fetchedDataUOM = List<Map<dynamic, dynamic>>.from(data.map((item) {
-          // Convert each item in the response to a map
-          return Map<dynamic, dynamic>.from(item);
-        }));
         _isLoading = false;
       });
-      print(fetchedDataUOM);
-    } else {
-      throw Exception('Failed to fetch data uom');
     }
-  } catch (error) {
-    print('Error fetching data uom: $error');
-    setState(() {
-      _isLoading = false;
-    });
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -150,40 +152,53 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
           ),
         ),
         actions: [
-                IconButton(
+          IconButton(
             onPressed: () {
-                   Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ItemAttachPage(
-                        appNotifier: widget.appNotifier,
-                        usercode: widget.usercode,
-                        index: widget.index,
-                        items: itemsorders,
-                        itemQuantities: widget.itemQuantities,
-                      ),
-                    ),
-                  );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ItemAttachPage(
+                    appNotifier: widget.appNotifier,
+                    usercode: widget.usercode,
+                    index: widget.index,
+                    items: itemsorders,
+                    itemQuantities: widget.itemQuantities,
+                  ),
+                ),
+              );
             },
             icon: Icon(
               Icons.attach_file,
               color: Colors.white,
             ),
-
-            
           ),
           IconButton(
-            
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ItemStatus(
+                    appNotifier: widget.appNotifier,
+                    usercode: widget.usercode,
+                    index: widget.index,
+                    items: itemsorders,
+                    itemQuantities: widget.itemQuantities,
+                  ),
+                ),
+              );
+            },
+            icon: Icon(
+              Icons.comment,
+              color: Colors.white,
+            ),
+          ),
+          IconButton(
             onPressed: () {},
             icon: Icon(
               Icons.qr_code_scanner,
               color: Colors.white,
             ),
-
-            
           ),
-
-     
         ],
         backgroundColor: Colors.blue,
       ),
@@ -216,10 +231,10 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
                       color: Colors.black54),
                 ),
                 DropdownButton<String>(
-                  value: dropdownValue ??'',
+                  value: dropdownValue ?? '',
                   onChanged: (String? newValue) {
                     setState(() {
-                      dropdownValue = newValue ??'';
+                      dropdownValue = newValue ?? '';
                     });
                   },
                   items: fetchedData.map<DropdownMenuItem<String>>(
@@ -230,17 +245,17 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
                     );
                   }).toList(),
                 ),
-                 Text(
+                Text(
                   'UOM',
                   style: TextStyle(
                       fontSize: widget.appNotifier.fontSize.toDouble() - 2,
                       color: Colors.black54),
                 ),
                 DropdownButton<String>(
-                  value: dropdownValueUOM ??'',
+                  value: dropdownValueUOM ?? '',
                   onChanged: (String? newValue) {
                     setState(() {
-                      dropdownValueUOM = newValue??'';
+                      dropdownValueUOM = newValue ?? '';
                     });
                   },
                   items: fetchedDataUOM.map<DropdownMenuItem<String>>(
@@ -265,8 +280,53 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
                         ),
                       ),
                     ),
-                    
                   ],
+                ),
+                // Existing widgets for Quantity section
+
+// Add Status dropdown
+SizedBox(height: 10,),
+            /*    Text(
+                  'Status',
+                  style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                    color: Colors.black54,
+                  ),
+                ),
+                DropdownButton<String>(
+                  value: dropdownValueStatus ?? 'Good',
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValueStatus = newValue ?? 'Good';
+                    });
+                  },
+                  items: <String>['Good', 'Bad', 'Other']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+
+// Add Notes text field
+                Text(
+                  'Notes',
+                  style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                    color: Colors.black54,
+                  ),
+                ),*/
+                TextField(
+                  controller: notesController,
+                  onChanged: (value) {
+                    setState(() {
+                      notes = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Enter notes...',
+                  ),
                 ),
               ],
             ),
@@ -287,8 +347,10 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
                   );
                   return;
                 }
+                print('helloooooooo');
+                print(notesController.text);
                 widget.addQuantity(context, widget.index, newQuantity,
-                    dropdownValue,dropdownValueUOM); // Pass the context here
+                    dropdownValue, dropdownValueUOM , dropdownValueStatus,notesController.text); // Pass the context here
                 Navigator.pop(context); // Close the screen
                 Navigator.pop(context);
               },

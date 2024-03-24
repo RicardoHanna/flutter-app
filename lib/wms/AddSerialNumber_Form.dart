@@ -13,7 +13,7 @@ class AddSerialNumber extends StatefulWidget {
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
   final Map<int,List<String>>serials;
-  final Function(BuildContext, int, int, String, int, Map<int,List<String>>,String)
+  final Function(BuildContext, int, int, String, int, Map<int,List<String>>,String,String)
       addQuantitySerial;
   const AddSerialNumber({
     Key? key,
@@ -38,7 +38,8 @@ class _AddSerialNumberState extends State<AddSerialNumber> {
   bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
     List<Map<dynamic, dynamic>> fetchedDataUOM = []; // Define fetchedData list
-
+  TextEditingController notesController = TextEditingController();
+  String notes = '';
   List<String> serialNumbers = []; // Maintain a list of serial numbers
   List<TextEditingController> serialControllers =
       []; // Maintain controllers for each serial text field
@@ -266,9 +267,26 @@ Future<void> scanBarcode() async {
                 ),
                 ],
               ),
+                
+                TextField(
+                  controller: notesController,
+                  onChanged: (value) {
+                    setState(() {
+                      notes = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Enter notes...',
+                  ),
+                ),
+             
+        
+
+
               SizedBox(height: 5),
               Row(
                 children: [
+                  
                   Expanded(
                     child: TextField(
                       controller: quantityController,
@@ -417,7 +435,8 @@ ElevatedButton(
         dropdownValue,
         nonEmptySerials.length,
         widget.serials,
-        dropdownValueUOM
+        dropdownValueUOM,
+        notesController.text
       );
       Navigator.pop(context);
       Navigator.pop(context);

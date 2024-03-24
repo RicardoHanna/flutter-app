@@ -13,7 +13,9 @@ class ChangeSerialNumber extends StatefulWidget {
   final Map<int, List<String>> serials;
     final Map<int,String>updatedUOM;
     final Map<int,String>updatedWarehouses;
-  final Function(BuildContext, int, int, int, Map<int, List<String>>,String,String)
+        final Map<int,String>updatedNotes;
+
+  final Function(BuildContext, int, int, int, Map<int, List<String>>,String,String,String)
       changeQuantitySerial;
   const ChangeSerialNumber(
       {Key? key,
@@ -26,6 +28,7 @@ class ChangeSerialNumber extends StatefulWidget {
       required this.serials,
       required this.updatedWarehouses,
       required this.updatedUOM,
+      required this.updatedNotes,
       })
       : super(key: key);
 
@@ -40,6 +43,7 @@ class _ChangeSerialNumberState extends State<ChangeSerialNumber> {
   bool _isLoading = false;
   String dropdownValueUOM='';
 String dropdownValue='';
+late TextEditingController notesController;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
   List<String> serialNumbers = []; // Maintain a list of serial numbers
   List<TextEditingController> serialControllers =
@@ -49,6 +53,7 @@ String dropdownValue='';
   void initState() {
     super.initState();
     itemsorders = widget.items;
+    notesController=  TextEditingController(text: widget.updatedNotes[widget.index].toString());
      fetchWarehouses().then((_) {
       setState(() {
         print('Fetched Data: $fetchedData');
@@ -191,7 +196,7 @@ String dropdownValue='';
       widget.index,
       int.tryParse(quantityController.text) ?? 0,
       widget.serials[widget.index]!.length, // Pass the updated serials count
-      widget.serials,dropdownValue,dropdownValueUOM // Pass the updated serials map
+      widget.serials,dropdownValue,dropdownValueUOM,notesController.text // Pass the updated serials map
     );
   }
 
@@ -277,7 +282,25 @@ String dropdownValue='';
     },
   ).toList(),
 ),
-
+                Text(
+                  'Notes',
+                  style: TextStyle(
+                    fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                    color: Colors.black54,
+                  ),
+                ),
+                TextField(
+                  controller: notesController,
+                  onChanged: (value) {
+                    setState(() {
+                      notesController.text = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Enter notes...',
+                  ),
+                ),
+              
                   SizedBox(height: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
