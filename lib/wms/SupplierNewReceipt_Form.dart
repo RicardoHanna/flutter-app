@@ -1,95 +1,83 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:project/Forms/Inventory_Form.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/wms/InventoryList_Form.dart';
+import 'package:http/http.dart' as http;
 
 class SupplierNewReceipt extends StatefulWidget {
   final AppNotifier appNotifier;
   final String usercode;
   final String supplierCode;
+  final String docEntry;
   const SupplierNewReceipt(
       {super.key,
       required this.appNotifier,
       required this.usercode,
-      required this.supplierCode});
+      required this.supplierCode, required this.docEntry});
 
   @override
   State<SupplierNewReceipt> createState() => _SupplierNewReceiptState();
 }
 
 class _SupplierNewReceiptState extends State<SupplierNewReceipt> {
-  static List<Map<String, dynamic>> items = [
-  {
-    'itemCode': '001',
-    'units': '5 Units',
-    'barCode': '123456789',
-    'itemName': 'Widget A',
-    'wareHouse': 'Warehouse X',
-  },
-  {
-    'itemCode': '002',
-    'units': '2 Units',
-    'barCode': '987654321',
-    'itemName': 'Gadget B',
-    'wareHouse': 'Warehouse Y',
-  },
-  {
-    'itemCode': '003',
-    'units': '3 Units',
-    'barCode': '555555555',
-    'itemName': 'Thingamajig C',
-    'wareHouse': 'Warehouse Z',
-  },
-  {
-    'itemCode': '004',
-    'units': '8 Units',
-    'barCode': '888888888',
-    'itemName': 'Doodad D',
-    'wareHouse': 'Warehouse X',
-  },
-  {
-    'itemCode': '005',
-    'units': '1 Unit',
-    'barCode': '777777777',
-    'itemName': 'Contraption E',
-    'wareHouse': 'Warehouse Z',
-  },
-  {
-    'itemCode': '006',
-    'units': '6 Units',
-    'barCode': '444444444',
-    'itemName': 'Gizmo F',
-    'wareHouse': 'Warehouse Y',
-  },
-  {
-    'itemCode': '007',
-    'units': '4 Units',
-    'barCode': '666666666',
-    'itemName': 'Widget G',
-    'wareHouse': 'Warehouse X',
-  },
-  {
-    'itemCode': '008',
-    'units': '2 Units',
-    'barCode': '999999999',
-    'itemName': 'Doodad H',
-    'wareHouse': 'Warehouse Z',
-  },
-  {
-    'itemCode': '009',
-    'units': '7 Units',
-    'barCode': '333333333',
-    'itemName': 'Thingamajig I',
-    'wareHouse': 'Warehouse Y',
-  },
-  {
-    'itemCode': '010',
-    'units': '3 Units',
-    'barCode': '111111111',
-    'itemName': 'Contraption J',
-    'wareHouse': 'Warehouse X',
-  },
-];
+  String baseUrl = "http://5.189.188.139:8081/api/";
+  List<dynamic> items = [];
+
+
+  Future<void> getItemsFromPdn1()async{
+    try {
+      final cmpCode = await fetchCmpCode(widget.usercode);
+
+
+      final response = await http.post(
+        Uri.parse('${baseUrl}geteItemsOfNewPO'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({'docEntry':widget.docEntry,'cmpCode':cmpCode})
+        );
+      if (response.statusCode == 200) {
+        setState(() {
+          items = jsonDecode(response.body);
+        });
+        print(response.body);
+      } else {
+        print('Failed to fetch user groups: ${response.statusCode}');
+        // Handle error accordingly
+      }
+    } catch (e) {
+      print('Error fetching user groups: $e');
+      // Handle error accordingly
+    }
+  }
+
+  Future<String?> fetchCmpCode(String userCode) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${baseUrl}getDefaultCompCode?userCode=$userCode'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        if (data.isNotEmpty) {
+          return data[0]['cmpCode'].toString();
+        }
+      }
+    } catch (error) {
+      print('Error fetching cmpCode: $error');
+    }
+    return null;
+  }
+
+  supplierWaiter() async {
+    await getItemsFromPdn1();
+  }
+
+  @override
+  void initState() {
+    supplierWaiter();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -124,7 +112,7 @@ class _SupplierNewReceiptState extends State<SupplierNewReceipt> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (builder)=>InventoryList(appNotifier: widget.appNotifier, usercode: widget.usercode))
+                  MaterialPageRoute(builder: (builder)=>InventoryList(appNotifier: widget.appNotifier, usercode: widget.usercode, docEntry: '',))
                 );
               },
               child: Text(

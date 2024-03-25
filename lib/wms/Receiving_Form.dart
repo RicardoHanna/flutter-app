@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -28,7 +27,7 @@ class ReceivingScreen extends StatefulWidget {
 }
 
 class _ReceivingScreenState extends State<ReceivingScreen> {
-  String apiurl = 'http://5.189.188.139:8080/api/';
+  String apiurl = 'http://5.189.188.139:8081/api/';
   bool _isLoading = false;
   String searchQuery = '';
   bool _incompletePurchaseReceipt = false; // Track incomplete purchase receipt
@@ -37,10 +36,63 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
   List<Map<String, String>> filteredOrders = [];
   List<dynamic> selectedIndices = [];
   String itemName = '';
+  List<dynamic> drafts = [];
 
   @override
   void initState() {
     super.initState();
+    draftWait();
+    if (drafts.length != 0) {
+    } else {
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
+        // Call showDialog here after the page has been fully rendered
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              content: Text('You Have Some Drafts Continue Them or start New Receiving'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Continue The Draft'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('New Receiving'),
+                ),
+              ],
+            );
+          },
+        );
+      });
+    }
+
+    /*WidgetsBinding.instance!.addPostFrameCallback((_) {
+      // Call showDialog here after the page has been fully rendered
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Your Dialog Title'),
+            content: Text('Your Dialog Content'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    });*/
+    draftWait();
+
     _fetchOrders(widget.usercode).then((_) {
       setState(() {
         filteredOrders = List.from(orders);
@@ -58,6 +110,31 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
     _checkIncompletePurchaseReceipt();
   }
 
+  Future<void> insertIntoOPDN(Map orders)async{
+    try {
+      final cmpCode = await fetchCmpCode(widget.usercode);
+      print("##################################################################");
+      print(orders);
+      final response =
+          await http.post(Uri.parse('${apiurl}savePo'),
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode({
+                'cmpCode': cmpCode,
+                'userCode': widget.usercode,
+                'date': DateTime.now().toString(),
+                'docEntry':orders['docEntry'],
+              }));
+
+      if (response.statusCode == 200) {
+        print(response.body);
+        Map<String, dynamic> js = jsonDecode(response.body);
+        print(js);
+      }
+    } catch (error) {
+      print('Error fetching cmpCode: $error');
+    }
+  }
+
   void _updateFilteredOrders(String query) {
     setState(() {
       print(query);
@@ -71,6 +148,35 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
       }).toList();
     });
   }
+
+  //Start By Elie Barbar
+
+  Future<void> loadDrafts() async {
+    try {
+      final cmpCode = await fetchCmpCode(widget.usercode);
+
+      final response = await http.post(Uri.parse('${apiurl}getDrafts'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            'cmpCode': cmpCode,
+            'userCode': widget.usercode,
+          }));
+
+      if (response.statusCode == 200) {
+        List<dynamic> drafts = jsonDecode(response.body);
+        List<Map<String, dynamic>> draftsMap = drafts
+            .map((dynamic item) => item as Map<String, dynamic>)
+            .toList(); // Transformation here
+        print(draftsMap);
+      }
+    } catch (err) {}
+  }
+
+  draftWait() async {
+    await loadDrafts();
+  }
+
+  //End By Elie Barbar
 
   Future<String?> fetchCmpCode(String userCode) async {
     try {
@@ -247,12 +353,27 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
               height: 10,
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (builder) => NewReceipt(
+              onPressed: () async {
+                if (selectedIndices.length != 0) {
+
+                  for(var o in selectedIndices){
+                    await insertIntoOPDN(o);
+                  }
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (builder) => OrderForm(
+                            order: {},
+                            usercode: widget.usercode,
+                            appNotifier: widget.appNotifier,
+                            multiorders: selectedIndices,
+                            vendor: selectedIndices[0]['cardCode'],
+                            isNewReceiptOnPo: true,
+                          )));
+                } else {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (builder) => NewReceipt(
                           appNotifier: widget.appNotifier,
-                          usercode: widget.usercode,
-                        )));
+                          usercode: widget.usercode)));
+                }
               },
               child: Text(
                 "New Receipt",
@@ -308,9 +429,9 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
                           child: Card(
                             color: isSelected ? Colors.blue[100] : Colors.white,
                             child: ListTile(
-                              onTap: () {
+                              onTap: () async{
                                 print(
-                                    " ${selectedIndices.length} ${isSelected} #################################################");
+                                    "${selectedIndices.length} ${isSelected} #################################################");
                                 if (selectedIndices.length != 0) {
                                   setState(() {
                                     if (isSelected) {
@@ -331,11 +452,16 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
 
                                   print(selectedIndices);
                                 } else {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (builder) => OrderForm(
-                                          order: filteredOrders[index],
-                                          usercode: widget.usercode,
-                                          appNotifier: widget.appNotifier)));
+                                  await insertIntoOPDN(filteredOrders[index]);
+                                  // Navigator.of(context).push(MaterialPageRoute(
+                                  //     builder: (builder) => OrderForm(
+                                  //           order: filteredOrders[index],
+                                  //           usercode: widget.usercode,
+                                  //           appNotifier: widget.appNotifier,
+                                  //           multiorders: [],
+                                  //           vendor: '',
+                                  //           isNewReceiptOnPo: true,
+                                  //         )));
                                 }
                               },
                               onLongPress: () {
@@ -433,9 +559,13 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (builder) => OrderForm(
-                        order: filteredOrders.first,
-                        usercode: widget.usercode,
-                        appNotifier: widget.appNotifier)));
+                          order: filteredOrders.first,
+                          usercode: widget.usercode,
+                          appNotifier: widget.appNotifier,
+                          multiorders: [],
+                          vendor: '',
+                          isNewReceiptOnPo: true,
+                        )));
               },
               child: Text('Continue'),
             ),

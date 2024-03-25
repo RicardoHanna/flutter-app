@@ -1,15 +1,16 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:project/app_notifier.dart';
 import 'package:project/wms/ItemQuantity_Form.dart';
 import 'package:http/http.dart' as http;
+import 'package:project/wms/NewItemQuantity_Form.dart';
 
 class InventoryList extends StatefulWidget {
   final AppNotifier appNotifier;
   final String usercode;
+  final String docEntry;
   const InventoryList(
-      {super.key, required this.appNotifier, required this.usercode});
+      {super.key, required this.appNotifier, required this.usercode,required this.docEntry});
 
   @override
   State<InventoryList> createState() => _InventoryListState();
@@ -21,8 +22,7 @@ class _InventoryListState extends State<InventoryList> {
   bool _isLoading = false;
   String searchQuery = '';
   List<Map<dynamic, dynamic>> filteredItems = [];
-
-  List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
+  List<Map<dynamic, dynamic>> fetchedData = [];
 
   @override
   void initState() {
@@ -89,8 +89,7 @@ class _InventoryListState extends State<InventoryList> {
             return Map<dynamic, dynamic>.from(item);
           }));
           _isLoading = false;
-          _updateFilteredItems(
-              searchQuery);
+          _updateFilteredItems(searchQuery);
         });
         print(fetchedData);
       } else {
@@ -99,10 +98,9 @@ class _InventoryListState extends State<InventoryList> {
     } catch (error) {
       print('Error fetching data: $error');
       setState(() {
-      _isLoading = false;
-    });
+        _isLoading = false;
+      });
     }
-    
   }
 
   @override
@@ -211,7 +209,9 @@ class _InventoryListState extends State<InventoryList> {
                         return Card(
                           child: ListTile(
                             onTap: () {
-                              // Navigator.of(context).push(MaterialPageRoute(builder: (builder)=>ItemQuantityScreen(appNotifier: widget.appNotifier, usercode: widget.usercode,items: filteredItems,index: index,changeQuantity: ,)));
+                              print(filteredItems[index]);
+                              // Navigator.of(context).push(MaterialPageRoute(builder: (builder)=>ItemQuantityScreen(appNotifier: widget.appNotifier, usercode: usercode, items: items, index: index, addQuantity: addQuantity, itemQuantities: itemQuantities)))
+                              Navigator.of(context).push(MaterialPageRoute(builder: (builder)=>MewItemQuantity(docEntry: widget.docEntry, appNotifier: widget.appNotifier,userCode: widget.usercode, item: filteredItems[index],)));
                             },
                             title: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
