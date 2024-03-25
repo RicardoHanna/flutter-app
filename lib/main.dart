@@ -24,7 +24,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider<AppNotifier>(
-          create: (context) => AppNotifier(const Locale('en'), '', 22),
+          create: (context) => AppNotifier(const Locale('en'), '', 22,const[]),
         ),
       ],
       child: MyApp(),

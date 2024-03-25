@@ -12,7 +12,7 @@ class ChangeItemQuantity extends StatefulWidget {
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
   final Map<int, List<String>> quantities;
-  
+
   final Map<int, String> updatedWarehouses;
   final Map<int, String> updatedUOM;
   final Map<int, String> updatedStatus;
@@ -51,7 +51,7 @@ class _ChangeItemQuantityState extends State<ChangeItemQuantity> {
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
   List<Map<dynamic, dynamic>> fetchedDataUOM = []; // Define fetchedData list
   late TextEditingController quantityController;
-    late TextEditingController notesController;
+  late TextEditingController notesController;
 
   String quantity = '';
 
@@ -63,11 +63,12 @@ class _ChangeItemQuantityState extends State<ChangeItemQuantity> {
     print(widget.itemQuantities);
     quantityController =
         TextEditingController(text: widget.itemQuantities.toString());
-notesController=  TextEditingController(text: widget.updatedNotes[widget.index].toString());
+    notesController = TextEditingController(
+        text: widget.updatedNotes[widget.index].toString());
 
-print('looooo');
-print(quantityController.text);
-print(notesController.text);
+    print('looooo');
+    print(quantityController.text);
+    print(notesController.text);
     fetchWarehouses().then((_) {
       setState(() {
         print('Fetched Data: $fetchedData');
@@ -297,19 +298,20 @@ print(notesController.text);
                           // Text field for batch number
                           // Text field for quantity
                           Text(
-                  'Quanity',
-                  style: TextStyle(
-                    fontSize: widget.appNotifier.fontSize.toDouble() - 2,
-                    color: Colors.black54,
-                  ),
-                ),
+                            'Quanity',
+                            style: TextStyle(
+                              fontSize:
+                                  widget.appNotifier.fontSize.toDouble() - 2,
+                              color: Colors.black54,
+                            ),
+                          ),
                           TextFormField(
                             controller:
                                 quantityController, // Use the controller for the TextFormField
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
-                              // Other decoration properties as needed
-                            ),
+                                // Other decoration properties as needed
+                                ),
                             onChanged: (value) {
                               // You can remove this onChanged callback if you don't need it
                             },
@@ -319,7 +321,9 @@ print(notesController.text);
                         ],
                       ),
                       // Add Status dropdown
-SizedBox(height: 10,),
+                      SizedBox(
+                        height: 10,
+                      ),
 /*
                Text(
                   'Status',
@@ -349,27 +353,25 @@ SizedBox(height: 10,),
                 ),
 */
 // Add Notes text field
-                Text(
-                  'Notes',
-                  style: TextStyle(
-                    fontSize: widget.appNotifier.fontSize.toDouble() - 2,
-                    color: Colors.black54,
-                  ),
-                ),
-                TextField(
-                  controller: notesController,
-                  onChanged: (value) {
-                    setState(() {
-                      notesController.text = value;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Enter notes...',
-                  ),
-                ),
-              
-           
-  
+                      Text(
+                        'Notes',
+                        style: TextStyle(
+                          fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      TextField(
+                        controller: notesController,
+                        onChanged: (value) {
+                          setState(() {
+                            notesController.text = value;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Enter notes...',
+                        ),
+                      ),
+
                       Row(
                         children: [],
                       ),

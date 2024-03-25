@@ -32,12 +32,15 @@ class OrderForm extends StatefulWidget {
   final Map<String, String> order;
   final AppNotifier appNotifier;
   final String usercode;
-  
+    final List<Map<dynamic, dynamic>> statusList; // Add this line
+
   const OrderForm(
       {super.key,
       required this.order,
       required this.usercode,
-      required this.appNotifier});
+      required this.appNotifier,
+      required this.statusList,
+      });
 
   @override
   State<OrderForm> createState() => _OrderFormState();
@@ -1034,6 +1037,8 @@ return Colors.blue.shade100;
                   dynamic remainingQty =
                       (itemCode['ordQty'] ?? 0) - (itemQuantities[index] ?? 0);
                   print(remainingQty);
+                      List<Map<String, dynamic>> receivedStatusList = widget.appNotifier.statusList;
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1044,6 +1049,8 @@ return Colors.blue.shade100;
                         index: index,
                         addQuantity: addQuantity,
                         itemQuantities: remainingQty ?? 0,
+                        statusList: receivedStatusList,
+
                       ),
                     ),
                   );

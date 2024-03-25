@@ -6,9 +6,17 @@ class AppNotifier with ChangeNotifier {
   String _userEmail;
     int _fontSize;
 
+List<Map<String, dynamic>> _statusList = [];
 
-  AppNotifier(this._userLocale, this._userEmail,this._fontSize);
+  AppNotifier(this._userLocale, this._userEmail,this._fontSize, this._statusList);
 
+
+  List<Map<String, dynamic>> get statusList => _statusList;
+
+  void updateStatusList(List<Map<String, dynamic>> newList) {
+    _statusList = newList;
+    notifyListeners();
+  }
   Locale get userLocale => _userLocale;
   int get fontSize => _fontSize;
 

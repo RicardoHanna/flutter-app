@@ -14,6 +14,8 @@ class ItemQuantityScreen extends StatefulWidget {
   final List<Map<dynamic, dynamic>> items;
   final int itemQuantities;
   final Function(BuildContext, int, int, String, String,String ,String) addQuantity;
+    final List<Map<dynamic, dynamic>> statusList; // Add this line
+
   const ItemQuantityScreen({
     Key? key,
     required this.appNotifier,
@@ -22,6 +24,7 @@ class ItemQuantityScreen extends StatefulWidget {
     required this.index,
     required this.addQuantity, // Add this line
     required this.itemQuantities,
+    required this.statusList,
   }) : super(key: key);
 
   @override
@@ -63,6 +66,11 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
         print('Dropdown uom Value: $dropdownValueUOM');
       });
     });
+if (widget.statusList.isNotEmpty && widget.statusList.length > widget.index) {
+  print(widget.statusList[widget.index].entries);
+} else {
+  print('Status list is empty or index is out of range.');
+}
   }
 
   Future<void> fetchWarehouses() async {
@@ -172,28 +180,36 @@ class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
               color: Colors.white,
             ),
           ),
+        IconButton(
+  onPressed: () {
+    List<Map<String, dynamic>> receivedStatusList = widget.appNotifier.statusList;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ItemStatus(
+          appNotifier: widget.appNotifier,
+          usercode: widget.usercode,
+          index: widget.index,
+          items: itemsorders,
+          itemQuantities: widget.itemQuantities,
+          statusList: receivedStatusList, // Pass the received status list
+        ),
+      ),
+    );
+  },
+  icon: Icon(
+    Icons.comment,
+    color: Colors.white,
+  ),
+),
+
           IconButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ItemStatus(
-                    appNotifier: widget.appNotifier,
-                    usercode: widget.usercode,
-                    index: widget.index,
-                    items: itemsorders,
-                    itemQuantities: widget.itemQuantities,
-                  ),
-                ),
-              );
-            },
-            icon: Icon(
-              Icons.comment,
-              color: Colors.white,
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
+                  List<Map<dynamic, dynamic>> receivedStatusList = widget.appNotifier.statusList;
+
+
+
+},
             icon: Icon(
               Icons.qr_code_scanner,
               color: Colors.white,
@@ -351,7 +367,7 @@ SizedBox(height: 10,),
                 print(notesController.text);
                 widget.addQuantity(context, widget.index, newQuantity,
                     dropdownValue, dropdownValueUOM , dropdownValueStatus,notesController.text); // Pass the context here
-                Navigator.pop(context); // Close the screen
+                Navigator.pop(context,widget.statusList); // Close the screen
                 Navigator.pop(context);
               },
               child: Text('OK'),

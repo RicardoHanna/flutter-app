@@ -22,7 +22,9 @@ class ReceivingScreen extends StatefulWidget {
   ReceivingScreen(
       {required this.appNotifier,
       required this.usercode,
-      this.searchedSupplier});
+      this.searchedSupplier,
+
+      });
   @override
   _ReceivingScreenState createState() => _ReceivingScreenState();
 }
@@ -37,6 +39,7 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
   List<Map<String, String>> filteredOrders = [];
   List<dynamic> selectedIndices = [];
   String itemName = '';
+  final List<Map<dynamic, dynamic>> statusList=const[];// Add this line
 
   @override
   void initState() {
@@ -335,7 +338,8 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
                                       builder: (builder) => OrderForm(
                                           order: filteredOrders[index],
                                           usercode: widget.usercode,
-                                          appNotifier: widget.appNotifier)));
+                                          appNotifier: widget.appNotifier,
+                                          statusList: statusList,)));
                                 }
                               },
                               onLongPress: () {
@@ -435,7 +439,8 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
                     builder: (builder) => OrderForm(
                         order: filteredOrders.first,
                         usercode: widget.usercode,
-                        appNotifier: widget.appNotifier)));
+                        appNotifier: widget.appNotifier,
+                        statusList: statusList,)));
               },
               child: Text('Continue'),
             ),
