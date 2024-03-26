@@ -52,9 +52,9 @@ class OrderForm extends StatefulWidget {
 late CollectionReference<Map<String, dynamic>> _specialPriceCollection;
 
 class _OrderFormState extends State<OrderForm> {
-  String apiurl = 'http://5.189.188.139:8080/api/';
+  String apiurl = 'http://5.189.188.139:8081/api/';
   UserPreferences userPreferences = UserPreferences();
-
+  TextEditingController draftTitleController = TextEditingController();
   bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = []; // Define fetchedData list
   List<String> itemCodes = [];
@@ -669,8 +669,13 @@ class _OrderFormState extends State<OrderForm> {
                         ),
                       ),
                     );
-                  }else{
-                    Navigator.of(context).push(MaterialPageRoute(builder: (builder)=>InventoryList(appNotifier: widget.appNotifier, usercode: widget.usercode, docEntry: '',)));
+                  } else {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (builder) => InventoryList(
+                              appNotifier: widget.appNotifier,
+                              usercode: widget.usercode,
+                              docEntry: '',
+                            )));
                   }
                 },
                 child: Text(
@@ -911,12 +916,66 @@ class _OrderFormState extends State<OrderForm> {
               actions: <Widget>[
                 TextButton(
                   onPressed: () async {
+                    print(widget.order);
+                    // Navigator.of(context).pop(true);
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('DraftName'),
+                          content: TextField(
+                            controller: draftTitleController,
+                            decoration: InputDecoration(
+                              labelText: 'Draft Title',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () async {
+                                if (widget.multiorders.length == 0) {
+                                  await updateDocToDraft(
+                                      widget.order['newDocEntry']!);
+
+                                  for (var i = 0; i < fetchedData.length; i++) {
+                                    await updateItemsStatusToDraft(
+                                        '${fetchedData[i]['lineNum']}',
+                                        widget.order['newDocEntry']!,'${itemQuantities[i]}');
+                                  }
+                                } else {
+                                  for (var o in widget.multiorders) {
+                                    await updateDocToDraft(o['newDocEntry']!);
+
+                                    for (var i = 0;
+                                        i < fetchedData.length;
+                                        i++) {
+                                      await updateItemsStatusToDraft(
+                                          '${fetchedData[i]['lineNum']}',
+                                          o['newDocEntry']!,
+                                          '${itemQuantities[i]}');
+                                    }
+                                  }
+                                }
+                                Navigator.of(context).pop();
+                                Navigator.of(context)
+                                    .pop(); 
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
+
+                                    // Close the AlertDialog
+                              },
+                              child: Text('Submit'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    /*
                     await saveState();
                     await saveIncompletePurchaseReceipt();
                     // Navigate back to the Welcome screen
                     Navigator.of(context).pop(true);
                     Navigator.of(context).pop(true);
-                    Navigator.of(context).pop(true);
+                    Navigator.of(context).pop(true);*/
                   },
                   child: Text('Save and continue later',
                       style: TextStyle(
@@ -925,15 +984,43 @@ class _OrderFormState extends State<OrderForm> {
                 ),
                 TextButton(
                   onPressed: () async {
+                    if (widget.multiorders.length == 0) {
+                      await updateDocToDeleted(widget.order['newDocEntry']!);
+                      for (var i = 0; i < fetchedData.length; i++) {
+                                    await updateItemsStatusToDeleted(
+                                        '${fetchedData[i]['lineNum']}',
+                                        widget.order['newDocEntry']!);
+                                  }
+                    } else {
+                      for (var o in widget.multiorders) {
+                        await updateDocToDeleted(o['newDocEntry']!);
+                        for (var i = 0;
+                                        i < fetchedData.length;
+                                        i++) {
+                                      await updateItemsStatusToDeleted(
+                                          '${fetchedData[i]['lineNum']}',
+                                          o['newDocEntry']!);
+                                    }
+                      }
+                    }
+
+                    Navigator.of(context).pop(true);
+                    Navigator.of(context).pop(true);
+                    Navigator.of(context).pop(true);
+                    Navigator.of(context).pop(true);
+
+                    print(widget.order['docEntry']);
+                    print(fetchedData);
+                    print(itemQuantities);
+
+                    /*
                     initializeItemQuantities(); // Reset item quantities
                     setState(() {
                       itemColors.clear(); // Clear item colors
                     });
                     await discardIncompletePurchaseReceipt();
-                    Navigator.of(context).pop(true);
-                    Navigator.of(context).pop(true);
-                    Navigator.of(context).pop(true);
-                    Navigator.of(context).pop(true);
+                    
+                    */
                   },
                   child: Text('Discard data',
                       style: TextStyle(
@@ -954,6 +1041,49 @@ class _OrderFormState extends State<OrderForm> {
           },
         ) ??
         false; // Ensure a default value is returned if showDialog returns null
+  }
+
+  Future<void> updateDocToDraft(String docEntry) async {
+    try {
+      final response = await http.post(
+          Uri.parse('${apiurl}updateReceiptStatusDraft'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(
+              {'docEntry': docEntry, 'title': draftTitleController.text}));
+    } catch (error) {
+      print("$error");
+    }
+  }
+
+  Future<void> updateDocToDeleted(String docEntry) async {
+    try {
+      final response = await http.post(
+          Uri.parse('${apiurl}updateReceiptStatusDeleted'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({'docEntry': docEntry}));
+    } catch (error) {
+      print("$error");
+    }
+  }
+
+  Future<void> updateItemsStatusToDraft(
+      String lineNum, String docEntry, String qty) async {
+    try {
+      final response = await http.post(Uri.parse('${apiurl}updateItemToDraft'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(
+              {'docEntry': docEntry, 'lineNum': lineNum, 'qty': qty}));
+    } catch (error) {}
+  }
+
+  Future<void> updateItemsStatusToDeleted(
+      String lineNum, String docEntry) async {
+    try {
+      final response = await http.post(Uri.parse('${apiurl}updateItemToDeleted'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(
+              {'docEntry': docEntry, 'lineNum': lineNum}));
+    } catch (error) {}
   }
 
   Future<void> _showActionDialog(

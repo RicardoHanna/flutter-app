@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart'
     show ByteData, PlatformException, rootBundle;
 import 'package:project/app_notifier.dart';
+import 'package:project/wms/Drafts_Form.dart';
 import 'package:project/wms/NewReceipt_Form.dart';
 import 'package:project/wms/Order_Form.dart';
 import 'package:http/http.dart' as http;
@@ -36,7 +37,7 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
   List<Map<String, String>> filteredOrders = [];
   List<dynamic> selectedIndices = [];
   String itemName = '';
-  List<dynamic> drafts = [];
+  List<Map<String,dynamic>> drafts = [];
 
   @override
   void initState() {
@@ -54,7 +55,8 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    print(drafts);
+                    Navigator.of(context).push(MaterialPageRoute(builder: (builder)=>DraftsForm(usercode: widget.usercode, appNotifier: widget.appNotifier, drafts: drafts,)));
                   },
                   child: Text('Continue The Draft'),
                 ),
@@ -110,7 +112,7 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
     _checkIncompletePurchaseReceipt();
   }
 
-  Future<void> insertIntoOPDN(Map orders)async{
+  Future<String> insertIntoOPDN(Map orders)async{
     try {
       final cmpCode = await fetchCmpCode(widget.usercode);
       print("##################################################################");
@@ -129,10 +131,14 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
         print(response.body);
         Map<String, dynamic> js = jsonDecode(response.body);
         print(js);
+        print(js['docNum']);
+        return '${js['docNum']}';
       }
     } catch (error) {
       print('Error fetching cmpCode: $error');
+      return '';
     }
+    return '';
   }
 
   void _updateFilteredOrders(String query) {
@@ -167,6 +173,10 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
         List<Map<String, dynamic>> draftsMap = drafts
             .map((dynamic item) => item as Map<String, dynamic>)
             .toList(); // Transformation here
+
+        setState(() {
+          this.drafts = draftsMap;
+        });
         print(draftsMap);
       }
     } catch (err) {}
@@ -265,20 +275,6 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
 
                   // For example:
                   bool itemFound = false;
-                  /*    for (var item in filteredItems) {
-
-        if (item.barCode == barcode) {
-          itemFound = true;
-          // Show item details for the scanned item
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ItemsInfoForm(item: item, appNotifier: widget.appNotifier,),
-            ),
-          );
-          break; // Exit the loop since the item is found
-        }
-      }*/
                   if (!itemFound) {
                     // Display a message indicating that the scanned item was not found
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -356,8 +352,9 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
               onPressed: () async {
                 if (selectedIndices.length != 0) {
 
-                  for(var o in selectedIndices){
-                    await insertIntoOPDN(o);
+                  for(var i=0;i<selectedIndices.length;i++){
+                    String newDocEntry = await insertIntoOPDN(selectedIndices[i]);
+                    selectedIndices[i]['newDocEntry'] = newDocEntry;
                   }
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (builder) => OrderForm(
@@ -452,16 +449,18 @@ class _ReceivingScreenState extends State<ReceivingScreen> {
 
                                   print(selectedIndices);
                                 } else {
-                                  await insertIntoOPDN(filteredOrders[index]);
-                                  // Navigator.of(context).push(MaterialPageRoute(
-                                  //     builder: (builder) => OrderForm(
-                                  //           order: filteredOrders[index],
-                                  //           usercode: widget.usercode,
-                                  //           appNotifier: widget.appNotifier,
-                                  //           multiorders: [],
-                                  //           vendor: '',
-                                  //           isNewReceiptOnPo: true,
-                                  //         )));
+                                  String newDocEntry = await insertIntoOPDN(filteredOrders[index]);
+                                  
+                                  filteredOrders[index]['newDocEntry'] = newDocEntry;
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (builder) => OrderForm(
+                                            order: filteredOrders[index],
+                                            usercode: widget.usercode,
+                                            appNotifier: widget.appNotifier,
+                                            multiorders: [],
+                                            vendor: '',
+                                            isNewReceiptOnPo: true,
+                                          )));
                                 }
                               },
                               onLongPress: () {
