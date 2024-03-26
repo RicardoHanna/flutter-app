@@ -16,7 +16,7 @@ class WmsSettings extends StatefulWidget {
 }
 
 class _WmsSettingsState extends State<WmsSettings> {
-  String baseUrl = "http://5.189.188.139:8081/api/";
+  String baseUrl = "http://5.189.188.139:8080/api/";
   List<dynamic> filteredUsers = [];
   TextEditingController _searchController = TextEditingController();
   List<dynamic> userGroups = [];

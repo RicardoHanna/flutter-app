@@ -83,14 +83,17 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
         actions: [
           IconButton(
               onPressed: () {
+                          List<Map<String, dynamic>> receivedAttachList = widget.appNotifier.attachListDocument;
+
                     Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ItemAttachDocumentPage(
                         appNotifier: widget.appNotifier,
                         usercode: widget.usercode,
-                        items: itemsorders,
+                       items: itemsorders,
                         itemQuantities: widget.itemQuantities,
+                        attachListDocument:receivedAttachList,
                       ),
                     ),
                   );

@@ -7,14 +7,26 @@ class AppNotifier with ChangeNotifier {
     int _fontSize;
 
 List<Map<String, dynamic>> _statusList = [];
+List<Map<String, dynamic>> _attachList = [];
+List<Map<String, dynamic>> _attachListDocument = [];
 
-  AppNotifier(this._userLocale, this._userEmail,this._fontSize, this._statusList);
+  AppNotifier(this._userLocale, this._userEmail,this._fontSize, this._statusList,this._attachList,this._attachListDocument);
 
 
   List<Map<String, dynamic>> get statusList => _statusList;
+  List<Map<String, dynamic>> get attachList => _attachList;
+  List<Map<String, dynamic>> get attachListDocument => _attachListDocument;
 
   void updateStatusList(List<Map<String, dynamic>> newList) {
     _statusList = newList;
+    notifyListeners();
+  }
+   void updateAttachList(List<Map<String, dynamic>> newListAttach) {
+    _attachList = newListAttach;
+    notifyListeners();
+  }
+   void updateAttachListDocument(List<Map<String, dynamic>> newListAttachDocument) {
+    _attachListDocument = newListAttachDocument;
     notifyListeners();
   }
   Locale get userLocale => _userLocale;

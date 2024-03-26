@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:project/app_notifier.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart'; // Import this package to format the date
+import 'package:intl/intl.dart';
+import 'package:project/wms/ItemStatus_Form.dart'; // Import this package to format the date
 
 class AddBatch extends StatefulWidget {
   final AppNotifier appNotifier;
@@ -239,6 +240,29 @@ class _AddBatchState extends State<AddBatch> {
           ),
         ),
         actions: [
+                IconButton(
+  onPressed: () {
+    List<Map<String, dynamic>> receivedStatusList = widget.appNotifier.statusList;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ItemStatus(
+          appNotifier: widget.appNotifier,
+          usercode: widget.usercode,
+          index: widget.index,
+          items: itemsorders,
+          itemQuantities: widget.itemQuantities,
+          statusList: receivedStatusList, // Pass the received status list
+        ),
+      ),
+    );
+  },
+  icon: Icon(
+    Icons.comment,
+    color: Colors.white,
+  ),
+),
+
           IconButton(
             onPressed: () async {
               await scanBarcode();

@@ -162,6 +162,8 @@ if (widget.statusList.isNotEmpty && widget.statusList.length > widget.index) {
         actions: [
           IconButton(
             onPressed: () {
+          List<Map<String, dynamic>> receivedAttachList = widget.appNotifier.attachList;
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -171,6 +173,8 @@ if (widget.statusList.isNotEmpty && widget.statusList.length > widget.index) {
                     index: widget.index,
                     items: itemsorders,
                     itemQuantities: widget.itemQuantities,
+                    attachList: receivedAttachList,
+                    
                   ),
                 ),
               );
@@ -203,7 +207,7 @@ if (widget.statusList.isNotEmpty && widget.statusList.length > widget.index) {
   ),
 ),
 
-          IconButton(
+       /*   IconButton(
             onPressed: () {
                   List<Map<dynamic, dynamic>> receivedStatusList = widget.appNotifier.statusList;
 
@@ -214,7 +218,7 @@ if (widget.statusList.isNotEmpty && widget.statusList.length > widget.index) {
               Icons.qr_code_scanner,
               color: Colors.white,
             ),
-          ),
+          ),*/
         ],
         backgroundColor: Colors.blue,
       ),

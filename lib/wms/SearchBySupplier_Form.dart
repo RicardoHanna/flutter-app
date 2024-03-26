@@ -19,7 +19,7 @@ class _SearchBySupplierScreenState extends State<SearchBySupplierScreen> {
   TextEditingController supplierNameController = TextEditingController();
   List<dynamic> suppliers = [];
   List<dynamic> filteredSuppliers = [];
-  String baseUrl = "http://5.189.188.139:8081/api/";
+  String baseUrl = "http://5.189.188.139:8080/api/";
 
   Future<void> getSuppliers() async {
     try {

@@ -519,12 +519,7 @@ return Colors.blue.shade100;
                 fontSize: widget.appNotifier.fontSize.toDouble()),
           ),
           actions: [
-            IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  Icons.attachment,
-                  color: Colors.white,
-                )),
+          
             IconButton(
                 onPressed: () async {
                   String barcode = await scanBarcode();

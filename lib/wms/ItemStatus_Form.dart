@@ -31,23 +31,28 @@ class ItemStatus extends StatefulWidget {
 
 class _ItemStatusState extends State<ItemStatus> {
   TextEditingController notesController = TextEditingController();
-  String dropdownValue = 'Good';
+  String dropdownValue = '';
   String dropdownValueWhs = '';
   List<Map<dynamic, dynamic>> itemsorders = [];
   String apiurl = 'http://5.189.188.139:8080/api/';
   bool _isLoading = false;
   List<Map<dynamic, dynamic>> fetchedData = [];
+    List<Map<dynamic, dynamic>> fetchedDataStatus = [];
+
   List<File> imageFiles = []; // Changed to List<File>
   String notes = '';
   TextEditingController quantityController = TextEditingController();
   List<Map<String, dynamic>> statusList =
       []; // List to store status information
 String userCode='';
+int updatedIndex=-1;
+@override
 @override
 void initState() {
   super.initState();
   itemsorders = widget.items;
-  userCode=widget.usercode;
+  userCode = widget.usercode;
+
   fetchWarehouses().then((_) {
     setState(() {
       print('Fetched Data: $fetchedData');
@@ -57,21 +62,24 @@ void initState() {
       print('Dropdown Value: $dropdownValueWhs');
     });
   });
-  print('hii');
-print(itemsorders[widget.index]['docEntry']??'');
-  // Check if statusList is not null
-  if (widget.statusList != null && widget.statusList.isNotEmpty && widget.index < widget.statusList.length) {
-  if (widget.statusList[widget.index]['docEntry'] == itemsorders[widget.index]['docEntry'] &&
-      widget.statusList[widget.index]['lineID'] == itemsorders[widget.index]['lineNum'] &&
-      widget.statusList[widget.index]['cmpCode'] == itemsorders[widget.index]['cmpCode']) {
-    // If it's not null and the index is within bounds, update the local statusList variable with the values from AppNotifier
-    statusList = widget.statusList;
-  }
-}
+    fetchStatus().then((_) {
+    setState(() {
+      print('Fetched Data: $fetchedDataStatus');
+      dropdownValue = fetchedDataStatus.isNotEmpty
+          ? fetchedDataStatus.first['ANY_VALUE(u.statusCode)'].toString()
+          : ''; // Set default value to an empty string if fetched data is empty
+      print('Dropdown Value: $dropdownValue');
+    });
+  });
+
+  statusList = widget.statusList;
+
+  
 
   print('hiiii');
   print(widget.usercode);
 }
+
 
 
   Future<void> fetchWarehouses() async {
@@ -106,24 +114,51 @@ print(itemsorders[widget.index]['docEntry']??'');
     }
   }
 
-  void editStatus(int index) {
+  Future<void> fetchStatus() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Map<String, dynamic> requestBody = {'cmpCode': itemsorders[widget.index]['cmpCode']};
+
+      final response = await http.post(
+        Uri.parse('${apiurl}getStatus'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          fetchedDataStatus = List<Map<dynamic, dynamic>>.from(data.map((item) {
+            return Map<dynamic, dynamic>.from(item);
+          }));
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to fetch data status');
+      }
+    } catch (error) {
+      print('Error fetching data status: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+void editStatus(int index) {
     setState(() {
       dropdownValueWhs = statusList[index]['Warehouse'];
       dropdownValue = statusList[index]['Status'];
       quantityController.text = statusList[index]['Quantity'];
       notesController.text = statusList[index]['Notes'];
-    itemsorders[widget.index]['docEntry'] = statusList[index]['docEntry'];
-    itemsorders[widget.index]['lineNum'] =  statusList[index]['lineID'];
-    itemsorders[widget.index]['cmpCode'] =  statusList[index]['cmpCode'];
-
-    userCode=statusList[index]['userCode'];
+updatedIndex=index;
 
 
       // Remove the status from the list to edit
       //statusList.removeAt(index);
     });
   }
-
  void deleteStatus(int index) {
   showDialog(
     context: context,
@@ -169,13 +204,19 @@ void addStatus() {
     int existingIndex = statusList.indexWhere((status) => status['identifier'] == identifier);
 
     if (existingIndex != -1) {
-      // If a status with the same identifier exists, update it
+      // If the status entry already exists, update it
       setState(() {
-        statusList[existingIndex]['Warehouse'] = dropdownValueWhs;
-        statusList[existingIndex]['Status'] = dropdownValue;
-        statusList[existingIndex]['Quantity'] = quantityController.text;
-        statusList[existingIndex]['Notes'] = notesController.text;
-        statusList[existingIndex]['userCode'] = userCode;
+       statusList.add({
+          'identifier': identifier,
+          'Warehouse': dropdownValueWhs,
+          'Status': dropdownValue,
+          'Quantity': quantityController.text,
+          'Notes': notesController.text,
+          'docEntry': itemsorders[widget.index]['docEntry'],
+          'lineID': itemsorders[widget.index]['lineNum'],
+          'cmpCode': itemsorders[widget.index]['cmpCode'],
+          'userCode': userCode,
+        });
       });
     } else {
       // If no status with the same identifier exists, add a new status
@@ -194,7 +235,7 @@ void addStatus() {
       });
     }
 
-    // Clear the text fields after adding a status
+    // Clear the text fields after adding/updating a status
     quantityController.clear();
     notesController.clear();
   }
@@ -214,6 +255,12 @@ void addStatus() {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Widgets for user input
+             Text(
+                  'Warehouse',
+                  style: TextStyle(
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                      color: Colors.black54),
+                ),
             DropdownButton<String>(
               value: dropdownValueWhs ?? '',
               onChanged: (String? newValue) {
@@ -229,18 +276,24 @@ void addStatus() {
                 );
               }).toList(),
             ),
+             Text(
+                  'Status',
+                  style: TextStyle(
+                      fontSize: widget.appNotifier.fontSize.toDouble() - 2,
+                      color: Colors.black54),
+                ),
             DropdownButton<String>(
-              value: dropdownValue,
+              value: dropdownValue ?? '',
               onChanged: (String? newValue) {
                 setState(() {
                   dropdownValue = newValue!;
                 });
               },
-              items: <String>['Good', 'Bad', 'Other']
-                  .map<DropdownMenuItem<String>>((String value) {
+              items: fetchedDataStatus.map<DropdownMenuItem<String>>(
+                  (Map<dynamic, dynamic> status) {
                 return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
+                  value: status['ANY_VALUE(u.statusCode)'].toString(),
+                  child: Text(status['ANY_VALUE(u.statusName)'].toString()),
                 );
               }).toList(),
             ),
@@ -268,47 +321,68 @@ void addStatus() {
               child: Text('Add Status'),
             ),
             // List to display added status
-            Expanded(
-              child: ListView.builder(
-                itemCount: statusList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    title: Text('Warehouse: ${statusList[index]['Warehouse']}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Status: ${statusList[index]['Status']}'),
-                        Text('Quantity: ${statusList[index]['Quantity']}'),
-                        Text('Notes: ${statusList[index]['Notes']}'),
-                      ],
-                    ),
-                    // Add edit and delete buttons
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit),
-                          color: Colors.blue,
-                          onPressed: () {
-                            editStatus(index);
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          color: Colors.red,
-                          onPressed: () {
-                            deleteStatus(index);
-                          },
-                        ),
-                      ],
-                    ),
-                  );
+            // List to display added status
+Expanded(
+  child: ListView.builder(
+    itemCount: statusList.length,
+    itemBuilder: (BuildContext context, int index) {
+      // Filter statusList based on the identifier
+      String identifier =
+          '${itemsorders[widget.index]['docEntry']}_${itemsorders[widget.index]['lineNum']}_${itemsorders[widget.index]['cmpCode']}';
+      
+      // Check if the current status entry matches the identifier
+      if (statusList[index]['identifier'] == identifier) {
+        return ListTile(
+          title: Text('Warehouse: ${statusList[index]['Warehouse']}'),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Status: ${statusList[index]['Status']}'),
+              Text('Quantity: ${statusList[index]['Quantity']}'),
+              Text('Notes: ${statusList[index]['Notes']}'),
+            ],
+          ),
+          // Add edit and delete buttons
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(Icons.edit),
+                color: Colors.blue,
+                onPressed: () {
+                  editStatus(index);
                 },
               ),
-            ),
+              IconButton(
+                icon: Icon(Icons.delete),
+                color: Colors.red,
+                onPressed: () {
+                  deleteStatus(index);
+                },
+              ),
+            ],
+          ),
+        );
+      } else {
+        // Return an empty container if the status entry does not match the identifier
+        return Container();
+      }
+    },
+  ),
+),
+
        ElevatedButton(
         
   onPressed: () {
+    if(updatedIndex!=-1){
+      setState(() {
+         statusList[updatedIndex]['Warehouse'] = dropdownValueWhs;
+        statusList[updatedIndex]['Status'] = dropdownValue;
+        statusList[updatedIndex]['Quantity'] = quantityController.text;
+        statusList[updatedIndex]['Notes'] = notesController.text;
+      });
+       
+    }
     final statusProvider = Provider.of<AppNotifier>(context, listen: false);
 
     print('Status list length: ${widget.statusList.length}');
