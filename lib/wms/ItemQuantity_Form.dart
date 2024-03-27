@@ -33,8 +33,8 @@ class ItemQuantityScreen extends StatefulWidget {
 
 class _ItemQuantityScreenState extends State<ItemQuantityScreen> {
   TextEditingController quantityController = TextEditingController();
-  String dropdownValue = '';
-  String dropdownValueUOM = '';
+  String dropdownValue = 'AM';
+  String dropdownValueUOM = 'PC';
   List<Map<dynamic, dynamic>> itemsorders = [];
   String apiurl = 'http://5.189.188.139:8080/api/';
   bool _isLoading = false;
@@ -77,7 +77,6 @@ if (widget.statusList.isNotEmpty && widget.statusList.length > widget.index) {
     setState(() {
       _isLoading = true;
     });
-
     try {
       Map<String, dynamic> requestBody = {'userCode': widget.usercode};
 
